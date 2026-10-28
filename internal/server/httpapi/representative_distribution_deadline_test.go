@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -27,10 +29,11 @@ import (
 )
 
 type representativeDeadlineArchiveSource struct {
-	started   chan context.Context
-	finished  chan struct{}
-	attempted atomic.Int64
-	completed atomic.Int64
+	started       chan context.Context
+	writeReturned chan error
+	finished      chan struct{}
+	attempted     atomic.Int64
+	completed     atomic.Int64
 }
 
 func (source *representativeDeadlineArchiveSource) WriteSkillArchive(ctx context.Context, _, _, _ string, output io.Writer) error {
@@ -43,11 +46,75 @@ func (source *representativeDeadlineArchiveSource) WriteSkillArchive(ctx context
 		}
 		source.attempted.Add(1)
 		if _, err := output.Write(data); err != nil {
+			if source.writeReturned != nil {
+				source.writeReturned <- err
+				<-ctx.Done()
+			}
 			return err
 		}
 		source.completed.Add(1)
 	}
 	return nil
+}
+
+type representativeDeadlineWatchWriter struct {
+	http.ResponseWriter
+	deadlines chan<- time.Time
+}
+
+func (writer representativeDeadlineWatchWriter) Unwrap() http.ResponseWriter {
+	return writer.ResponseWriter
+}
+
+func (writer representativeDeadlineWatchWriter) SetWriteDeadline(deadline time.Time) error {
+	err := http.NewResponseController(writer.ResponseWriter).SetWriteDeadline(deadline)
+	if err == nil {
+		select {
+		case writer.deadlines <- deadline:
+		default:
+		}
+	}
+	return err
+}
+
+type representativeDeadlineListener struct {
+	net.Listener
+	writeReturned chan<- error
+	releaseErrors <-chan struct{}
+}
+
+func (listener representativeDeadlineListener) Accept() (net.Conn, error) {
+	connection, err := listener.Listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+	return &representativeDeadlineConnection{Conn: connection, writeReturned: listener.writeReturned, releaseErrors: listener.releaseErrors}, nil
+}
+
+type representativeDeadlineConnection struct {
+	net.Conn
+	writeReturned chan<- error
+	releaseErrors <-chan struct{}
+}
+
+func (connection *representativeDeadlineConnection) Read(data []byte) (int, error) {
+	count, err := connection.Conn.Read(data)
+	if err != nil {
+		<-connection.releaseErrors
+	}
+	return count, err
+}
+
+func (connection *representativeDeadlineConnection) Write(data []byte) (int, error) {
+	count, err := connection.Conn.Write(data)
+	if err != nil {
+		select {
+		case connection.writeReturned <- err:
+		default:
+		}
+		<-connection.releaseErrors
+	}
+	return count, err
 }
 
 func TestRepresentativeDistributionConnectDeadlineUnblocksSocketWrite(test *testing.T) {
@@ -81,7 +148,7 @@ func TestRepresentativeDistributionConnectDeadlineUnblocksSocketWrite(test *test
 	if err != nil {
 		test.Fatal(err)
 	}
-	source := &representativeDeadlineArchiveSource{started: make(chan context.Context, 1), finished: make(chan struct{})}
+	source := &representativeDeadlineArchiveSource{started: make(chan context.Context, 1), writeReturned: make(chan error, 1), finished: make(chan struct{})}
 	distribution, err := packs.NewService(store, source, key)
 	if err != nil {
 		test.Fatal(err)
@@ -97,21 +164,27 @@ func TestRepresentativeDistributionConnectDeadlineUnblocksSocketWrite(test *test
 	}
 	handler := NewWithOptions(authentication, Options{Store: store, Packs: distribution})
 	handlerFinished := make(chan struct{})
+	writeDeadlines := make(chan time.Time, 4)
+	socketWriteReturned := make(chan error, 1)
+	releaseSocketErrors := make(chan struct{})
+	releaseErrors := sync.OnceFunc(func() { close(releaseSocketErrors) })
 	server := httptest.NewUnstartedServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		defer close(handlerFinished)
-		handler.ServeHTTP(writer, request)
+		handler.ServeHTTP(representativeDeadlineWatchWriter{ResponseWriter: writer, deadlines: writeDeadlines}, request)
 	}))
 	server.Config.ConnState = func(connection net.Conn, phase http.ConnState) {
 		if phase == http.StateNew {
-			if socket, ok := connection.(*net.TCPConn); !ok {
+			if socket, ok := connection.(*representativeDeadlineConnection).Conn.(*net.TCPConn); !ok {
 				test.Error("fixture did not accept a TCP connection")
 			} else if err := socket.SetWriteBuffer(4 << 10); err != nil {
 				test.Errorf("limit server socket buffer: %v", err)
 			}
 		}
 	}
+	server.Listener = representativeDeadlineListener{Listener: server.Listener, writeReturned: socketWriteReturned, releaseErrors: releaseSocketErrors}
 	server.Start()
 	test.Cleanup(server.Close)
+	test.Cleanup(releaseErrors)
 	address, err := net.ResolveTCPAddr("tcp4", server.Listener.Addr().String())
 	if err != nil {
 		test.Fatal(err)
@@ -158,12 +231,43 @@ func TestRepresentativeDistributionConnectDeadlineUnblocksSocketWrite(test *test
 	case <-time.After(2 * time.Second):
 		test.Fatal("request did not reach the archive source")
 	}
+	stopRelease := context.AfterFunc(sourceContext, releaseErrors)
+	test.Cleanup(func() { stopRelease() })
 	if deadline, ok := sourceContext.Deadline(); !ok || time.Until(deadline) > time.Second {
 		test.Fatal("source context did not inherit the short Connect deadline")
 	}
+	contextCanceled := time.After(2 * time.Second)
+	writeUnblocked := time.After(time.Second)
+	select {
+	case err := <-socketWriteReturned:
+		if socketError, ok := errors.AsType[net.Error](err); !ok || !socketError.Timeout() {
+			test.Fatalf("socket write did not return a timeout: %v", err)
+		}
+	case <-writeUnblocked:
+		test.Fatalf("Connect deadline did not unblock socket write: attempted=%d completed=%d", source.attempted.Load(), source.completed.Load())
+	}
+	select {
+	case err := <-source.writeReturned:
+		if err == nil {
+			test.Fatal("archive write returned without an error")
+		}
+	case <-writeUnblocked:
+		test.Fatal("socket write returned but archive write remained blocked")
+	}
+	var connectWriteDeadline time.Time
+	for range 2 {
+		select {
+		case connectWriteDeadline = <-writeDeadlines:
+		default:
+			test.Fatal("transport did not bind both lifetime and Connect write deadlines")
+		}
+	}
+	if sourceDeadline, _ := sourceContext.Deadline(); !sourceDeadline.Equal(connectWriteDeadline) {
+		test.Fatalf("source deadline %v differs from transport Connect deadline %v", sourceDeadline, connectWriteDeadline)
+	}
 	select {
 	case <-sourceContext.Done():
-	case <-time.After(2 * time.Second):
+	case <-contextCanceled:
 		test.Fatal("short Connect deadline did not cancel the source context")
 	}
 	if sourceContext.Err() != context.DeadlineExceeded {

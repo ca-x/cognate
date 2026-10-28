@@ -43,9 +43,15 @@ func closeCancels(test *testing.T, version string) {
 	case <-time.After(time.Second):
 		test.Fatal("real SDK tool did not start")
 	}
-	request, _ := http.NewRequestWithContext(test.Context(), "POST", server.URL+mcpserver.Path, strings.NewReader(`{}`))
-	request.Header.Set("Authorization", "Bearer "+secret.Reveal())
-	response, err := server.Client().Do(request)
+	newRequest := func() *http.Request {
+		request, err := http.NewRequestWithContext(test.Context(), "POST", server.URL+mcpserver.Path, strings.NewReader(`{}`))
+		if err != nil {
+			test.Fatal(err)
+		}
+		request.Header.Set("Authorization", "Bearer "+secret.Reveal())
+		return request
+	}
+	response, err := server.Client().Do(newRequest())
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -71,7 +77,7 @@ func closeCancels(test *testing.T, version string) {
 	if err := endpoint.Close(ctx); err != nil {
 		test.Fatal("repeated Close failed")
 	}
-	response, err = server.Client().Do(request)
+	response, err = server.Client().Do(newRequest())
 	if err != nil {
 		test.Fatal(err)
 	}
