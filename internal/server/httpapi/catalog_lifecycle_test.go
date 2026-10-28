@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -171,17 +172,34 @@ func TestCatalogBlockedSocketDeadlineCloseAndDisconnect(test *testing.T) {
 		test.Run(reason, func(test *testing.T) {
 			fixture := newCatalogLifecycleFixture(test)
 			finished := make(chan struct{})
+			writeDeadlines := make(chan time.Time, 4)
+			socketWriteReturned := make(chan error, 1)
+			releaseSocketErrors := make(chan struct{})
+			releaseErrors := sync.OnceFunc(func() { close(releaseSocketErrors) })
+			if reason == "deadline" {
+				fixture.source.writeReturned = make(chan error, 1)
+			}
 			server := httptest.NewUnstartedServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				defer close(finished)
+				if reason == "deadline" {
+					writer = representativeDeadlineWatchWriter{ResponseWriter: writer, deadlines: writeDeadlines}
+				}
 				fixture.handler.ServeHTTP(writer, request)
 			}))
 			server.Config.ConnState = func(connection net.Conn, phase http.ConnState) {
+				if reason == "deadline" {
+					connection = connection.(*representativeDeadlineConnection).Conn
+				}
 				if socket, ok := connection.(*net.TCPConn); ok && phase == http.StateNew {
 					_ = socket.SetWriteBuffer(4 << 10)
 				}
 			}
+			if reason == "deadline" {
+				server.Listener = representativeDeadlineListener{Listener: server.Listener, writeReturned: socketWriteReturned, releaseErrors: releaseSocketErrors}
+			}
 			server.Start()
 			test.Cleanup(server.Close)
+			test.Cleanup(releaseErrors)
 			address, err := net.ResolveTCPAddr("tcp4", server.Listener.Addr().String())
 			if err != nil {
 				test.Fatal(err)
@@ -223,6 +241,41 @@ func TestCatalogBlockedSocketDeadlineCloseAndDisconnect(test *testing.T) {
 			case <-time.After(time.Second):
 				test.Fatal("request did not reach source")
 			}
+			if reason == "deadline" {
+				stopRelease := context.AfterFunc(sourceContext, releaseErrors)
+				test.Cleanup(func() { stopRelease() })
+				if deadline, ok := sourceContext.Deadline(); !ok || time.Until(deadline) > 200*time.Millisecond {
+					test.Fatal("source context did not inherit the 200ms Connect deadline")
+				}
+				writeUnblocked := time.After(time.Second)
+				select {
+				case err := <-socketWriteReturned:
+					if socketError, ok := errors.AsType[net.Error](err); !ok || !socketError.Timeout() {
+						test.Fatalf("socket write did not return a timeout: %v", err)
+					}
+				case <-writeUnblocked:
+					test.Fatalf("Connect deadline did not unblock socket write: attempted=%d completed=%d", fixture.source.attempted.Load(), fixture.source.completed.Load())
+				}
+				select {
+				case err := <-fixture.source.writeReturned:
+					if err == nil {
+						test.Fatal("archive write returned without an error")
+					}
+				case <-writeUnblocked:
+					test.Fatal("socket write returned but archive write remained blocked")
+				}
+				var connectWriteDeadline time.Time
+				for range 2 {
+					select {
+					case connectWriteDeadline = <-writeDeadlines:
+					default:
+						test.Fatal("transport did not bind both lifetime and Connect write deadlines")
+					}
+				}
+				if sourceDeadline, _ := sourceContext.Deadline(); !sourceDeadline.Equal(connectWriteDeadline) {
+					test.Fatalf("source deadline %v differs from transport Connect deadline %v", sourceDeadline, connectWriteDeadline)
+				}
+			}
 			closed := make(chan error, 1)
 			if reason == "close" {
 				go func() { closed <- fixture.service.Close() }()
@@ -234,7 +287,7 @@ func TestCatalogBlockedSocketDeadlineCloseAndDisconnect(test *testing.T) {
 			case <-time.After(2 * time.Second):
 				test.Fatal("source context was not canceled")
 			}
-			if reason == "deadline" && !errors.Is(sourceContext.Err(), context.DeadlineExceeded) {
+			if reason == "deadline" && sourceContext.Err() != context.DeadlineExceeded {
 				test.Fatalf("short Connect deadline not inherited: %v", sourceContext.Err())
 			}
 			select {
