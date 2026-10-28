@@ -1,0 +1,126 @@
+name: Platform filesystem primitives
+
+on:
+  push:
+    paths:
+      - 'internal/objectid/**'
+      - 'internal/install/**'
+      - 'internal/skill/**'
+      - 'internal/packclient/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/platform-primitives.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CGO_ENABLED: '0'
+  GOTOOLCHAIN: local
+  GOFLAGS: -mod=readonly
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  primitives:
+    name: Primitives (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Isolate home, configuration, caches and temporary files
+        shell: python {0}
+        run: |
+          import os
+          from pathlib import Path
+          import tempfile
+
+          root = Path(tempfile.mkdtemp(prefix="cognate-primitives-", dir=os.environ["RUNNER_TEMP"]))
+          directories = {
+              "HOME": "home", "USERPROFILE": "home",
+              "XDG_CONFIG_HOME": "config", "XDG_DATA_HOME": "data", "XDG_CACHE_HOME": "cache",
+              "APPDATA": "appdata", "LOCALAPPDATA": "localappdata",
+              "TMPDIR": "tmp", "TMP": "tmp", "TEMP": "tmp",
+              "GOPATH": "gopath", "GOCACHE": "go-build",
+          }
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
+              for name, relative in directories.items():
+                  path = root / relative
+                  path.mkdir(parents=True, exist_ok=True)
+                  environment.write(f"{name}={path}\n")
+      - name: Require Go 1.27.3 and CGO disabled
+        run: |
+          set -euo pipefail
+          test "$(go env GOVERSION)" = go1.27.3
+          test "$(go env CGO_ENABLED)" = 0
+          go env GOOS GOARCH GOVERSION CGO_ENABLED
+      - name: Common identity parser and portable smoke (no installer)
+        run: |
+          set -euo pipefail
+          go test -count=1 -timeout=120s -json \
+            -run '^(TestValidate|TestIdentityDirectoryDomain|TestPortableSlugsAreCrossPlatform|TestScanFindsHiddenAndNestedSkills|TestScanSkipsGitMetadata|TestScanRejectsMalformedFrontmatter|TestConcurrencyBudgetIsFailFastAndReusable|TestPublicClientDoesNotFollowRedirects|TestPublicClientCancellationAndOriginBoundary)$' \
+            ./internal/objectid ./internal/skill ./internal/packclient | tee common.json
+      - name: Darwin TempDir filesystem primitives (native execution)
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          go test -count=1 -timeout=120s -json \
+            -run '^TestDarwin(IdentityPrimitives|TrustPrimitives|ProjectionLinkPrimitives|RenameNoReplacePrimitives)$' \
+            ./internal/install | tee darwin.json
+          go vet ./internal/install
+      - name: Reject skipped or missing required tests
+        shell: python {0}
+        run: |
+          from collections import Counter
+          import json
+          import os
+          from pathlib import Path
+
+          required = {
+              "internal/objectid": ["TestValidate", "TestIdentityDirectoryDomain"],
+              "internal/skill": [
+                  "TestPortableSlugsAreCrossPlatform", "TestScanFindsHiddenAndNestedSkills",
+                  "TestScanSkipsGitMetadata", "TestScanRejectsMalformedFrontmatter",
+              ],
+              "internal/packclient": [
+                  "TestConcurrencyBudgetIsFailFastAndReusable", "TestPublicClientDoesNotFollowRedirects",
+                  "TestPublicClientCancellationAndOriginBoundary",
+              ],
+          }
+          logs = [Path("common.json")]
+          if os.environ["RUNNER_OS"] == "macOS":
+              required["internal/install"] = [
+                  "TestDarwinIdentityPrimitives", "TestDarwinTrustPrimitives",
+                  "TestDarwinProjectionLinkPrimitives", "TestDarwinRenameNoReplacePrimitives",
+              ]
+              logs.append(Path("darwin.json"))
+          events = [json.loads(line) for path in logs for line in path.read_text(encoding="utf-8").splitlines()]
+          rejected = [event for event in events if event["Action"] in {"fail", "skip"}]
+          if rejected:
+              raise SystemExit(f"Skipped or failed tests: {rejected}")
+          runs = Counter((event.get("Package"), event.get("Test")) for event in events if event["Action"] == "run")
+          passes = Counter((event.get("Package"), event.get("Test")) for event in events if event["Action"] == "pass")
+          prefix = "github.com/ca-x/cognate/"
+          for package, names in required.items():
+              if passes[(prefix + package, None)] != 1:
+                  raise SystemExit(f"Missing package pass: {package}")
+              for name in names:
+                  key = (prefix + package, name)
+                  if runs[key] != 1 or passes[key] != 1:
+                      raise SystemExit(f"Required test did not run and pass exactly once: {key}")
+          print(f"Verified {sum(map(len, required.values()))} required tests; no skips or missing matches.")
+      - name: Vet common primitive and portable packages
+        run: go vet ./internal/objectid ./internal/skill ./internal/packclient
