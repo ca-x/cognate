@@ -31,6 +31,12 @@
 
 此切片只新增 Magpie JSON 的仓库候选上传及选择收录，F6/M6、首版均未完成。远端 CI 需按实际推送 SHA 单独核查，不从本地测试推断成功。
 
+交付跟进：源码提交 `bf556fd` 已通过 SSH 推送且远端 SHA 读回一致。Actions `40667951091` 首次尝试在既有 `TestRepresentativeDistributionConnectDeadlineUnblocksSocketWrite` 第 170 行失败，观察到 `context.Canceled` 而非断言要求的 `DeadlineExceeded`；本轮 Magpie/App 测试通过，后续二进制/OCI 因依赖测试失败而跳过。当前提交定向重复 40 次也观察到 1 次同样失败；该分发实现和测试本轮均未修改。保留失败证据，仅请求一次 failed-jobs 重跑，不删除、skip、放宽断言或修改无关生产路径；重跑成功也不等于这个既有不稳定点已修复。
+
+独立代表随后在未修改的父提交 `dda1dd9` 导出副本重跑：40 次均通过，额外 100 次有 95 次通过、5 次同位置失败；这确认既有基线即可复现，次数不是 CI 失败概率估计。相关分发实现/测试、packs 及依赖与本轮源码提交逐字未变。代码因果分析表明 socket 写 deadline 与父 context 计时器没有保证先后顺序；写失败返回后的下载清理可能先取消子 context，使 Err 为 Canceled，而原断言要求唯一的 DeadlineExceeded。未插桩捕获该次 CI 内部事件，也未修复这项无关竞态。保留为后续独立事项。
+
+同一源码 SHA 的 `40667951091` attempt 2 已实际 `completed/success`：test、六组 CLI/服务端二进制、amd64/arm64 OCI 构建全部通过，独立代表也单独查询确认。没有重写源码或断言来得到此结果；容器实际运行、非 Linux 实机与 MyGo GUI 仍未验收。本段后续纯文档提交的 CI 应按其自身 SHA 查询，不能借用源码提交的结果。
+
 ### 全项目命令
 
 工具链：Go 1.27.3、Node.js 26、Buf 1.75.0，所有 Go 命令设置 `CGO_ENABLED=0`。从暂存区导出到独立临时目录验证，避免未暂存工作掩盖缺失文件；不得复制运行数据或密钥。
