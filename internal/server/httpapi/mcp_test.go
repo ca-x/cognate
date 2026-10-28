@@ -55,7 +55,7 @@ func TestMCPManagementSessionOwnerAndOneTimeSecrets(test *testing.T) {
 	if _, err := client.CreateCredential(test.Context(), connect.NewRequest(&mcpv1.CreateCredentialRequest{Spec: spec})); connect.CodeOf(err) != connect.CodeUnauthenticated {
 		test.Fatalf("anonymous management: %v", err)
 	}
-	for _, scopes := range [][]string{nil, {"publish:write"}, {"categories:write"}, {""}} {
+	for _, scopes := range [][]string{nil, {"publish:write"}, {"categories:admin"}, {""}} {
 		_, err := client.CreateCredential(test.Context(), mcpRequest(&mcpv1.CreateCredentialRequest{Spec: &mcpv1.CredentialSpec{Name: "Invalid", Scopes: scopes, ExpiresAtUnix: spec.ExpiresAtUnix}}, session))
 		if connect.CodeOf(err) != connect.CodeInvalidArgument {
 			test.Fatal("invalid scope accepted by management RPC")

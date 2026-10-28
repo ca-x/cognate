@@ -18,12 +18,15 @@ import (
 )
 
 const (
-	MCPCatalogRead  = "catalog:read"
-	MCPCatalogWrite = "catalog:write"
-	MCPPacksRead    = "packs:read"
-	MCPPacksWrite   = "packs:write"
-	MaxMCPTokens    = 100
-	MaxMCPValidity  = 365 * 24 * time.Hour
+	MCPCatalogRead      = "catalog:read"
+	MCPCatalogWrite     = "catalog:write"
+	MCPPacksRead        = "packs:read"
+	MCPPacksWrite       = "packs:write"
+	MCPCategoriesRead   = "categories:read"
+	MCPCategoriesWrite  = "categories:write"
+	MCPPublicationWrite = "publication:write"
+	MaxMCPTokens        = 100
+	MaxMCPValidity      = 365 * 24 * time.Hour
 )
 
 var (
@@ -57,18 +60,20 @@ type MCPGrant struct {
 	Owner        string
 	Scopes       []string
 	ExpiresAt    time.Time
+	Revision     int64
+	proof        *mcpProof
 }
 
 func (MCPGrant) String() string   { return "[redacted MCP authorization]" }
 func (MCPGrant) GoString() string { return "[redacted MCP authorization]" }
 
 func ValidMCPScope(scope string) bool {
-	return scope == MCPCatalogRead || scope == MCPCatalogWrite || scope == MCPPacksRead || scope == MCPPacksWrite
+	return scope == MCPCatalogRead || scope == MCPCatalogWrite || scope == MCPPacksRead || scope == MCPPacksWrite || scope == MCPCategoriesRead || scope == MCPCategoriesWrite || scope == MCPPublicationWrite
 }
 
 func normalizeMCPMetadata(metadata MCPMetadata, now time.Time) (MCPMetadata, error) {
 	metadata.Name = strings.TrimSpace(metadata.Name)
-	if metadata.Name == "" || len(metadata.Name) > 128 || !utf8.ValidString(metadata.Name) || strings.ContainsFunc(metadata.Name, unicode.IsControl) || !metadata.ExpiresAt.After(now) || metadata.ExpiresAt.After(now.Add(MaxMCPValidity)) || len(metadata.Scopes) == 0 || len(metadata.Scopes) > 4 {
+	if metadata.Name == "" || len(metadata.Name) > 128 || !utf8.ValidString(metadata.Name) || strings.ContainsFunc(metadata.Name, unicode.IsControl) || !metadata.ExpiresAt.After(now) || metadata.ExpiresAt.After(now.Add(MaxMCPValidity)) || len(metadata.Scopes) == 0 || len(metadata.Scopes) > 7 {
 		return MCPMetadata{}, ErrMCPInvalid
 	}
 	metadata.Scopes = slices.Clone(metadata.Scopes)
@@ -194,11 +199,15 @@ func (store *Store) changeMCPCredential(ctx context.Context, owner, id string, r
 }
 
 func (store *Store) AuthorizeMCP(ctx context.Context, hash []byte, scope string) (MCPGrant, error) {
+	return store.authorizeMCP(ctx, store.state.client, hash, scope)
+}
+
+func (store *Store) authorizeMCP(ctx context.Context, client *ent.Client, hash []byte, scope string) (MCPGrant, error) {
 	if len(hash) != 32 {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
 	now := store.state.now()
-	entry, err := store.state.client.MCPCredential.Query().Where(mcpcredential.TokenHashEQ(hash), mcpcredential.CreatedAtLTE(now), mcpcredential.ExpiresAtGT(now), mcpcredential.RevokedAtIsNil()).WithUser().Only(ctx)
+	entry, err := client.MCPCredential.Query().Where(mcpcredential.TokenHashEQ(hash), mcpcredential.CreatedAtLTE(now), mcpcredential.ExpiresAtGT(now), mcpcredential.RevokedAtIsNil()).WithUser().Only(ctx)
 	if ent.IsNotFound(err) {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
@@ -208,10 +217,11 @@ func (store *Store) AuthorizeMCP(ctx context.Context, hash []byte, scope string)
 	if entry.Edges.User == nil || !entry.ExpiresAt.After(store.state.now()) {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
-	grant := MCPGrant{CredentialID: entry.PublicID, Owner: entry.Edges.User.UserKey, Scopes: slices.Clone(entry.Scopes), ExpiresAt: entry.ExpiresAt}
+	grant := MCPGrant{CredentialID: entry.PublicID, Owner: entry.Edges.User.UserKey, Scopes: slices.Clone(entry.Scopes), ExpiresAt: entry.ExpiresAt, Revision: entry.Revision}
 	if scope != "" && (!ValidMCPScope(scope) || !slices.Contains(entry.Scopes, scope)) {
 		return grant, ErrMCPForbidden
 	}
+	grant.proof = &mcpProof{hash: [32]byte(hash), credentialID: grant.CredentialID, owner: grant.Owner, revision: grant.Revision, expiresAt: grant.ExpiresAt}
 	return grant, nil
 }
 

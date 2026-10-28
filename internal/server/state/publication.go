@@ -55,6 +55,9 @@ func (store *Store) SetPublication(ctx context.Context, userKey, repositoryID st
 	}
 	var result Publication
 	err := store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+		if err := store.guardMCPTransaction(ctx, tx, userKey, MCPPublicationWrite); err != nil {
+			return err
+		}
 		entry, err := ownerPublication(ctx, tx, userKey, repositoryID)
 		if err != nil {
 			return err

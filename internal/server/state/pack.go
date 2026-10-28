@@ -89,6 +89,9 @@ func (store *Store) savePack(ctx context.Context, userKey, id string, expectedRe
 		return Pack{}, err
 	}
 	defer tx.Rollback()
+	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPPacksWrite); err != nil {
+		return Pack{}, err
+	}
 	var entry *ent.Pack
 	if id == "" {
 		entry, err = tx.Pack.Create().SetPublicID(rand.Text()).SetUserID(owner.ID).SetName(draft.Name).SetDescription(draft.Description).SetItemCount(len(draft.Items)).SetCreatedAt(store.state.now()).SetUpdatedAt(store.state.now()).Save(ctx)
@@ -201,6 +204,9 @@ func (store *Store) DeletePack(ctx context.Context, userKey, id string, expected
 		return err
 	}
 	defer tx.Rollback()
+	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPPacksWrite); err != nil {
+		return err
+	}
 	if err := fencePack(ctx, tx, owner.ID, id, expectedRevision, store.state.now()); err != nil {
 		return err
 	}

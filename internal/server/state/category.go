@@ -92,6 +92,9 @@ func (store *Store) CreateCategory(ctx context.Context, userKey, input string) (
 		return Category{}, err
 	}
 	defer tx.Rollback()
+	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCategoriesWrite); err != nil {
+		return Category{}, err
+	}
 	owner, err := findUser(ctx, tx.Client(), userKey)
 	if err != nil {
 		return Category{}, err
@@ -132,6 +135,9 @@ func (store *Store) UpdateCategory(ctx context.Context, userKey, id string, revi
 	}
 	var result Category
 	err = store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+		if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCategoriesWrite); err != nil {
+			return err
+		}
 		entry, err := ownerCategory(ctx, tx, userKey, id)
 		if err != nil {
 			return err
@@ -164,6 +170,9 @@ func (store *Store) DeleteCategory(ctx context.Context, userKey, id string, revi
 		return ErrCategoryInvalid
 	}
 	return store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+		if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCategoriesWrite); err != nil {
+			return err
+		}
 		entry, err := ownerCategory(ctx, tx, userKey, id)
 		if err != nil {
 			return err
@@ -231,6 +240,9 @@ func (store *Store) SetSkillCategories(ctx context.Context, userKey, skillID str
 		return nil, err
 	}
 	defer tx.Rollback()
+	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCategoriesWrite); err != nil {
+		return nil, err
+	}
 	entry, ownerID, err := ownerCategorySkill(ctx, tx, userKey, skillID)
 	if err != nil {
 		return nil, err

@@ -22,7 +22,7 @@ type MCPAudit struct {
 
 func validMCPAction(action string) bool {
 	switch action {
-	case "token.create", "token.update", "token.rotate", "token.revoke", "catalog_list", "catalog_get", "catalog_collect", "packs_list", "packs_get", "packs_create", "packs_update", "packs_delete":
+	case "token.create", "token.update", "token.rotate", "token.revoke", "catalog_list", "catalog_get", "catalog_collect", "packs_list", "packs_get", "packs_create", "packs_update", "packs_delete", "categories_list", "categories_get", "categories_create", "categories_update", "categories_delete", "categories_assign", "publication_get", "publication_publish", "publication_unpublish":
 		return true
 	default:
 		return false

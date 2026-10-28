@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -46,9 +47,35 @@ func metadata() state.MCPMetadata {
 	return state.MCPMetadata{Name: "Editor", Scopes: []string{state.MCPCatalogRead}, ExpiresAt: time.Now().Add(time.Hour)}
 }
 
+func TestSevenExplicitScopesDoNotExpandExistingCredentials(test *testing.T) {
+	_, service, _ := setup(test)
+	old := metadata()
+	old.Scopes = []string{state.MCPCatalogRead, state.MCPCatalogWrite, state.MCPPacksRead, state.MCPPacksWrite}
+	_, oldSecret, err := service.Create(test.Context(), "alice", old)
+	if err != nil {
+		test.Fatal(err)
+	}
+	all := metadata()
+	all.Scopes = append(slices.Clone(old.Scopes), state.MCPCategoriesRead, state.MCPCategoriesWrite, state.MCPPublicationWrite)
+	_, newSecret, err := service.Create(test.Context(), "alice", all)
+	if err != nil {
+		test.Fatal(err)
+	}
+	for _, scope := range all.Scopes {
+		if _, err := service.Authorize(test.Context(), newSecret.Reveal(), scope); err != nil {
+			test.Fatalf("explicit %s rejected: %v", scope, err)
+		}
+	}
+	for _, scope := range []string{state.MCPCategoriesRead, state.MCPCategoriesWrite, state.MCPPublicationWrite} {
+		if _, err := service.Authorize(test.Context(), oldSecret.Reveal(), scope); !errors.Is(err, state.ErrMCPForbidden) {
+			test.Fatalf("old credential gained %s: %v", scope, err)
+		}
+	}
+}
+
 func TestCredentialMetadataValidationAndOwnerIsolation(test *testing.T) {
 	_, service, _ := setup(test)
-	for _, scopes := range [][]string{nil, {}, {""}, {"*"}, {"publish:write"}, {"categories:write"}, {state.MCPCatalogRead, state.MCPCatalogRead}, {state.MCPCatalogRead, "catalog:write "}} {
+	for _, scopes := range [][]string{nil, {}, {""}, {"*"}, {"publish:write"}, {"categories:admin"}, {state.MCPCatalogRead, state.MCPCatalogRead}, {state.MCPCatalogRead, "catalog:write "}} {
 		input := metadata()
 		input.Scopes = scopes
 		if _, secret, err := service.Create(test.Context(), "alice", input); !errors.Is(err, state.ErrMCPInvalid) || secret.Reveal() != "" {

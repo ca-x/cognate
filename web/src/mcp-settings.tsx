@@ -28,6 +28,9 @@ const scopeChoices = [
   { value: "catalog:write", label: "catalogWrite", help: "catalogWriteHelp" },
   { value: "packs:read", label: "packsRead", help: "packsReadHelp" },
   { value: "packs:write", label: "packsWrite", help: "packsWriteHelp" },
+  { value: "categories:read", label: "读取技能分类", help: "读取自己的分类及技能分类关联；不能维护分类或公开内容。" },
+  { value: "categories:write", label: "维护技能分类", help: "维护自己的分类及技能分类关联；不包含分类读取权限，不修改技能内容，也不能公开内容。" },
+  { value: "publication:write", label: "发布或取消公开仓库技能", help: "以仓库为单位公开或取消公开自己的技能。发布前必须明确确认：仓库内所有技能的完整目录（含隐藏文件和二进制文件）均可被匿名下载；取消公开无法收回已下载内容。此权限独立于仓库收录、分类维护和读取权限。" },
 ] as const
 const actionLabels: Record<string, string> = {
   "token.create": "actionCreate", "token.update": "actionUpdate", "token.rotate": "actionRotate", "token.revoke": "actionRevoke",
@@ -158,10 +161,10 @@ function CredentialForm({ original, pending, blocked, onSubmit }: { original?: M
     </div>
     <fieldset disabled={disabled} className="min-w-0 space-y-2" aria-describedby={`${id}-scopes-help${invalidScopes ? ` ${id}-scopes-error` : ""}`}>
       <legend className="text-sm font-medium">{t("scopes")}</legend>
-      <p id={`${id}-scopes-help`} className="field-help">{t("scopesHelp")}</p>
+      <p id={`${id}-scopes-help`} className="field-help">{t("至少选择一项权限。写权限不包含读权限；新增分类与发布权限默认不勾选，收录仓库或维护分类不会自动授予发布权限。", { ns: "translation" })}</p>
       <div className="rounded-lg border border-border">{scopeChoices.map((choice, index) => <label key={choice.value} htmlFor={`${id}-${choice.value}`} className="flex min-h-11 cursor-pointer items-start gap-3 border-b border-border p-3 last:border-b-0">
         <Checkbox ref={index === 0 ? scopesRef : undefined} id={`${id}-${choice.value}`} className="mt-1" checked={scopes.includes(choice.value)} disabled={disabled} aria-invalid={invalidScopes} aria-describedby={`${id}-${choice.value}-help`} onCheckedChange={(checked) => { setScopes((current) => checked === true ? current.includes(choice.value) ? current : [...current, choice.value] : current.filter((scope) => scope !== choice.value)); setTouched((current) => ({ ...current, scopes: true })) }} />
-        <span className="min-w-0"><span className="block text-sm">{t(choice.label)}</span><code className="mt-1 block break-all text-xs text-muted-foreground">{choice.value}</code><span id={`${id}-${choice.value}-help`} className="field-help mt-1 block">{t(choice.help)}</span></span>
+        <span className="min-w-0"><span className="block text-sm">{t(choice.label, { ns: ["mcp", "translation"] })}</span><code className="mt-1 block break-all text-xs text-muted-foreground">{choice.value}</code><span id={`${id}-${choice.value}-help`} className="field-help mt-1 block">{t(choice.help, { ns: ["mcp", "translation"] })}</span></span>
       </label>)}</div>
       {invalidScopes && <p id={`${id}-scopes-error`} role="alert" className="error-message">{t(errors.scopes)}</p>}
     </fieldset>
@@ -346,7 +349,7 @@ function MCPSettingsSession({ client, owner }: MCPSettingsPageProps) {
     <section className="min-w-0 space-y-3 rounded-xl border border-border bg-card p-4 sm:p-6" aria-labelledby={`${id}-endpoint`}>
       <h2 id={`${id}-endpoint`} className="flex items-center gap-2 font-semibold"><KeyRound size={18} aria-hidden="true" />{t("endpoint")}</h2>
       <code className="inline-block max-w-full rounded-md bg-muted px-3 py-2 text-sm">/mcp</code>
-      <p className="text-sm leading-6 text-muted-foreground">{t("connectionHelp")}</p><p className="text-sm leading-6 text-muted-foreground">{t("capabilityHelp")}</p>
+      <p className="text-sm leading-6 text-muted-foreground">{t("connectionHelp")}</p><p className="text-sm leading-6 text-muted-foreground">{t("读取、写入与发布权限相互独立。分类读取和维护分别授权，公开或取消公开必须明确授予发布权限；catalog:write 不包含发布。MCP 不能创建或管理凭据，请在此使用 Web 会话管理令牌。", { ns: "translation" })}</p>
     </section>
     <p role="status" className="mt-4 text-sm text-success">{notice && t(notice)}</p>
     <section className="mt-7 min-w-0" aria-labelledby={`${id}-credentials`} aria-busy={query.isFetching}>

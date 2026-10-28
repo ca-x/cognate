@@ -59,20 +59,34 @@ func (store *Store) CollectRepository(ctx context.Context, userKey string, refer
 		return CollectedRepository{}, err
 	}
 	defer tx.Rollback()
+	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCatalogWrite); err != nil {
+		return CollectedRepository{}, err
+	}
 	entry, err := tx.CollectedRepository.Create().SetPublicID(rand.Text()).SetUserID(owner.ID).SetNameWithOwner(reference.NameWithOwner).SetBranch(reference.Branch).SetArchiveHash(archiveHash).SetSkillCount(len(skills)).SetManual(true).SetCollectedAt(store.state.now()).Save(ctx)
 	if ent.IsConstraintError(err) {
 		_ = tx.Rollback()
-		existing, lookupErr := store.state.client.CollectedRepository.Query().Where(collectionIdentity(owner.ID, reference)...).Only(ctx)
-		if lookupErr != nil {
+		var result CollectedRepository
+		err := store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+			if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCatalogWrite); err != nil {
+				return err
+			}
+			existing, err := tx.CollectedRepository.Query().Where(collectionIdentity(owner.ID, reference)...).Only(ctx)
+			if err != nil {
+				return err
+			}
+			if !existing.Manual {
+				existing, err = tx.CollectedRepository.UpdateOne(existing).SetManual(true).Save(ctx)
+				if err != nil {
+					return err
+				}
+			}
+			result = collectedRepository(existing)
+			return nil
+		})
+		if err != nil {
 			return CollectedRepository{}, err
 		}
-		if !existing.Manual {
-			existing, err = store.state.client.CollectedRepository.UpdateOne(existing).SetManual(true).Save(ctx)
-			if err != nil {
-				return CollectedRepository{}, err
-			}
-		}
-		return collectedRepository(existing), nil
+		return result, nil
 	}
 	if err != nil {
 		return CollectedRepository{}, err

@@ -212,7 +212,7 @@ func TestSDKCatalogAndPackFlowOwnerIsolationAndCAS(test *testing.T) {
 		}
 	}
 	slices.Sort(names)
-	if !slices.Equal(names, []string{"catalog_collect", "catalog_get", "catalog_list", "packs_create", "packs_delete", "packs_get", "packs_list", "packs_update"}) {
+	if !slices.Equal(names, []string{"catalog_collect", "catalog_get", "catalog_list", "categories_assign", "categories_create", "categories_delete", "categories_get", "categories_list", "categories_update", "packs_create", "packs_delete", "packs_get", "packs_list", "packs_update", "publication_get", "publication_publish", "publication_unpublish"}) {
 		test.Fatalf("unexpected tools: %v", names)
 	}
 	collected := decode[mcpserver.Repository](test, call(test, client, "catalog_collect", mcpserver.CollectInput{Repository: "org/repo"}))

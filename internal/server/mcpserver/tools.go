@@ -95,6 +95,7 @@ type Deleted struct {
 }
 
 func (server *Server) addTools(sdk *mcp.Server) {
+	server.addClassificationTools(sdk)
 	server.addTool(sdk, "catalog_list", state.MCPCatalogRead, "List your collected repositories. Requires catalog:read.", func(ctx context.Context, owner string, input PageInput) (CatalogPage, error) {
 		start, limit, err := pageBounds(input)
 		if err != nil {
@@ -191,6 +192,7 @@ func (server *Server) addTool[Input, Output any](sdk *mcp.Server, name, scope, d
 			}
 			return nil, zero, safeError(err)
 		}
+		ctx = state.WithMCPAuthorization(ctx, grant, scope)
 		output, operationErr := handler(ctx, grant.Owner, input)
 		if operationErr == nil {
 			data, err := json.Marshal(output)
@@ -229,6 +231,22 @@ func resourceID(input any) string {
 		id = value.ID
 	case Pack:
 		id = value.ID
+	case UpdateCategoryInput:
+		id = value.ID
+	case DeleteCategoryInput:
+		id = value.ID
+	case SkillCategoriesInput:
+		id = value.SkillID
+	case AssignCategoriesInput:
+		id = value.SkillID
+	case PublishInput:
+		id = value.ID
+	case UnpublishInput:
+		id = value.ID
+	case Category:
+		id = value.ID
+	case Publication:
+		id = value.RepositoryID
 	}
 	if len(id) != 26 {
 		return ""
@@ -242,6 +260,11 @@ func resourceID(input any) string {
 }
 
 func safeError(err error) error {
+	for _, known := range []error{state.ErrCategoryInvalid, state.ErrCategoryNotFound, state.ErrCategorySkillUnavailable, state.ErrCategoryConflict, state.ErrCategoryExists, state.ErrCategoryLimit, state.ErrPublicationInvalid, state.ErrPublicationConfirmation, state.ErrPublicationConflict} {
+		if errors.Is(err, known) {
+			return known
+		}
+	}
 	for _, known := range []error{state.ErrMCPUnauthorized, state.ErrMCPForbidden, state.ErrMCPUnavailable, state.ErrPackNotFound, state.ErrPackConflict, state.ErrPackInvalid, state.ErrPackSlugConflict, state.ErrPackSkillUnavailable, state.ErrPackLimit, state.ErrRepositoryNotFound, state.ErrLibraryLimit, state.ErrInvalidCollection, library.ErrCapacity, library.ErrClosed, ErrBusy, ErrClosed, ErrTooLarge} {
 		if errors.Is(err, known) {
 			return known
