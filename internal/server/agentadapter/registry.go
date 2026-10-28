@@ -84,5 +84,15 @@ func validDefinition(definition Definition) bool {
 	if len(manifest.Capabilities) == 0 {
 		return definition.Module == ""
 	}
-	return len(manifest.Capabilities) == 1 && manifest.Target == agentconfig.ClaudeSettings && manifest.Capabilities[0] == agentconfig.ClaudeProviderEnvV1 && len(definition.Module) != 0
+	if len(manifest.Capabilities) > 2 || manifest.Target != agentconfig.ClaudeSettings || len(definition.Module) == 0 {
+		return false
+	}
+	seen := make(map[agentconfig.Capability]bool, 2)
+	for _, capability := range manifest.Capabilities {
+		if seen[capability] || (capability != agentconfig.ClaudeProviderEnvV1 && capability != agentconfig.ClaudeProviderSwitchV1) {
+			return false
+		}
+		seen[capability] = true
+	}
+	return true
 }

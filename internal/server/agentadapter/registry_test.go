@@ -26,12 +26,16 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 	expected := map[string]agentconfig.Target{"claude": agentconfig.ClaudeSettings, "codex": agentconfig.CodexConfig, "gemini": agentconfig.GeminiSettings}
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
-		if manifest.APIVersion != 1 || manifest.PluginVersion != "1.0.0" || len(descriptor.DefinitionDigest) != 64 || expected[manifest.AgentID] != manifest.Target {
+		expectedVersion := "1.0.0"
+		if manifest.AgentID == "claude" {
+			expectedVersion = "1.1.0"
+		}
+		if manifest.APIVersion != 1 || manifest.PluginVersion != expectedVersion || len(descriptor.DefinitionDigest) != 64 || expected[manifest.AgentID] != manifest.Target {
 			test.Fatal("invalid built-in metadata")
 		}
 		delete(expected, manifest.AgentID)
-		if manifest.AgentID == "claude" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.ClaudeProviderEnvV1) {
-			test.Fatal("Claude must declare its bounded rendering capability")
+		if manifest.AgentID == "claude" && (len(manifest.Capabilities) != 2 || manifest.Capabilities[0] != agentconfig.ClaudeProviderEnvV1 || manifest.Capabilities[1] != "claude.provider-switch.v1") {
+			test.Fatal("Claude must declare additive and complete provider capabilities")
 		}
 		if manifest.AgentID != "claude" && len(manifest.Capabilities) != 0 {
 			test.Fatal("metadata-only adapter advertises unsupported rendering")
@@ -43,6 +47,19 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 	descriptors[0].Manifest.Capabilities[0] = "unknown"
 	if registry.List()[0].Manifest.Capabilities[0] != agentconfig.ClaudeProviderEnvV1 {
 		test.Fatal("caller mutated registry capabilities")
+	}
+}
+
+func TestSwitchOnlyDefinitionCannotUseAdditiveRender(test *testing.T) {
+	definition := thirdPartyDefinition()
+	definition.Manifest.Capabilities = []agentconfig.Capability{"claude.provider-switch.v1"}
+	registry, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil {
+		test.Fatal("switch-only definition was not registered")
+	}
+	result, err := registry.Render(test.Context(), claudeRequest(test, registry))
+	if !errors.Is(err, agentadapter.ErrUnsupported) || len(result.Content) != 0 {
+		test.Fatal("additive Render accepted an undeclared capability")
 	}
 }
 

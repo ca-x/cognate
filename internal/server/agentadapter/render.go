@@ -8,6 +8,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"maps"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -82,7 +83,7 @@ func (registry *Registry) renderDefinition(request agentconfig.RenderRequest) (r
 	if request.APIVersion != agentconfig.APIVersion || request.PluginVersion != manifest.PluginVersion || request.DefinitionDigest != entry.digest || request.Target != manifest.Target {
 		return registeredDefinition{}, ErrIncompatible
 	}
-	if len(manifest.Capabilities) == 0 {
+	if !slices.Contains(manifest.Capabilities, agentconfig.ClaudeProviderEnvV1) {
 		return registeredDefinition{}, ErrUnsupported
 	}
 	if len(request.Capabilities) != 1 || request.Capabilities[0] != agentconfig.ClaudeProviderEnvV1 {

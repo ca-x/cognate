@@ -32,7 +32,7 @@
 
 | agent | 逻辑 target | manifest 格式 | 当前 Render |
 |---|---|---|---|
-| Claude | `claude.settings` | `json` | `claude.provider-env.v1`，仅显式 env 更新 |
+| Claude | `claude.settings` | `json` | additive Render；另有七键声明式 PlanClaudeProvider，见下文 |
 | Codex | `codex.config` | `toml` | `ErrUnsupported`，无 TOML 渲染 |
 | Gemini | `gemini.settings` | `json` | `ErrUnsupported`，无 Gemini 渲染 |
 
@@ -44,6 +44,7 @@
 - `ParseDefinition(data)` 与 `NewRegistry(definitions)` 用于受信宿主注册自定义转换模块；不是客户端 API。
 - `Registry.List()` 返回排序且隔离可变 slice 的 metadata 与 definition digest，不返回 JS。
 - `Registry.Render(ctx, request)` 返回 `RenderResult`；`RenderJSON` 对 request envelope 严格解码后执行相同流程。
+- `Registry.PlanClaudeProvider(ctx, request)` 返回 `ClaudeProviderPatchV1`，不接收或返回本地 settings 原文，不执行本地合并/写入。
 
 Manifest API 当前为 `1`；plugin version 使用有界 `major.minor.patch`，不接受 `latest` 或版本范围。请求必须匹配精确 plugin version、由宿主计算的 manifest+module digest、逻辑 target 和所需 capability。相同版本号的模块内容变化也会使旧请求失效。原生客户端将来必须声明自己支持的 target/操作；未知协议或能力 fail closed，不能回退为执行 JS 或任意路径写入。
 
@@ -65,7 +66,7 @@ moejs 输入只有本次显式 `providerEnv` 更新。已有完整 env、旧认�
 - base 和最终 settings 各 256 KiB；最多 512 个顶层设置；原 env、最终 env 和插件输入各至多 64 KiB。
 - 最多 128 个合并后 env 键，键长度至多 128 字节，env 值至多 8 KiB，显式更新最多四个白名单键。
 - 运行时复用现有三秒期限、context 取消/中断、16 MiB JS 内存配置和有界结果解码。不等于进程硬内存限制、恶意插件 OS 沙箱或全局并发准入。
-- 固定分类错误不包含输入、解析器细节、JS 异常或秘密。输出内容本身可能含秘密，调用者不得记录完整 request/result；本切片没有加密存储、secret slot、遥测或日志接入。
+- 固定分类错误不包含输入、解析器细节、JS 异常或秘密。旧 Render 输出内容本身可能含秘密，调用者不得记录完整 request/result；旧 additive 接口没有 secret slot，新增 patch 仅用符号引用，没有秘密读取/传输、加密存储或日志接入。
 
 纯函数接收 base 不意味着将来的 RPC 可以自动上传用户完整配置。远端传输须单独授权，或将来改用客户端原生合并声明式更新；当前没有新增上传或客户端读取动作。
 
@@ -98,3 +99,51 @@ TDD 记录保存在 `/tmp/cognate-agentadapter-evidence/`：registry 缺失 meta
 `TestClaudeTopLevelFieldLimitRoundTrip` 先在旧实现观察到行为 red，覆盖 511/512/513 字段与有无 env 的六种组合。511 字段的两种输入、512 字段且已有 env 均接受，逐字段保留无关 JSON（包括大整数），并验证输出再次 Render 内容与摘要稳定；512 字段且无 env、513 字段的两种输入均拒绝。把生产实现独立 overlay 回旧冻结源码后，同一测试再次按预期断言失败。
 
 修后 fresh Go 1.27.3 / `CGO_ENABLED=0`：renderer/plugin 各 100 轮通过，零 fail event；六个边界子测试共通过 600 次，隐私与 additive-auth 测试各通过 100 次；vet、指定工具链 gofmt、scoped diff 检查通过。证据位于 `/tmp/cognate-agentadapter-evidence/field-limit-*`，包含 red、green、旧源码 overlay red 及完整 count100 JSON 日志。本次源码变化仅 `internal/server/agentadapter/render.go` 与 `internal/server/agentadapter/render_test.go`；旧冻结 `79b9252286e4e4ec2785656091036baf382bd950` 不再用于修后签收，须由主线程重新 freeze、隔离全量和 review。无 stage/commit/push，修后 checkpoint 停止写入。
+
+## Claude provider patch（服务端声明式转换）
+
+`builtin.claude@1.1.0` 保留 `claude.provider-env.v1`，新增 `claude.provider-switch.v1`。API version 仍为 1；Codex/Gemini metadata 不变。manifest 可以声明两个已知能力的非重复子集，第三方 definition 经同一验证；两个调用入口都检查 manifest 确实声明所需能力，switch-only 不能进入旧 Render，additive-only 不能进入新接口。请求每次只选择一个精确能力，并匹配 plugin version、definition digest、target。旧 1.0.0 或旧 digest 请求拒绝，不升级、不 fallback；1.1.0 上的 additive 调用仍只 additive，不自动删除认证。
+
+### 共享接口与操作联合
+
+`internal/agentconfig/types.go` 仍为无依赖的纯声明式类型。`ClaudeProviderPatchRequest` 只含既有 API/plugin/version/digest/target/capabilities 身份字段和 `Desired ClaudeProviderDesired`。Desired 包括 auth mode、optional endpoint、optional default/haiku/sonnet/opus，以及两个 secret-present bool；**没有 Base、旧 env、旧认证、secret string/bytes、任意引用或文件路径**。没有新增 JSON request helper、RPC 或 wire 合同。
+
+`Registry.PlanClaudeProvider(ctx, request)` 调用真实 moejs `planClaudeProvider` hook。JS 只收到深拷贝并验证后的 typed desired 数据，不收到请求身份或任何机器配置。返回 `ClaudeProviderPatchV1{Target, Operations}`，不是 RenderResult；恰七项固定顺序：
+
+1. `ClaudeEnvAPIKey` → `ANTHROPIC_API_KEY`
+2. `ClaudeEnvAuthToken` → `ANTHROPIC_AUTH_TOKEN`
+3. `ClaudeEnvBaseURL` → `ANTHROPIC_BASE_URL`
+4. `ClaudeEnvModel` → `ANTHROPIC_MODEL`
+5. `ClaudeEnvHaikuModel` → `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+6. `ClaudeEnvSonnetModel` → `ANTHROPIC_DEFAULT_SONNET_MODEL`
+7. `ClaudeEnvOpusModel` → `ANTHROPIC_DEFAULT_OPUS_MODEL`
+
+每项 `ClaudeProviderPatchOperation{Slot, Action, Literal *string, Reference *ClaudeSecretSlot}`。JSON 成员名为 `slot/action/literal/reference`，仅下列联合合法：
+
+| action | slot | 必需内容 | 禁止内容 |
+| --- | --- | --- | --- |
+| `set-literal` | 五个非认证 slot | literal，精确等于 selected typed 值 | reference 或其它成员 |
+| `set-selected-secret` | API_KEY / AUTH_TOKEN | reference 为对应 `claude.api-key` / `claude.auth-token` | literal 或其它成员 |
+| `remove` | 任一受管 slot | 仅 slot + action | literal/reference 或其它成员，即使空或 null |
+
+宿主先解实际 JS 返回成员 map，再逐项核成员存在性、顺序、数量、slot/action、literal/reference 与调用前独立 desired 快照完全等价。**不先转 DTO 再 omitzero 重编码**；额外字段即使空/null 也拒绝。修改 JS 输入不能改变宿主比较基准；缺项、重复、重排、未知成员、路径/命令和不等价值均返回零结果 `ErrPluginResult`。返回 slice/pointer 与输入及后续调用不共享可变存储。消费者仍须独立校验联合：任意手工构造的共享 DTO 不因类型名称而自动可信。
+
+### desired-state 与错误边界
+
+- api-key 要求 APIKeyPresent 且 AuthTokenPresent 为 false；auth-token 反向；native-login 要求两个均 false 且无 endpoint。缺必要凭据、残留另一凭据、未知 auth 或非法值均 `ErrInvalidRequest`，不返回可应用 patch。
+- native-login 删除两认证；模型仍按显式 desired 映射。endpoint/models 的 nil 表示 remove，不是 KEEP；present 空串非法，不自动 trim 或归一化为 nil。
+- endpoint 最多 2048 UTF-8 bytes，仅绝对 HTTP(S)、非空合法 host，无 userinfo/query/fragment/控制字符；模型各 1–256 UTF-8 bytes、无控制字符，保留空格与大小写。本地 endpoint 允许声明，但不做网络探测。
+- 五个 literal 输入大小逐字段受限，JS 输入另限 64 KiB；输出沿现有 RunJSON 的 1 MiB/50000-node 解码边界，之后还必须恰七项并等价。复用现有三秒期限、16 MiB 运行时设置、父 ctx 取消/中断；不改共用 runtime，不声称 OS 沙箱或全局 admission。
+- 未注册插件/manifest 未声明所需能力为 `ErrUnsupported`；精确身份/请求能力不匹配为 `ErrIncompatible`；运行时异常为固定 `ErrPluginExecution`；context 错误保留取消/超时分类。所有失败均零结果，无输入/JS 异常细节，不记录 request/result。
+
+present 由受信调用者提供，只是转换前提；固定 secret slot 引用**不是**已验证的 owner、asset/revision、selection 或物化授权。本片不读 domain/store，不传秘密，不执行本地合并、预览确认、文件发布、恢复或 OAuth 登录。七键转换成功不能称为“provider 已切换”；未知 env/JSON 大整数的本地保留由后续原生 codec 独立实现/验收，未上传旧配置来假装完成。
+
+### 行为证据与待独立验收
+
+证据根目录 `/tmp/cognate-claude-provider-patch-evidence/`：先观察旧 registry/version/capability 行为 red，再观察新 API 可编译 stub 对 native-login 七项 remove、完整五 literal/一 selected-secret 映射的行为 red，随后真实 moejs green。测试覆盖三 auth × 32 optional presence 组合、所有非法凭据组合、各 literal 字节边界、旧精确身份 fail closed、实际 JS 输入隔离、输出无 alias、取消/异常/超限及 31 个恶意输出变体（包括空/null 成员和修改输入后伪造结果）。
+
+独立 overlay 去掉宿主复核后恶意输出/输入变异测试失败；删掉真实 JS 一项输出后正常完整映射失败；恢复旧 Render 的“仅检查 capability 非空”后 switch-only 门禁测试失败。三者均为行为断言 red，不是编译失败。
+
+Go 1.27.3、`CGO_ENABLED=0`、`-mod=readonly` 的 fresh `go test ./internal/agentconfig ./internal/server/agentadapter ./internal/server/plugin -count=100 -timeout=180s` 通过，零 fail event；adapter 12.223s、runtime 10.604s。96 个 auth/presence 子测试合计 9600 次通过，31 个恶意输出子测试合计 3100 次通过；旧 additive、隐私、deadline、512-field round-trip 回归同时执行。相同三包 vet 退出 0，gofmt/scoped diff 检查通过；shared package `go list -deps` 仅自身，`cmd/cognate` 依赖图无任何 `internal/server` 或 moejs。新 Go API 没有另加网络 JSON request envelope，既有 request JSON 限制不被误称为新 wire 合同。
+
+本次实际写集仅九文件：`internal/agentconfig/types.go`、`internal/server/agentadapter/{builtins.json,claude.mjs,registry.go,registry_test.go,render.go,provider_patch.go,provider_patch_test.go}`、本文件；`builtins.go`、原 render/boundary tests、共用 plugin runtime、domain/API/Web/native/module 与 fixture 均未改。证据目录的 `freeze-sha256.txt`、`freeze-git-blobs.txt` 和 `provider-patch.diff` 绑定本次交接内容；red/green 分别为 `01-capabilities-red.log` 至 `04-seven-slot-green.log`，三个负向 overlay 为 `06-host-check-mutation-red.log`、`07-module-mutation-red.log`、`08-render-capability-mutation-red.log`，最终重复证据为 `09-focused-count100.jsonl`。源码冻结后不继续实现、不 stage/commit；主线程仍须独立导出全量及非作者 review，本片不自签其结果。
