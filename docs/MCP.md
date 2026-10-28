@@ -109,3 +109,11 @@ buf lint --path proto/skillhub/mcp/v1
 ```
 
 Server ent generation is owned by the public backend agent after the explicit MCP schema freeze; do not regenerate it concurrently.
+
+## Timestamp compatibility
+
+MCP authorization compares decoded instants in Go after both credential and owner reads: `created_at <= now < expires_at`. SQLite textual datetime ordering is not used for validity checks. Newly written creation, expiry and revocation timestamps use UTC, and a clock rollback observed during the queries cannot authorize a credential before its creation instant.
+
+On database open, under the existing schema lock and after master-key verification, an MCP-only compatibility scan normalizes legacy timestamp encodings, including real numeric IANA zone names and Go monotonic suffixes. Each transaction holds at most 128 rows and each timestamp input is limited to 256 bytes. Only the three credential timestamp columns and audit creation timestamps change; token hashes, owners, scopes, revision, revocation presence and audit contents remain unchanged. Nanoseconds and actual instants are preserved; canonical rows are not rewritten on later opens. Failed batches roll back, cancellation is honored and uninterpretable timestamps stop startup with a fixed error rather than guessing or reissuing a token. Audit appends also use UTC so numeric local zones cannot make newly recorded history unreadable.
+
+Stop old-version writers before upgrading. This bounded compatibility repair is not a protocol for indefinitely mixing old and new writer versions, and it does not migrate unrelated database tables or secret formats. Expired or revoked credentials remain unauthorized after repair.

@@ -83,6 +83,7 @@ func normalizeMCPMetadata(metadata MCPMetadata, now time.Time) (MCPMetadata, err
 			return MCPMetadata{}, ErrMCPInvalid
 		}
 	}
+	metadata.ExpiresAt = metadata.ExpiresAt.UTC()
 	return metadata, nil
 }
 
@@ -100,7 +101,7 @@ func (store *Store) CreateMCPCredential(ctx context.Context, owner string, hash 
 		return MCPCredential{}, ErrMCPUnavailable
 	}
 	defer tx.Rollback()
-	entry, err := tx.MCPCredential.Create().SetUserID(ownerRecord.ID).SetPublicID(rand.Text()).SetName(metadata.Name).SetTokenHash(hash).SetScopes(metadata.Scopes).SetCreatedAt(store.state.now()).SetExpiresAt(metadata.ExpiresAt).Save(ctx)
+	entry, err := tx.MCPCredential.Create().SetUserID(ownerRecord.ID).SetPublicID(rand.Text()).SetName(metadata.Name).SetTokenHash(hash).SetScopes(metadata.Scopes).SetCreatedAt(store.state.now().UTC()).SetExpiresAt(metadata.ExpiresAt).Save(ctx)
 	if err != nil {
 		return MCPCredential{}, ErrMCPUnavailable
 	}
@@ -161,7 +162,7 @@ func (store *Store) RotateMCPCredential(ctx context.Context, owner, id string, r
 }
 
 func (store *Store) RevokeMCPCredential(ctx context.Context, owner, id string, revision int64) (MCPCredential, error) {
-	return store.changeMCPCredential(ctx, owner, id, revision, func(update *ent.MCPCredentialUpdate) { update.SetRevokedAt(store.state.now()) })
+	return store.changeMCPCredential(ctx, owner, id, revision, func(update *ent.MCPCredentialUpdate) { update.SetRevokedAt(store.state.now().UTC()) })
 }
 
 func (store *Store) changeMCPCredential(ctx context.Context, owner, id string, revision int64, change func(*ent.MCPCredentialUpdate)) (MCPCredential, error) {
@@ -206,15 +207,15 @@ func (store *Store) authorizeMCP(ctx context.Context, client *ent.Client, hash [
 	if len(hash) != 32 {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
-	now := store.state.now()
-	entry, err := client.MCPCredential.Query().Where(mcpcredential.TokenHashEQ(hash), mcpcredential.CreatedAtLTE(now), mcpcredential.ExpiresAtGT(now), mcpcredential.RevokedAtIsNil()).WithUser().Only(ctx)
+	entry, err := client.MCPCredential.Query().Where(mcpcredential.TokenHashEQ(hash), mcpcredential.RevokedAtIsNil()).WithUser().Only(ctx)
 	if ent.IsNotFound(err) {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
 	if err != nil {
 		return MCPGrant{}, ErrMCPUnavailable
 	}
-	if entry.Edges.User == nil || !entry.ExpiresAt.After(store.state.now()) {
+	now := store.state.now()
+	if entry.Edges.User == nil || entry.CreatedAt.After(now) || !entry.ExpiresAt.After(now) {
 		return MCPGrant{}, ErrMCPUnauthorized
 	}
 	grant := MCPGrant{CredentialID: entry.PublicID, Owner: entry.Edges.User.UserKey, Scopes: slices.Clone(entry.Scopes), ExpiresAt: entry.ExpiresAt, Revision: entry.Revision}

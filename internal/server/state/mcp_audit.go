@@ -42,7 +42,7 @@ func (store *Store) RecordMCPAudit(ctx context.Context, credentialID, action, re
 		return ErrMCPUnavailable
 	}
 	defer tx.Rollback()
-	if err := tx.MCPAudit.Create().SetCredentialID(credential.ID).SetAction(action).SetResource(resource).SetOutcome(mcpaudit.Outcome(outcome)).SetCreatedAt(store.state.now()).Exec(ctx); err != nil {
+	if err := tx.MCPAudit.Create().SetCredentialID(credential.ID).SetAction(action).SetResource(resource).SetOutcome(mcpaudit.Outcome(outcome)).SetCreatedAt(store.state.now().UTC()).Exec(ctx); err != nil {
 		return ErrMCPUnavailable
 	}
 	cutoff, err := tx.MCPAudit.Query().Where(mcpaudit.CredentialIDEQ(credential.ID)).Order(ent.Desc(mcpaudit.FieldID)).Offset(MaxMCPAuditEntries).First(ctx)

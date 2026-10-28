@@ -121,6 +121,10 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		_ = client.Close()
 		return nil, err
 	}
+	if err := normalizeMCPTimestamps(ctx, address.String()); err != nil {
+		_ = client.Close()
+		return nil, fmt.Errorf("initialize MCP timestamp compatibility: %w", err)
+	}
 	if err := ensureCatalogIntegrity(ctx, address.String()); err != nil {
 		_ = client.Close()
 		return nil, err
