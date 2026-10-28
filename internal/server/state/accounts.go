@@ -8,9 +8,9 @@ import (
 	"time"
 	"uuid"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/localaccount"
-	"github.com/ca-x/skillhub/internal/server/ent/session"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/localaccount"
+	"github.com/ca-x/cognate/internal/server/ent/session"
 )
 
 var (

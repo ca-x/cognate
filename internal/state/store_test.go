@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/filelock"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/filelock"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func TestOpenMigratesPreviousNonemptyProjectionSchema(t *testing.T) {

@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/mcpserver"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/mcpserver"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

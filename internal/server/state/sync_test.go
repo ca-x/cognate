@@ -14,9 +14,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 type transportFunc func(*http.Request) (*http.Response, error)

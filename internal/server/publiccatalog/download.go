@@ -7,9 +7,9 @@ import (
 	"encoding/hex"
 	"hash"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 func (service *Service) Download(ctx context.Context, skillID, contentHash string, revision int64, send func(packs.Chunk) error) error {

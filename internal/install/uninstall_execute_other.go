@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func (session *Session) executeUninstallLocked(_ context.Context, _ string, _ state.Backup) error {

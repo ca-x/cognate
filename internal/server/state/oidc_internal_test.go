@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent"
 )
 
 func TestOIDCBindingCannotCommitAfterConcurrentSessionRevocation(t *testing.T) {

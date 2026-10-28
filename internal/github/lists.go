@@ -19,13 +19,13 @@ const (
 	maxGraphQLBody    = 2 << 20
 	maxLists          = 1024
 	maxRepositories   = 100000
-	listMetadataQuery = `query SkillHubLists($listCursor: String) {
+	listMetadataQuery = `query CognateLists($listCursor: String) {
   viewer { id lists(first: 100, after: $listCursor) {
     pageInfo { hasNextPage endCursor }
     nodes { id name slug isPrivate updatedAt lastAddedAt }
   } }
 }`
-	listItemsQuery = `query SkillHubListItems($id: ID!, $itemCursor: String) {
+	listItemsQuery = `query CognateListItems($id: ID!, $itemCursor: String) {
   node(id: $id) { __typename ... on UserList {
     id name slug isPrivate updatedAt lastAddedAt user { id }
     items(first: 100, after: $itemCursor) {
@@ -439,7 +439,7 @@ func (client *ListsClient) query(ctx context.Context, query string, variables ma
 	request.Header.Set("Authorization", "Bearer "+client.token.Reveal())
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	request.Header.Set("User-Agent", "SkillHub")
+	request.Header.Set("User-Agent", "Cognate")
 	response, err := client.client.Do(request)
 	if err != nil {
 		if ctx.Err() != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func (session *Session) UninstallLocal(ctx context.Context, slug string) (state.Backup, error) {

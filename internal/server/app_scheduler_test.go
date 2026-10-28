@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/scheduler"
+	"github.com/ca-x/cognate/internal/server/scheduler"
 )
 
 func TestAppConfiguresSchedulerLifecycle(t *testing.T) {

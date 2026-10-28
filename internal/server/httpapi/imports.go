@@ -7,11 +7,11 @@ import (
 	"sync"
 
 	"connectrpc.com/connect"
-	importv1 "github.com/ca-x/skillhub/gen/skillhub/import/v1"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/importer"
-	"github.com/ca-x/skillhub/internal/server/library"
+	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/importer"
+	"github.com/ca-x/cognate/internal/server/library"
 )
 
 type ImportHandler struct {

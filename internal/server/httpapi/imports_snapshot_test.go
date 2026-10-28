@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	importv1 "github.com/ca-x/skillhub/gen/skillhub/import/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
-	"github.com/ca-x/skillhub/internal/server/importer"
+	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
+	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
+	"github.com/ca-x/cognate/internal/server/importer"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

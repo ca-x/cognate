@@ -15,9 +15,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/state"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/state"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 type fetchArchive func(context.Context, repository.Reference) (*repository.ArchiveSnapshot, error)

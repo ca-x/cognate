@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/cli"
+	"github.com/ca-x/cognate/internal/cli"
 )
 
 func TestPackSubscribeRejectsCredentialBeforeCreatingLocalState(test *testing.T) {

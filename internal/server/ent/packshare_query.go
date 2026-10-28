@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packshare"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
 // PackShareQuery is the builder for querying PackShare entities.

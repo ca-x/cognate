@@ -6,7 +6,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/ca-x/skillhub/internal/importclient"
+	"github.com/ca-x/cognate/internal/importclient"
 	"github.com/spf13/cobra"
 )
 
@@ -68,7 +68,7 @@ func newImportMagpieCommand() *cobra.Command {
 			return errors.Join(operationErr, showImportResult(command.OutOrStdout(), result))
 		},
 	}
-	command.Flags().StringVar(&server, "server", "", "SkillHub HTTPS origin（显式 loopback 可使用 HTTP）")
+	command.Flags().StringVar(&server, "server", "", "Cognate HTTPS origin（显式 loopback 可使用 HTTP）")
 	command.Flags().StringVar(&file, "file", "", "明确授权的非空 Magpie JSON regular 文件（≤1 MiB；不跟随链接）")
 	command.Flags().BoolVar(&tokenStdin, "token-stdin", false, "从有界标准输入读取会话令牌；不保存凭据")
 	command.Flags().BoolVar(&apply, "apply", false, "显式收录所选仓库（默认只预览）")

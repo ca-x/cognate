@@ -5,7 +5,7 @@ package oidcidentity
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/githubcredential"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
-	"github.com/ca-x/skillhub/internal/server/ent/githubmembership"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 type ListSyncUser struct {

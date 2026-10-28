@@ -10,11 +10,11 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/category"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/category"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 var (

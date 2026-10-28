@@ -16,16 +16,16 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	authv1 "github.com/ca-x/skillhub/gen/skillhub/auth/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
-	catalogv1 "github.com/ca-x/skillhub/gen/skillhub/catalog/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/catalog/v1/catalogv1connect"
-	"github.com/ca-x/skillhub/internal/cli"
-	"github.com/ca-x/skillhub/internal/packclient"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/library"
-	"github.com/ca-x/skillhub/internal/server/state"
-	clientstate "github.com/ca-x/skillhub/internal/state"
+	authv1 "github.com/ca-x/cognate/gen/skillhub/auth/v1"
+	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
+	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
+	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/packclient"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/state"
+	clientstate "github.com/ca-x/cognate/internal/state"
 )
 
 type publicAppFetch func(*http.Request) (*http.Response, error)

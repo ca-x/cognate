@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	authv1 "github.com/ca-x/skillhub/gen/skillhub/auth/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
-	"github.com/ca-x/skillhub/internal/server/httpapi"
-	"github.com/ca-x/skillhub/internal/server/oidclogin"
+	authv1 "github.com/ca-x/cognate/gen/skillhub/auth/v1"
+	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	"github.com/ca-x/cognate/internal/server/httpapi"
+	"github.com/ca-x/cognate/internal/server/oidclogin"
 )
 
 func TestOIDCHTTPCallbackAndCookieHandoff(t *testing.T) {

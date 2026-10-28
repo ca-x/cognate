@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/state/ent/backup"
+	"github.com/ca-x/cognate/internal/state/ent/backup"
 )
 
 // BackupCreate is the builder for creating a Backup entity.

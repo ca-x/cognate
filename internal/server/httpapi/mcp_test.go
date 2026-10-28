@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	authv1 "github.com/ca-x/skillhub/gen/skillhub/auth/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
-	mcpv1 "github.com/ca-x/skillhub/gen/skillhub/mcp/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/mcp/v1/mcpv1connect"
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/mcpaccess"
-	"github.com/ca-x/skillhub/internal/server/state"
+	authv1 "github.com/ca-x/cognate/gen/skillhub/auth/v1"
+	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	mcpv1 "github.com/ca-x/cognate/gen/skillhub/mcp/v1"
+	"github.com/ca-x/cognate/gen/skillhub/mcp/v1/mcpv1connect"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/mcpaccess"
+	"github.com/ca-x/cognate/internal/server/state"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

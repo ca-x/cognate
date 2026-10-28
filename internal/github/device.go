@@ -420,7 +420,7 @@ func (flow *DeviceFlow) post(ctx context.Context, endpoint string, form url.Valu
 	}
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Set("User-Agent", "SkillHub")
+	request.Header.Set("User-Agent", "Cognate")
 	response, err := flow.client.Do(request)
 	if err != nil {
 		return oauthTransportError(ctx, err, "GitHub authorization request failed")

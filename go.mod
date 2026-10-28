@@ -1,4 +1,4 @@
-module github.com/ca-x/skillhub
+module github.com/ca-x/cognate
 
 go 1.27.3
 

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/state"
 	"golang.org/x/crypto/argon2"
 )
 

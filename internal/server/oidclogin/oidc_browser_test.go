@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/httpapi"
-	"github.com/ca-x/skillhub/internal/server/oidclogin"
-	"github.com/ca-x/skillhub/web"
+	"github.com/ca-x/cognate/internal/server/httpapi"
+	"github.com/ca-x/cognate/internal/server/oidclogin"
+	"github.com/ca-x/cognate/web"
 )
 
 func TestOIDCBrowserFixture(t *testing.T) {

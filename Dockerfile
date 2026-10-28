@@ -14,15 +14,15 @@ COPY . .
 COPY --from=web /src/web/dist ./web/dist
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -o /out/skillhub ./cmd/skillhub && \
-    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -o /out/skillhub-server ./cmd/skillhub-server
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -o /out/cognate ./cmd/cognate && \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -o /out/cognate-server ./cmd/cognate-server
 
 FROM alpine:3.22
 RUN apk add --no-cache ca-certificates git
 RUN mkdir /data && chmod 700 /data && chown 10001:10001 /data
-COPY --from=build /out/skillhub /usr/local/bin/skillhub
-COPY --from=build /out/skillhub-server /usr/local/bin/skillhub-server
+COPY --from=build /out/cognate /usr/local/bin/cognate
+COPY --from=build /out/cognate-server /usr/local/bin/cognate-server
 USER 10001:10001
 EXPOSE 8080
-ENTRYPOINT ["skillhub-server"]
+ENTRYPOINT ["cognate-server"]
 CMD ["--data-dir", "/data", "--listen", "0.0.0.0:8080", "--allow-http"]

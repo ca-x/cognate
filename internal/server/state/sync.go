@@ -7,10 +7,10 @@ import (
 	"math"
 	"uuid"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/githubcredential"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
 )
 
 var ErrSyncSuperseded = errors.New("GitHub synchronization was superseded")

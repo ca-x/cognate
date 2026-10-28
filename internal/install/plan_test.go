@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/install"
+	"github.com/ca-x/cognate/internal/install"
 )
 
 func TestPlanLocalTargetsDeduplicatesDirectoryAliases(t *testing.T) {

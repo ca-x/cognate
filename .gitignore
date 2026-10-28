@@ -5,3 +5,6 @@
 /skillhub
 /skillhub-server
 *.tsbuildinfo
+/cognate
+/cognate-server
+/cognate-desktop

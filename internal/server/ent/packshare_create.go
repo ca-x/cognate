@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packshare"
 )
 
 // PackShareCreate is the builder for creating a PackShare entity.

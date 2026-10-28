@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packshare"
 )
 
 // PackShare is the model entity for the PackShare schema.

@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/server/importer"
+	"github.com/ca-x/cognate/internal/server/importer"
 )
 
 func TestMagpiePreviewSourceBackedFixture(t *testing.T) {

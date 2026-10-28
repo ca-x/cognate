@@ -3,7 +3,7 @@ package install
 import (
 	"context"
 
-	"github.com/ca-x/skillhub/internal/filelock"
+	"github.com/ca-x/cognate/internal/filelock"
 	"github.com/gofrs/flock"
 )
 

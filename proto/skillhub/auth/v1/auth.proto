@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skillhub.auth.v1;
 
-option go_package = "github.com/ca-x/skillhub/gen/skillhub/auth/v1;authv1";
+option go_package = "github.com/ca-x/cognate/gen/skillhub/auth/v1;authv1";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse);

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skillhub.mcp.v1;
 
-option go_package = "github.com/ca-x/skillhub/gen/skillhub/mcp/v1;mcpv1";
+option go_package = "github.com/ca-x/cognate/gen/skillhub/mcp/v1;mcpv1";
 
 service MCPManagementService {
   rpc CreateCredential(CreateCredentialRequest) returns (CreateCredentialResponse);

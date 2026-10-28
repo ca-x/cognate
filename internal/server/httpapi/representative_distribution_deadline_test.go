@@ -16,13 +16,13 @@ import (
 	"testing"
 	"time"
 
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
-	"github.com/ca-x/skillhub/internal/skill"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
+	"github.com/ca-x/cognate/internal/skill"
 	"google.golang.org/protobuf/proto"
 )
 

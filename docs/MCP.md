@@ -1,6 +1,6 @@
 # User-managed MCP
 
-SkillHub exposes `/mcp` through the official `github.com/modelcontextprotocol/go-sdk` v1.8.0 Streamable HTTP transport. The App mounts this handler independently of Connect's smaller request-body guard. MCP is authenticated, stateless, POST-only, and returns JSON rather than opening persistent SSE streams. The SDK implements protocol negotiation, JSON-RPC, tool schemas, and client/server transport; SkillHub does not implement a second protocol stack.
+Cognate exposes `/mcp` through the official `github.com/modelcontextprotocol/go-sdk` v1.8.0 Streamable HTTP transport. The App mounts this handler independently of Connect's smaller request-body guard. MCP is authenticated, stateless, POST-only, and returns JSON rather than opening persistent SSE streams. The SDK implements protocol negotiation, JSON-RPC, tool schemas, and client/server transport; Cognate does not implement a second protocol stack.
 
 ## Credentials and local-session management
 

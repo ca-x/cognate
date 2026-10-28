@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/install"
+	"github.com/ca-x/cognate/internal/install"
 )
 
 func TestPrepareUninstallLocalBacksUpAndReservesTargets(t *testing.T) {

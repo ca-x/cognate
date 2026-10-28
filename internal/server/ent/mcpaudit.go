@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/mcpaudit"
-	"github.com/ca-x/skillhub/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
+	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
 )
 
 // MCPAudit is the model entity for the MCPAudit schema.

@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/oidclogin"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/oidclogin"
+	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/go-jose/go-jose/v4"
 )
 

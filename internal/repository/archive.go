@@ -19,7 +19,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/skill"
 	"github.com/spf13/afero"
 )
 
@@ -105,7 +105,7 @@ func (fetcher *ArchiveFetcher) Fetch(ctx context.Context, reference Reference) (
 		return nil, ErrInvalidReference
 	}
 	request.Header.Set("Accept-Encoding", "identity")
-	request.Header.Set("User-Agent", "SkillHub")
+	request.Header.Set("User-Agent", "Cognate")
 	response, err := fetcher.client.Do(request)
 	if err != nil {
 		if ctx.Err() != nil {

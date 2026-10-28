@@ -11,9 +11,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/state/ent"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
-	"github.com/ca-x/skillhub/internal/state/ent/subscriptionskill"
+	"github.com/ca-x/cognate/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscriptionskill"
 )
 
 const MaxSubscriptions = 32

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 func testService(t *testing.T) (*Service, string) {

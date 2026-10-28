@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/skill"
 	"github.com/spf13/afero"
 )
 

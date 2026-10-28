@@ -14,8 +14,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func uninstallExecutionFixture(t *testing.T) (*install.Session, string, string) {

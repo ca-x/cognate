@@ -25,9 +25,9 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
-	"github.com/ca-x/skillhub/internal/skill"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
+	"github.com/ca-x/cognate/internal/skill"
 	"github.com/spf13/afero"
 	"google.golang.org/protobuf/proto"
 )

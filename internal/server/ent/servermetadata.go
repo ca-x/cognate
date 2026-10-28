@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/servermetadata"
+	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 )
 
 // ServerMetadata is the model entity for the ServerMetadata schema.

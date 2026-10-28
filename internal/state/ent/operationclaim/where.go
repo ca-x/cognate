@@ -5,7 +5,7 @@ package operationclaim
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/ca-x/skillhub/internal/state/ent/predicate"
+	"github.com/ca-x/cognate/internal/state/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

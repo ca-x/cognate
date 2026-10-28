@@ -11,11 +11,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	catalogv1 "github.com/ca-x/skillhub/gen/skillhub/catalog/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/catalog/v1/catalogv1connect"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/library"
-	"github.com/ca-x/skillhub/internal/server/publiccatalog"
+	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
+	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/publiccatalog"
 )
 
 func TestCatalogMissingOrMismatchedArchiveFailsClosed(test *testing.T) {

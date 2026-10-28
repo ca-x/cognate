@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/web"
+	"github.com/ca-x/cognate/web"
 )
 
 func TestEmbeddedUIAndDeepLink(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
-	"github.com/ca-x/skillhub/internal/state/ent/predicate"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/predicate"
 )
 
 // InstalledSkillDelete is the builder for deleting a InstalledSkill entity.

@@ -8,8 +8,8 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/ca-x/skillhub/gen/skillhub/catalog/v1"
-	v11 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
+	v1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
+	v11 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
 	http "net/http"
 	strings "strings"
 )

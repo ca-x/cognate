@@ -3,15 +3,15 @@
 package ent
 
 import (
-	"github.com/ca-x/skillhub/internal/state/ent/backup"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationclaim"
-	"github.com/ca-x/skillhub/internal/state/ent/operationtarget"
-	"github.com/ca-x/skillhub/internal/state/ent/projection"
-	"github.com/ca-x/skillhub/internal/state/ent/schema"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
-	"github.com/ca-x/skillhub/internal/state/ent/subscriptionskill"
+	"github.com/ca-x/cognate/internal/state/ent/backup"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationclaim"
+	"github.com/ca-x/cognate/internal/state/ent/operationtarget"
+	"github.com/ca-x/cognate/internal/state/ent/projection"
+	"github.com/ca-x/cognate/internal/state/ent/schema"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscriptionskill"
 )
 
 // The init function reads all schema descriptors with runtime code

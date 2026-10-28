@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 var (

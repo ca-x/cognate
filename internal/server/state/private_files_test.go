@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 func TestPrepareDirectoryRejectsSymlinkBeforeCreatingChildren(t *testing.T) {

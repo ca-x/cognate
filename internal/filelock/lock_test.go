@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/filelock"
+	"github.com/ca-x/cognate/internal/filelock"
 )
 
 func TestAcquireRejectsSymlinkWithoutModifyingTarget(t *testing.T) {

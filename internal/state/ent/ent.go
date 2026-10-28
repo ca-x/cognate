@@ -12,14 +12,14 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/ca-x/skillhub/internal/state/ent/backup"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationclaim"
-	"github.com/ca-x/skillhub/internal/state/ent/operationtarget"
-	"github.com/ca-x/skillhub/internal/state/ent/projection"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
-	"github.com/ca-x/skillhub/internal/state/ent/subscriptionskill"
+	"github.com/ca-x/cognate/internal/state/ent/backup"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationclaim"
+	"github.com/ca-x/cognate/internal/state/ent/operationtarget"
+	"github.com/ca-x/cognate/internal/state/ent/projection"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscriptionskill"
 )
 
 // ent aliases to avoid import conflicts in user's code.

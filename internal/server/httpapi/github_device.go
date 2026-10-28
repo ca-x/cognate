@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
-	githubv1 "github.com/ca-x/skillhub/gen/skillhub/github/v1"
-	"github.com/ca-x/skillhub/internal/server/githubauth"
+	githubv1 "github.com/ca-x/cognate/gen/skillhub/github/v1"
+	"github.com/ca-x/cognate/internal/server/githubauth"
 )
 
 func (handler *githubHandler) StartDeviceAuthorization(ctx context.Context, request *connect.Request[githubv1.StartDeviceAuthorizationRequest]) (*connect.Response[githubv1.StartDeviceAuthorizationResponse], error) {

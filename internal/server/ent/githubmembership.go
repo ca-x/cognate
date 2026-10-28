@@ -8,9 +8,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
-	"github.com/ca-x/skillhub/internal/server/ent/githubmembership"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 )
 
 // GitHubMembership is the model entity for the GitHubMembership schema.

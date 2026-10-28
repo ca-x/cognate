@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
-	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
-	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
+	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
+	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 	"github.com/labstack/echo/v4"
 )
 

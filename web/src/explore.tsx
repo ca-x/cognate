@@ -84,7 +84,7 @@ export function ExplorePage() {
   const category = search.category ?? ""
   const key = JSON.stringify([query, category])
   return <>
-    <div className="page-heading"><div><p className="catalog-eyebrow"><Compass size={16} aria-hidden="true" />{t("公开目录")}</p><h1>{t("探索可复用的技能")}</h1><p>{t("浏览这个 SkillHub 上明确公开的技能，无需登录，也无需分享 token。")}</p></div></div>
+    <div className="page-heading"><div><p className="catalog-eyebrow"><Compass size={16} aria-hidden="true" />{t("公开目录")}</p><h1>{t("探索可复用的技能")}</h1><p>{t("浏览这个 Cognate 上明确公开的技能，无需登录，也无需分享 token。")}</p></div></div>
     <CatalogSearch key={`search:${key}`} query={query} category={category} />
     {queryByteLength(query) > 128 ? <p role="alert" className="error-notice">{t("链接中的搜索词超过 128 个 UTF-8 字节。请缩短搜索词后重试，当前未请求技能列表。")}</p> : <SkillResults key={`skills:${key}`} query={query} category={category} />}
   </>
@@ -109,7 +109,7 @@ function SkillDetails({ skill }: { skill: PublicSkill }) {
       <div><dt>SHA-256</dt><dd><code>{skill.contentHash}</code></dd></div>
       <div><dt>{t("发布版本")}</dt><dd>{formatNumber(skill.publicationRevision)}</dd></div>
     </dl></section>
-    <section className="public-skill-section" aria-labelledby="public-install-title"><h2 id="public-install-title" className="font-semibold">{t("匿名安装命令")}</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{t("命令只指向这个 SkillHub，不需要登录、分享 token 或 MCP token。安装整个技能目录前，请先确认你信任其来源。")}</p><div className="install-command mt-4"><pre tabIndex={0} aria-label={t("匿名安装命令")}><code>{command}</code></pre><Button variant="outline" onClick={() => { void copy() }}>{copyState === "copied" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}{copyState === "copied" ? t("已复制命令") : t("复制命令")}</Button></div><p className="mt-3 text-sm text-muted-foreground" role="status">{copyState === "failed" ? t("浏览器无法复制，请手动选择命令。") : copyState === "copied" ? t("仅复制了命令，尚未执行安装。") : t("命令要求服务端和客户端均支持 install-public。复制不代表安装成功；本页不执行安装。")}</p><p className="mt-3 text-xs leading-6 text-muted-foreground">{t("发布者可随时取消公开；页面曾经可见不代表之后仍能下载。命令不绕过私有 Pack 的授权。")}</p></section>
+    <section className="public-skill-section" aria-labelledby="public-install-title"><h2 id="public-install-title" className="font-semibold">{t("匿名安装命令")}</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{t("命令只指向这个 Cognate，不需要登录、分享 token 或 MCP token。安装整个技能目录前，请先确认你信任其来源。")}</p><div className="install-command mt-4"><pre tabIndex={0} aria-label={t("匿名安装命令")}><code>{command}</code></pre><Button variant="outline" onClick={() => { void copy() }}>{copyState === "copied" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}{copyState === "copied" ? t("已复制命令") : t("复制命令")}</Button></div><p className="mt-3 text-sm text-muted-foreground" role="status">{copyState === "failed" ? t("浏览器无法复制，请手动选择命令。") : copyState === "copied" ? t("仅复制了命令，尚未执行安装。") : t("命令要求服务端和客户端均支持 install-public。复制不代表安装成功；本页不执行安装。")}</p><p className="mt-3 text-xs leading-6 text-muted-foreground">{t("发布者可随时取消公开；页面曾经可见不代表之后仍能下载。命令不绕过私有 Pack 的授权。")}</p></section>
   </article>
 }
 

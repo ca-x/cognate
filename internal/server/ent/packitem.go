@@ -8,9 +8,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packitem"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packitem"
 )
 
 // PackItem is the model entity for the PackItem schema.

@@ -9,10 +9,10 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/ca-x/skillhub/internal/objectid"
-	"github.com/ca-x/skillhub/internal/skill"
-	"github.com/ca-x/skillhub/internal/state"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/objectid"
+	"github.com/ca-x/cognate/internal/skill"
+	"github.com/ca-x/cognate/internal/state"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
 	"github.com/gofrs/flock"
 )
 

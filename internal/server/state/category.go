@@ -9,10 +9,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/category"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/category"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/unicode/norm"
 )

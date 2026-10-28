@@ -7,7 +7,7 @@
 package catalogv1
 
 import (
-	v1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
+	v1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1572,7 +1572,7 @@ const file_skillhub_catalog_v1_catalog_proto_rawDesc = "" +
 	"ListSkills\x12&.skillhub.catalog.v1.ListSkillsRequest\x1a'.skillhub.catalog.v1.ListSkillsResponse\x12\x91\x01\n" +
 	"\x0eListCategories\x12>.skillhub.catalog.v1.PublicCatalogServiceListCategoriesRequest\x1a?.skillhub.catalog.v1.PublicCatalogServiceListCategoriesResponse\x12W\n" +
 	"\bGetSkill\x12$.skillhub.catalog.v1.GetSkillRequest\x1a%.skillhub.catalog.v1.GetSkillResponse\x12e\n" +
-	"\rDownloadSkill\x12).skillhub.catalog.v1.DownloadSkillRequest\x1a'.skillhub.pack.v1.DownloadSkillResponse0\x01B<Z:github.com/ca-x/skillhub/gen/skillhub/catalog/v1;catalogv1b\x06proto3"
+	"\rDownloadSkill\x12).skillhub.catalog.v1.DownloadSkillRequest\x1a'.skillhub.pack.v1.DownloadSkillResponse0\x01B;Z9github.com/ca-x/cognate/gen/skillhub/catalog/v1;catalogv1b\x06proto3"
 
 var (
 	file_skillhub_catalog_v1_catalog_proto_rawDescOnce sync.Once

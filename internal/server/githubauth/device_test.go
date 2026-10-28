@@ -17,9 +17,9 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/githubauth"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/githubauth"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 type transportFunc func(*http.Request) (*http.Response, error)

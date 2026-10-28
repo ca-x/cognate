@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/github"
+	"github.com/ca-x/cognate/internal/github"
 )
 
 func TestCatalogReadFailsIfCredentialOrObservationExpiresDuringQuery(t *testing.T) {

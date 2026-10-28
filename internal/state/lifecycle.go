@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationclaim"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationclaim"
 )
 
 func (store *Store) StartOperation(ctx context.Context, id string) error {

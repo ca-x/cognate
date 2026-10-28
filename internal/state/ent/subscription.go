@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
 )
 
 // Subscription is the model entity for the Subscription schema.

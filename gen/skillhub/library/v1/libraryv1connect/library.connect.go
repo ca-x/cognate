@@ -8,7 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/ca-x/skillhub/gen/skillhub/library/v1"
+	v1 "github.com/ca-x/cognate/gen/skillhub/library/v1"
 	http "net/http"
 	strings "strings"
 )

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skillhub.library.v1;
 
-option go_package = "github.com/ca-x/skillhub/gen/skillhub/library/v1;libraryv1";
+option go_package = "github.com/ca-x/cognate/gen/skillhub/library/v1;libraryv1";
 
 service LibraryService {
   rpc CollectRepository(CollectRepositoryRequest) returns (CollectRepositoryResponse);

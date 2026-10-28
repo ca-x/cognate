@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/packclient"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/packclient"
 	"github.com/spf13/cobra"
 )
 
 func newInstallPublicCommand() *cobra.Command {
 	var origin, id string
 	command := &cobra.Command{
-		Use: "install-public", Short: "免 token 安装 SkillHub 公开技能（仅 Linux）", Args: cobra.NoArgs,
+		Use: "install-public", Short: "免 token 安装 Cognate 公开技能（仅 Linux）", Args: cobra.NoArgs,
 		RunE: func(command *cobra.Command, _ []string) (resultErr error) {
 			if err := command.Context().Err(); err != nil {
 				return err
@@ -57,7 +57,7 @@ func newInstallPublicCommand() *cobra.Command {
 			return err
 		},
 	}
-	command.Flags().StringVar(&origin, "server", "", "SkillHub 服务端 origin（HTTPS；本地开发允许 loopback HTTP）")
+	command.Flags().StringVar(&origin, "server", "", "Cognate 服务端 origin（HTTPS；本地开发允许 loopback HTTP）")
 	command.Flags().StringVar(&id, "skill", "", "公开目录中的 skill ID")
 	_ = command.MarkFlagRequired("server")
 	_ = command.MarkFlagRequired("skill")

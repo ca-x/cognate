@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )

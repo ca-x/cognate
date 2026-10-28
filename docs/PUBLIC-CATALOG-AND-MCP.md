@@ -45,5 +45,5 @@
 
 ## 检索记录
 
-- nmem CLI：query `SkillHub 公开 分类 MCP token`，mode `fast_bm25_vector`，filters `-n 3`，返回 Space `default`。按服务端排序：rank 1 `5edb90de-de20-4ad8-9143-86c82594b5d4`「lazycat-mcp 自定义 MCP Provider 实现细节」score 0.7561088131235001；rank 2 `d997ef30-2bb3-4b00-a97c-1cf71e743185`「SkillHub 需求文档全文(跨机器版,交付Codex)」score 0.7203789201879923；rank 3 `8d87caa2-1194-4da1-93c9-0d6673bd9bc1`「Smarticky MCP 能力设计方案：懒猫内免 token、外部 token 鉴权」score 0.7676219132568584。没有命中已锁定的 SkillHub 公开/MCP 设计，以上新需求以当前用户消息为准，不挪用其他项目免 token 鉴权。CLI 无法确认图表会话同 owner/space，按技能边界跳过自动图。
+- nmem CLI：query `Cognate 公开 分类 MCP token`，mode `fast_bm25_vector`，filters `-n 3`，返回 Space `default`。按服务端排序：rank 1 `5edb90de-de20-4ad8-9143-86c82594b5d4`「lazycat-mcp 自定义 MCP Provider 实现细节」score 0.7561088131235001；rank 2 `d997ef30-2bb3-4b00-a97c-1cf71e743185`「Cognate 需求文档全文(跨机器版,交付Codex)」score 0.7203789201879923；rank 3 `8d87caa2-1194-4da1-93c9-0d6673bd9bc1`「Smarticky MCP 能力设计方案：懒猫内免 token、外部 token 鉴权」score 0.7676219132568584。没有命中已锁定的 Cognate 公开/MCP 设计，以上新需求以当前用户消息为准，不挪用其他项目免 token 鉴权。CLI 无法确认图表会话同 owner/space，按技能边界跳过自动图。
 - 原设计时记录：已查看 skills.sh 目录及 `modelcontextprotocol/go-sdk` 官方仓库；仅参考目录交互模式与成熟协议实现，不复制其全产品范围，当时具体 SDK 版本尚未锁定。当前实现已锁定 `github.com/modelcontextprotocol/go-sdk v1.8.0`，详见 [MCP.md](MCP.md) 与 [go.mod](../go.mod)。

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/mcpserver"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/mcpserver"
+	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/search"
+	"github.com/ca-x/cognate/internal/search"
 )
 
 type fakeSearch struct {

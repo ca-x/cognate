@@ -1,6 +1,6 @@
 # 服务端状态与凭据（开发中）
 
-`internal/server/state` 是独立于客户端状态库的 ent + entsqlite 服务端存储。`cmd/skillhub-server` 已接入本地账号、OIDC、Connect 认证和 GitHub Lists API，并嵌入 React 管理面板。`CreateUser` 只建立内部用户标识，不提供身份认证；HTTP 调用从已签名会话解析不可变用户 ID，不信任请求身份头。OIDC 身份以 issuer + subject 唯一记录，显式绑定须在同一事务核验原会话，见 `docs/OIDC.md`。`viewer_id` 必须由已授权 GitHub 请求验证；底层保存凭据的方法本身不执行网络验证，已接入的 ConnectToken 和 device flow 会先完成 GitHub Lists 读取验证。
+`internal/server/state` 是独立于客户端状态库的 ent + entsqlite 服务端存储。`cmd/cognate-server` 已接入本地账号、OIDC、Connect 认证和 GitHub Lists API，并嵌入 React 管理面板。`CreateUser` 只建立内部用户标识，不提供身份认证；HTTP 调用从已签名会话解析不可变用户 ID，不信任请求身份头。OIDC 身份以 issuer + subject 唯一记录，显式绑定须在同一事务核验原会话，见 `docs/OIDC.md`。`viewer_id` 必须由已授权 GitHub 请求验证；底层保存凭据的方法本身不执行网络验证，已接入的 ConnectToken 和 device flow 会先完成 GitHub Lists 读取验证。
 
 实验性本地账号使用 Argon2id 哈希密码，未知用户名也执行密码哈希；同事务创建用户和账号，session 以独立派生密钥签名，仅将随机 token 的摘要存入数据库，支持过期与登出撤销。认证服务初始化校验主密钥与数据库匹配；查询返回后再次检查 session 过期时间，但不保证已开始的业务操作或响应在到期时被撤回。单个认证服务实例最多同时执行两个密码哈希，超限立即拒绝，不构成速率限制。注册冲突会暴露用户名是否已存在。尚无跨实例或按来源的限流、账号禁用与改密、认证代次、session 清理或时钟回拨/数据库回滚防护；因此不能将该 handler 暴露于生产网络。接入服务前还必须实现 TLS 或明确定义的可信反向代理边界，并禁止记录密码、Authorization 和请求体。当前 handler 忽略转发身份头，设置响应 `no-store` 和消息大小限制；不能由此推断完整服务已具备上述安全能力。
 

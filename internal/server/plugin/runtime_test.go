@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/plugin"
+	"github.com/ca-x/cognate/internal/server/plugin"
 )
 
 func TestRunModuleExecutesIsolatedHook(t *testing.T) {

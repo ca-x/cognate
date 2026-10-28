@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/server/importer"
+	"github.com/ca-x/cognate/internal/server/importer"
 )
 
 func TestCCSwitchSkillPreview(t *testing.T) {

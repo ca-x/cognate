@@ -11,11 +11,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ca-x/skillhub/internal/filelock"
-	"github.com/ca-x/skillhub/internal/skill"
-	"github.com/ca-x/skillhub/internal/state/ent"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/filelock"
+	"github.com/ca-x/cognate/internal/skill"
+	"github.com/ca-x/cognate/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
 	_ "github.com/lib-x/entsqlite"
 )
 

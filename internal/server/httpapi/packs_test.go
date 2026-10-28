@@ -15,13 +15,13 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/auth"
-	"github.com/ca-x/skillhub/internal/server/library"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 func TestPackRPCManagementAndDistribution(test *testing.T) {

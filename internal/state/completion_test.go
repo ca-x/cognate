@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func TestCompleteInstallationAtomic(t *testing.T) {

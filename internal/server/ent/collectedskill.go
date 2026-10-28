@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 )
 
 // CollectedSkill is the model entity for the CollectedSkill schema.

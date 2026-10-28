@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/objectid"
-	"github.com/ca-x/skillhub/internal/skill"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/objectid"
+	"github.com/ca-x/cognate/internal/skill"
+	"github.com/ca-x/cognate/internal/state"
 	"golang.org/x/sys/unix"
 )
 

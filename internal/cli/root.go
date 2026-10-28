@@ -11,9 +11,9 @@ import (
 	"text/tabwriter"
 	"unicode"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/search"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/search"
+	"github.com/ca-x/cognate/internal/skill"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ func Execute() {
 }
 
 func New() *cobra.Command {
-	root := &cobra.Command{Use: "skillhub", Short: "聚合与浏览 agent skills", SilenceUsage: true, SilenceErrors: true}
+	root := &cobra.Command{Use: "cognate", Short: "聚合与浏览 agent skills", SilenceUsage: true, SilenceErrors: true}
 	root.AddCommand(newInstallLocalCommand())
 	root.AddCommand(newInstallPublicCommand())
 	root.AddCommand(newUninstallLocalCommand())

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state/ent"
 )
 
 // The BackupFunc type is an adapter to allow the use of ordinary

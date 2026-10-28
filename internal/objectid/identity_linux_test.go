@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/objectid"
+	"github.com/ca-x/cognate/internal/objectid"
 )
 
 func TestIdentityTracksDirectoryAcrossRename(t *testing.T) {

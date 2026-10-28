@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 )
 
 func TestServerErrorDiagnosticsRedactCredentialsAndPreserveCode(test *testing.T) {

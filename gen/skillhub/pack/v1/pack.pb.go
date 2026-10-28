@@ -1508,7 +1508,7 @@ const file_skillhub_pack_v1_pack_proto_rawDesc = "" +
 	"\vRevokeShare\x12$.skillhub.pack.v1.RevokeShareRequest\x1a%.skillhub.pack.v1.RevokeShareResponse2\xd5\x01\n" +
 	"\x13DistributionService\x12Z\n" +
 	"\vGetManifest\x12$.skillhub.pack.v1.GetManifestRequest\x1a%.skillhub.pack.v1.GetManifestResponse\x12b\n" +
-	"\rDownloadSkill\x12&.skillhub.pack.v1.DownloadSkillRequest\x1a'.skillhub.pack.v1.DownloadSkillResponse0\x01B6Z4github.com/ca-x/skillhub/gen/skillhub/pack/v1;packv1b\x06proto3"
+	"\rDownloadSkill\x12&.skillhub.pack.v1.DownloadSkillRequest\x1a'.skillhub.pack.v1.DownloadSkillResponse0\x01B5Z3github.com/ca-x/cognate/gen/skillhub/pack/v1;packv1b\x06proto3"
 
 var (
 	file_skillhub_pack_v1_pack_proto_rawDescOnce sync.Once

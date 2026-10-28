@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ca-x/skillhub/internal/stagename"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/stagename"
+	"github.com/ca-x/cognate/internal/state"
 	"github.com/spf13/afero"
 )
 

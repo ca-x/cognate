@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/server/importer"
+	"github.com/ca-x/cognate/internal/server/importer"
 	"modernc.org/sqlite"
 )
 

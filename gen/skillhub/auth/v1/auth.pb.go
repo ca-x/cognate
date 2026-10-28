@@ -678,7 +678,7 @@ const file_skillhub_auth_v1_auth_proto_rawDesc = "" +
 	"\x06Logout\x12\x1f.skillhub.auth.v1.LogoutRequest\x1a .skillhub.auth.v1.LogoutResponse\x12f\n" +
 	"\x0fGetLoginOptions\x12(.skillhub.auth.v1.GetLoginOptionsRequest\x1a).skillhub.auth.v1.GetLoginOptionsResponse\x12c\n" +
 	"\x0eStartOIDCLogin\x12'.skillhub.auth.v1.StartOIDCLoginRequest\x1a(.skillhub.auth.v1.StartOIDCLoginResponse\x12l\n" +
-	"\x11CompleteOIDCLogin\x12*.skillhub.auth.v1.CompleteOIDCLoginRequest\x1a+.skillhub.auth.v1.CompleteOIDCLoginResponseB6Z4github.com/ca-x/skillhub/gen/skillhub/auth/v1;authv1b\x06proto3"
+	"\x11CompleteOIDCLogin\x12*.skillhub.auth.v1.CompleteOIDCLoginRequest\x1a+.skillhub.auth.v1.CompleteOIDCLoginResponseB5Z3github.com/ca-x/cognate/gen/skillhub/auth/v1;authv1b\x06proto3"
 
 var (
 	file_skillhub_auth_v1_auth_proto_rawDescOnce sync.Once

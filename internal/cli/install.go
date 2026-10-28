@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/state"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )

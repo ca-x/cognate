@@ -11,10 +11,10 @@ import (
 	"runtime"
 	"text/tabwriter"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/packclient"
-	"github.com/ca-x/skillhub/internal/state"
-	"github.com/ca-x/skillhub/internal/subscription"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/packclient"
+	"github.com/ca-x/cognate/internal/state"
+	"github.com/ca-x/cognate/internal/subscription"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +61,7 @@ func newPackSubscribeCommand() *cobra.Command {
 			return showSyncResult(command.OutOrStdout(), result)
 		},
 	}
-	command.Flags().StringVar(&server, "server", "", "SkillHub HTTPS origin（显式 loopback 可使用 HTTP）")
+	command.Flags().StringVar(&server, "server", "", "Cognate HTTPS origin（显式 loopback 可使用 HTTP）")
 	command.Flags().BoolVar(&tokenStdin, "token-stdin", false, "从标准输入读取分享令牌；不支持命令行参数传入令牌")
 	_ = command.MarkFlagRequired("server")
 	return command

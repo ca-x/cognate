@@ -35,7 +35,7 @@ export function AuthScreen() {
   function submit(event: FormEvent) { event.preventDefault(); login.mutate() }
   return <main className="auth-layout">
     <aside className="auth-story">
-      <div className="brand"><img src={logo} width="48" height="48" alt="" /><span>SkillHub</span></div>
+      <div className="brand"><img src={logo} width="48" height="48" alt="" /><span>Cognate</span></div>
       <div className="auth-intro">
         <span className="text-sm text-slate-400">{t("你的 skill 工作空间")}</span>
         <h1>{t("好用的技能，")}<br />{t("随处可用。")}</h1>
@@ -51,7 +51,7 @@ export function AuthScreen() {
     <section className="auth-form-area" aria-labelledby="auth-title">
       <div className="auth-form-content">
         <div className="mb-7"><Preferences /></div>
-        <div className="mb-9"><h2 id="auth-title" className="text-2xl font-semibold tracking-tight">{mode === "login" ? t("登录你的工作空间") : t("创建你的账号")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("使用此 SkillHub 服务上的本地账号。")}</p></div>
+        <div className="mb-9"><h2 id="auth-title" className="text-2xl font-semibold tracking-tight">{mode === "login" ? t("登录你的工作空间") : t("创建你的账号")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("使用此 Cognate 服务上的本地账号。")}</p></div>
         <form onSubmit={submit} className="space-y-5" aria-busy={login.isPending}>
           {loginNotice && <p role="alert" className="error-message">{loginNotice}</p>}
           <div className="space-y-2"><label htmlFor="username">{t("用户名")}</label><Input id="username" name="username" autoComplete="username" minLength={3} maxLength={64} pattern="[A-Za-z0-9_.-]{3,64}" required value={username} onChange={(event) => setUsername(event.target.value)} aria-describedby="username-help" /><p id="username-help" className="field-help">{t("3–64 位字母、数字、点、下划线或连字符。")}</p></div>

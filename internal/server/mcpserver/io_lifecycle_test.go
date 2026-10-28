@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/mcpaccess"
-	"github.com/ca-x/skillhub/internal/server/mcpserver"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/mcpaccess"
+	"github.com/ca-x/cognate/internal/server/mcpserver"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 func stalledBody(test *testing.T, address string, secret mcpaccess.Secret) net.Conn {

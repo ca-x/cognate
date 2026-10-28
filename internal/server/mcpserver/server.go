@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/mcpaccess"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/mcpaccess"
+	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -90,7 +90,7 @@ func New(options Options) (*Server, error) {
 	lifetime, cancel := context.WithCancel(context.Background())
 	server := &Server{access: options.Access, store: options.Store, library: options.Library, origin: origin, timeout: options.RequestTimeout, lifetime: lifetime, cancel: cancel, httpSlots: make(chan struct{}, options.MaxConcurrent), toolSlots: make(chan struct{}, options.MaxConcurrent), drained: make(chan struct{})}
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	sdk := mcp.NewServer(&mcp.Implementation{Name: "skillhub", Version: "1"}, &mcp.ServerOptions{Logger: logger, Capabilities: &mcp.ServerCapabilities{}})
+	sdk := mcp.NewServer(&mcp.Implementation{Name: "cognate", Version: "1"}, &mcp.ServerOptions{Logger: logger, Capabilities: &mcp.ServerCapabilities{}})
 	server.addTools(sdk)
 	server.handler = mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return sdk }, &mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true, MaxRequestBodyBytes: MaxRequestBytes, Logger: logger, PropagateRequestCancellation: true, DisableLocalhostProtection: origin != nil})
 	return server, nil

@@ -12,10 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 // CollectedRepositoryQuery is the builder for querying CollectedRepository entities.

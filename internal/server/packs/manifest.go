@@ -9,7 +9,7 @@ import (
 	"hash"
 	"slices"
 
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 type Manifest struct {

@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/ca-x/skillhub/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state/ent"
 	// required by schema hooks.
-	_ "github.com/ca-x/skillhub/internal/state/ent/runtime"
+	_ "github.com/ca-x/cognate/internal/state/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/ca-x/skillhub/internal/state/ent/migrate"
+	"github.com/ca-x/cognate/internal/state/ent/migrate"
 )
 
 type (

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func uninstallFixture(t *testing.T) (*state.Store, state.OperationPlan) {

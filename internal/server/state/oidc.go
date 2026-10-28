@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 	"uuid"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/oidcidentity"
-	"github.com/ca-x/skillhub/internal/server/ent/session"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
+	"github.com/ca-x/cognate/internal/server/ent/session"
 )
 
 var ErrOIDCIdentityConflict = errors.New("OpenID Connect identity already belongs to another user")

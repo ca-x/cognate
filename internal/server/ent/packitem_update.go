@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/packitem"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/packitem"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
 // PackItemUpdate is the builder for updating PackItem entities.

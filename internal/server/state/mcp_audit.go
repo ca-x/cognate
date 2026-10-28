@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/mcpaudit"
-	"github.com/ca-x/skillhub/internal/server/ent/mcpcredential"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
+	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 const MaxMCPAuditEntries = 1000

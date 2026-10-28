@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func TestLegacyPublishedWithoutObjectIdentityIsNotCompleted(t *testing.T) {

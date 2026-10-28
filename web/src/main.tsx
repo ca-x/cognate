@@ -30,9 +30,9 @@ function PublicWorkspace() {
   useTranslation()
   return <div className="public-workspace">
     <a className="skip-link" href="#main">{t("跳到主要内容")}</a>
-    <header className="public-topbar"><Link to="/explore" className="brand"><img src={logo} width="38" height="38" alt="" /><span>SkillHub</span></Link><nav aria-label={t("公开导航")}><Link to="/explore" activeOptions={{ exact: true }}>{t("探索")}</Link><Link to="/" className="public-login">{t("登录管理")}</Link></nav><Preferences /></header>
+    <header className="public-topbar"><Link to="/explore" className="brand"><img src={logo} width="38" height="38" alt="" /><span>Cognate</span></Link><nav aria-label={t("公开导航")}><Link to="/explore" activeOptions={{ exact: true }}>{t("探索")}</Link><Link to="/" className="public-login">{t("登录管理")}</Link></nav><Preferences /></header>
     <main id="main" className="page-content" tabIndex={-1}><Suspense fallback={<p role="status">{t("正在读取公开目录…")}</p>}><Outlet /></Suspense></main>
-    <footer className="workspace-footer">SkillHub <span aria-hidden="true">·</span> {t(" 公开技能目录 ")}<span aria-hidden="true">·</span> {t(" 开发预览")}</footer>
+    <footer className="workspace-footer">Cognate <span aria-hidden="true">·</span> {t(" 公开技能目录 ")}<span aria-hidden="true">·</span> {t(" 开发预览")}</footer>
   </div>
 }
 
@@ -51,7 +51,7 @@ function Workspace() {
   return <div className="workspace">
     <a className="skip-link" href="#main">{t("跳到主要内容")}</a>
     <aside className="sidebar">
-      <Link to="/" className="brand"><img src={logo} width="42" height="42" alt="" /><span>SkillHub</span></Link>
+      <Link to="/" className="brand"><img src={logo} width="42" height="42" alt="" /><span>Cognate</span></Link>
       <p className="sidebar-label">{t("工作空间")}</p>
       <nav aria-label={t("主要导航")}><Link to="/" activeOptions={{ exact: true }}><GitFork size={18} aria-hidden="true" />{t("来源")}</Link><Link to="/repositories"><FolderGit2 size={18} aria-hidden="true" />{t("仓库")}</Link><Link to="/packs"><Layers size={18} aria-hidden="true" />{t("组合")}</Link><Link to="/categories"><Tags size={18} aria-hidden="true" />{t("分类")}</Link><Link to="/explore"><Compass size={18} aria-hidden="true" />{t("探索")}</Link><Link to="/mcp-settings"><KeyRound size={18} aria-hidden="true" />{t("MCP")}</Link><Link to="/account"><Settings size={18} aria-hidden="true" />{t("账号")}</Link></nav>
       <div className="sidebar-bottom"><Server size={15} aria-hidden="true" /><span>{t("自托管工作空间")}</span></div>
@@ -59,7 +59,7 @@ function Workspace() {
     <div className="workspace-body">
       <header className="topbar"><span className="text-sm text-muted-foreground">{t("我的资料库")}</span><Preferences /><div className="flex min-w-0 items-center gap-3"><span className="max-w-36 truncate text-sm">{session.username}</span><Button variant="ghost" disabled={leaving} onClick={() => { void logout().catch(() => {}) }}><LogOut size={16} aria-hidden="true" />{leaving ? t("退出中…") : t("退出")}</Button></div></header>
       <main id="main" className="page-content" tabIndex={-1}><Suspense fallback={<p role="status">{t("正在读取工作空间…")}</p>}><Outlet /></Suspense></main>
-      <footer className="workspace-footer">SkillHub <span aria-hidden="true">·</span> {t(" 开发预览")}</footer>
+      <footer className="workspace-footer">Cognate <span aria-hidden="true">·</span> {t(" 开发预览")}</footer>
     </div>
   </div>
 }

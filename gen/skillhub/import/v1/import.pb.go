@@ -356,7 +356,7 @@ const file_skillhub_import_v1_import_proto_rawDesc = "" +
 	"!EXPORT_FORMAT_MAGPIE_LIBRARY_JSON\x10\x012\x8f\x02\n" +
 	"\rImportService\x12y\n" +
 	"\x14PreviewLibraryExport\x12/.skillhub.import.v1.PreviewLibraryExportRequest\x1a0.skillhub.import.v1.PreviewLibraryExportResponse\x12\x82\x01\n" +
-	"\x17PreviewCCSwitchSnapshot\x122.skillhub.import.v1.PreviewCCSwitchSnapshotRequest\x1a3.skillhub.import.v1.PreviewCCSwitchSnapshotResponseB:Z8github.com/ca-x/skillhub/gen/skillhub/import/v1;importv1b\x06proto3"
+	"\x17PreviewCCSwitchSnapshot\x122.skillhub.import.v1.PreviewCCSwitchSnapshotRequest\x1a3.skillhub.import.v1.PreviewCCSwitchSnapshotResponseB9Z7github.com/ca-x/cognate/gen/skillhub/import/v1;importv1b\x06proto3"
 
 var (
 	file_skillhub_import_v1_import_proto_rawDescOnce sync.Once

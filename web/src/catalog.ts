@@ -18,5 +18,5 @@ export function validateCatalogSearch(search: Record<string, unknown>): { q?: st
 
 export function publicInstallCommand(origin: string, skillId: string) {
   const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`
-  return `skillhub install-public --server ${quote(origin)} --skill ${quote(skillId)}`
+  return `cognate install-public --server ${quote(origin)} --skill ${quote(skillId)}`
 }

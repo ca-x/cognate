@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/state/ent/predicate"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
-	"github.com/ca-x/skillhub/internal/state/ent/subscriptionskill"
+	"github.com/ca-x/cognate/internal/state/ent/predicate"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscriptionskill"
 )
 
 // SubscriptionSkillQuery is the builder for querying SubscriptionSkill entities.

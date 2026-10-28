@@ -504,7 +504,7 @@ const file_skillhub_library_v1_library_proto_rawDesc = "" +
 	"\x0eLibraryService\x12r\n" +
 	"\x11CollectRepository\x12-.skillhub.library.v1.CollectRepositoryRequest\x1a..skillhub.library.v1.CollectRepositoryResponse\x12o\n" +
 	"\x10ListRepositories\x12,.skillhub.library.v1.ListRepositoriesRequest\x1a-.skillhub.library.v1.ListRepositoriesResponse\x12f\n" +
-	"\rGetRepository\x12).skillhub.library.v1.GetRepositoryRequest\x1a*.skillhub.library.v1.GetRepositoryResponseB<Z:github.com/ca-x/skillhub/gen/skillhub/library/v1;libraryv1b\x06proto3"
+	"\rGetRepository\x12).skillhub.library.v1.GetRepositoryRequest\x1a*.skillhub.library.v1.GetRepositoryResponseB;Z9github.com/ca-x/cognate/gen/skillhub/library/v1;libraryv1b\x06proto3"
 
 var (
 	file_skillhub_library_v1_library_proto_rawDescOnce sync.Once

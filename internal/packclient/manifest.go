@@ -11,8 +11,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/internal/skill"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 func validateManifest(manifest *packv1.GetManifestResponse) error {

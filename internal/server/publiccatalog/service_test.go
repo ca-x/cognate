@@ -12,10 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/state"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/state"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 type archiveSource func(context.Context, io.Writer) error

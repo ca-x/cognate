@@ -13,9 +13,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/packclient"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/packclient"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 type Manager struct {

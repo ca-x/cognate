@@ -7,9 +7,9 @@ import (
 	"maps"
 	"slices"
 
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/internal/packclient"
-	"github.com/ca-x/skillhub/internal/state"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/internal/packclient"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 type SyncResult struct {

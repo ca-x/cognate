@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent"
 )
 
 // The CategoryFunc type is an adapter to allow the use of ordinary

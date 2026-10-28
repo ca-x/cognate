@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/filelock"
+	"github.com/ca-x/cognate/internal/filelock"
 	"golang.org/x/sys/unix"
 )
 

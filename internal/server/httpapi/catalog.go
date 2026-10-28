@@ -5,12 +5,12 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
-	catalogv1 "github.com/ca-x/skillhub/gen/skillhub/catalog/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/catalog/v1/catalogv1connect"
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
-	"github.com/ca-x/skillhub/internal/server/packs"
-	"github.com/ca-x/skillhub/internal/server/publiccatalog"
-	"github.com/ca-x/skillhub/internal/server/state"
+	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
+	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
+	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/publiccatalog"
+	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/labstack/echo/v4"
 )
 

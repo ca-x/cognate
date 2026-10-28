@@ -5,8 +5,8 @@ import (
 	"errors"
 	"math"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 )
 
 var (

@@ -10,9 +10,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/install"
-	"github.com/ca-x/skillhub/internal/skill"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/install"
+	"github.com/ca-x/cognate/internal/skill"
+	"github.com/ca-x/cognate/internal/state"
 )
 
 func backupFixture(t *testing.T) (*install.Session, string, string) {

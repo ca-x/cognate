@@ -9,10 +9,10 @@ import (
 	"runtime"
 	"uuid"
 
-	"github.com/ca-x/skillhub/internal/objectid"
-	"github.com/ca-x/skillhub/internal/skill"
-	"github.com/ca-x/skillhub/internal/stagename"
-	"github.com/ca-x/skillhub/internal/state"
+	"github.com/ca-x/cognate/internal/objectid"
+	"github.com/ca-x/cognate/internal/skill"
+	"github.com/ca-x/cognate/internal/stagename"
+	"github.com/ca-x/cognate/internal/state"
 	"github.com/spf13/afero"
 )
 

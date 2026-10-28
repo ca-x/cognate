@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	packv1 "github.com/ca-x/skillhub/gen/skillhub/pack/v1"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
 )
 
 func TestDownloadResourceLimits(test *testing.T) {

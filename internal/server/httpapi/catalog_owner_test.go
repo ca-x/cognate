@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	catalogv1 "github.com/ca-x/skillhub/gen/skillhub/catalog/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/catalog/v1/catalogv1connect"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/state"
-	"github.com/ca-x/skillhub/internal/skill"
+	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
+	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/state"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 func TestCatalogOwnerRPCIsolationAndCAS(test *testing.T) {

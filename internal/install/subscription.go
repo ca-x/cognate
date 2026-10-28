@@ -8,8 +8,8 @@ import (
 	"os"
 	"uuid"
 
-	"github.com/ca-x/skillhub/internal/state"
-	"github.com/ca-x/skillhub/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state"
+	"github.com/ca-x/cognate/internal/state/ent"
 )
 
 func (session *Session) InstallSubscription(ctx context.Context, home, slug, source, expectedHash string) (bool, error) {

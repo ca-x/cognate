@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/githubcredential"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
-	"github.com/ca-x/skillhub/internal/server/ent/githubmembership"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 )
 
 var ErrObservationExpired = errors.New("GitHub catalog observation expired")

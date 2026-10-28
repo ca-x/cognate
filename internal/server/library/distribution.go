@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/ca-x/skillhub/internal/repository"
+	"github.com/ca-x/cognate/internal/repository"
 )
 
 func (service *Service) WriteSkillArchive(ctx context.Context, archiveHash, path, contentHash string, destination io.Writer) error {

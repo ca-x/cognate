@@ -9,8 +9,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/server/plugin"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/server/plugin"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 type InstalledSkill struct {

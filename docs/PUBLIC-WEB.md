@@ -27,7 +27,7 @@ Skills use 24-result pages with previous/next controls. Public category choices 
 Details show the source repository, branch, relative skill path, full SHA-256 hash, publication revision, and public categories. The install command is shell-quoted for a POSIX shell:
 
 ```sh
-skillhub install-public --server 'https://your-skillhub.example' --skill 'opaque-skill-id'
+cognate install-public --server 'https://your-cognate.example' --skill 'opaque-skill-id'
 ```
 
 The page only copies this command. It does not install, stream files, validate a local installation, or report a successful installation. The CLI must independently authorize current publication and verify downloaded content. An old page or copied command does not bypass a subsequent unpublication.
@@ -50,7 +50,7 @@ The selected repository's publication state is read from `GetPublication`; colle
 
 Package: `skillhub.catalog.v1`.
 
-Go package: `github.com/ca-x/skillhub/gen/skillhub/catalog/v1;catalogv1`.
+Go package: `github.com/ca-x/cognate/gen/skillhub/catalog/v1;catalogv1`.
 
 Generated artifacts:
 

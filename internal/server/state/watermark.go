@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
 )
 
 func (store *Store) listWatermarks(ctx context.Context, ticket ListSyncTicket) (map[string]github.List, error) {

@@ -3,7 +3,7 @@ package repository_test
 import (
 	"testing"
 
-	"github.com/ca-x/skillhub/internal/repository"
+	"github.com/ca-x/cognate/internal/repository"
 )
 
 func TestGitHubURL(t *testing.T) {

@@ -979,7 +979,7 @@ const file_skillhub_mcp_v1_mcp_proto_rawDesc = "" +
 	"\x10UpdateCredential\x12(.skillhub.mcp.v1.UpdateCredentialRequest\x1a).skillhub.mcp.v1.UpdateCredentialResponse\x12g\n" +
 	"\x10RotateCredential\x12(.skillhub.mcp.v1.RotateCredentialRequest\x1a).skillhub.mcp.v1.RotateCredentialResponse\x12g\n" +
 	"\x10RevokeCredential\x12(.skillhub.mcp.v1.RevokeCredentialRequest\x1a).skillhub.mcp.v1.RevokeCredentialResponse\x12R\n" +
-	"\tListAudit\x12!.skillhub.mcp.v1.ListAuditRequest\x1a\".skillhub.mcp.v1.ListAuditResponseB4Z2github.com/ca-x/skillhub/gen/skillhub/mcp/v1;mcpv1b\x06proto3"
+	"\tListAudit\x12!.skillhub.mcp.v1.ListAuditRequest\x1a\".skillhub.mcp.v1.ListAuditResponseB3Z1github.com/ca-x/cognate/gen/skillhub/mcp/v1;mcpv1b\x06proto3"
 
 var (
 	file_skillhub_mcp_v1_mcp_proto_rawDescOnce sync.Once

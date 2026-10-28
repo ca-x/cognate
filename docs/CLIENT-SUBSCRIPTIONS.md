@@ -5,7 +5,7 @@
 ## CLI
 
 ```sh
-skillhub pack subscribe --server https://your-skillhub.example --token-stdin
+skillhub pack subscribe --server https://your-cognate.example --token-stdin
 skillhub pack list
 skillhub pack sync
 skillhub pack remove SUBSCRIPTION_ID
@@ -29,7 +29,7 @@ skillhub uninstall-local example
 ## 同步顺序
 
 1. 持有与本地安装一致的跨进程 session 锁，先拒绝未恢复的 journal 操作。
-2. 通过配置的 SkillHub 服务端读取所有启用订阅的 manifest；完整核验 metadata/hash，核对 Pack ID，并构造所有订阅的 desired 并集。
+2. 通过配置的 Cognate 服务端读取所有启用订阅的 manifest；完整核验 metadata/hash，核对 Pack ID，并构造所有订阅的 desired 并集。
 3. 同 slug/hash 仅保留一个下载/安装目标；同 slug 不同 hash 在任何文件变更前失败。最多 32 个订阅、每个 256 项、合并最多 1024 个安装目标。
 4. 对本地记录、实际 canonical 内容、对象身份和全部投影进行预检；未记录的目标或非订阅安装的不同内容不能被覆盖。
 5. 事务/CAS 保存 desired revision/hash 与成员，保留此前 applied 状态。下载失败或中途只成功一部分不推进 applied revision。

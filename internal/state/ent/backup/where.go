@@ -4,7 +4,7 @@ package backup
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/state/ent/predicate"
+	"github.com/ca-x/cognate/internal/state/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

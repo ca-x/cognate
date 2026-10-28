@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/session"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/ent/session"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 // Session is the model entity for the Session schema.

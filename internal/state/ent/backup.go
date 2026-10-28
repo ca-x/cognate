@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/state/ent/backup"
+	"github.com/ca-x/cognate/internal/state/ent/backup"
 )
 
 // Backup is the model entity for the Backup schema.

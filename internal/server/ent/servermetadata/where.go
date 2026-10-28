@@ -4,7 +4,7 @@ package servermetadata
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

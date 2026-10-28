@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	githubv1 "github.com/ca-x/skillhub/gen/skillhub/github/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/github/v1/githubv1connect"
+	githubv1 "github.com/ca-x/cognate/gen/skillhub/github/v1"
+	"github.com/ca-x/cognate/gen/skillhub/github/v1/githubv1connect"
 )
 
 type graphTransport func(*http.Request) (*http.Response, error)

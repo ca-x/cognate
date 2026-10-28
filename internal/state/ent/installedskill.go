@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
 )
 
 // InstalledSkill is the model entity for the InstalledSkill schema.

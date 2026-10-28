@@ -1,10 +1,10 @@
 # GitHub Lists 同步（开发中）
 
-`internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`skillhub-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时任务、增量水位线跳过和实际仓库拉取入库未完成，F1/M3 尚未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
+`internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`cognate-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时任务、增量水位线跳过和实际仓库拉取入库未完成，F1/M3 尚未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
 
 ## 设备授权接线
 
-管理员先为 SkillHub 创建 GitHub OAuth App 并启用 device flow，再通过 `--github-client-id` 或 `SKILLHUB_GITHUB_CLIENT_ID` 配置公开 client ID；未配置时隐藏设备授权按钮，仍可使用手动 token。不可借用其他应用的 client ID。
+管理员先为 Cognate 创建 GitHub OAuth App 并启用 device flow，再通过 `--github-client-id` 或 `SKILLHUB_GITHUB_CLIENT_ID` 配置公开 client ID；未配置时隐藏设备授权按钮，仍可使用手动 token。不可借用其他应用的 client ID。
 
 `StartDeviceAuthorization` 返回随机授权 ID、用户验证码、GitHub 官方验证地址与到期时间，不返回 OAuth `device_code` 或 token。`GetDeviceAuthorization` 和 `CancelDeviceAuthorization` 按已登录账号隔离；空 ID 查询或取消本人当前任务，以便页面刷新后恢复。每账号同时只允许一个进行中的任务，全局最多保存 64 个任务；容量紧张时驱逐终态，不驱逐活跃任务。结果最长保留约 20 分钟，重启后丢失，客户端需重新发起。
 

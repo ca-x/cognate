@@ -10,13 +10,13 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packitem"
-	"github.com/ca-x/skillhub/internal/server/ent/packshare"
-	"github.com/ca-x/skillhub/internal/skill"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packitem"
+	"github.com/ca-x/cognate/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/skill"
 )
 
 const MaxPackItems = 256

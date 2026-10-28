@@ -7,10 +7,10 @@ import (
 	"math"
 	"strings"
 
-	"github.com/ca-x/skillhub/internal/state/ent"
-	"github.com/ca-x/skillhub/internal/state/ent/installedskill"
-	"github.com/ca-x/skillhub/internal/state/ent/subscription"
-	"github.com/ca-x/skillhub/internal/state/ent/subscriptionskill"
+	"github.com/ca-x/cognate/internal/state/ent"
+	"github.com/ca-x/cognate/internal/state/ent/installedskill"
+	"github.com/ca-x/cognate/internal/state/ent/subscription"
+	"github.com/ca-x/cognate/internal/state/ent/subscriptionskill"
 )
 
 func (store *Store) StageSubscriptionSync(ctx context.Context, snapshots []SubscriptionSnapshot) error {

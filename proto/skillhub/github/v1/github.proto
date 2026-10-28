@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skillhub.github.v1;
 
-option go_package = "github.com/ca-x/skillhub/gen/skillhub/github/v1;githubv1";
+option go_package = "github.com/ca-x/cognate/gen/skillhub/github/v1;githubv1";
 
 service GitHubService {
   rpc ConnectToken(ConnectTokenRequest) returns (ConnectTokenResponse);

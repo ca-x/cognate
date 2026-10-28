@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/repository"
+	"github.com/ca-x/cognate/internal/repository"
 )
 
 func TestSchedulerCanceledAttemptRotatesAfterRestart(test *testing.T) {

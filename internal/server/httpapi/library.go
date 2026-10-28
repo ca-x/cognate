@@ -5,10 +5,10 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
-	libraryv1 "github.com/ca-x/skillhub/gen/skillhub/library/v1"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/library"
-	"github.com/ca-x/skillhub/internal/server/state"
+	libraryv1 "github.com/ca-x/cognate/gen/skillhub/library/v1"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 type libraryHandler struct {

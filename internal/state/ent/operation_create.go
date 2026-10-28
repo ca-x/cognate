@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationclaim"
-	"github.com/ca-x/skillhub/internal/state/ent/operationtarget"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationclaim"
+	"github.com/ca-x/cognate/internal/state/ent/operationtarget"
 )
 
 // OperationCreate is the builder for creating a Operation entity.

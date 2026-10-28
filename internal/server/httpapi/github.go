@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	githubv1 "github.com/ca-x/skillhub/gen/skillhub/github/v1"
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/githubauth"
-	"github.com/ca-x/skillhub/internal/server/state"
+	githubv1 "github.com/ca-x/cognate/gen/skillhub/github/v1"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/githubauth"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 type githubHandler struct {

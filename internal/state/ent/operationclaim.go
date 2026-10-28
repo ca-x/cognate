@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationclaim"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationclaim"
 )
 
 // OperationClaim is the model entity for the OperationClaim schema.

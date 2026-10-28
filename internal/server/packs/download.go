@@ -7,8 +7,8 @@ import (
 	"encoding/hex"
 	"hash"
 
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/state"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 const ChunkBytes = 64 << 10

@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ca-x/skillhub/internal/server/ent/localaccount"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/ent/localaccount"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 // LocalAccount is the model entity for the LocalAccount schema.

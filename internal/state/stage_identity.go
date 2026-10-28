@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ca-x/skillhub/internal/objectid"
-	"github.com/ca-x/skillhub/internal/state/ent/operation"
-	"github.com/ca-x/skillhub/internal/state/ent/operationtarget"
+	"github.com/ca-x/cognate/internal/objectid"
+	"github.com/ca-x/cognate/internal/state/ent/operation"
+	"github.com/ca-x/cognate/internal/state/ent/operationtarget"
 )
 
 func (store *Store) RecordStageIdentity(ctx context.Context, id string, position int, identity string) error {

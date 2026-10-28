@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"text/tabwriter"
 
-	"github.com/ca-x/skillhub/internal/search"
+	"github.com/ca-x/cognate/internal/search"
 	"github.com/spf13/cobra"
 )
 

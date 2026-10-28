@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent"
 	"modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
 )

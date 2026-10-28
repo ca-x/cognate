@@ -47,8 +47,8 @@
 - 代表增补生命周期回归：发现正常协议完成主动 cancel 子 context 会误伤 keep-alive，本地复现第二次响应 503 后修复。读写 deadline 改为同一协调点：真实到期/外层取消立即截止，正常协议取消恢复外层期限，并在锁下重核避免关闭与恢复竞态。半包 Close、正常连接复用、HTTP/1 短超时与 HTTP/2 窗口背压的到期/关闭回归本地连续五轮通过；新增测试依赖只将既有固定版本 `x/net` 从间接标记为直接，不升级依赖。
 - 最终独立复验通过：过期/短超时、半包 Close、HTTP/2 窗口背压超时与关闭各重复十次，最后连接复用回归十次通过（1.403s）；本子计划阻塞项已关闭，不等于完整 F5/M4 通过。此前“正在复验”为过程记录，最终结果以本条为准。
 - 最终全量验证退出 0：CGO=0 全部 Go tests、vet、mod verify/tidy diff、Buf lint/Go+TS 生成比对、Web 生产构建与生产依赖审计（0 漏洞）、CLI/server 六平台编译。QA 浏览器/服务和临时密钥、数据库、截图、二进制已清理；远端 Actions、Docker、真实外部授权及非 Linux 原生仍未验证。
-- 续接检索：nmem CLI，query `SkillHub 公开仓库收录 Web 技能浏览接通`，mode `fast_bm25_vector`，筛选 `-n 1`，返回 space_id `default`；rank 1 为 `849d6ff7-7259-4f81-ac44-cb2cb62b1966`「SkillHub 续接：公开仓库收录与 Web 技能浏览接通」，score 0.99。CLI 无法确认 Nowledge 图浏览器的同一 owner/space 会话，因此按技能要求跳过自动图展示，保留检索证据。
-- 保存前去重检索：nmem CLI，query `SkillHub Pack 分发 令牌`，mode `fast_bm25_vector`，筛选 `-n 2`、返回 space_id `default`；rank 1 为 `48555360-fb14-4bad-8c6a-cc48336d45cc`「SkillHub 续接：服务端入口与首版 Web 面板已接通」，score 0.9415329726968429；rank 2 为 `99073a0e-6328-40bf-9f97-211e1222fc71`「SkillHub 续接：GitHub 设备授权与 OIDC 登录绑定已接通」，score 0.8905406607078119。未命中本阶段专门记录；图同样按 CLI 会话身份限制跳过。
+- 续接检索：nmem CLI，query `Cognate 公开仓库收录 Web 技能浏览接通`，mode `fast_bm25_vector`，筛选 `-n 1`，返回 space_id `default`；rank 1 为 `849d6ff7-7259-4f81-ac44-cb2cb62b1966`「Cognate 续接：公开仓库收录与 Web 技能浏览接通」，score 0.99。CLI 无法确认 Nowledge 图浏览器的同一 owner/space 会话，因此按技能要求跳过自动图展示，保留检索证据。
+- 保存前去重检索：nmem CLI，query `Cognate Pack 分发 令牌`，mode `fast_bm25_vector`，筛选 `-n 2`、返回 space_id `default`；rank 1 为 `48555360-fb14-4bad-8c6a-cc48336d45cc`「Cognate 续接：服务端入口与首版 Web 面板已接通」，score 0.9415329726968429；rank 2 为 `99073a0e-6328-40bf-9f97-211e1222fc71`「Cognate 续接：GitHub 设备授权与 OIDC 登录绑定已接通」，score 0.8905406607078119。未命中本阶段专门记录；图同样按 CLI 会话身份限制跳过。
 
 仍待：客户端 Pack 消费/安装同步与跨 Pack 去重、Lists 定时/增量及实际自动收录/更新、M2 卸载更新/恢复和 Windows/WSL、S3、完整服务端插件导入/客户端配置附件与应用、MyGo 原生 UI/打包，以及真实外部授权、Docker/远端 CI/跨平台原生与首发验收。当前代码未提交、推送或发布。
 
@@ -71,7 +71,7 @@
 
 ## 续接来源
 
-本轮使用 nmem CLI 查询 `SkillHub moejs cc-switch 服务端 插件`，返回模式 `fast_bm25_vector`、scope `default`，筛选 `-n 3`。依次命中 `00ddbdf3-0fc6-4318-bad6-fc4377f62d80`（moejs 与 cc-switch 预览，score 0.99）、`d997ef30-2bb3-4b00-a97c-1cf71e743185`（权威需求全文，score 0.9693432410725604）、`ccfed0c3-2e8c-4783-97f3-63724a75f5ed`（历史技术讨论，score 0.8692263761444201）。插件位置以用户最新纠正与 `6149f906-6bb6-45be-85c0-e0f9ff6db311` 为准；旧前端选型不覆盖文档。当前 CLI 宿主无法确认浏览器的同 owner/space 会话，未自动打开记忆图。
+本轮使用 nmem CLI 查询 `Cognate moejs cc-switch 服务端 插件`，返回模式 `fast_bm25_vector`、scope `default`，筛选 `-n 3`。依次命中 `00ddbdf3-0fc6-4318-bad6-fc4377f62d80`（moejs 与 cc-switch 预览，score 0.99）、`d997ef30-2bb3-4b00-a97c-1cf71e743185`（权威需求全文，score 0.9693432410725604）、`ccfed0c3-2e8c-4783-97f3-63724a75f5ed`（历史技术讨论，score 0.8692263761444201）。插件位置以用户最新纠正与 `6149f906-6bb6-45be-85c0-e0f9ff6db311` 为准；旧前端选型不覆盖文档。当前 CLI 宿主无法确认浏览器的同 owner/space 会话，未自动打开记忆图。
 
 ## 2026-10-28 设备授权接线
 

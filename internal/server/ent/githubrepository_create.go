@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/githubmembership"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
 // GitHubRepositoryCreate is the builder for creating a GitHubRepository entity.

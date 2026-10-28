@@ -1158,7 +1158,7 @@ const file_skillhub_github_v1_github_proto_rawDesc = "" +
 	"\x13SetListSubscription\x12..skillhub.github.v1.SetListSubscriptionRequest\x1a/.skillhub.github.v1.SetListSubscriptionResponse\x12\x85\x01\n" +
 	"\x18StartDeviceAuthorization\x123.skillhub.github.v1.StartDeviceAuthorizationRequest\x1a4.skillhub.github.v1.StartDeviceAuthorizationResponse\x12\x7f\n" +
 	"\x16GetDeviceAuthorization\x121.skillhub.github.v1.GetDeviceAuthorizationRequest\x1a2.skillhub.github.v1.GetDeviceAuthorizationResponse\x12\x88\x01\n" +
-	"\x19CancelDeviceAuthorization\x124.skillhub.github.v1.CancelDeviceAuthorizationRequest\x1a5.skillhub.github.v1.CancelDeviceAuthorizationResponseB:Z8github.com/ca-x/skillhub/gen/skillhub/github/v1;githubv1b\x06proto3"
+	"\x19CancelDeviceAuthorization\x124.skillhub.github.v1.CancelDeviceAuthorizationRequest\x1a5.skillhub.github.v1.CancelDeviceAuthorizationResponseB9Z7github.com/ca-x/cognate/gen/skillhub/github/v1;githubv1b\x06proto3"
 
 var (
 	file_skillhub_github_v1_github_proto_rawDescOnce sync.Once

@@ -28,8 +28,8 @@ void i18n.use(initReactI18next).init({
 })
 
 document.documentElement.lang = locale
-document.title = i18n.t("SkillHub 工作空间")
-i18n.on("languageChanged", (language) => { document.documentElement.lang = language; document.title = i18n.t("SkillHub 工作空间") })
+document.title = i18n.t("Cognate 工作空间")
+i18n.on("languageChanged", (language) => { document.documentElement.lang = language; document.title = i18n.t("Cognate 工作空间") })
 
 export const t = i18n.t.bind(i18n)
 

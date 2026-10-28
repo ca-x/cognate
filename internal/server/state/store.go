@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/filelock"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/filelock"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/user"
 	_ "github.com/lib-x/entsqlite"
 )
 

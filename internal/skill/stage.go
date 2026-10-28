@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ca-x/skillhub/internal/stagename"
+	"github.com/ca-x/cognate/internal/stagename"
 	"github.com/spf13/afero"
 )
 

@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
-	"github.com/ca-x/skillhub/internal/server/ent/servermetadata"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 )
 
 // ServerMetadataQuery is the builder for querying ServerMetadata entities.

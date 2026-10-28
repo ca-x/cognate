@@ -1,4 +1,4 @@
-# SkillHub 管理面板设计约定
+# Cognate 管理面板设计约定
 
 服务端面板使用已确认的 React 19、Vite、Tailwind v4、shadcn/ui 与 TanStack Query/Router。MyGo 桌面端使用原生组件，界面不共享。
 

@@ -16,10 +16,10 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	libraryv1 "github.com/ca-x/skillhub/gen/skillhub/library/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/library/v1/libraryv1connect"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/library"
+	libraryv1 "github.com/ca-x/cognate/gen/skillhub/library/v1"
+	"github.com/ca-x/cognate/gen/skillhub/library/v1/libraryv1connect"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/library"
 )
 
 func libraryArchive(test *testing.T, document string) []byte {

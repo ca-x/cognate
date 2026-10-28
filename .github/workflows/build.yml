@@ -27,7 +27,7 @@ jobs:
       - run: npm run build --prefix web
       - uses: actions/upload-artifact@v4
         with:
-          name: skillhub-web
+          name: cognate-web
           path: web/dist
           if-no-files-found: error
       - uses: bufbuild/buf-setup-action@v1
@@ -80,6 +80,7 @@ jobs:
             fi
             baseline="$(mktemp -d)"
             git archive "$base" buf.yaml proto | tar -x -C "$baseline"
+            find "$baseline/proto" -type f -name '*.proto' -exec sed -i 's#option go_package = "github.com/ca-x/skillhub/#option go_package = "github.com/ca-x/cognate/#g' {} +
             buf breaking --against "$baseline"
           fi
       - run: CGO_ENABLED=0 go test ./...
@@ -100,7 +101,7 @@ jobs:
           go-version-file: go.mod
       - uses: actions/download-artifact@v4
         with:
-          name: skillhub-web
+          name: cognate-web
           path: web/dist
       - name: Build CLI client and server
         env:
@@ -109,15 +110,15 @@ jobs:
           CGO_ENABLED: '0'
         run: |
           mkdir -p dist
-          name="skillhub-${GOOS}-${GOARCH}"
+          name="cognate-${GOOS}-${GOARCH}"
           if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
-          go build -trimpath -o "dist/$name" ./cmd/skillhub
-          name="skillhub-server-${GOOS}-${GOARCH}"
+          go build -trimpath -o "dist/$name" ./cmd/cognate
+          name="cognate-server-${GOOS}-${GOARCH}"
           if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
-          go build -trimpath -o "dist/$name" ./cmd/skillhub-server
+          go build -trimpath -o "dist/$name" ./cmd/cognate-server
       - uses: actions/upload-artifact@v4
         with:
-          name: skillhub-${{ matrix.os }}-${{ matrix.arch }}
+          name: cognate-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/*
           if-no-files-found: error
 
@@ -136,9 +137,9 @@ jobs:
         with:
           context: .
           platforms: linux/${{ matrix.arch }}
-          outputs: type=oci,dest=/tmp/skillhub-${{ matrix.arch }}.tar
+          outputs: type=oci,dest=/tmp/cognate-${{ matrix.arch }}.tar
       - uses: actions/upload-artifact@v4
         with:
-          name: skillhub-docker-${{ matrix.arch }}
-          path: /tmp/skillhub-${{ matrix.arch }}.tar
+          name: cognate-docker-${{ matrix.arch }}
+          path: /tmp/cognate-${{ matrix.arch }}.tar
           if-no-files-found: error

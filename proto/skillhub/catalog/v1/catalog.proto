@@ -4,7 +4,7 @@ package skillhub.catalog.v1;
 
 import "skillhub/pack/v1/pack.proto";
 
-option go_package = "github.com/ca-x/skillhub/gen/skillhub/catalog/v1;catalogv1";
+option go_package = "github.com/ca-x/cognate/gen/skillhub/catalog/v1;catalogv1";
 
 service CategoryService {
   rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);

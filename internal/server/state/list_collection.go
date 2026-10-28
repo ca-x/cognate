@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/repository"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedrepository"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 )
 
 func (store *Store) CollectListRepository(ctx context.Context, result ListSyncResult, repositoryID string, reference repository.Reference, archiveHash string, skills []repository.ArchivedSkill) (CollectedRepository, error) {

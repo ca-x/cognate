@@ -18,11 +18,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	importv1 "github.com/ca-x/skillhub/gen/skillhub/import/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
-	libraryv1 "github.com/ca-x/skillhub/gen/skillhub/library/v1"
-	"github.com/ca-x/skillhub/gen/skillhub/library/v1/libraryv1connect"
-	"github.com/ca-x/skillhub/internal/cli"
+	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
+	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
+	libraryv1 "github.com/ca-x/cognate/gen/skillhub/library/v1"
+	"github.com/ca-x/cognate/gen/skillhub/library/v1/libraryv1connect"
+	"github.com/ca-x/cognate/internal/cli"
 )
 
 var importSession = strings.Repeat("A", 43) + "." + strings.Repeat("B", 43)

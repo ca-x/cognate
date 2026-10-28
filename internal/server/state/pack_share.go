@@ -5,12 +5,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/collectedskill"
-	"github.com/ca-x/skillhub/internal/server/ent/pack"
-	"github.com/ca-x/skillhub/internal/server/ent/packitem"
-	"github.com/ca-x/skillhub/internal/server/ent/packshare"
-	"github.com/ca-x/skillhub/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packitem"
+	"github.com/ca-x/cognate/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
 var ErrPackShareUnavailable = errors.New("pack share invalid, expired, or revoked")

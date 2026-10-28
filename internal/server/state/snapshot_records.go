@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ca-x/skillhub/internal/github"
-	"github.com/ca-x/skillhub/internal/server/ent"
-	"github.com/ca-x/skillhub/internal/server/ent/githublist"
-	"github.com/ca-x/skillhub/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/github"
+	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githublist"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 )
 
 func snapshotRecords(ctx context.Context, tx *ent.Tx, ticket ListSyncTicket, snapshot github.ListsSnapshot) (map[string]*ent.GitHubList, map[string]*ent.GitHubRepository, error) {
