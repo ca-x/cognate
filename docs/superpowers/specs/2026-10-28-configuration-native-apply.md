@@ -96,11 +96,13 @@ preview TTL 为 5 分钟，过期或任一绑定变化都重新预览。确认�
 
 | 动作 | 输入/结果与约束 |
 | --- | --- |
-| PrepareNativeApply | 有效 owner session + expected asset revision + 精确 adapter/capability + operation ID + opaque plan commitment；返回无秘密 patch 与 materialization-required 状态 |
-| AuthorizeNativeMaterialization | 同 owner/session、用户确认或匹配的本机 auto-policy、仅必要 slot、短期 consumer 公钥和随机 challenge 的持有证明；生成 60 秒、一次性 grant，绑定上述全部身份 |
+| PrepareNativeApply | 有效且绑定父 owner session 的 native-purpose 子会话 + expected asset revision + 精确 adapter/capability + operation ID；固定并返回无秘密 patch、preparation 身份与 challenge，不收尚无法构造的完整 plan commitment |
+| AuthorizeNativeMaterialization | 同 preparation/owner/session，客户端依据唯一 server patch 构造完整 IntentPlan 后提交 opaque commitment、expiry、用户确认或匹配的本机 auto-policy、仅必要 slot 与持钥证明；事务内不可变绑定最终 ApplyBinding，生成至多 60 秒的一次性 grant；native-login 同样完成绑定但不产生 grant |
 | ConsumeNativeMaterialization | 同 session + consumer 持有证明 + grant + operation ID；事务内重核当前 session 有效性/撤销、owner、asset revision/readiness、adapter digest 和 grant 状态，原子标记消费并固定该 revision 的内容；只输出受限敏感 wire envelope |
 
 这些为逻辑操作合同，不在本 spec 分配 proto 包名/field number。native-login 无 secret 时不调用秘密消费，但同样验证 owner/revision/plan。owner session 是新的独立配置消费授权，不复用 Pack token、匿名资格或 MCP token。consumer proof 绑定 owner session 的 challenge、origin、purpose、operation、commitment 和过期时间；不得用 User-Agent/CORS/“是原生程序”的自报标志替代授权。该 proof 证明持钥，不是二进制远程证明。
+
+2026-10-29 协议细化：主线程接受先 Prepare 获取唯一安全 patch、再构造完整本地 IntentPlan、最后 Authorize 固定 commitment 的两阶段顺序，关闭旧逻辑表中 commitment 先于其 patch 来源的循环依赖。具体候选见 `../plans/2026-10-29-native-consumer-protocol.md`；不能让客户端复制服务端 moejs 映射来填补顺序缺口，也不能用占位 commitment 提前授权。此逻辑细化不等于 endpoint、秘密消费或本机应用已交付；累计配额、GC、proof 与事务实现仍分别受独立门禁约束。
 
 生产传输要求认证 TLS、同 origin、禁止跨 origin redirect、固定 request/response 上限 512 KiB、禁用 body/request/response tracing、固定分类错误；仅合成 loopback 测试可明确开启非 TLS。grant 只经 native transport 保存于 Go 内存，不在 URL、argv、浏览器存储或日志出现；服务端仅存 grant digest 及最少绑定状态。native consumer 私钥/nonce 在该操作结束后丢弃。
 
