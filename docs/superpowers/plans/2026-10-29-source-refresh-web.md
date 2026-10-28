@@ -1,0 +1,12 @@
+# Owner Source Refresh: Web Control
+
+Expose the existing authenticated `RefreshRepository` RPC from repository details using the existing Radix Dialog, Button and TanStack Query components. The page-level reload remains a read-only reload; checking an upstream source is a separate, explicitly confirmed write.
+
+- Freeze repository ID, archive hash and publication revision when the dialog opens. Submit that exact tuple once; never silently retry or rebase on a conflict. Explain stable skill IDs, affected Pack revisions, referenced-removal refusal and the explicit unpublish/refresh/republish sequence.
+- Use an AbortController and an identity-checked active request. Closing, changing account/client or leaving the page cancels waiting and ignores late UI completions. Cancellation or a lost response does not prove rollback; reread authoritative state instead of displaying success.
+- Refresh the owner's repository/detail/Pack/catalog query keys after an attempt, including unknown outcomes. Do not place credentials in storage or display backend error text. Success needs a matching repository receipt; distinguish no changes from committed changes.
+- Publication changes also advance the repository CAS generation. Await invalidation of the owner's existing library/list/detail queries before closing a successful publication form, so unpublish followed by source refresh does not knowingly use stale generation metadata. An actual browser reproduction on the previous five-file candidate rejects this valid sequence; retain it as the red regression evidence.
+- Preserve bilingual notices, keyboard focus/escape behavior and 44px controls through the existing mature components. No custom modal, animation framework or decorative motion is needed for this frequently used maintenance action.
+- Verify production TypeScript/Vite build and real browser interactions against synthetic owner/source fixtures: successful changes and no-op, stale and published refusals, cancel/lost response, account scope, theme/language and narrow layout. Independent review must precede commit/SSH push.
+
+Write set: new `web/src/repository-refresh.tsx`, its integration in `web/src/repositories.tsx`, `web/src/publication.tsx` query invalidation, translated strings in `web/src/locales/en.ts`, this plan and `docs/REPOSITORY-REFRESH-WEB.md`. This UI slice does not implement scheduled refresh, private fetching or native configuration application.

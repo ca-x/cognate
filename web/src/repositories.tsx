@@ -13,6 +13,7 @@ import { PublicationControl } from "./publication"
 import { SkillCategories } from "./skill-categories"
 import { CatalogError } from "./catalog-error"
 import { ImportRepositories } from "./import-repositories"
+import { RepositoryRefreshControl } from "./repository-refresh"
 
 function collectionError(error: unknown) {
   switch (ConnectError.from(error).code) {
@@ -46,6 +47,7 @@ function RepositorySkills({ repositoryId }: { repositoryId: string }) {
   const skills = query.data.skills.filter((entry, index) => `${entry.name} ${entry.description} ${entry.path}`.toLocaleLowerCase().includes(filter.toLocaleLowerCase()) && (!categoryId || assignments[index]?.data?.categories.some((category) => category.id === categoryId)))
   return <section className="library-detail" aria-label={t("仓库技能")}>
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="mb-2 text-xs text-muted-foreground">{t("仓库快照 · ")}{formatNumber(query.data.skills.length)} {t(" 个技能")}</p><h2 className="break-words font-mono text-base font-semibold">{repository?.nameWithOwner}</h2><p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><GitBranch size={13} aria-hidden="true" /><span className="break-all">{repository?.branch || t("默认分支")}</span></p></div><a className="external-link" href={`https://github.com/${repository?.nameWithOwner}`} target="_blank" rel="noreferrer" aria-label={t("在 GitHub 打开当前仓库")}><ExternalLink size={16} aria-hidden="true" /></a></div>
+    {repository && <RepositoryRefreshControl key={session?.userId} repository={repository} />}
     <PublicationControl repositoryId={repositoryId} repositoryName={repository?.nameWithOwner ?? ""} />
     <div className="filter-field my-5 w-full"><Search size={16} aria-hidden="true" /><Input aria-label={t("筛选已收录技能")} placeholder={t("按名称、描述或路径筛选…")} value={filter} onChange={(event) => setFilter(event.target.value)} /></div>
     <div className="mb-5 space-y-2"><label htmlFor="owner-skill-category">{t("按我的分类筛选")}</label><select id="owner-skill-category" className="pack-select" value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={categoryQuery.isPending || categoryQuery.isError}><option value="">{t("全部技能")}</option>{categoryId && !categoryQuery.data?.categories.some((entry) => entry.id === categoryId) && <option value={categoryId}>{t("已选分类（已变更）")}</option>}{categoryQuery.data?.categories.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}（{formatNumber(entry.skillCount)}）</option>)}</select>{categoryQuery.isPending && <p role="status" className="field-help">{t("正在读取分类…")}</p>}{categoryQuery.isError && <CatalogError error={categoryQuery.error} retry={() => { void categoryQuery.refetch() }} />}</div>

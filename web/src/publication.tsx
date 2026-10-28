@@ -14,7 +14,7 @@ import type { Publication } from "./gen/skillhub/catalog/v1/catalog_pb"
 
 function PublicationForm({ publication, repositoryName, onSaved }: { publication: Publication; repositoryName: string; onSaved: () => void }) {
   useTranslation()
-  const { publications } = useApi()
+  const { publications, session } = useApi()
   const queryClient = useQueryClient()
   const [original] = useState(publication)
   const [confirmed, setConfirmed] = useState(false)
@@ -26,7 +26,10 @@ function PublicationForm({ publication, repositoryName, onSaved }: { publication
       if (!result.publication) throw new ConnectError("missing publication", Code.Internal)
       return result
     },
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["catalog"] }); onSaved() },
+    onSuccess: async () => {
+      await Promise.all([["catalog"], ["library-repositories", session?.userId], ["collected-repositories", session?.userId], ["repository-skills", session?.userId, original.repositoryId]].map((queryKey) => queryClient.invalidateQueries({ queryKey })))
+      onSaved()
+    },
   })
   function submit(event: FormEvent) { event.preventDefault(); if (!publishing || confirmed) save.mutate() }
   return <form onSubmit={submit} className="mt-5 space-y-5" aria-busy={save.isPending}>
