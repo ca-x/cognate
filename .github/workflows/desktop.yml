@@ -110,6 +110,29 @@ jobs:
         run: |
           set -euo pipefail
           go tool mygo build -platform '${{ matrix.platform }}/amd64,${{ matrix.platform }}/arm64' -sign '-' -skip-notarize -o "$GITHUB_WORKSPACE/dist/desktop" cmd/cognate-desktop
+      - name: Verify packaged Go and source identities
+        shell: bash
+        env:
+          PACKAGE_PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            case "$PACKAGE_PLATFORM" in
+              windows) executable="dist/desktop/windows-$arch/Cognate.exe" ;;
+              darwin) executable="dist/desktop/darwin-$arch/Cognate.app/Contents/MacOS/Cognate" ;;
+              linux) executable="dist/desktop/linux-$arch/cognate-desktop" ;;
+              *) exit 1 ;;
+            esac
+            metadata="$(go version -m "$executable")"
+            grep -qE '^.*: go1\.27\.3$' <<< "$metadata"
+            for setting in "CGO_ENABLED=0" "GOOS=$PACKAGE_PLATFORM" "GOARCH=$arch" "vcs.revision=$GITHUB_SHA" "vcs.modified=false"; do
+              if ! grep -qFx $'\tbuild\t'"$setting" <<< "$metadata"; then
+                printf 'Packaged metadata rejected %s/%s: %s\n' "$PACKAGE_PLATFORM" "$arch" "$setting" >&2
+                exit 1
+              fi
+            done
+            printf 'Packaged identity verified for %s/%s\n' "$PACKAGE_PLATFORM" "$arch"
+          done
       - name: Assert both Windows Setup executables exist
         if: matrix.platform == 'windows'
         shell: pwsh
