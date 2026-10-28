@@ -1,0 +1,14 @@
+{
+  "name": "Cognate",
+  "slug": "cognate-desktop",
+  "identifier": "dev.cognate.desktop",
+  "version": "0.1.0",
+  "main": ".",
+  "icon": "../../assets/branding/client.png",
+  "out": "../../dist/desktop",
+  "linux": {
+    "webview": false,
+    "categories": ["Development", "Utility"],
+    "comment": "Cognate native client"
+  }
+}

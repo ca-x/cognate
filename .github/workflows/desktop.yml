@@ -1,0 +1,178 @@
+name: Native desktop
+
+on:
+  pull_request:
+    paths:
+      - 'cmd/cognate-desktop/**'
+      - 'internal/desktop/**'
+      - 'internal/importclient/**'
+      - 'internal/packclient/**'
+      - 'internal/subscription/**'
+      - 'internal/install/**'
+      - 'internal/state/**'
+      - 'assets/branding/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/desktop.yml'
+  push:
+    tags: ['desktop-v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a draft release after all packaging jobs pass
+        type: boolean
+        default: false
+      tag:
+        description: Existing desktop-v0.1.0 tag to publish (must match checked out ref)
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  CGO_ENABLED: '0'
+  GOTOOLCHAIN: local
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+      - name: Native text and GTK runtime
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-0t64 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libepoxy0 libgl1-mesa-dri fonts-noto-cjk xvfb xauth
+      - name: Headless native HTTP integration tests
+        run: env -u DISPLAY -u WAYLAND_DISPLAY go test -mod=readonly -count=1 -timeout=120s ./internal/desktop ./cmd/cognate-desktop
+      - run: go vet ./internal/desktop ./cmd/cognate-desktop
+      - run: go tool mygo vet cmd/cognate-desktop
+      - run: go tool mygo vet internal/desktop
+      - name: Six CGO-disabled targets and forbidden dependency guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/cross
+          for os in linux windows darwin; do
+            for arch in amd64 arm64; do
+              suffix=''
+              if [ "$os" = windows ]; then suffix='.exe'; fi
+              GOOS="$os" GOARCH="$arch" go build -mod=readonly -trimpath -o "dist/cross/cognate-desktop-$os-$arch$suffix" ./cmd/cognate-desktop
+              GOOS="$os" GOARCH="$arch" go list -deps -f '{{if .CgoFiles}}{{.ImportPath}}{{end}}' ./cmd/cognate-desktop > dist/cross/cgo-check.txt
+              test ! -s dist/cross/cgo-check.txt
+            done
+          done
+          go list -deps ./cmd/cognate-desktop > dist/cross/dependencies.txt
+          if grep -E 'internal/(server|cli)|MoeForge/moejs|spf13/cobra' dist/cross/dependencies.txt; then exit 1; fi
+      - name: Real native window smoke (no installation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/smoke
+          export HOME="$(mktemp -d)"
+          xvfb-run -a dist/cross/cognate-desktop-linux-amd64 -smoke=2s -capture="$GITHUB_WORKSPACE/dist/smoke/native-content.png" 2>&1 | tee dist/smoke/native.log
+          grep NATIVE_WINDOW_CREATED dist/smoke/native.log
+          grep NATIVE_CAPTURE_OK dist/smoke/native.log
+          test -s dist/smoke/native-content.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-verification
+          path: dist/
+
+  package:
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            platform: linux
+          - runner: windows-2025
+            platform: windows
+          - runner: macos-15
+            platform: darwin
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+      - name: Install NSIS (do not silently skip Setup)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          choco install nsis --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'NSIS installation failed' }
+          'C:\Program Files (x86)\NSIS' | Out-File -FilePath $env:GITHUB_PATH -Append
+      - name: Package native apps (macOS ad-hoc only, not Developer ID signed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          go tool mygo build -platform '${{ matrix.platform }}/amd64,${{ matrix.platform }}/arm64' -sign '-' -skip-notarize -o "$GITHUB_WORKSPACE/dist/desktop" cmd/cognate-desktop
+      - name: Assert both Windows Setup executables exist
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          foreach ($arch in @('amd64', 'arm64')) {
+            $setup = Get-ChildItem dist/desktop -Recurse -Filter "*-setup-*-$arch.exe"
+            if (-not $setup) { throw "Missing NSIS Setup for $arch; MyGo may have skipped installer creation" }
+            foreach ($file in $setup) { if ($file.Length -eq 0) { throw 'Empty Setup' } }
+          }
+      - name: Assert macOS application bundles and DMGs
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            test -n "$(find dist/desktop -type f -name "*-$arch.dmg" -print -quit)"
+          done
+          test -n "$(find dist/desktop -type d -name '*.app' -print -quit)"
+      - name: Assert Linux archives and Debian packages
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            test -n "$(find dist/desktop -type f -name "*-linux-$arch.tar.gz" -print -quit)"
+          done
+          test -n "$(find dist/desktop -type f -name '*.deb' -print -quit)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.platform }}-unsigned
+          path: dist/desktop/
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*-unsigned
+          path: packages
+      - name: Publish explicitly requested draft only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version cmd/cognate-desktop/mygo.json)
+          test "$RELEASE_TAG" = "desktop-v$version"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          mapfile -d '' files < <(find packages -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.tar.gz' -o -name '*-setup-*.exe' \) -print0)
+          test "${#files[@]}" -ge 8
+          mkdir release
+          cp -t release "${files[@]}"
+          (cd release && sha256sum *) > SHA256SUMS
+          mv SHA256SUMS release/SHA256SUMS
+          (cd release && sha256sum -c SHA256SUMS)
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "Cognate Desktop $version (unsigned preview)" --notes 'Native desktop preview. macOS ad-hoc only, not Developer ID signed or notarized. Windows installers unsigned. Platform/product acceptance remains pending.'
+          gh release upload "$RELEASE_TAG" release/*
