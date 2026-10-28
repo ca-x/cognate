@@ -137,7 +137,78 @@ jobs:
         with:
           context: .
           platforms: linux/${{ matrix.arch }}
+          tags: cognate-ci:${{ matrix.arch }}
+          load: true
           outputs: type=oci,dest=/tmp/cognate-${{ matrix.arch }}.tar
+      - name: Exercise the built container and persisted data
+        timeout-minutes: 6
+        env:
+          SMOKE_IMAGE: cognate-ci:${{ matrix.arch }}
+          SMOKE_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          umask 077
+          secrets="$(mktemp -d "$RUNNER_TEMP/cognate-container.XXXXXX")"
+          wrong_key_log="$(mktemp "$RUNNER_TEMP/cognate-wrong-key.XXXXXX")"
+          volume=""
+          container="cognate-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SMOKE_ARCH}"
+          wrong_container="${container}-wrong-key"
+          cleanup() {
+            docker rm -f "$container" "$wrong_container" >/dev/null 2>&1 || true
+            if [ -n "$volume" ]; then docker volume rm "$volume" >/dev/null 2>&1 || true; fi
+            sudo rm -rf -- "$secrets"
+            rm -f -- "$wrong_key_log"
+          }
+          trap cleanup EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          head -c 32 /dev/urandom > "$secrets/master.key"
+          head -c 32 /dev/urandom > "$secrets/wrong.key"
+          sudo chown -R 10001:10001 "$secrets"
+          volume="$(docker volume create)"
+          test "$(docker image inspect --format '{{.Architecture}}' "$SMOKE_IMAGE")" = "$SMOKE_ARCH"
+          docker run --detach --name "$container" --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --mount "type=volume,source=$volume,target=/data" \
+            --mount "type=bind,source=$secrets,target=/run/cognate-secrets,readonly" \
+            "$SMOKE_IMAGE" --data-dir /data --key-file /run/cognate-secrets/master.key \
+            --listen 0.0.0.0:8080 --allow-http --list-sync-interval 0 >/dev/null
+          wait_for_health() {
+            for attempt in $(seq 1 120); do
+              if [ "$(docker exec "$container" wget -q -O - http://127.0.0.1:8080/healthz 2>/dev/null || true)" = ok ]; then
+                return 0
+              fi
+              if [ "$(docker inspect --format '{{.State.Running}}' "$container")" != true ]; then
+                echo 'Container stopped before its health check.' >&2
+                return 1
+              fi
+              sleep 1
+            done
+            echo 'Container health check exceeded its deadline.' >&2
+            return 1
+          }
+          wait_for_health
+          docker exec "$container" sh -ec 'test "$(id -u)" = 10001; test "$(stat -c %a /data)" = 700; test -f /data/server.db; wget -q -O /dev/null http://127.0.0.1:8080/'
+          docker exec "$container" cognate --help >/dev/null
+          docker stop --time 30 "$container" >/dev/null
+          test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
+          set +e
+          timeout 60 docker run --rm --name "$wrong_container" --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --mount "type=volume,source=$volume,target=/data" \
+            --mount "type=bind,source=$secrets,target=/run/cognate-secrets,readonly" \
+            "$SMOKE_IMAGE" --data-dir /data --key-file /run/cognate-secrets/wrong.key \
+            --listen 0.0.0.0:8080 --allow-http --list-sync-interval 0 \
+            > "$wrong_key_log" 2>&1
+          wrong_key_status=$?
+          set -e
+          test "$wrong_key_status" = 1
+          grep -qF 'server credential encryption key does not match database' "$wrong_key_log"
+          docker start "$container" >/dev/null
+          wait_for_health
+          docker stop --time 30 "$container" >/dev/null
+          test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
+          echo 'Container startup, private state, wrong-key refusal and restart checks passed.'
       - uses: actions/upload-artifact@v4
         with:
           name: cognate-docker-${{ matrix.arch }}
