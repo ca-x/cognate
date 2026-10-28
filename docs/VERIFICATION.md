@@ -130,7 +130,7 @@ Native desktop Actions `40691777676` 精确绑定 `611f2a0`，首次 completed/s
 
 MCP 旧 lexical 比较与真实 Kathmandu numeric zone 旧库分别保留 red。仅 credential 修复的旧候选没有被当作最终签收：audit 同样存在旧行无法读取及本地时区新写不可读，最终七文件候选把两者一并修复。代表用真正旧生产 writer、真实进程 TZ、MCP SDK endpoint/restart、审计 append/读取和撤销复验；错误 key、后批坏时间、幂等、owner/scope、transaction/commit 时间 gate 另有独立负例。每批128条、每时间输入256字节，坏批回滚，无法恢复的值固定错误停止启动。升级前停止旧 writer，不承诺新旧 writer 长期混用。
 
-Typed API 首个默认打印合同 P2 已独立关闭，但不是给 generated DTO 新增自动脱敏承诺：domain wrapper/明确脱敏 view 才 safe-to-log，原始 Protobuf/Connect request 的 String/JSON/slog 能包含 replacement，严禁用于日志/持久化/error details。`debug_redact` 注解保留，当前 Go runtime 不因此自动安全。真实 proto/JSON 成功、失败、超限请求捕获标准 log/slog/HTTP ErrorLog 和响应；三项临时 mutation（stdlog、slog、错误回显）均触发实际隐私断言 red，去除后 green。窄 AST gate 不是全程序污点分析。
+Typed API 首个默认打印合同 P2 已在当时所测直接格式范围独立关闭，但不是给 generated DTO 或任意 domain wrapper 新增通用日志安全承诺：只允许明确构造的无秘密状态 DTO 进入 logger，原始 Protobuf/Connect request 的 String/JSON/slog 能包含 replacement，严禁用于日志/持久化/error details。`debug_redact` 注解保留，当前 Go runtime 不因此自动安全。真实 proto/JSON 成功、失败、超限请求捕获标准 log/slog/HTTP ErrorLog 和响应；三项临时 mutation（stdlog、slog、错误回显）均触发实际隐私断言 red，去除后 green。窄 AST gate 不是全程序污点分析。2026-10-29 对五种既有 wrapper 的补充 probe 发现非字符串动词/私有容器边界，未证实现有生产 sink；精确限制与后续开发约束见 `SECURITY-LOGGING.md`，不将历史有限 PASS 扩大为所有格式安全。
 
 主线程对上述各冻结 tree 重新执行 clean-export 全 Go tests/vet、Web build；最终 API 另有 domain count20、HTTP/App count10、Buf Go/TS 双模板完整生成目录 parity、六系统/架构组合 CLI/server 共十二次无 cgo 构建。独立代表执行自己的 package/protocol/日志负例，不借作者通过替代验收。完整日志索引在 `.superpowers/sdd/2026-10-28-release/`，关键行为合同已随本文件和各 spec 提交，临时合成数据库/凭据不提交。
 
