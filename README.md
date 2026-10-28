@@ -75,7 +75,7 @@ install -d -m 700 "$HOME/.config/skillhub"
 
 Docker 默认在容器内监听 HTTP，部署时应仅映射到本机或可信私有网络，并在外部配置 TLS。密钥和数据卷必须由运行 UID 拥有且保持私有；默认 UID 为 10001。镜像内保留 `skillhub` CLI，可通过 `--entrypoint skillhub` 使用。
 
-沿用前述私有密钥目录，以当前 UID 运行的本机开发示例（Docker 构建及运行仍待实际验证）：
+沿用前述私有密钥目录，以当前 UID 运行的本机开发示例（Actions 已通过双架构 OCI 构建；本机 Docker 运行仍待实际验证）：
 
 ```sh
 install -d -m 700 "$HOME/.local/share/skillhub-server"

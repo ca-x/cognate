@@ -48,6 +48,12 @@ diff -ru web/src/gen "$generated/web/src/gen"
 
 这只消除了测试对 inode 永不复用的依赖，**没有完成 inode 复用下的历史连续归属保障**。`INSTALL-RECOVERY.md` 和原 `uninstall-review.md` 的 trusted, stable-path model 仍适用；持久化 dev/ino、generation 和 hash 不证明历史连续所有权。本次修正不扩大删除授权，不宣称能识别所有已释放后复用 inode 的替换，也不代表远端 CI 已恢复成功。
 
+### 后续整合与实际 CI
+
+修正经独立代表复核，三个变更分支各 100 轮与相邻成功/故障准备各 10 轮通过；主线程另从 index 加精确二文件补丁独立导出，全仓 Go tests/vet 退出 0。提交 `0924a5b6636982463ef6be7912e379a6491a1447` 经 SSH 非强推至 `main` 并以 SSH 读回一致。对应 Actions `40659619868` 最终 `completed / success`：test、六组 CLI/服务端二进制任务和 amd64/arm64 OCI 构建任务全部通过。该结果补充前述修正时尚未重跑 CI 的时间点，不改写首轮失败或 inode 根因仍属推断的事实。
+
+首轮 CI 实际上传的 Web artifact 已下载，与本机独立导出的生产 Web 构建逐字一致。二进制任务中的客户端是 CLI，不是 MyGo 原生 GUI；OCI 构建成功也不是容器运行验收或镜像仓库发布。所有结果均对应上述明确提交，不预先承诺后续提交的 CI 状态。
+
 ## 构建与未覆盖项
 
 `.github/workflows/build.yml` 对 push/PR 执行检查，生成 CLI/服务端六平台二进制、Web 和双架构 OCI 构建产物。检查具体提交的 Actions 结果，不能把本机测试视为远端 CI 成功。构建产物不等于 GitHub Release；MyGo 原生客户端及其打包仍待实现。
