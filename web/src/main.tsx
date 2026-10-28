@@ -20,6 +20,7 @@ const ExplorePage = lazy(() => import("./explore").then((module) => ({ default: 
 const PublicSkillPage = lazy(() => import("./explore").then((module) => ({ default: module.PublicSkillPage })))
 const CategoriesPage = lazy(() => import("./categories").then((module) => ({ default: module.CategoriesPage })))
 const MCPSettingsPage = lazy(() => import("./mcp-settings").then((module) => ({ default: module.MCPSettingsPage })))
+const ConfigurationPage = lazy(() => import("./configuration").then((module) => ({ default: module.ConfigurationPage })))
 
 function MCPSettingsRoute() {
   const { session, mcp } = useApi()
@@ -53,7 +54,7 @@ function Workspace() {
     <aside className="sidebar">
       <Link to="/" className="brand"><img src={logo} width="42" height="42" alt="" /><span>Cognate</span></Link>
       <p className="sidebar-label">{t("工作空间")}</p>
-      <nav aria-label={t("主要导航")}><Link to="/" activeOptions={{ exact: true }}><GitFork size={18} aria-hidden="true" />{t("来源")}</Link><Link to="/repositories"><FolderGit2 size={18} aria-hidden="true" />{t("仓库")}</Link><Link to="/packs"><Layers size={18} aria-hidden="true" />{t("组合")}</Link><Link to="/categories"><Tags size={18} aria-hidden="true" />{t("分类")}</Link><Link to="/explore"><Compass size={18} aria-hidden="true" />{t("探索")}</Link><Link to="/mcp-settings"><KeyRound size={18} aria-hidden="true" />{t("MCP")}</Link><Link to="/account"><Settings size={18} aria-hidden="true" />{t("账号")}</Link></nav>
+      <nav aria-label={t("主要导航")}><Link to="/" activeOptions={{ exact: true }}><GitFork size={18} aria-hidden="true" />{t("来源")}</Link><Link to="/repositories"><FolderGit2 size={18} aria-hidden="true" />{t("仓库")}</Link><Link to="/packs"><Layers size={18} aria-hidden="true" />{t("组合")}</Link><Link to="/categories"><Tags size={18} aria-hidden="true" />{t("分类")}</Link><Link to="/explore"><Compass size={18} aria-hidden="true" />{t("探索")}</Link><Link to="/mcp-settings"><KeyRound size={18} aria-hidden="true" />{t("MCP")}</Link><Link to="/configuration"><Settings size={18} aria-hidden="true" />{t("AI 配置")}</Link><Link to="/account"><Settings size={18} aria-hidden="true" />{t("账号")}</Link></nav>
       <div className="sidebar-bottom"><Server size={15} aria-hidden="true" /><span>{t("自托管工作空间")}</span></div>
     </aside>
     <div className="workspace-body">
@@ -81,9 +82,10 @@ const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: "/acco
 const packsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/packs", component: PacksPage })
 const categoriesRoute = createRoute({ getParentRoute: () => rootRoute, path: "/categories", component: CategoriesPage })
 const mcpSettingsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/mcp-settings", component: MCPSettingsRoute })
+const configurationRoute = createRoute({ getParentRoute: () => rootRoute, path: "/configuration", component: ConfigurationPage })
 const exploreRoute = createRoute({ getParentRoute: () => rootRoute, path: "/explore", validateSearch: validateCatalogSearch, component: ExplorePage })
 const publicSkillRoute = createRoute({ getParentRoute: () => rootRoute, path: "/explore/$skillId", component: PublicSkillPage })
-const router = createRouter({ routeTree: rootRoute.addChildren([indexRoute, repositoriesRoute, packsRoute, accountRoute, categoriesRoute, mcpSettingsRoute, exploreRoute, publicSkillRoute]) })
+const router = createRouter({ routeTree: rootRoute.addChildren([indexRoute, repositoriesRoute, packsRoute, accountRoute, categoriesRoute, mcpSettingsRoute, configurationRoute, exploreRoute, publicSkillRoute]) })
 
 declare module "@tanstack/react-router" { interface Register { router: typeof router } }
 

@@ -11,6 +11,7 @@ import { PackService } from "./gen/skillhub/pack/v1/pack_pb"
 import { CategoryService, PublicationService, PublicCatalogService } from "./gen/skillhub/catalog/v1/catalog_pb"
 import { MCPManagementService } from "./gen/skillhub/mcp/v1/mcp_pb"
 import { ImportService } from "./gen/skillhub/import/v1/import_pb"
+import { ConfigurationService } from "./gen/skillhub/configuration/v1/configuration_pb"
 
 type Session = { token: string; userId: string; username: string }
 type ApiContext = {
@@ -25,6 +26,7 @@ type ApiContext = {
   publicCatalog: Client<typeof PublicCatalogService>
   mcp: Client<typeof MCPManagementService>
   imports: Client<typeof ImportService>
+  configuration: Client<typeof ConfigurationService>
   completingLogin: boolean
   loginNotice: string
 }
@@ -63,7 +65,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
         }
       }],
     })
-    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport) }
+    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport) }
   }, [session, setSession])
   const value = { session, setSession, ...clients, publicCatalog, completingLogin, loginNotice }
   useEffect(() => {
