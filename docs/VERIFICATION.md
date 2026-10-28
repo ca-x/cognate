@@ -165,3 +165,20 @@ Build Actions `40719035614` 精确绑定容器提交，`40722843461` 精确绑�
 ## 桌面打包身份门禁结果
 
 桌面修复 `39013dacfc01b2b50d6633cee3b2c324f09bf945` 的 Native Actions `40726579335` 已 completed/success，verify 与三系统双架构实际包装全部成功，publish=false/skipped。六 payload 在各 runner 的真实 metadata 检查全部验证 Go/CGO/目标架构、精确源码 revision 与 clean 标记；旧 Windows dirty 的因果复现和拒绝历史继续保留。普通 Build `40726569509` 也 completed/success。已核实际 job 结论与六条执行输出，不将后续 artifact 下载、安装或跨系统运行自动算作完成；完整限制见 `DESKTOP.md`。
+
+## 本地 JSON codec 与 Native schema
+
+2026-10-29 续接，两个切片分别独立验收、提交；它们不包含原生秘密消费、文件发布、备份恢复或完整 F12。
+
+| 阶段 | Commit / 签收 tree | 已证明范围 |
+| --- | --- | --- |
+| Claude 纯内存 JSON codec | `d856f5d4216b9cad21c1275e4aa182fef253ec03` / `b0a33ec4ee651ddb87abb240b22001de84f5628f` | 七键 patch 与精确 credential slot 独立校验；严格 jsontext、有界输入/结果；局部修改保留未知 token/大整数；无磁盘、HTTP、CAS 或已应用状态 |
+| Native schema / Web 生成隔离 | `356a2d4` / `df3c8797cc2bed8cae85cf6270d22139ed14c758` | 独立 native-purpose proto 包与 Go 生成物；Web template 排除该目录，保留所有普通 TS 和完整 parity；CI 明确检查 Go 正向与 Web 负向，没有注册服务端 endpoint |
+
+Codec 两条隐私 P2 均在最终 tree 独立关闭：初版缺 Formatter，非字符串动词可输出可逆 bytes；仅加 Formatter 后，外层私有字段可绕过方法派发，实际 fmt/slog 仍泄漏。最终 wrapper 采用双层不透明间接表示并保留值接收者 Formatter，不批准“只允许公开容器”的豁免。原 30 项隐私 probe 100 轮通过，新增 23 动词、私有嵌套容器与真实 slog 双 handler 通过；退化为直接 bytes 的原 10 项、退化为单层指针的 `%t` 均重新 red。任意主动 unsafe/反射取出秘密或显式 CopyBytes 不属于默认日志保护承诺。
+
+Codec 独立完整 scoped 100 轮、fresh fuzz/vet/deps 通过；主线程最终 clean export Web build、全 Go tests/vet、codec 100 轮、客户端禁止 server/moejs 依赖检查与模块校验通过。对应 Build `40733265755` 精确绑定 codec commit，completed/success，test、六 binaries、两 docker jobs 全绿。旧拒签记录没有被删除或以原树全量通过覆盖。
+
+Native schema 的独立 review 核 23 messages、6 enums、6 RPC 的全部 token 与已签协议一致，包含 reserved/options；实际 Buf 1.75.0 全 Go/TS parity、breaking against `a168eb5`、lint/format、CGO0 generated 包 compile/vet、Web build 与 actionlint 通过。未过滤模板真实产生 native TS 并使 boundary/parity red；过滤后普通 auth/configuration TS 保留而 native TS 缺席。CI exact gate 的 11 项负例、删除新 tag 的 breaking 负例均有效。静态 source literal gate 只是开发回归检查，不是防恶意同权限客户端的身份认证或 attestation。
+
+主线程对 schema 最终 clean export 另跑全仓 Go tests/vet、Web build、完整双模板生成 parity 与兼容性、模块校验全部通过。原生 proof、父/子 session 事务、一次性 grant、敏感 transport、平台安全 publisher 和真实 apply/restore 仍分别待验收；schema 可编译不能等同 native capability 可用。后续 CI 结果另按精确提交核对，不从本地通过推断。

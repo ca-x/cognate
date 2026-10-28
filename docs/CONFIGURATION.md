@@ -30,4 +30,6 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 
 目标适配器只在服务端通过 moejs 执行，CLI/MyGo 不执行插件。已提交的 Claude `claude.provider-switch.v1` 支持七键声明式变更，包括删除旧认证和未选择的受管模型项；真实秘密和旧 env 不进入 JS，Go 宿主独立验证结果。旧四键 additive renderer 继续保留，但不能替代新能力，也不能单凭 renderer 成功声称本机已应用。
 
+已交付的本地 JSON codec 仅在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；它不自行读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离也已单独提供，但没有开放原生消费 endpoint，不构成“可应用”状态。
+
 来源配置导入、十四类 agent 的完整专属交互、期望选择与 Pack 附件、原生预览/安全发布/备份/恢复，以及明确选择后的自动应用仍为后续门禁。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以本首片缩减首发范围。
