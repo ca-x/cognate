@@ -135,3 +135,29 @@ Typed API 首个默认打印合同 P2 已独立关闭，但不是给 generated D
 主线程对上述各冻结 tree 重新执行 clean-export 全 Go tests/vet、Web build；最终 API 另有 domain count20、HTTP/App count10、Buf Go/TS 双模板完整生成目录 parity、六系统/架构组合 CLI/server 共十二次无 cgo 构建。独立代表执行自己的 package/protocol/日志负例，不借作者通过替代验收。完整日志索引在 `.superpowers/sdd/2026-10-28-release/`，关键行为合同已随本文件和各 spec 提交，临时合成数据库/凭据不提交。
 
 Build Actions `40709123040` 精确绑定 MCP 提交、`40709433501` 精确绑定 adapter 提交、`40709705439` 精确绑定 typed API 提交，均 completed/success；逐 job 核对 test、六组 binaries、amd64/arm64 两组 OCI 构建全绿。前述历史失败继续保留。没有新 tag/Release；OCI 构建不是容器运行，七键 provider switch、秘密原生消费、选择/Pack 附件与真实本机 apply/restore 尚未由本节交付。
+
+## 容器实跑与七键声明式变更 checkpoint
+
+2026-10-29 续接核对：下列两个阶段已独立验收，按精确 tree 提交并 SSH 推送；没有包含仍在验收的 Web 编辑器、桌面身份门禁或本地 JSON codec。
+
+| 阶段 | Commit / 签收 tree | 已证明范围 |
+| --- | --- | --- |
+| 双架构容器实跑 | `9cf109edcbcebe1a342db72391b891c096fe3bf8` / `fdd10f58d4cd291d84411e34f04bd8ab49ea5f4d` | CI 实际加载镜像，以 UID 10001、只读根目录、禁网络及私有持久卷启动；health、内嵌 Web、CLI help、SIGTERM exit 0、错误主密钥 exit 1 且精确错误、原密钥重启通过 |
+| Claude 七键声明式变更 | `059bf928afbb73e869d8eed8112f667b35555f60` / `7c96c64b208c36f5cf704c04a8e42ce2849dbe2a` | 服务端 moejs `claude.provider-switch.v1`，七个受管 env slot 的 set/remove；凭据只使用 typed 引用，真实秘密和旧 env 不进入 JS；Go 独立验证输出，无未知能力 fallback |
+
+Build Actions `40719035614` 精确绑定容器提交，`40722843461` 精确绑定七键提交，均 completed/success，test、六组 binaries、两架构 docker jobs 全绿。容器提交两 job 的真实 smoke step 均 success，并输出固定完成标记；这不是仅构建 OCI 或命令替身的结果。arm64 在 QEMU 环境，不宣称原生 ARM 硬件运行。本机没有 Docker/Podman 的历史事实不变。
+
+七键能力保留旧四键 additive renderer，新增能力明确区分两种认证 slot 与五个非认证 slot，空值/非法联合/额外成员均拒绝。独立 reviewer 复验真实 moejs 和输出篡改负例；主线程对最终 clean export 执行 Web build、全 Go tests/vet、runtime 重复测试、模块校验与客户端依赖边界检查。它仅产生声明式 patch，不提供秘密传输、设备授权或本地文件应用，不能标记完整 provider 切换体验已完成。
+
+当前 Web 编辑器曾被独立验收拒签：保存成功响应与离开确认并发可能留下阻塞对话框；本地 JSON codec 也曾因非常规 fmt 动词泄漏秘密的可逆字节被拒签。修复与新树复验另行记录，不能用原树的全量测试通过覆盖这些行为缺陷。没有 tag/Release，完整首发目标仍未完成。
+
+## Claude 私有资产 Web 编辑首片
+
+2026-10-29，按 tree `569372e78883a36f3ea39b76df93ae22a41ef467` 独立整合验收，提交并 SSH 推送 `f659706ddb0c81cc0ac4e20835dd14b2039c03d2`，远端 main 读回一致。八文件只含六个 Web 消费文件及 embed 路由/测试，不带当时的本地 codec 或其它 WIP。
+
+- `/configuration` 提供当前账号 Claude provider 资产列表、新建、typed 编辑、非秘密复制、revision CAS 删除；secret 为 keep/replace/clear，未知合法 agent/schema 仅 metadata 浏览/按版本删除。保存不切换本机 provider。
+- dirty 草稿有关闭/导航放弃确认；主题切换保留表单，locale 切换清除新凭据并取消在途操作，账号/会话切换直接清理敏感状态。凭据不进入缓存、URL 或浏览器持久化。GET/HEAD 直达与相邻路径 404/CSP 回归通过。
+- 原保存成功与导航 resolver 的竞态 P2 在最终代码中关闭：不再使用提交时捕获的旧 resolver；独立浏览器 held-response Create/Update/Copy、同时响应、继续/放弃、CAS 失败、locale/auth/unmount 等回归得到 86 项 boolean 观察全真，另有真实未知 schema Store、刷新和隐私检查。旧拒签记录保留。
+- 独立 reviewer 对最终 tree 核全部 695 blobs/mode，八文件与已实测修复候选相同；fresh 构建的完整 Web dist 与 server executable 也逐字相同，将此前真实浏览器证据绑定最终运行时，而不是声称又跑了一次新 origin。最终 fresh Web/server/HTTP configuration seams 通过；主线程另跑 clean-export Web build、全 Go tests/vet、相关包 count10、模块校验全部通过。
+
+对应 Build Actions `40727877287` 精确绑定该 commit，completed/success；实际 test、六组 binaries、两架构 docker jobs 全绿，不由本地通过推断。独立最终报告为 `configuration-ui-final-review.md`，旧竞态拒签与两次修复复验均保留。该首片不是十四类 agent 完整编辑器、来源配置导入、选择/Pack 附件或 CLI/MyGo 原生 apply/restore，也不关闭本地 JSON codec 的独立 finding。用户操作说明见 `CONFIGURATION.md`。

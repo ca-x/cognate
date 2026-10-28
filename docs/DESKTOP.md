@@ -93,8 +93,8 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 - 中文 glyph 依赖系统 CJK 字体；Linux CI 安装 `fonts-noto-cjk`，应用不额外嵌入一套字体。
 - Windows/macOS 两架构的编译不证明该 OS 上的输入、IME、焦点、窗口关闭、安装内核或打包产物可用。macOS 系统 framework 加载也不能被扩大承诺为“绝无 WebKit 符号”。
 - 本机 Linux 图形栈是 llvmpipe CPU fallback；原生窗口与内容绘制已验证，硬件 GPU、Wayland、OS compositor 截图、真实多屏/缩放/无障碍仍需验收。
-- CI workflow 已配置但不等于已经在 GitHub 各 runner 跑过。Windows Setup 与 macOS DMG/可信签名、安装/卸载及最低 OS 版本仍 pending；Linux arm64 为交叉构建证据，不是运行证据。
-- 当前骨架不包含新增的完整 cc-switch AI 配置交互，也没有将 agent 适配迁移成服务端 MoeJS 插件；这两项属于协调后的后续范围。不能据此把完整首发或 M7 标记完成。
+- 下方 checkpoint 已有 GitHub 三系统 runner 的真实包装证据；它不证明安装/卸载、最低 OS 版本或可信签名。Linux arm64 为交叉构建证据，不是运行证据。
+- 当前桌面不包含完整 cc-switch AI 配置交互或原生配置应用。服务端已另行交付 moejs adapter registry 与 Claude 声明式 provider patch，但桌面不运行插件，也尚未消费该 patch 写本机配置；不能据此把完整首发或 M7 标记完成。
 - 独立代表 review 和最终产品验收是独立门禁，实施者的测试不替代它们。
 
 ## 证据索引
@@ -116,3 +116,13 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 2026-10-28：桌面切片提交 `611f2a069acd5c6dbed40a86dd99a1636b3aa7be` 与独立签收 tree `6f189c637734959ac2245dca7db6baa83c1bd059` 完全一致，已 SSH 推送。手动触发 Native desktop Actions `40691777676`，`publish=false`：verify、Linux、Windows、macOS 三个原生 runner 包装任务全部 success，publish 按设计 skipped。verify 包括 headless HTTP/原生组件测试、六 CGO0 构建及 Linux Xvfb 实窗捕获；各包装任务实际检查两架构 Setup/DMG/Linux archive 等产物存在。
 
 该次远端产物补上了前述本机缺少 NSIS/DMG 工具的构建证据，不反向改写本机历史。Windows 安装器未做 Authenticode，macOS 仅 ad-hoc、未 Developer ID 签名/公证；此 checkpoint 不证明安装、首次启动、IME、各平台技能安装与完整配置体验，也不是 tag/Release。对应普通 Build Actions `40691768850` 则在旧 catalog deadline fixture 失败，未将桌面 workflow 的绿色替代完整构建结论；后续 fixture 修复和完整回归单独记录。
+
+## 下载产物身份复核
+
+2026-10-29 续接已完成上述 run 的三份 artifact ZIP 下载与摘要复核，提取六个实际 payload，未执行 Windows/macOS 二进制。`file` 确认相应 PE、Mach-O、ELF 架构；`go version -m` 全部显示 Go 1.27.3、CGO_ENABLED=0 和 revision `611f2a069acd5c6dbed40a86dd99a1636b3aa7be`。Linux payload 仍动态链接，不扩大为静态分发承诺。
+
+此复核也发现原 Windows 两架构 payload 的 `vcs.modified=true`，而 macOS/Linux 为 false。原因是 MyGo v0.7.1 在 go build 前临时生成 main 包下的 `mygo_windows_<arch>.syso`，构建后再清理；原忽略规则没有排除该生成资源。隔离 Git clone 中真实 Windows amd64 构建复现 dirty；仅排除这个精确生成文件模式、不改 tracked 源码后，amd64 与 arm64 实际重编均为 clean。不能将旧六包整体描述为 clean，或使用关闭 VCS 信息来隐藏该问题。
+
+修复候选包含 scoped ignore 与六平台 payload 元数据门禁（Go、CGO、GOOS、GOARCH、精确 revision、clean 状态）。原 Windows 产物触发门禁 red，隔离重编两包 green；尚需独立验收、提交及新三系统实际打包 CI，不能将本地 payload 重编等同 NSIS 安装器重打包。
+
+后续 checkpoint：两文件修复已按独立签收 tree `9c5b5d45de94f8c3265ab166630910a910f17aa4` 提交并 SSH 推送 `39013dacfc01b2b50d6633cee3b2c324f09bf945`。独立 reviewer 另做同源 A/B/A 实际 MyGo Windows 重编：不排除资源为 dirty、精确排除后两架构 clean、撤回排除后再次 dirty，未关闭 VCS 信息。Native desktop Actions `40726579335` 以 `publish=false` 手动触发，精确绑定该 commit；当前 checkpoint 仅记录启动，不将尚未核对完成的三系统结果写成全绿，也不证明安装或可信签名。
