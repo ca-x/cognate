@@ -1,0 +1,215 @@
+syntax = "proto3";
+package skillhub.configuration.native.v1;
+
+import "skillhub/configuration/v1/configuration.proto";
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1;configurationnativev1";
+
+service NativeConfigurationService {
+  rpc BeginNativeConsumer(BeginNativeConsumerRequest) returns (BeginNativeConsumerResponse);
+  rpc BindNativeConsumer(BindNativeConsumerRequest) returns (BindNativeConsumerResponse);
+  rpc PrepareNativeApply(PrepareNativeApplyRequest) returns (PrepareNativeApplyResponse);
+  rpc AuthorizeNativeMaterialization(AuthorizeNativeMaterializationRequest) returns (AuthorizeNativeMaterializationResponse);
+  rpc ConsumeNativeMaterialization(ConsumeNativeMaterializationRequest) returns (ConsumeNativeMaterializationResponse);
+  rpc GetNativeMaterializationStatus(GetNativeMaterializationStatusRequest) returns (GetNativeMaterializationStatusResponse);
+}
+
+enum NativePurpose {
+  NATIVE_PURPOSE_UNSPECIFIED = 0;
+  NATIVE_PURPOSE_CONFIGURATION_APPLY = 1;
+}
+enum Target {
+  TARGET_UNSPECIFIED = 0;
+  TARGET_CLAUDE_SETTINGS = 1;
+}
+enum Scope {
+  SCOPE_UNSPECIFIED = 0;
+  SCOPE_USER = 1;
+}
+enum SecretSlot {
+  SECRET_SLOT_UNSPECIFIED = 0;
+  SECRET_SLOT_CLAUDE_API_KEY = 1;
+  SECRET_SLOT_CLAUDE_AUTH_TOKEN = 2;
+}
+enum EnvSlot {
+  ENV_SLOT_UNSPECIFIED = 0;
+  ENV_SLOT_API_KEY = 1;
+  ENV_SLOT_AUTH_TOKEN = 2;
+  ENV_SLOT_BASE_URL = 3;
+  ENV_SLOT_MODEL = 4;
+  ENV_SLOT_HAIKU = 5;
+  ENV_SLOT_SONNET = 6;
+  ENV_SLOT_OPUS = 7;
+}
+enum GrantState {
+  GRANT_STATE_UNSPECIFIED = 0;
+  GRANT_STATE_NOT_ISSUED = 1;
+  GRANT_STATE_ISSUED = 2;
+  GRANT_STATE_CONSUMED = 3;
+  GRANT_STATE_EXPIRED = 4;
+  GRANT_STATE_RETIRED = 5;
+}
+
+message BeginNativeConsumerRequest {
+  NativePurpose purpose = 1;
+  bytes operation_id = 2;
+  bytes consumer_public_key = 3;
+  bytes client_nonce = 4;
+  string expected_owner_id = 5;
+  string expected_server_origin = 6;
+}
+message BeginNativeConsumerResponse {
+  string challenge_id = 1;
+  bytes challenge = 2;
+  bytes native_session_binding = 3;
+  string owner_id = 4;
+  string server_origin = 5;
+  int64 challenge_expires_at_unix_ms = 6;
+  int64 native_session_expires_at_unix_ms = 7;
+}
+message BindNativeConsumerRequest {
+  string challenge_id = 1;
+  bytes proof_signature = 2;
+}
+message BindNativeConsumerResponse {
+  bytes native_session_token = 1 [debug_redact = true];
+  bytes native_session_binding = 2;
+  int64 expires_at_unix_ms = 3;
+}
+message AdapterBinding {
+  uint32 api_version = 1;
+  string plugin_id = 2;
+  string plugin_version = 3;
+  string definition_digest = 4;
+  repeated string required_capabilities = 5;
+}
+message PreparationBinding {
+  string owner_id = 1;
+  string server_origin = 2;
+  bytes native_session_binding = 3;
+  bytes operation_id = 4;
+  reserved 5;
+  string asset_id = 6;
+  int64 asset_revision = 7;
+  string agent_id = 8;
+  skillhub.configuration.v1.AssetKind asset_kind = 9;
+  uint32 schema_version = 10;
+  AdapterBinding adapter = 11;
+  Target target = 12;
+  Scope scope = 13;
+  string profile_id = 14;
+  uint64 selection_revision = 15;
+  repeated SecretSlot required_slots = 16;
+  int64 prepare_expires_at_unix_ms = 17;
+  bytes consumer_key_sha256 = 18;
+  string prepare_id = 19;
+  int64 prepared_at_unix_ms = 20;
+  bytes patch_sha256 = 21;
+  reserved 30 to 39;
+}
+message ApplyBinding {
+  PreparationBinding preparation = 1;
+  bytes intent_commitment = 2;
+  int64 intent_expires_at_unix_ms = 3;
+}
+message SetLiteral {
+  string value = 1;
+}
+message SetSelectedSecret {
+  SecretSlot slot = 1;
+}
+message RemoveEnv {}
+message PatchOperation {
+  EnvSlot slot = 1;
+  oneof action {
+    SetLiteral set_literal = 2;
+    SetSelectedSecret set_selected_secret = 3;
+    RemoveEnv remove = 4;
+  }
+}
+message ClaudeProviderPatch {
+  repeated PatchOperation operations = 1;
+}
+message PrepareNativeApplyRequest {
+  string expected_owner_id = 1;
+  string asset_id = 2;
+  int64 expected_asset_revision = 3;
+  string agent_id = 4;
+  uint32 schema_version = 5;
+  AdapterBinding adapter = 6;
+  Target target = 7;
+  Scope scope = 8;
+  string profile_id = 9;
+  uint64 selection_revision = 10;
+  bytes operation_id = 11;
+  reserved 12;
+  bytes client_nonce = 13;
+  bytes proof_signature = 14;
+  reserved 15;
+}
+message PrepareNativeApplyResponse {
+  PreparationBinding binding = 1;
+  ClaudeProviderPatch patch = 2;
+  bool materialization_required = 3;
+  bytes authorize_challenge = 4;
+}
+message ExplicitConfirmation {
+  uint64 confirmation_revision = 1;
+}
+message AutoPolicy {
+  bytes policy_id = 1;
+  uint64 policy_revision = 2;
+}
+message AuthorizeNativeMaterializationRequest {
+  string prepare_id = 1;
+  bytes operation_id = 2;
+  bytes intent_commitment = 3;
+  repeated SecretSlot requested_slots = 4;
+  oneof authorization {
+    ExplicitConfirmation explicit_confirmation = 5;
+    AutoPolicy auto_policy = 6;
+  }
+  bytes client_nonce = 7;
+  bytes proof_signature = 8;
+  int64 intent_expires_at_unix_ms = 9;
+}
+message AuthorizeNativeMaterializationResponse {
+  string grant_id = 1;
+  bytes grant_token = 2 [debug_redact = true];
+  bytes consume_challenge = 3;
+  int64 expires_at_unix_ms = 4;
+  ApplyBinding binding = 5;
+  bool materialization_required = 6;
+}
+message ConsumeNativeMaterializationRequest {
+  string prepare_id = 1;
+  string grant_id = 2;
+  bytes grant_token = 3 [debug_redact = true];
+  bytes operation_id = 4;
+  bytes intent_commitment = 5;
+  bytes client_nonce = 6;
+  bytes proof_signature = 7;
+}
+message SlotValue {
+  SecretSlot slot = 1;
+  bytes plaintext = 2 [debug_redact = true];
+}
+message ConsumeNativeMaterializationResponse {
+  ApplyBinding binding = 1;
+  repeated SlotValue slot_values = 2;
+  string grant_id = 3;
+  int64 consumed_at_unix_ms = 4;
+}
+message GetNativeMaterializationStatusRequest {
+  string prepare_id = 1;
+  string grant_id = 2;
+  bytes operation_id = 3;
+  bytes client_nonce = 4;
+  bytes proof_signature = 5;
+}
+message GetNativeMaterializationStatusResponse {
+  GrantState state = 1;
+  string grant_id = 2;
+  int64 expires_at_unix_ms = 3;
+  int64 consumed_at_unix_ms = 4;
+}

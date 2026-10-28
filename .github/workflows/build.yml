@@ -46,6 +46,18 @@ jobs:
           diff -ru gen "$generated/gen"
           buf generate --template buf.gen.web.yaml -o "$generated"
           diff -ru web/src/gen "$generated/web/src/gen"
+          if [ ! -f "$generated/gen/skillhub/configuration/native/v1/native.pb.go" ] || [ ! -f "$generated/gen/skillhub/configuration/native/v1/configurationnativev1connect/native.connect.go" ]; then
+            echo 'Native configuration Go generation is missing.' >&2
+            exit 1
+          fi
+          if [ -e web/src/gen/skillhub/configuration/native ] || [ -e "$generated/web/src/gen/skillhub/configuration/native" ]; then
+            echo 'Native configuration schema must not enter Web generation.' >&2
+            exit 1
+          fi
+          if grep -REq --include='*.ts' --include='*.tsx' 'NativeConfigurationService|skillhub[./]configuration[./]native|configuration/native' web/src; then
+            echo 'Native configuration business entry points must not enter Web source.' >&2
+            exit 1
+          fi
           if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
             git fetch --no-tags --unshallow origin
             if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
