@@ -1,10 +1,51 @@
 # Server-only Magpie library preview
 
-This is an internal, read-only preview, not an import endpoint or a completed
-M6 implementation. The server accepts already-authorized Magpie `library.json`
-export bytes. It does not search a home directory, invoke Magpie or Git, open
-paths from the export, fetch repositories, import configuration, or install
-skills. Clients do not load this package or run moejs.
+The adapter itself is an internal, read-only preview. It is now exposed through
+an authenticated, bounded Connect upload endpoint and a Web repository-selection
+workflow, not a completed M6 implementation. The server accepts explicitly
+selected Magpie `library.json` export bytes. The adapter does not search a home
+directory, invoke Magpie or Git, open paths from the export, fetch repositories,
+import configuration, or install skills. Clients do not load this package or
+run moejs.
+
+## Web upload and collection
+
+On the Repositories page, select a nonempty JSON export of at most 1 MiB, then
+explicitly choose Upload and preview. Selecting a file alone sends nothing.
+The authenticated `skillhub.import.v1.ImportService/PreviewLibraryExport` RPC
+returns repository candidates, their refs, an owner-scoped existing-record hint,
+and the number of exported skill references. Preview does not collect anything;
+no candidate is selected by default.
+
+Select candidates and collect them in selection order. Each uses the existing
+`LibraryService.CollectRepository` independently, with at most one browser request
+in flight. Collection fetches the whole public repository archive and scans all
+its skills, not just the Magpie references or locally modified skill files.
+Existing entries still validate their cached snapshot, without refreshing it.
+Default privacy, archive/cache limits and owner isolation are unchanged.
+
+An explicit item validation/not-found/cache-integrity error may continue to the
+next item. Cancellation, authorization, capacity, transport or unknown failures
+stop subsequent dispatch. The current outcome may be uncertain: cancellation
+does not undo a committed repository. Completed items remain; users may explicitly
+retry uncertain entries to validate the cache and converge without duplicate rows.
+Signing out or changing accounts clears candidates and selection; theme/language
+changes preserve drafts. There is no persisted upload or resumable import job.
+
+The export can contain unselected secrets: upload only to a trusted server.
+The UI does not display its raw text or file name, store it in browser storage,
+or place it in query keys. The server processes bytes only in request memory,
+never logs or persists the export, and strips unrelated fields before moejs.
+Clearing reachable byte buffers is not a promise to securely erase every Go,
+browser or JavaScript copy.
+
+Before decoding, the endpoint authenticates the session and admits at most two
+requests per process and one per owner, without a queue. HTTP and Connect messages
+are bounded to 2 MiB (including JSON base64 overhead); the actual export remains
+limited to 1 MiB. Compressed uploads are rejected. A five-second request/read
+deadline interrupts slow bodies; shutdown cancels and drains admitted requests
+before library/store teardown. Protocol/parser errors use fixed safe messages.
+The endpoint does not accept a server path, owner, plugin source or download URL.
 
 ## Verified source format
 
@@ -62,8 +103,8 @@ func PreviewMagpie(ctx context.Context, export []byte) (MagpiePreview, error)
 
 `MagpieSkill`, `MagpieSource`, `MagpieRepository`, `MagpiePreview`,
 `MaxMagpieExportBytes`, and `MaxMagpieSkills` are defined in
-`internal/server/importer/magpie.go`. No public RPC accepts this helper's input
-or a local server filesystem path.
+`internal/server/importer/magpie.go`. The upload RPC accepts export bytes, never
+a local server filesystem path.
 
 ## Bounds and execution
 
@@ -88,10 +129,9 @@ deadline; 16 MiB of JavaScript memory; 1 MiB input/output and 50,000 output
 nodes. Cancellation is checked before even treating nil as an absent export.
 
 These are per-invocation bounds, not a process-wide heap limit or an OS sandbox
-for hostile plugins. There is no new plugin-upload surface. A future upload or
-request layer must bound bytes before constructing its input slice, authenticate
-ownership, limit request concurrency and pass a request context. This helper
-does not provide transport or authorization.
+for hostile plugins. There is no plugin-code upload surface. The new HTTP/RPC
+layer supplies authentication, pre-decode admission, bounded upload and request
+context; the helper itself still supplies neither transport nor authorization.
 
 ## Verification and remaining work
 
@@ -107,9 +147,14 @@ covers an absent export. Tests also cover traversal/credential rejection,
 duplicate records/keys, Unicode validation, exact byte/record bounds,
 cancellation, repeated previews, concurrent isolated calls and secret exclusion.
 
-Generic Git sources, local-folder contents and Magpie client configuration
-remain unsupported for migration. No source-specific config schema, encryption
-format, upload authorization flow, filesystem detection, server-state ingestion,
-HTTP/App integration, client integration or conflict resolution is introduced.
-Those need separate, explicitly source-backed work. In particular, this preview
-does not use the previously suggested arbitrary CLI fallback.
+HTTP/App tests additionally cover authenticated upload, pre-decode rejection,
+byte/record/encoding limits, post-read reauthentication, per-owner/global
+admission, real slow-body interruption, shutdown drain and selected collection
+with retry/partial-failure semantics. See `VERIFICATION.md` for the integration
+and browser evidence.
+
+Generic Git sources, local-folder contents and Magpie client configuration remain
+unsupported for migration. Source-specific config schemas, encryption formats,
+filesystem detection, CLI/MyGo import UI, full skill-content migration and
+configuration conflict resolution need separate, source-backed work. This
+workflow never uses the previously suggested arbitrary CLI fallback.

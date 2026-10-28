@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package skillhub.import.v1;
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/import/v1;importv1";
+
+service ImportService {
+  rpc PreviewLibraryExport(PreviewLibraryExportRequest) returns (PreviewLibraryExportResponse);
+}
+
+enum ExportFormat {
+  EXPORT_FORMAT_UNSPECIFIED = 0;
+  EXPORT_FORMAT_MAGPIE_LIBRARY_JSON = 1;
+}
+
+message PreviewLibraryExportRequest {
+  ExportFormat format = 1;
+  bytes export_data = 2;
+}
+
+message RepositoryCandidate {
+  string repository = 1;
+  string branch = 2;
+  string existing_repository_id = 3;
+}
+
+message PreviewLibraryExportResponse {
+  repeated RepositoryCandidate repositories = 1;
+  uint32 referenced_skill_count = 2;
+}

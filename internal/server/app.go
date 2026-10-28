@@ -58,6 +58,7 @@ type App struct {
 	mcp       *mcpserver.Server
 	public    *publiccatalog.Service
 	scheduler *scheduler.Scheduler
+	imports   *httpapi.ImportHandler
 }
 
 func Open(ctx context.Context, config Config) (*App, error) {
@@ -196,6 +197,11 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 	}
 	app := &App{store: store, tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP, device: device, oidc: login, library: collection, packs: distribution, scheduler: listScheduler}
+	app.imports, err = httpapi.NewImportHandler(service, collection)
+	if err != nil {
+		_ = app.Close()
+		return nil, err
+	}
 	access, err := mcpaccess.NewService(store)
 	if err != nil {
 		_ = app.Close()
@@ -211,11 +217,16 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		_ = app.Close()
 		return nil, err
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public})
+	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports})
 	return app, nil
 }
 
 func (app *App) Close() error {
+	if app.imports != nil {
+		if err := app.imports.Close(); err != nil {
+			return err
+		}
+	}
 	if app.scheduler != nil {
 		_ = app.scheduler.Close()
 	}

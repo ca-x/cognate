@@ -12,6 +12,7 @@ import { DiscoveredRepositories } from "./sources"
 import { PublicationControl } from "./publication"
 import { SkillCategories } from "./skill-categories"
 import { CatalogError } from "./catalog-error"
+import { ImportRepositories } from "./import-repositories"
 
 function collectionError(error: unknown) {
   switch (ConnectError.from(error).code) {
@@ -62,6 +63,7 @@ export function RepositoriesPage() {
   const [filter, setFilter] = useState("")
   const [selected, setSelected] = useState("")
   const [notice, setNotice] = useNotice()
+  const [importCollecting, setImportCollecting] = useState(false)
   const active = useRef<AbortController | null>(null)
   const key = ["library-repositories", session?.userId]
   const query = useQuery({ queryKey: key, queryFn: ({ signal }) => library.listRepositories({}, { signal }) })
@@ -85,7 +87,7 @@ export function RepositoriesPage() {
     onError: (error) => { if (ConnectError.from(error).code === Code.Canceled) setNotice("已停止等待。如果服务端已经完成收录，刷新后仍会显示结果。") },
     onSettled: () => { void queryClient.invalidateQueries({ queryKey: key }) },
   })
-  function submit(event: FormEvent) { event.preventDefault(); collection.mutate({ repository, branch, fromForm: true }) }
+  function submit(event: FormEvent) { event.preventDefault(); if (!collection.isPending && !importCollecting) collection.mutate({ repository, branch, fromForm: true }) }
   const repositories = query.data?.repositories ?? []
   const visible = repositories.filter((entry) => `${entry.nameWithOwner} ${entry.branch}`.toLocaleLowerCase().includes(filter.toLocaleLowerCase()))
   const selectedId = repositories.some((entry) => entry.id === selected) ? selected : repositories[0]?.id
@@ -96,15 +98,16 @@ export function RepositoriesPage() {
       <form className="source-card-body" onSubmit={submit} aria-busy={collection.isPending}>
         <div className="collection-fields"><div className="space-y-2"><label htmlFor="repository-input">{t("公开仓库")}</label><Input id="repository-input" name="repository" placeholder={t("owner/repo 或 https://github.com/owner/repo")} autoComplete="off" maxLength={512} required disabled={collection.isPending} value={repository} onChange={(event) => setRepository(event.target.value)} aria-describedby="collection-help" /></div><div className="space-y-2"><label htmlFor="branch-input">{t("分支 ")}<span className="font-normal text-muted-foreground">{t("（可选）")}</span></label><Input id="branch-input" name="branch" placeholder={t("默认分支")} autoComplete="off" maxLength={256} disabled={collection.isPending} value={branch} onChange={(event) => setBranch(event.target.value)} /></div></div>
         <p className="field-help mt-3" id="collection-help">{t("归档上限 32 MiB，解压后 64 MiB、最多 512 个技能；符号链接不跟随。留空分支或填写 HEAD 都使用默认分支。")}</p>
-        <div className="mt-5 flex flex-wrap items-center gap-3"><Button type="submit" disabled={collection.isPending || !repository.trim()}><FolderGit2 size={16} aria-hidden="true" />{collection.isPending ? t("正在拉取并扫描…") : t("收录并扫描")}</Button>{collection.isPending && <Button variant="ghost" onClick={() => active.current?.abort()}>{t("停止等待")}</Button>}</div>
+        <div className="mt-5 flex flex-wrap items-center gap-3"><Button type="submit" disabled={collection.isPending || importCollecting || !repository.trim()}><FolderGit2 size={16} aria-hidden="true" />{collection.isPending ? t("正在拉取并扫描…") : t("收录并扫描")}</Button>{collection.isPending && <Button variant="ghost" onClick={() => active.current?.abort()}>{t("停止等待")}</Button>}</div>
         {collection.isError && ConnectError.from(collection.error).code !== Code.Canceled && <LibraryError error={collection.error} />}
         <p className="mt-3 min-h-6 text-sm leading-6 text-muted-foreground" role="status" aria-live="polite">{collection.isPending ? t("服务端正在获取仓库和校验技能内容，请稍候。") : notice}</p>
       </form>
     </section>
+    <ImportRepositories key={session?.token ?? "signed-out"} collectionBusy={collection.isPending} onCollectingChange={setImportCollecting} />
     <section className="list-section" aria-labelledby="library-title">
       <div className="section-toolbar"><div><h2 id="library-title" className="font-semibold">{t("已收录 ")}<span className="ml-2 font-normal text-muted-foreground">{formatNumber(repositories.length)}</span></h2><p className="mt-1 text-sm text-muted-foreground">{t("这里列出收录记录；打开仓库后会校验归档并读取技能。")}</p></div><div className="filter-field"><Search size={16} aria-hidden="true" /><Input aria-label={t("筛选已收录仓库")} placeholder={t("按仓库或分支筛选…")} value={filter} onChange={(event) => setFilter(event.target.value)} /></div></div>
       {query.isPending ? <p role="status" className="py-8 text-sm text-muted-foreground">{t("正在读取已收录仓库…")}</p> : query.isError ? <LibraryError error={query.error} retry={() => { void query.refetch() }} /> : repositories.length === 0 ? <div className="list-surface empty-state"><FolderGit2 size={26} className="empty-icon" aria-hidden="true" /><h3 className="font-medium">{t("资料库还是空的")}</h3><p className="mt-2 text-sm text-muted-foreground">{t("添加第一个公开技能仓库，或从下方的 Lists 中选择。")}</p></div> : <div className="library-workbench"><div className="collected-repositories" role="group" aria-label={t("选择已收录的仓库")}>{visible.length === 0 ? <p className="p-5 text-sm text-muted-foreground" role="status">{t("没有匹配的仓库。")}</p> : visible.map((entry) => <button type="button" key={entry.id} className="collected-repository-select" aria-pressed={selectedId === entry.id} onClick={() => setSelected(entry.id)}><span className="break-words font-mono text-sm font-medium">{entry.nameWithOwner}</span><span className="mt-2 block text-xs text-muted-foreground">{formatNumber(entry.skillCount)} {t(" 个技能 · ")}{entry.manual ? t("手动收录") : t("同步收录")}</span><span className="mt-1 block break-all text-xs text-muted-foreground">{entry.branch || t("默认分支")}</span></button>)}</div>{selectedId && <RepositorySkills key={selectedId} repositoryId={selectedId} />}</div>}
     </section>
-    <details className="discovered-repositories"><summary>{t("从 GitHub Lists 收录仓库")}</summary><div className="pt-5"><DiscoveredRepositories busy={collection.isPending} onCollect={(name) => collection.mutate({ repository: name, branch: "", fromForm: false })} /></div></details>
+    <details className="discovered-repositories"><summary>{t("从 GitHub Lists 收录仓库")}</summary><div className="pt-5"><DiscoveredRepositories busy={collection.isPending || importCollecting} onCollect={(name) => { if (!collection.isPending && !importCollecting) collection.mutate({ repository: name, branch: "", fromForm: false }) }} /></div></details>
   </>
 }

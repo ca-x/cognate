@@ -10,6 +10,7 @@ import (
 	authv1 "github.com/ca-x/skillhub/gen/skillhub/auth/v1"
 	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
 	"github.com/ca-x/skillhub/gen/skillhub/github/v1/githubv1connect"
+	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
 	"github.com/ca-x/skillhub/gen/skillhub/library/v1/libraryv1connect"
 	"github.com/ca-x/skillhub/gen/skillhub/mcp/v1/mcpv1connect"
 	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
@@ -42,6 +43,7 @@ type Options struct {
 	GitHubDevice  *githubauth.Service
 	OIDC          *oidclogin.Manager
 	Library       *library.Service
+	Imports       *ImportHandler
 	Packs         *packs.Service
 	MCPAccess     *mcpaccess.Service
 	MCP           *mcpserver.Server
@@ -83,6 +85,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	if options.Library != nil {
 		path, handler := libraryv1connect.NewLibraryServiceHandler(&libraryHandler{auth: authentication, service: options.Library}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(8<<20))
 		server.Any(path+"*", echo.WrapHandler(handler))
+	}
+	if options.Imports != nil {
+		path, handler := importv1connect.NewImportServiceHandler(options.Imports, connect.WithReadMaxBytes(importMaxWireBytes), connect.WithSendMaxBytes(importMaxWireBytes), connect.WithCompression("gzip", nil, nil), connect.WithCodec(importCodec{name: "json"}), connect.WithCodec(importCodec{name: "proto"}))
+		server.Any(path+"*", echo.WrapHandler(options.Imports.Guard(handler)))
 	}
 	if options.Packs != nil && options.Store != nil {
 		path, handler := packv1connect.NewPackServiceHandler(&packHandler{auth: authentication, store: options.Store, service: options.Packs}, connect.WithReadMaxBytes(64<<10), connect.WithSendMaxBytes(8<<20))

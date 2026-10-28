@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ca-x/skillhub/gen/skillhub/auth/v1/authv1connect"
+	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
 	"github.com/ca-x/skillhub/gen/skillhub/pack/v1/packv1connect"
 	"github.com/labstack/echo/v4"
 )
@@ -71,6 +72,9 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 				}
 			}
 			var maxBytes int64 = 4096
+			if request.URL.Path == importv1connect.ImportServicePreviewLibraryExportProcedure {
+				maxBytes = importMaxWireBytes
+			}
 			if request.URL.Path == packv1connect.PackServiceCreatePackProcedure || request.URL.Path == packv1connect.PackServiceUpdatePackProcedure {
 				maxBytes = 64 << 10
 			}

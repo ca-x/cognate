@@ -8,13 +8,30 @@
 - 服务端 Lists 定时增量/公开来源收录、公开目录与分类、默认私有及取消公开后的匿名拒绝；分类变更不修改 skill 内容 hash。
 - MCP 用户级 token 生命周期、权限/有效期校验、取消与关闭行为，以及 Web 管理和一次性显示。分类与发布 MCP tools/scopes 尚未接通。
 - Web 匿名和管理界面的 light/dark/system、zh-CN/en；保留主题/语言切换前的未提交表单。独立代表保留并重放了 OIDC 失败提示后切换语言导致 MCP 草稿丢失的回归，修复后双向通过，且登录会话切换的清理边界未被削弱。
-- cc-switch、Magpie 仅完成服务端 moejs 只读导入预览。完整授权上传、选择性持久化、客户端配置附件及自动应用仍未完成。CLI 和 MyGo 不执行插件。
+- cc-switch 仍仅有服务端内部只读预览；Magpie 已新增授权上传预览和 Web 显式选择仓库收录，下节记录本轮证据。完整插件机制、skill 内容及客户端配置迁移仍未完成。CLI 和 MyGo 不执行插件。
 
 验收不是仅凭构建结果：公开目录使用实际浏览器与受控或公开归档来源；MCP 管理使用真实嵌入式服务端和浏览器；后端争用/过期/取消及客户端安装另有保留回归测试。截图只在一次性凭据已清除后采集；不保留账号、密钥、数据库、会话导出或含凭据 HAR。
 
 2026-10-28 最终阶段整合审查结论为 Spec PASS / Quality PASS，限本阶段整合接缝读审与冻结输入、既有验收证据核对；新增确认 P1/P2 均为 0，另有三项非阻断文档建议。该审查未重新执行全套测试或浏览器验收，不代表 M2–M7 全量完成、首发验收或远端 CI 成功。
 
 ## 可复现检查
+
+### Magpie 上传与仓库选择收录
+
+2026-10-28 本轮独立代表最终结论为 Spec PASS / Quality PASS，确认 P1/P2 为 0。代表在冻结副本独立执行全部 Go tests/vet、Buf lint/生成/breaking 和定向真实 TCP 测试；另以可控 RPC 的真实 React 界面独立验证取消、大小限制、延迟旧账号 401 回填和容量/未知错误停止，最终嵌入式服务上验证真实授权上传、HEAD/head、键盘、偏好与清理。以下另行记录实现者/主线程证据，不混称为代表亲自重复全部交叉构建或真实 GitHub 收录。
+
+- Go 1.27.3、`CGO_ENABLED=0`：编译可运行的行为 red 曾观察到缺失路由、旧 4096 字节上限和慢连接拒绝不及时；实现后 HTTP/App 上传预览、准入、大小/格式/压缩、重鉴权、跨 owner、HEAD/head、脱敏、真实 TCP deadline 与 Close 排空测试通过。
+- 既有 Collect 的选中仓库、重复/并发、部分失败、缓存损坏、取消/响应丢失收敛测试直接 green，作为回归证据，不伪造它们的 red。全量 `go test -mod=readonly ./... -count=1 -timeout=240s`、`go vet -mod=readonly ./...`、`go mod tidy -diff`、`go mod verify` 均通过。
+- Web `npm run typecheck --prefix web`、build、生产依赖 audit（0 vulnerabilities）通过。额外从暂存区完整导出，执行干净 `npm ci`/build、与本地 dist 逐字比较、全部 Go tests/vet 和两份 Buf 模板生成比较均通过。
+- `buf lint`、对本阶段父提交的 breaking 检查、Go/Connect/TS 逐字生成一致通过；CLI 依赖树无服务端、moejs 或 importer。Linux/macOS/Windows × amd64/arm64 的 CLI 与服务端共 12 项 `CGO_ENABLED=0` 交叉构建通过，不代表这些平台的原生运行验收。
+- `protoc-gen-es` 生成的 TS 与既有生成文件一样带末尾空行，保持生成原样以通过逐字比较。非生成物使用默认 whitespace check；生成物仅豁免 `blank-at-eof`，其他 whitespace 检查不变。
+- 最终生产 bundle 重新嵌入本地服务端后，通过具名隔离浏览器会话复验：选择文件 0 请求；显式预览 2 候选、默认 0 选择/0 Collect；逆序勾选后切换语言/主题保留选择。真实缺失仓库失败后继续收录 `obra/superpowers`，两个请求串行、库仅 1 条，详情 15 个技能均有 SHA-256；重试后库仍 1 条。
+- 最终 bundle 在 390px 无文档级横向溢出；三个候选中已有记录仍验证缓存，第二项在途取消后为成功/待确认/未尝试，只有 2 次新 Collect。退出清候选和待确认状态，新 owner 资料库为空、偏好保留；localStorage 只有 theme/locale，sessionStorage 为空，配置秘密哨兵未显示。
+- 浏览器账号使用页面内生成的临时随机密码，不保留凭据、账号库、截图、accessibility snapshot 或 HAR。源码中 synthetic fixture 不是用户真实导出；浏览器证据不能替代外部 OIDC/GitHub 授权验收、MyGo 原生 GUI 打包或容器运行。
+
+此切片只新增 Magpie JSON 的仓库候选上传及选择收录，F6/M6、首版均未完成。远端 CI 需按实际推送 SHA 单独核查，不从本地测试推断成功。
+
+### 全项目命令
 
 工具链：Go 1.27.3、Node.js 26、Buf 1.75.0，所有 Go 命令设置 `CGO_ENABLED=0`。从暂存区导出到独立临时目录验证，避免未暂存工作掩盖缺失文件；不得复制运行数据或密钥。
 
