@@ -28,38 +28,41 @@ import (
 	"github.com/ca-x/cognate/internal/server/packs"
 	"github.com/ca-x/cognate/internal/server/publiccatalog"
 	"github.com/ca-x/cognate/internal/server/scheduler"
+	"github.com/ca-x/cognate/internal/server/sourcerefresh"
 	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/ca-x/cognate/web"
 )
 
 type Config struct {
-	DataDirectory        string
-	MasterKeyFile        string
-	TLSCertificate       string
-	TLSKey               string
-	AllowHTTP            bool
-	PublicOrigin         string
-	GitHubClientID       string
-	OIDCIssuer           string
-	OIDCClientID         string
-	OIDCClientSecretFile string
-	ArchiveCacheBytes    int64
-	ListSyncInterval     time.Duration
+	DataDirectory         string
+	MasterKeyFile         string
+	TLSCertificate        string
+	TLSKey                string
+	AllowHTTP             bool
+	PublicOrigin          string
+	GitHubClientID        string
+	OIDCIssuer            string
+	OIDCClientID          string
+	OIDCClientSecretFile  string
+	ArchiveCacheBytes     int64
+	ListSyncInterval      time.Duration
+	SourceRefreshInterval *time.Duration
 }
 
 type App struct {
-	store     *state.Store
-	handler   http.Handler
-	tlsConfig *tls.Config
-	allowHTTP bool
-	device    *githubauth.Service
-	oidc      *oidclogin.Manager
-	library   *library.Service
-	packs     *packs.Service
-	mcp       *mcpserver.Server
-	public    *publiccatalog.Service
-	scheduler *scheduler.Scheduler
-	imports   *httpapi.ImportHandler
+	store         *state.Store
+	handler       http.Handler
+	tlsConfig     *tls.Config
+	allowHTTP     bool
+	device        *githubauth.Service
+	oidc          *oidclogin.Manager
+	library       *library.Service
+	packs         *packs.Service
+	mcp           *mcpserver.Server
+	public        *publiccatalog.Service
+	scheduler     *scheduler.Scheduler
+	sourceRefresh *sourcerefresh.Worker
+	imports       *httpapi.ImportHandler
 }
 
 func Open(ctx context.Context, config Config) (*App, error) {
@@ -68,6 +71,13 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	}
 	if config.ListSyncInterval < 0 || config.ListSyncInterval > 24*time.Hour {
 		return nil, fmt.Errorf("GitHub list synchronization interval must be between zero and 24 hours")
+	}
+	sourceInterval := sourcerefresh.DefaultInterval
+	if config.SourceRefreshInterval != nil {
+		sourceInterval = *config.SourceRefreshInterval
+	}
+	if sourceInterval != 0 && (sourceInterval < time.Second || sourceInterval > 24*time.Hour) {
+		return nil, fmt.Errorf("source refresh interval must be zero or between one second and 24 hours")
 	}
 	if !filepath.IsAbs(config.DataDirectory) || filepath.Clean(config.DataDirectory) != config.DataDirectory {
 		return nil, fmt.Errorf("server data directory must be absolute and clean")
@@ -198,6 +208,13 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 	}
 	app := &App{store: store, tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP, device: device, oidc: login, library: collection, packs: distribution, scheduler: listScheduler}
+	if sourceInterval != 0 {
+		app.sourceRefresh, err = sourcerefresh.New(store, collection, sourcerefresh.Options{Interval: sourceInterval, DataDirectory: config.DataDirectory})
+		if err != nil {
+			_ = app.Close()
+			return nil, err
+		}
+	}
 	app.imports, err = httpapi.NewImportHandler(service, collection)
 	if err != nil {
 		_ = app.Close()
@@ -223,13 +240,16 @@ func Open(ctx context.Context, config Config) (*App, error) {
 }
 
 func (app *App) Close() error {
+	if app.sourceRefresh != nil {
+		_ = app.sourceRefresh.Close()
+	}
+	if app.scheduler != nil {
+		_ = app.scheduler.Close()
+	}
 	if app.imports != nil {
 		if err := app.imports.Close(); err != nil {
 			return err
 		}
-	}
-	if app.scheduler != nil {
-		_ = app.scheduler.Close()
 	}
 	if app.mcp != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -278,6 +298,12 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) error {
 			return err
 		}
 		defer app.scheduler.Close()
+	}
+	if app.sourceRefresh != nil {
+		if err := app.sourceRefresh.Start(ctx); err != nil {
+			return err
+		}
+		defer app.sourceRefresh.Close()
 	}
 	httpServer := &http.Server{
 		Handler: app.handler, TLSConfig: app.tlsConfig,

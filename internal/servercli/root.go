@@ -26,6 +26,7 @@ func Execute() {
 
 func New() *cobra.Command {
 	var config server.Config
+	config.SourceRefreshInterval = new(15 * time.Minute)
 	var listen string
 	command := &cobra.Command{
 		Use: "cognate-server", Short: "Cognate 服务端", Args: cobra.NoArgs,
@@ -62,6 +63,7 @@ func New() *cobra.Command {
 	command.Flags().StringVar(&config.OIDCClientSecretFile, "oidc-client-secret-file", configurationEnvironment("OIDC_CLIENT_SECRET_FILE"), "保存 OIDC client secret 的私有文件（公开客户端可省略）")
 	command.Flags().Int64Var(&config.ArchiveCacheBytes, "archive-cache-bytes", 0, "初始化归档缓存字节预算，0 使用 512 MiB；须与同目录已保存策略一致（包括中断残留）")
 	command.Flags().DurationVar(&config.ListSyncInterval, "list-sync-interval", 15*time.Minute, "订阅 GitHub Lists 同步间隔，0 禁用；只自动收集公开仓库，不替换已保存内容")
+	command.Flags().DurationVar(config.SourceRefreshInterval, "source-refresh-interval", *config.SourceRefreshInterval, "已收录公开来源的更新批次间隔，0 禁用；非全源刷新时限，已公开快照内容变化仍需取消公开后更新")
 	return command
 }
 

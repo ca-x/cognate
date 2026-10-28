@@ -33,6 +33,9 @@ func (store *Store) catalogTransaction(ctx context.Context, operation func(*ent.
 				return err
 			}
 			defer tx.Rollback()
+			if err := store.guardSourceRefreshTransaction(ctx, tx); err != nil {
+				return err
+			}
 			if err := operation(tx); err != nil {
 				return err
 			}
