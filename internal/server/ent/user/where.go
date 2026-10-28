@@ -376,6 +376,52 @@ func HasConfigurationAssetsWith(preds ...predicate.ConfigurationAsset) predicate
 	})
 }
 
+// HasNativeConsumerChallenges applies the HasEdge predicate on the "native_consumer_challenges" edge.
+func HasNativeConsumerChallenges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerChallengesTable, NativeConsumerChallengesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeConsumerChallengesWith applies the HasEdge predicate on the "native_consumer_challenges" edge with a given conditions (other predicates).
+func HasNativeConsumerChallengesWith(preds ...predicate.NativeConsumerChallenge) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newNativeConsumerChallengesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNativeConsumerSessions applies the HasEdge predicate on the "native_consumer_sessions" edge.
+func HasNativeConsumerSessions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerSessionsTable, NativeConsumerSessionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeConsumerSessionsWith applies the HasEdge predicate on the "native_consumer_sessions" edge with a given conditions (other predicates).
+func HasNativeConsumerSessionsWith(preds ...predicate.NativeConsumerSession) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newNativeConsumerSessionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

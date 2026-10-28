@@ -23,6 +23,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -90,24 +92,26 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			category.Table:            category.ValidColumn,
-			collectedrepository.Table: collectedrepository.ValidColumn,
-			collectedskill.Table:      collectedskill.ValidColumn,
-			configurationasset.Table:  configurationasset.ValidColumn,
-			githubcredential.Table:    githubcredential.ValidColumn,
-			githublist.Table:          githublist.ValidColumn,
-			githubmembership.Table:    githubmembership.ValidColumn,
-			githubrepository.Table:    githubrepository.ValidColumn,
-			localaccount.Table:        localaccount.ValidColumn,
-			mcpaudit.Table:            mcpaudit.ValidColumn,
-			mcpcredential.Table:       mcpcredential.ValidColumn,
-			oidcidentity.Table:        oidcidentity.ValidColumn,
-			pack.Table:                pack.ValidColumn,
-			packitem.Table:            packitem.ValidColumn,
-			packshare.Table:           packshare.ValidColumn,
-			servermetadata.Table:      servermetadata.ValidColumn,
-			session.Table:             session.ValidColumn,
-			user.Table:                user.ValidColumn,
+			category.Table:                category.ValidColumn,
+			collectedrepository.Table:     collectedrepository.ValidColumn,
+			collectedskill.Table:          collectedskill.ValidColumn,
+			configurationasset.Table:      configurationasset.ValidColumn,
+			githubcredential.Table:        githubcredential.ValidColumn,
+			githublist.Table:              githublist.ValidColumn,
+			githubmembership.Table:        githubmembership.ValidColumn,
+			githubrepository.Table:        githubrepository.ValidColumn,
+			localaccount.Table:            localaccount.ValidColumn,
+			mcpaudit.Table:                mcpaudit.ValidColumn,
+			mcpcredential.Table:           mcpcredential.ValidColumn,
+			nativeconsumerchallenge.Table: nativeconsumerchallenge.ValidColumn,
+			nativeconsumersession.Table:   nativeconsumersession.ValidColumn,
+			oidcidentity.Table:            oidcidentity.ValidColumn,
+			pack.Table:                    pack.ValidColumn,
+			packitem.Table:                packitem.ValidColumn,
+			packshare.Table:               packshare.ValidColumn,
+			servermetadata.Table:          servermetadata.ValidColumn,
+			session.Table:                 session.ValidColumn,
+			user.Table:                    user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

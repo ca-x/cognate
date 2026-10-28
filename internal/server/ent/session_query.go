@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -19,11 +22,13 @@ import (
 // SessionQuery is the builder for querying Session entities.
 type SessionQuery struct {
 	config
-	ctx        *QueryContext
-	order      []session.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Session
-	withUser   *UserQuery
+	ctx                          *QueryContext
+	order                        []session.OrderOption
+	inters                       []Interceptor
+	predicates                   []predicate.Session
+	withUser                     *UserQuery
+	withNativeConsumerChallenges *NativeConsumerChallengeQuery
+	withNativeConsumerSessions   *NativeConsumerSessionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +80,50 @@ func (_q *SessionQuery) QueryUser() *UserQuery {
 			sqlgraph.From(session.Table, session.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, session.UserTable, session.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNativeConsumerChallenges chains the current query on the "native_consumer_challenges" edge.
+func (_q *SessionQuery) QueryNativeConsumerChallenges() *NativeConsumerChallengeQuery {
+	query := (&NativeConsumerChallengeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, selector),
+			sqlgraph.To(nativeconsumerchallenge.Table, nativeconsumerchallenge.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.NativeConsumerChallengesTable, session.NativeConsumerChallengesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNativeConsumerSessions chains the current query on the "native_consumer_sessions" edge.
+func (_q *SessionQuery) QueryNativeConsumerSessions() *NativeConsumerSessionQuery {
+	query := (&NativeConsumerSessionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, selector),
+			sqlgraph.To(nativeconsumersession.Table, nativeconsumersession.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.NativeConsumerSessionsTable, session.NativeConsumerSessionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -269,12 +318,14 @@ func (_q *SessionQuery) Clone() *SessionQuery {
 		return nil
 	}
 	return &SessionQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]session.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Session{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
+		config:                       _q.config,
+		ctx:                          _q.ctx.Clone(),
+		order:                        append([]session.OrderOption{}, _q.order...),
+		inters:                       append([]Interceptor{}, _q.inters...),
+		predicates:                   append([]predicate.Session{}, _q.predicates...),
+		withUser:                     _q.withUser.Clone(),
+		withNativeConsumerChallenges: _q.withNativeConsumerChallenges.Clone(),
+		withNativeConsumerSessions:   _q.withNativeConsumerSessions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -289,6 +340,28 @@ func (_q *SessionQuery) WithUser(opts ...func(*UserQuery)) *SessionQuery {
 		opt(query)
 	}
 	_q.withUser = query
+	return _q
+}
+
+// WithNativeConsumerChallenges tells the query-builder to eager-load the nodes that are connected to
+// the "native_consumer_challenges" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SessionQuery) WithNativeConsumerChallenges(opts ...func(*NativeConsumerChallengeQuery)) *SessionQuery {
+	query := (&NativeConsumerChallengeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNativeConsumerChallenges = query
+	return _q
+}
+
+// WithNativeConsumerSessions tells the query-builder to eager-load the nodes that are connected to
+// the "native_consumer_sessions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SessionQuery) WithNativeConsumerSessions(opts ...func(*NativeConsumerSessionQuery)) *SessionQuery {
+	query := (&NativeConsumerSessionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNativeConsumerSessions = query
 	return _q
 }
 
@@ -370,8 +443,10 @@ func (_q *SessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sess
 	var (
 		nodes       = []*Session{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			_q.withUser != nil,
+			_q.withNativeConsumerChallenges != nil,
+			_q.withNativeConsumerSessions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +470,24 @@ func (_q *SessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sess
 	if query := _q.withUser; query != nil {
 		if err := _q.loadUser(ctx, query, nodes, nil,
 			func(n *Session, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNativeConsumerChallenges; query != nil {
+		if err := _q.loadNativeConsumerChallenges(ctx, query, nodes,
+			func(n *Session) { n.Edges.NativeConsumerChallenges = []*NativeConsumerChallenge{} },
+			func(n *Session, e *NativeConsumerChallenge) {
+				n.Edges.NativeConsumerChallenges = append(n.Edges.NativeConsumerChallenges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNativeConsumerSessions; query != nil {
+		if err := _q.loadNativeConsumerSessions(ctx, query, nodes,
+			func(n *Session) { n.Edges.NativeConsumerSessions = []*NativeConsumerSession{} },
+			func(n *Session, e *NativeConsumerSession) {
+				n.Edges.NativeConsumerSessions = append(n.Edges.NativeConsumerSessions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -427,6 +520,66 @@ func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *SessionQuery) loadNativeConsumerChallenges(ctx context.Context, query *NativeConsumerChallengeQuery, nodes []*Session, init func(*Session), assign func(*Session, *NativeConsumerChallenge)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Session)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativeconsumerchallenge.FieldParentSessionID)
+	}
+	query.Where(predicate.NativeConsumerChallenge(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(session.NativeConsumerChallengesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ParentSessionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "parent_session_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SessionQuery) loadNativeConsumerSessions(ctx context.Context, query *NativeConsumerSessionQuery, nodes []*Session, init func(*Session), assign func(*Session, *NativeConsumerSession)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Session)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativeconsumersession.FieldParentSessionID)
+	}
+	query.Where(predicate.NativeConsumerSession(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(session.NativeConsumerSessionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ParentSessionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "parent_session_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

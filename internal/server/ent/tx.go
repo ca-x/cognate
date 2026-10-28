@@ -34,6 +34,10 @@ type Tx struct {
 	MCPAudit *MCPAuditClient
 	// MCPCredential is the client for interacting with the MCPCredential builders.
 	MCPCredential *MCPCredentialClient
+	// NativeConsumerChallenge is the client for interacting with the NativeConsumerChallenge builders.
+	NativeConsumerChallenge *NativeConsumerChallengeClient
+	// NativeConsumerSession is the client for interacting with the NativeConsumerSession builders.
+	NativeConsumerSession *NativeConsumerSessionClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Pack is the client for interacting with the Pack builders.
@@ -190,6 +194,8 @@ func (tx *Tx) init() {
 	tx.LocalAccount = NewLocalAccountClient(tx.config)
 	tx.MCPAudit = NewMCPAuditClient(tx.config)
 	tx.MCPCredential = NewMCPCredentialClient(tx.config)
+	tx.NativeConsumerChallenge = NewNativeConsumerChallengeClient(tx.config)
+	tx.NativeConsumerSession = NewNativeConsumerSessionClient(tx.config)
 	tx.OIDCIdentity = NewOIDCIdentityClient(tx.config)
 	tx.Pack = NewPackClient(tx.config)
 	tx.PackItem = NewPackItemClient(tx.config)

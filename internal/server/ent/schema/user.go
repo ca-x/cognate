@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -27,5 +28,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("mcp_credentials", MCPCredential.Type),
 		edge.To("categories", Category.Type),
 		edge.To("configuration_assets", ConfigurationAsset.Type),
+		edge.To("native_consumer_challenges", NativeConsumerChallenge.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("native_consumer_sessions", NativeConsumerSession.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

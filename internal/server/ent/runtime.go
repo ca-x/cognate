@@ -16,6 +16,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -358,6 +360,310 @@ func init() {
 	mcpcredential.DefaultRevision = mcpcredentialDescRevision.Default.(int64)
 	// mcpcredential.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
 	mcpcredential.RevisionValidator = mcpcredentialDescRevision.Validators[0].(func(int64) error)
+	nativeconsumerchallengeFields := schema.NativeConsumerChallenge{}.Fields()
+	_ = nativeconsumerchallengeFields
+	// nativeconsumerchallengeDescPublicID is the schema descriptor for public_id field.
+	nativeconsumerchallengeDescPublicID := nativeconsumerchallengeFields[0].Descriptor()
+	// nativeconsumerchallenge.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	nativeconsumerchallenge.PublicIDValidator = func() func(string) error {
+		validators := nativeconsumerchallengeDescPublicID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(public_id string) error {
+			for _, fn := range fns {
+				if err := fn(public_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescOrigin is the schema descriptor for origin field.
+	nativeconsumerchallengeDescOrigin := nativeconsumerchallengeFields[4].Descriptor()
+	// nativeconsumerchallenge.OriginValidator is a validator for the "origin" field. It is called by the builders before save.
+	nativeconsumerchallenge.OriginValidator = func() func(string) error {
+		validators := nativeconsumerchallengeDescOrigin.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(origin string) error {
+			for _, fn := range fns {
+				if err := fn(origin); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescOperationID is the schema descriptor for operation_id field.
+	nativeconsumerchallengeDescOperationID := nativeconsumerchallengeFields[5].Descriptor()
+	// nativeconsumerchallenge.OperationIDValidator is a validator for the "operation_id" field. It is called by the builders before save.
+	nativeconsumerchallenge.OperationIDValidator = func() func([]byte) error {
+		validators := nativeconsumerchallengeDescOperationID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(operation_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(operation_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescPublicKey is the schema descriptor for public_key field.
+	nativeconsumerchallengeDescPublicKey := nativeconsumerchallengeFields[6].Descriptor()
+	// nativeconsumerchallenge.PublicKeyValidator is a validator for the "public_key" field. It is called by the builders before save.
+	nativeconsumerchallenge.PublicKeyValidator = func() func([]byte) error {
+		validators := nativeconsumerchallengeDescPublicKey.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(public_key []byte) error {
+			for _, fn := range fns {
+				if err := fn(public_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescClientNonce is the schema descriptor for client_nonce field.
+	nativeconsumerchallengeDescClientNonce := nativeconsumerchallengeFields[7].Descriptor()
+	// nativeconsumerchallenge.ClientNonceValidator is a validator for the "client_nonce" field. It is called by the builders before save.
+	nativeconsumerchallenge.ClientNonceValidator = func() func([]byte) error {
+		validators := nativeconsumerchallengeDescClientNonce.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(client_nonce []byte) error {
+			for _, fn := range fns {
+				if err := fn(client_nonce); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescChallenge is the schema descriptor for challenge field.
+	nativeconsumerchallengeDescChallenge := nativeconsumerchallengeFields[8].Descriptor()
+	// nativeconsumerchallenge.ChallengeValidator is a validator for the "challenge" field. It is called by the builders before save.
+	nativeconsumerchallenge.ChallengeValidator = func() func([]byte) error {
+		validators := nativeconsumerchallengeDescChallenge.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(challenge []byte) error {
+			for _, fn := range fns {
+				if err := fn(challenge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescSessionBinding is the schema descriptor for session_binding field.
+	nativeconsumerchallengeDescSessionBinding := nativeconsumerchallengeFields[9].Descriptor()
+	// nativeconsumerchallenge.SessionBindingValidator is a validator for the "session_binding" field. It is called by the builders before save.
+	nativeconsumerchallenge.SessionBindingValidator = func() func([]byte) error {
+		validators := nativeconsumerchallengeDescSessionBinding.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(session_binding []byte) error {
+			for _, fn := range fns {
+				if err := fn(session_binding); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumerchallengeDescIssuedMs is the schema descriptor for issued_ms field.
+	nativeconsumerchallengeDescIssuedMs := nativeconsumerchallengeFields[10].Descriptor()
+	// nativeconsumerchallenge.IssuedMsValidator is a validator for the "issued_ms" field. It is called by the builders before save.
+	nativeconsumerchallenge.IssuedMsValidator = nativeconsumerchallengeDescIssuedMs.Validators[0].(func(int64) error)
+	// nativeconsumerchallengeDescExpiresMs is the schema descriptor for expires_ms field.
+	nativeconsumerchallengeDescExpiresMs := nativeconsumerchallengeFields[11].Descriptor()
+	// nativeconsumerchallenge.ExpiresMsValidator is a validator for the "expires_ms" field. It is called by the builders before save.
+	nativeconsumerchallenge.ExpiresMsValidator = nativeconsumerchallengeDescExpiresMs.Validators[0].(func(int64) error)
+	// nativeconsumerchallengeDescNativeExpiresMs is the schema descriptor for native_expires_ms field.
+	nativeconsumerchallengeDescNativeExpiresMs := nativeconsumerchallengeFields[12].Descriptor()
+	// nativeconsumerchallenge.NativeExpiresMsValidator is a validator for the "native_expires_ms" field. It is called by the builders before save.
+	nativeconsumerchallenge.NativeExpiresMsValidator = nativeconsumerchallengeDescNativeExpiresMs.Validators[0].(func(int64) error)
+	// nativeconsumerchallengeDescUsed is the schema descriptor for used field.
+	nativeconsumerchallengeDescUsed := nativeconsumerchallengeFields[13].Descriptor()
+	// nativeconsumerchallenge.DefaultUsed holds the default value on creation for the used field.
+	nativeconsumerchallenge.DefaultUsed = nativeconsumerchallengeDescUsed.Default.(bool)
+	// nativeconsumerchallengeDescCharge is the schema descriptor for charge field.
+	nativeconsumerchallengeDescCharge := nativeconsumerchallengeFields[14].Descriptor()
+	// nativeconsumerchallenge.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
+	nativeconsumerchallenge.ChargeValidator = func() func(int64) error {
+		validators := nativeconsumerchallengeDescCharge.Validators
+		fns := [...]func(int64) error{
+			validators[0].(func(int64) error),
+			validators[1].(func(int64) error),
+		}
+		return func(charge int64) error {
+			for _, fn := range fns {
+				if err := fn(charge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	nativeconsumersessionFields := schema.NativeConsumerSession{}.Fields()
+	_ = nativeconsumersessionFields
+	// nativeconsumersessionDescPublicID is the schema descriptor for public_id field.
+	nativeconsumersessionDescPublicID := nativeconsumersessionFields[0].Descriptor()
+	// nativeconsumersession.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	nativeconsumersession.PublicIDValidator = func() func(string) error {
+		validators := nativeconsumersessionDescPublicID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(public_id string) error {
+			for _, fn := range fns {
+				if err := fn(public_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescOrigin is the schema descriptor for origin field.
+	nativeconsumersessionDescOrigin := nativeconsumersessionFields[4].Descriptor()
+	// nativeconsumersession.OriginValidator is a validator for the "origin" field. It is called by the builders before save.
+	nativeconsumersession.OriginValidator = func() func(string) error {
+		validators := nativeconsumersessionDescOrigin.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(origin string) error {
+			for _, fn := range fns {
+				if err := fn(origin); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescOperationID is the schema descriptor for operation_id field.
+	nativeconsumersessionDescOperationID := nativeconsumersessionFields[5].Descriptor()
+	// nativeconsumersession.OperationIDValidator is a validator for the "operation_id" field. It is called by the builders before save.
+	nativeconsumersession.OperationIDValidator = func() func([]byte) error {
+		validators := nativeconsumersessionDescOperationID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(operation_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(operation_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescPublicKey is the schema descriptor for public_key field.
+	nativeconsumersessionDescPublicKey := nativeconsumersessionFields[6].Descriptor()
+	// nativeconsumersession.PublicKeyValidator is a validator for the "public_key" field. It is called by the builders before save.
+	nativeconsumersession.PublicKeyValidator = func() func([]byte) error {
+		validators := nativeconsumersessionDescPublicKey.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(public_key []byte) error {
+			for _, fn := range fns {
+				if err := fn(public_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescSessionBinding is the schema descriptor for session_binding field.
+	nativeconsumersessionDescSessionBinding := nativeconsumersessionFields[7].Descriptor()
+	// nativeconsumersession.SessionBindingValidator is a validator for the "session_binding" field. It is called by the builders before save.
+	nativeconsumersession.SessionBindingValidator = func() func([]byte) error {
+		validators := nativeconsumersessionDescSessionBinding.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(session_binding []byte) error {
+			for _, fn := range fns {
+				if err := fn(session_binding); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescTokenHash is the schema descriptor for token_hash field.
+	nativeconsumersessionDescTokenHash := nativeconsumersessionFields[8].Descriptor()
+	// nativeconsumersession.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	nativeconsumersession.TokenHashValidator = func() func([]byte) error {
+		validators := nativeconsumersessionDescTokenHash.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(token_hash []byte) error {
+			for _, fn := range fns {
+				if err := fn(token_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeconsumersessionDescIssuedMs is the schema descriptor for issued_ms field.
+	nativeconsumersessionDescIssuedMs := nativeconsumersessionFields[9].Descriptor()
+	// nativeconsumersession.IssuedMsValidator is a validator for the "issued_ms" field. It is called by the builders before save.
+	nativeconsumersession.IssuedMsValidator = nativeconsumersessionDescIssuedMs.Validators[0].(func(int64) error)
+	// nativeconsumersessionDescExpiresMs is the schema descriptor for expires_ms field.
+	nativeconsumersessionDescExpiresMs := nativeconsumersessionFields[10].Descriptor()
+	// nativeconsumersession.ExpiresMsValidator is a validator for the "expires_ms" field. It is called by the builders before save.
+	nativeconsumersession.ExpiresMsValidator = nativeconsumersessionDescExpiresMs.Validators[0].(func(int64) error)
+	// nativeconsumersessionDescGateVersion is the schema descriptor for gate_version field.
+	nativeconsumersessionDescGateVersion := nativeconsumersessionFields[11].Descriptor()
+	// nativeconsumersession.DefaultGateVersion holds the default value on creation for the gate_version field.
+	nativeconsumersession.DefaultGateVersion = nativeconsumersessionDescGateVersion.Default.(int64)
+	// nativeconsumersession.GateVersionValidator is a validator for the "gate_version" field. It is called by the builders before save.
+	nativeconsumersession.GateVersionValidator = nativeconsumersessionDescGateVersion.Validators[0].(func(int64) error)
+	// nativeconsumersessionDescCharge is the schema descriptor for charge field.
+	nativeconsumersessionDescCharge := nativeconsumersessionFields[12].Descriptor()
+	// nativeconsumersession.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
+	nativeconsumersession.ChargeValidator = func() func(int64) error {
+		validators := nativeconsumersessionDescCharge.Validators
+		fns := [...]func(int64) error{
+			validators[0].(func(int64) error),
+			validators[1].(func(int64) error),
+		}
+		return func(charge int64) error {
+			for _, fn := range fns {
+				if err := fn(charge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	oidcidentityFields := schema.OIDCIdentity{}.Fields()
 	_ = oidcidentityFields
 	// oidcidentityDescIssuer is the schema descriptor for issuer field.

@@ -50,9 +50,13 @@ type UserEdges struct {
 	Categories []*Category `json:"categories,omitempty"`
 	// ConfigurationAssets holds the value of the configuration_assets edge.
 	ConfigurationAssets []*ConfigurationAsset `json:"configuration_assets,omitempty"`
+	// NativeConsumerChallenges holds the value of the native_consumer_challenges edge.
+	NativeConsumerChallenges []*NativeConsumerChallenge `json:"native_consumer_challenges,omitempty"`
+	// NativeConsumerSessions holds the value of the native_consumer_sessions edge.
+	NativeConsumerSessions []*NativeConsumerSession `json:"native_consumer_sessions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [13]bool
 }
 
 // GithubCredentialOrErr returns the GithubCredential value or an error if the edge
@@ -158,6 +162,24 @@ func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
 	return nil, &NotLoadedError{edge: "configuration_assets"}
 }
 
+// NativeConsumerChallengesOrErr returns the NativeConsumerChallenges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, error) {
+	if e.loadedTypes[11] {
+		return e.NativeConsumerChallenges, nil
+	}
+	return nil, &NotLoadedError{edge: "native_consumer_challenges"}
+}
+
+// NativeConsumerSessionsOrErr returns the NativeConsumerSessions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, error) {
+	if e.loadedTypes[12] {
+		return e.NativeConsumerSessions, nil
+	}
+	return nil, &NotLoadedError{edge: "native_consumer_sessions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -260,6 +282,16 @@ func (_m *User) QueryCategories() *CategoryQuery {
 // QueryConfigurationAssets queries the "configuration_assets" edge of the User entity.
 func (_m *User) QueryConfigurationAssets() *ConfigurationAssetQuery {
 	return NewUserClient(_m.config).QueryConfigurationAssets(_m)
+}
+
+// QueryNativeConsumerChallenges queries the "native_consumer_challenges" edge of the User entity.
+func (_m *User) QueryNativeConsumerChallenges() *NativeConsumerChallengeQuery {
+	return NewUserClient(_m.config).QueryNativeConsumerChallenges(_m)
+}
+
+// QueryNativeConsumerSessions queries the "native_consumer_sessions" edge of the User entity.
+func (_m *User) QueryNativeConsumerSessions() *NativeConsumerSessionQuery {
+	return NewUserClient(_m.config).QueryNativeConsumerSessions(_m)
 }
 
 // Update returns a builder for updating this User.

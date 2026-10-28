@@ -17,6 +17,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/session"
@@ -207,6 +209,36 @@ func (_c *UserCreate) AddConfigurationAssets(v ...*ConfigurationAsset) *UserCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddConfigurationAssetIDs(ids...)
+}
+
+// AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
+func (_c *UserCreate) AddNativeConsumerChallengeIDs(ids ...int) *UserCreate {
+	_c.mutation.AddNativeConsumerChallengeIDs(ids...)
+	return _c
+}
+
+// AddNativeConsumerChallenges adds the "native_consumer_challenges" edges to the NativeConsumerChallenge entity.
+func (_c *UserCreate) AddNativeConsumerChallenges(v ...*NativeConsumerChallenge) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNativeConsumerChallengeIDs(ids...)
+}
+
+// AddNativeConsumerSessionIDs adds the "native_consumer_sessions" edge to the NativeConsumerSession entity by IDs.
+func (_c *UserCreate) AddNativeConsumerSessionIDs(ids ...int) *UserCreate {
+	_c.mutation.AddNativeConsumerSessionIDs(ids...)
+	return _c
+}
+
+// AddNativeConsumerSessions adds the "native_consumer_sessions" edges to the NativeConsumerSession entity.
+func (_c *UserCreate) AddNativeConsumerSessions(v ...*NativeConsumerSession) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNativeConsumerSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -450,6 +482,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NativeConsumerChallengesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeConsumerChallengesTable,
+			Columns: []string{user.NativeConsumerChallengesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeconsumerchallenge.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NativeConsumerSessionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeConsumerSessionsTable,
+			Columns: []string{user.NativeConsumerSessionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeconsumersession.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

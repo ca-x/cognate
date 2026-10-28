@@ -238,6 +238,52 @@ func HasUserWith(preds ...predicate.User) predicate.Session {
 	})
 }
 
+// HasNativeConsumerChallenges applies the HasEdge predicate on the "native_consumer_challenges" edge.
+func HasNativeConsumerChallenges() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerChallengesTable, NativeConsumerChallengesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeConsumerChallengesWith applies the HasEdge predicate on the "native_consumer_challenges" edge with a given conditions (other predicates).
+func HasNativeConsumerChallengesWith(preds ...predicate.NativeConsumerChallenge) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newNativeConsumerChallengesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNativeConsumerSessions applies the HasEdge predicate on the "native_consumer_sessions" edge.
+func HasNativeConsumerSessions() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerSessionsTable, NativeConsumerSessionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeConsumerSessionsWith applies the HasEdge predicate on the "native_consumer_sessions" edge with a given conditions (other predicates).
+func HasNativeConsumerSessionsWith(preds ...predicate.NativeConsumerSession) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newNativeConsumerSessionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Session) predicate.Session {
 	return predicate.Session(sql.AndPredicates(predicates...))

@@ -362,6 +362,116 @@ var (
 			},
 		},
 	}
+	// NativeConsumerChallengesColumns holds the columns for the "native_consumer_challenges" table.
+	NativeConsumerChallengesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "purpose", Type: field.TypeEnum, Enums: []string{"configuration-apply"}},
+		{Name: "origin", Type: field.TypeString, Size: 2048},
+		{Name: "operation_id", Type: field.TypeBytes, Size: 16},
+		{Name: "public_key", Type: field.TypeBytes, Size: 32},
+		{Name: "client_nonce", Type: field.TypeBytes, Size: 32},
+		{Name: "challenge", Type: field.TypeBytes, Size: 32},
+		{Name: "session_binding", Type: field.TypeBytes, Unique: true, Size: 32},
+		{Name: "issued_ms", Type: field.TypeInt64},
+		{Name: "expires_ms", Type: field.TypeInt64},
+		{Name: "native_expires_ms", Type: field.TypeInt64},
+		{Name: "used", Type: field.TypeBool, Default: false},
+		{Name: "charge", Type: field.TypeInt64},
+		{Name: "parent_session_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// NativeConsumerChallengesTable holds the schema information for the "native_consumer_challenges" table.
+	NativeConsumerChallengesTable = &schema.Table{
+		Name:       "native_consumer_challenges",
+		Columns:    NativeConsumerChallengesColumns,
+		PrimaryKey: []*schema.Column{NativeConsumerChallengesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "native_consumer_challenges_sessions_native_consumer_challenges",
+				Columns:    []*schema.Column{NativeConsumerChallengesColumns[14]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "native_consumer_challenges_users_native_consumer_challenges",
+				Columns:    []*schema.Column{NativeConsumerChallengesColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "nativeconsumerchallenge_user_id_parent_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeConsumerChallengesColumns[15], NativeConsumerChallengesColumns[14]},
+			},
+			{
+				Name:    "nativeconsumerchallenge_used_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeConsumerChallengesColumns[12], NativeConsumerChallengesColumns[0]},
+			},
+			{
+				Name:    "nativeconsumerchallenge_expires_ms_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeConsumerChallengesColumns[10], NativeConsumerChallengesColumns[0]},
+			},
+		},
+	}
+	// NativeConsumerSessionsColumns holds the columns for the "native_consumer_sessions" table.
+	NativeConsumerSessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "purpose", Type: field.TypeEnum, Enums: []string{"configuration-apply"}},
+		{Name: "origin", Type: field.TypeString, Size: 2048},
+		{Name: "operation_id", Type: field.TypeBytes, Size: 16},
+		{Name: "public_key", Type: field.TypeBytes, Size: 32},
+		{Name: "session_binding", Type: field.TypeBytes, Unique: true, Size: 32},
+		{Name: "token_hash", Type: field.TypeBytes, Unique: true, Size: 32},
+		{Name: "issued_ms", Type: field.TypeInt64},
+		{Name: "expires_ms", Type: field.TypeInt64},
+		{Name: "gate_version", Type: field.TypeInt64, Default: 0},
+		{Name: "charge", Type: field.TypeInt64},
+		{Name: "parent_session_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// NativeConsumerSessionsTable holds the schema information for the "native_consumer_sessions" table.
+	NativeConsumerSessionsTable = &schema.Table{
+		Name:       "native_consumer_sessions",
+		Columns:    NativeConsumerSessionsColumns,
+		PrimaryKey: []*schema.Column{NativeConsumerSessionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "native_consumer_sessions_sessions_native_consumer_sessions",
+				Columns:    []*schema.Column{NativeConsumerSessionsColumns[12]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "native_consumer_sessions_users_native_consumer_sessions",
+				Columns:    []*schema.Column{NativeConsumerSessionsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "nativeconsumersession_user_id_parent_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeConsumerSessionsColumns[13], NativeConsumerSessionsColumns[12]},
+			},
+			{
+				Name:    "nativeconsumersession_expires_ms_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeConsumerSessionsColumns[9], NativeConsumerSessionsColumns[0]},
+			},
+			{
+				Name:    "nativeconsumersession_parent_session_id_operation_id",
+				Unique:  true,
+				Columns: []*schema.Column{NativeConsumerSessionsColumns[12], NativeConsumerSessionsColumns[4]},
+			},
+		},
+	}
 	// OidcIdentitiesColumns holds the columns for the "oidc_identities" table.
 	OidcIdentitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -572,6 +682,8 @@ var (
 		LocalAccountsTable,
 		McpAuditsTable,
 		McpCredentialsTable,
+		NativeConsumerChallengesTable,
+		NativeConsumerSessionsTable,
 		OidcIdentitiesTable,
 		PacksTable,
 		PackItemsTable,
@@ -596,6 +708,10 @@ func init() {
 	LocalAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	McpAuditsTable.ForeignKeys[0].RefTable = McpCredentialsTable
 	McpCredentialsTable.ForeignKeys[0].RefTable = UsersTable
+	NativeConsumerChallengesTable.ForeignKeys[0].RefTable = SessionsTable
+	NativeConsumerChallengesTable.ForeignKeys[1].RefTable = UsersTable
+	NativeConsumerSessionsTable.ForeignKeys[0].RefTable = SessionsTable
+	NativeConsumerSessionsTable.ForeignKeys[1].RefTable = UsersTable
 	OidcIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	PacksTable.ForeignKeys[0].RefTable = UsersTable
 	PackItemsTable.ForeignKeys[0].RefTable = CollectedSkillsTable

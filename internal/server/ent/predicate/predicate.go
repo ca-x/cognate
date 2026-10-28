@@ -39,6 +39,12 @@ type MCPAudit func(*sql.Selector)
 // MCPCredential is the predicate function for mcpcredential builders.
 type MCPCredential func(*sql.Selector)
 
+// NativeConsumerChallenge is the predicate function for nativeconsumerchallenge builders.
+type NativeConsumerChallenge func(*sql.Selector)
+
+// NativeConsumerSession is the predicate function for nativeconsumersession builders.
+type NativeConsumerSession func(*sql.Selector)
+
 // OIDCIdentity is the predicate function for oidcidentity builders.
 type OIDCIdentity func(*sql.Selector)
 

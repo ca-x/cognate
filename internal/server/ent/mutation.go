@@ -22,6 +22,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -41,24 +43,26 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCategory            = "Category"
-	TypeCollectedRepository = "CollectedRepository"
-	TypeCollectedSkill      = "CollectedSkill"
-	TypeConfigurationAsset  = "ConfigurationAsset"
-	TypeGitHubCredential    = "GitHubCredential"
-	TypeGitHubList          = "GitHubList"
-	TypeGitHubMembership    = "GitHubMembership"
-	TypeGitHubRepository    = "GitHubRepository"
-	TypeLocalAccount        = "LocalAccount"
-	TypeMCPAudit            = "MCPAudit"
-	TypeMCPCredential       = "MCPCredential"
-	TypeOIDCIdentity        = "OIDCIdentity"
-	TypePack                = "Pack"
-	TypePackItem            = "PackItem"
-	TypePackShare           = "PackShare"
-	TypeServerMetadata      = "ServerMetadata"
-	TypeSession             = "Session"
-	TypeUser                = "User"
+	TypeCategory                = "Category"
+	TypeCollectedRepository     = "CollectedRepository"
+	TypeCollectedSkill          = "CollectedSkill"
+	TypeConfigurationAsset      = "ConfigurationAsset"
+	TypeGitHubCredential        = "GitHubCredential"
+	TypeGitHubList              = "GitHubList"
+	TypeGitHubMembership        = "GitHubMembership"
+	TypeGitHubRepository        = "GitHubRepository"
+	TypeLocalAccount            = "LocalAccount"
+	TypeMCPAudit                = "MCPAudit"
+	TypeMCPCredential           = "MCPCredential"
+	TypeNativeConsumerChallenge = "NativeConsumerChallenge"
+	TypeNativeConsumerSession   = "NativeConsumerSession"
+	TypeOIDCIdentity            = "OIDCIdentity"
+	TypePack                    = "Pack"
+	TypePackItem                = "PackItem"
+	TypePackShare               = "PackShare"
+	TypeServerMetadata          = "ServerMetadata"
+	TypeSession                 = "Session"
+	TypeUser                    = "User"
 )
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
@@ -9179,6 +9183,2532 @@ func (m *MCPCredentialMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown MCPCredential edge %s", name)
 }
 
+// NativeConsumerChallengeMutation represents an operation that mutates the NativeConsumerChallenge nodes in the graph.
+type NativeConsumerChallengeMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	public_id             *string
+	purpose               *nativeconsumerchallenge.Purpose
+	origin                *string
+	operation_id          *[]byte
+	public_key            *[]byte
+	client_nonce          *[]byte
+	challenge             *[]byte
+	session_binding       *[]byte
+	issued_ms             *int64
+	addissued_ms          *int64
+	expires_ms            *int64
+	addexpires_ms         *int64
+	native_expires_ms     *int64
+	addnative_expires_ms  *int64
+	used                  *bool
+	charge                *int64
+	addcharge             *int64
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	parent_session        *int
+	clearedparent_session bool
+	done                  bool
+	oldValue              func(context.Context) (*NativeConsumerChallenge, error)
+	predicates            []predicate.NativeConsumerChallenge
+}
+
+var _ ent.Mutation = (*NativeConsumerChallengeMutation)(nil)
+
+// nativeconsumerchallengeOption allows management of the mutation configuration using functional options.
+type nativeconsumerchallengeOption func(*NativeConsumerChallengeMutation)
+
+// newNativeConsumerChallengeMutation creates new mutation for the NativeConsumerChallenge entity.
+func newNativeConsumerChallengeMutation(c config, op Op, opts ...nativeconsumerchallengeOption) *NativeConsumerChallengeMutation {
+	m := &NativeConsumerChallengeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNativeConsumerChallenge,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNativeConsumerChallengeID sets the ID field of the mutation.
+func withNativeConsumerChallengeID(id int) nativeconsumerchallengeOption {
+	return func(m *NativeConsumerChallengeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NativeConsumerChallenge
+		)
+		m.oldValue = func(ctx context.Context) (*NativeConsumerChallenge, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NativeConsumerChallenge.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNativeConsumerChallenge sets the old NativeConsumerChallenge of the mutation.
+func withNativeConsumerChallenge(node *NativeConsumerChallenge) nativeconsumerchallengeOption {
+	return func(m *NativeConsumerChallengeMutation) {
+		m.oldValue = func(context.Context) (*NativeConsumerChallenge, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NativeConsumerChallengeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NativeConsumerChallengeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NativeConsumerChallengeMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NativeConsumerChallengeMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NativeConsumerChallenge.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPublicID sets the "public_id" field.
+func (m *NativeConsumerChallengeMutation) SetPublicID(s string) {
+	m.public_id = &s
+}
+
+// PublicID returns the value of the "public_id" field in the mutation.
+func (m *NativeConsumerChallengeMutation) PublicID() (r string, exists bool) {
+	v := m.public_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicID returns the old "public_id" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldPublicID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicID: %w", err)
+	}
+	return oldValue.PublicID, nil
+}
+
+// ResetPublicID resets all changes to the "public_id" field.
+func (m *NativeConsumerChallengeMutation) ResetPublicID() {
+	m.public_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *NativeConsumerChallengeMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *NativeConsumerChallengeMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *NativeConsumerChallengeMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetParentSessionID sets the "parent_session_id" field.
+func (m *NativeConsumerChallengeMutation) SetParentSessionID(i int) {
+	m.parent_session = &i
+}
+
+// ParentSessionID returns the value of the "parent_session_id" field in the mutation.
+func (m *NativeConsumerChallengeMutation) ParentSessionID() (r int, exists bool) {
+	v := m.parent_session
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentSessionID returns the old "parent_session_id" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldParentSessionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentSessionID: %w", err)
+	}
+	return oldValue.ParentSessionID, nil
+}
+
+// ResetParentSessionID resets all changes to the "parent_session_id" field.
+func (m *NativeConsumerChallengeMutation) ResetParentSessionID() {
+	m.parent_session = nil
+}
+
+// SetPurpose sets the "purpose" field.
+func (m *NativeConsumerChallengeMutation) SetPurpose(n nativeconsumerchallenge.Purpose) {
+	m.purpose = &n
+}
+
+// Purpose returns the value of the "purpose" field in the mutation.
+func (m *NativeConsumerChallengeMutation) Purpose() (r nativeconsumerchallenge.Purpose, exists bool) {
+	v := m.purpose
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPurpose returns the old "purpose" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldPurpose(ctx context.Context) (v nativeconsumerchallenge.Purpose, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPurpose is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPurpose requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPurpose: %w", err)
+	}
+	return oldValue.Purpose, nil
+}
+
+// ResetPurpose resets all changes to the "purpose" field.
+func (m *NativeConsumerChallengeMutation) ResetPurpose() {
+	m.purpose = nil
+}
+
+// SetOrigin sets the "origin" field.
+func (m *NativeConsumerChallengeMutation) SetOrigin(s string) {
+	m.origin = &s
+}
+
+// Origin returns the value of the "origin" field in the mutation.
+func (m *NativeConsumerChallengeMutation) Origin() (r string, exists bool) {
+	v := m.origin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrigin returns the old "origin" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldOrigin(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrigin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrigin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrigin: %w", err)
+	}
+	return oldValue.Origin, nil
+}
+
+// ResetOrigin resets all changes to the "origin" field.
+func (m *NativeConsumerChallengeMutation) ResetOrigin() {
+	m.origin = nil
+}
+
+// SetOperationID sets the "operation_id" field.
+func (m *NativeConsumerChallengeMutation) SetOperationID(b []byte) {
+	m.operation_id = &b
+}
+
+// OperationID returns the value of the "operation_id" field in the mutation.
+func (m *NativeConsumerChallengeMutation) OperationID() (r []byte, exists bool) {
+	v := m.operation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperationID returns the old "operation_id" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldOperationID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperationID: %w", err)
+	}
+	return oldValue.OperationID, nil
+}
+
+// ResetOperationID resets all changes to the "operation_id" field.
+func (m *NativeConsumerChallengeMutation) ResetOperationID() {
+	m.operation_id = nil
+}
+
+// SetPublicKey sets the "public_key" field.
+func (m *NativeConsumerChallengeMutation) SetPublicKey(b []byte) {
+	m.public_key = &b
+}
+
+// PublicKey returns the value of the "public_key" field in the mutation.
+func (m *NativeConsumerChallengeMutation) PublicKey() (r []byte, exists bool) {
+	v := m.public_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicKey returns the old "public_key" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldPublicKey(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicKey: %w", err)
+	}
+	return oldValue.PublicKey, nil
+}
+
+// ResetPublicKey resets all changes to the "public_key" field.
+func (m *NativeConsumerChallengeMutation) ResetPublicKey() {
+	m.public_key = nil
+}
+
+// SetClientNonce sets the "client_nonce" field.
+func (m *NativeConsumerChallengeMutation) SetClientNonce(b []byte) {
+	m.client_nonce = &b
+}
+
+// ClientNonce returns the value of the "client_nonce" field in the mutation.
+func (m *NativeConsumerChallengeMutation) ClientNonce() (r []byte, exists bool) {
+	v := m.client_nonce
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientNonce returns the old "client_nonce" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldClientNonce(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientNonce is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientNonce requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientNonce: %w", err)
+	}
+	return oldValue.ClientNonce, nil
+}
+
+// ResetClientNonce resets all changes to the "client_nonce" field.
+func (m *NativeConsumerChallengeMutation) ResetClientNonce() {
+	m.client_nonce = nil
+}
+
+// SetChallenge sets the "challenge" field.
+func (m *NativeConsumerChallengeMutation) SetChallenge(b []byte) {
+	m.challenge = &b
+}
+
+// Challenge returns the value of the "challenge" field in the mutation.
+func (m *NativeConsumerChallengeMutation) Challenge() (r []byte, exists bool) {
+	v := m.challenge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChallenge returns the old "challenge" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldChallenge(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChallenge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChallenge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChallenge: %w", err)
+	}
+	return oldValue.Challenge, nil
+}
+
+// ResetChallenge resets all changes to the "challenge" field.
+func (m *NativeConsumerChallengeMutation) ResetChallenge() {
+	m.challenge = nil
+}
+
+// SetSessionBinding sets the "session_binding" field.
+func (m *NativeConsumerChallengeMutation) SetSessionBinding(b []byte) {
+	m.session_binding = &b
+}
+
+// SessionBinding returns the value of the "session_binding" field in the mutation.
+func (m *NativeConsumerChallengeMutation) SessionBinding() (r []byte, exists bool) {
+	v := m.session_binding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionBinding returns the old "session_binding" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldSessionBinding(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionBinding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionBinding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionBinding: %w", err)
+	}
+	return oldValue.SessionBinding, nil
+}
+
+// ResetSessionBinding resets all changes to the "session_binding" field.
+func (m *NativeConsumerChallengeMutation) ResetSessionBinding() {
+	m.session_binding = nil
+}
+
+// SetIssuedMs sets the "issued_ms" field.
+func (m *NativeConsumerChallengeMutation) SetIssuedMs(i int64) {
+	m.issued_ms = &i
+	m.addissued_ms = nil
+}
+
+// IssuedMs returns the value of the "issued_ms" field in the mutation.
+func (m *NativeConsumerChallengeMutation) IssuedMs() (r int64, exists bool) {
+	v := m.issued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuedMs returns the old "issued_ms" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldIssuedMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuedMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuedMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuedMs: %w", err)
+	}
+	return oldValue.IssuedMs, nil
+}
+
+// AddIssuedMs adds i to the "issued_ms" field.
+func (m *NativeConsumerChallengeMutation) AddIssuedMs(i int64) {
+	if m.addissued_ms != nil {
+		*m.addissued_ms += i
+	} else {
+		m.addissued_ms = &i
+	}
+}
+
+// AddedIssuedMs returns the value that was added to the "issued_ms" field in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedIssuedMs() (r int64, exists bool) {
+	v := m.addissued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIssuedMs resets all changes to the "issued_ms" field.
+func (m *NativeConsumerChallengeMutation) ResetIssuedMs() {
+	m.issued_ms = nil
+	m.addissued_ms = nil
+}
+
+// SetExpiresMs sets the "expires_ms" field.
+func (m *NativeConsumerChallengeMutation) SetExpiresMs(i int64) {
+	m.expires_ms = &i
+	m.addexpires_ms = nil
+}
+
+// ExpiresMs returns the value of the "expires_ms" field in the mutation.
+func (m *NativeConsumerChallengeMutation) ExpiresMs() (r int64, exists bool) {
+	v := m.expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresMs returns the old "expires_ms" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldExpiresMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresMs: %w", err)
+	}
+	return oldValue.ExpiresMs, nil
+}
+
+// AddExpiresMs adds i to the "expires_ms" field.
+func (m *NativeConsumerChallengeMutation) AddExpiresMs(i int64) {
+	if m.addexpires_ms != nil {
+		*m.addexpires_ms += i
+	} else {
+		m.addexpires_ms = &i
+	}
+}
+
+// AddedExpiresMs returns the value that was added to the "expires_ms" field in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedExpiresMs() (r int64, exists bool) {
+	v := m.addexpires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExpiresMs resets all changes to the "expires_ms" field.
+func (m *NativeConsumerChallengeMutation) ResetExpiresMs() {
+	m.expires_ms = nil
+	m.addexpires_ms = nil
+}
+
+// SetNativeExpiresMs sets the "native_expires_ms" field.
+func (m *NativeConsumerChallengeMutation) SetNativeExpiresMs(i int64) {
+	m.native_expires_ms = &i
+	m.addnative_expires_ms = nil
+}
+
+// NativeExpiresMs returns the value of the "native_expires_ms" field in the mutation.
+func (m *NativeConsumerChallengeMutation) NativeExpiresMs() (r int64, exists bool) {
+	v := m.native_expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNativeExpiresMs returns the old "native_expires_ms" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldNativeExpiresMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNativeExpiresMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNativeExpiresMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNativeExpiresMs: %w", err)
+	}
+	return oldValue.NativeExpiresMs, nil
+}
+
+// AddNativeExpiresMs adds i to the "native_expires_ms" field.
+func (m *NativeConsumerChallengeMutation) AddNativeExpiresMs(i int64) {
+	if m.addnative_expires_ms != nil {
+		*m.addnative_expires_ms += i
+	} else {
+		m.addnative_expires_ms = &i
+	}
+}
+
+// AddedNativeExpiresMs returns the value that was added to the "native_expires_ms" field in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedNativeExpiresMs() (r int64, exists bool) {
+	v := m.addnative_expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNativeExpiresMs resets all changes to the "native_expires_ms" field.
+func (m *NativeConsumerChallengeMutation) ResetNativeExpiresMs() {
+	m.native_expires_ms = nil
+	m.addnative_expires_ms = nil
+}
+
+// SetUsed sets the "used" field.
+func (m *NativeConsumerChallengeMutation) SetUsed(b bool) {
+	m.used = &b
+}
+
+// Used returns the value of the "used" field in the mutation.
+func (m *NativeConsumerChallengeMutation) Used() (r bool, exists bool) {
+	v := m.used
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsed returns the old "used" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldUsed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsed: %w", err)
+	}
+	return oldValue.Used, nil
+}
+
+// ResetUsed resets all changes to the "used" field.
+func (m *NativeConsumerChallengeMutation) ResetUsed() {
+	m.used = nil
+}
+
+// SetCharge sets the "charge" field.
+func (m *NativeConsumerChallengeMutation) SetCharge(i int64) {
+	m.charge = &i
+	m.addcharge = nil
+}
+
+// Charge returns the value of the "charge" field in the mutation.
+func (m *NativeConsumerChallengeMutation) Charge() (r int64, exists bool) {
+	v := m.charge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharge returns the old "charge" field's value of the NativeConsumerChallenge entity.
+// If the NativeConsumerChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerChallengeMutation) OldCharge(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharge: %w", err)
+	}
+	return oldValue.Charge, nil
+}
+
+// AddCharge adds i to the "charge" field.
+func (m *NativeConsumerChallengeMutation) AddCharge(i int64) {
+	if m.addcharge != nil {
+		*m.addcharge += i
+	} else {
+		m.addcharge = &i
+	}
+}
+
+// AddedCharge returns the value that was added to the "charge" field in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedCharge() (r int64, exists bool) {
+	v := m.addcharge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCharge resets all changes to the "charge" field.
+func (m *NativeConsumerChallengeMutation) ResetCharge() {
+	m.charge = nil
+	m.addcharge = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *NativeConsumerChallengeMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[nativeconsumerchallenge.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *NativeConsumerChallengeMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *NativeConsumerChallengeMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *NativeConsumerChallengeMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearParentSession clears the "parent_session" edge to the Session entity.
+func (m *NativeConsumerChallengeMutation) ClearParentSession() {
+	m.clearedparent_session = true
+	m.clearedFields[nativeconsumerchallenge.FieldParentSessionID] = struct{}{}
+}
+
+// ParentSessionCleared reports if the "parent_session" edge to the Session entity was cleared.
+func (m *NativeConsumerChallengeMutation) ParentSessionCleared() bool {
+	return m.clearedparent_session
+}
+
+// ParentSessionIDs returns the "parent_session" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentSessionID instead. It exists only for internal usage by the builders.
+func (m *NativeConsumerChallengeMutation) ParentSessionIDs() (ids []int) {
+	if id := m.parent_session; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParentSession resets all changes to the "parent_session" edge.
+func (m *NativeConsumerChallengeMutation) ResetParentSession() {
+	m.parent_session = nil
+	m.clearedparent_session = false
+}
+
+// Where appends a list predicates to the NativeConsumerChallengeMutation builder.
+func (m *NativeConsumerChallengeMutation) Where(ps ...predicate.NativeConsumerChallenge) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NativeConsumerChallengeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NativeConsumerChallengeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NativeConsumerChallenge, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NativeConsumerChallengeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NativeConsumerChallengeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NativeConsumerChallenge).
+func (m *NativeConsumerChallengeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NativeConsumerChallengeMutation) Fields() []string {
+	fields := make([]string, 0, 15)
+	if m.public_id != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldPublicID)
+	}
+	if m.user != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldUserID)
+	}
+	if m.parent_session != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldParentSessionID)
+	}
+	if m.purpose != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldPurpose)
+	}
+	if m.origin != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldOrigin)
+	}
+	if m.operation_id != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldOperationID)
+	}
+	if m.public_key != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldPublicKey)
+	}
+	if m.client_nonce != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldClientNonce)
+	}
+	if m.challenge != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldChallenge)
+	}
+	if m.session_binding != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldSessionBinding)
+	}
+	if m.issued_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldIssuedMs)
+	}
+	if m.expires_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldExpiresMs)
+	}
+	if m.native_expires_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldNativeExpiresMs)
+	}
+	if m.used != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldUsed)
+	}
+	if m.charge != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldCharge)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NativeConsumerChallengeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nativeconsumerchallenge.FieldPublicID:
+		return m.PublicID()
+	case nativeconsumerchallenge.FieldUserID:
+		return m.UserID()
+	case nativeconsumerchallenge.FieldParentSessionID:
+		return m.ParentSessionID()
+	case nativeconsumerchallenge.FieldPurpose:
+		return m.Purpose()
+	case nativeconsumerchallenge.FieldOrigin:
+		return m.Origin()
+	case nativeconsumerchallenge.FieldOperationID:
+		return m.OperationID()
+	case nativeconsumerchallenge.FieldPublicKey:
+		return m.PublicKey()
+	case nativeconsumerchallenge.FieldClientNonce:
+		return m.ClientNonce()
+	case nativeconsumerchallenge.FieldChallenge:
+		return m.Challenge()
+	case nativeconsumerchallenge.FieldSessionBinding:
+		return m.SessionBinding()
+	case nativeconsumerchallenge.FieldIssuedMs:
+		return m.IssuedMs()
+	case nativeconsumerchallenge.FieldExpiresMs:
+		return m.ExpiresMs()
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		return m.NativeExpiresMs()
+	case nativeconsumerchallenge.FieldUsed:
+		return m.Used()
+	case nativeconsumerchallenge.FieldCharge:
+		return m.Charge()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NativeConsumerChallengeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nativeconsumerchallenge.FieldPublicID:
+		return m.OldPublicID(ctx)
+	case nativeconsumerchallenge.FieldUserID:
+		return m.OldUserID(ctx)
+	case nativeconsumerchallenge.FieldParentSessionID:
+		return m.OldParentSessionID(ctx)
+	case nativeconsumerchallenge.FieldPurpose:
+		return m.OldPurpose(ctx)
+	case nativeconsumerchallenge.FieldOrigin:
+		return m.OldOrigin(ctx)
+	case nativeconsumerchallenge.FieldOperationID:
+		return m.OldOperationID(ctx)
+	case nativeconsumerchallenge.FieldPublicKey:
+		return m.OldPublicKey(ctx)
+	case nativeconsumerchallenge.FieldClientNonce:
+		return m.OldClientNonce(ctx)
+	case nativeconsumerchallenge.FieldChallenge:
+		return m.OldChallenge(ctx)
+	case nativeconsumerchallenge.FieldSessionBinding:
+		return m.OldSessionBinding(ctx)
+	case nativeconsumerchallenge.FieldIssuedMs:
+		return m.OldIssuedMs(ctx)
+	case nativeconsumerchallenge.FieldExpiresMs:
+		return m.OldExpiresMs(ctx)
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		return m.OldNativeExpiresMs(ctx)
+	case nativeconsumerchallenge.FieldUsed:
+		return m.OldUsed(ctx)
+	case nativeconsumerchallenge.FieldCharge:
+		return m.OldCharge(ctx)
+	}
+	return nil, fmt.Errorf("unknown NativeConsumerChallenge field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeConsumerChallengeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nativeconsumerchallenge.FieldPublicID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicID(v)
+		return nil
+	case nativeconsumerchallenge.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case nativeconsumerchallenge.FieldParentSessionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentSessionID(v)
+		return nil
+	case nativeconsumerchallenge.FieldPurpose:
+		v, ok := value.(nativeconsumerchallenge.Purpose)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPurpose(v)
+		return nil
+	case nativeconsumerchallenge.FieldOrigin:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrigin(v)
+		return nil
+	case nativeconsumerchallenge.FieldOperationID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperationID(v)
+		return nil
+	case nativeconsumerchallenge.FieldPublicKey:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicKey(v)
+		return nil
+	case nativeconsumerchallenge.FieldClientNonce:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientNonce(v)
+		return nil
+	case nativeconsumerchallenge.FieldChallenge:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChallenge(v)
+		return nil
+	case nativeconsumerchallenge.FieldSessionBinding:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionBinding(v)
+		return nil
+	case nativeconsumerchallenge.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuedMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNativeExpiresMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldUsed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsed(v)
+		return nil
+	case nativeconsumerchallenge.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerChallenge field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NativeConsumerChallengeMutation) AddedFields() []string {
+	var fields []string
+	if m.addissued_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldIssuedMs)
+	}
+	if m.addexpires_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldExpiresMs)
+	}
+	if m.addnative_expires_ms != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldNativeExpiresMs)
+	}
+	if m.addcharge != nil {
+		fields = append(fields, nativeconsumerchallenge.FieldCharge)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NativeConsumerChallengeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nativeconsumerchallenge.FieldIssuedMs:
+		return m.AddedIssuedMs()
+	case nativeconsumerchallenge.FieldExpiresMs:
+		return m.AddedExpiresMs()
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		return m.AddedNativeExpiresMs()
+	case nativeconsumerchallenge.FieldCharge:
+		return m.AddedCharge()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeConsumerChallengeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nativeconsumerchallenge.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIssuedMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExpiresMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNativeExpiresMs(v)
+		return nil
+	case nativeconsumerchallenge.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerChallenge numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NativeConsumerChallengeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NativeConsumerChallengeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NativeConsumerChallengeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NativeConsumerChallenge nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NativeConsumerChallengeMutation) ResetField(name string) error {
+	switch name {
+	case nativeconsumerchallenge.FieldPublicID:
+		m.ResetPublicID()
+		return nil
+	case nativeconsumerchallenge.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case nativeconsumerchallenge.FieldParentSessionID:
+		m.ResetParentSessionID()
+		return nil
+	case nativeconsumerchallenge.FieldPurpose:
+		m.ResetPurpose()
+		return nil
+	case nativeconsumerchallenge.FieldOrigin:
+		m.ResetOrigin()
+		return nil
+	case nativeconsumerchallenge.FieldOperationID:
+		m.ResetOperationID()
+		return nil
+	case nativeconsumerchallenge.FieldPublicKey:
+		m.ResetPublicKey()
+		return nil
+	case nativeconsumerchallenge.FieldClientNonce:
+		m.ResetClientNonce()
+		return nil
+	case nativeconsumerchallenge.FieldChallenge:
+		m.ResetChallenge()
+		return nil
+	case nativeconsumerchallenge.FieldSessionBinding:
+		m.ResetSessionBinding()
+		return nil
+	case nativeconsumerchallenge.FieldIssuedMs:
+		m.ResetIssuedMs()
+		return nil
+	case nativeconsumerchallenge.FieldExpiresMs:
+		m.ResetExpiresMs()
+		return nil
+	case nativeconsumerchallenge.FieldNativeExpiresMs:
+		m.ResetNativeExpiresMs()
+		return nil
+	case nativeconsumerchallenge.FieldUsed:
+		m.ResetUsed()
+		return nil
+	case nativeconsumerchallenge.FieldCharge:
+		m.ResetCharge()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerChallenge field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, nativeconsumerchallenge.EdgeUser)
+	}
+	if m.parent_session != nil {
+		edges = append(edges, nativeconsumerchallenge.EdgeParentSession)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NativeConsumerChallengeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nativeconsumerchallenge.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativeconsumerchallenge.EdgeParentSession:
+		if id := m.parent_session; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NativeConsumerChallengeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NativeConsumerChallengeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NativeConsumerChallengeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, nativeconsumerchallenge.EdgeUser)
+	}
+	if m.clearedparent_session {
+		edges = append(edges, nativeconsumerchallenge.EdgeParentSession)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NativeConsumerChallengeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nativeconsumerchallenge.EdgeUser:
+		return m.cleareduser
+	case nativeconsumerchallenge.EdgeParentSession:
+		return m.clearedparent_session
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NativeConsumerChallengeMutation) ClearEdge(name string) error {
+	switch name {
+	case nativeconsumerchallenge.EdgeUser:
+		m.ClearUser()
+		return nil
+	case nativeconsumerchallenge.EdgeParentSession:
+		m.ClearParentSession()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerChallenge unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NativeConsumerChallengeMutation) ResetEdge(name string) error {
+	switch name {
+	case nativeconsumerchallenge.EdgeUser:
+		m.ResetUser()
+		return nil
+	case nativeconsumerchallenge.EdgeParentSession:
+		m.ResetParentSession()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerChallenge edge %s", name)
+}
+
+// NativeConsumerSessionMutation represents an operation that mutates the NativeConsumerSession nodes in the graph.
+type NativeConsumerSessionMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	public_id             *string
+	purpose               *nativeconsumersession.Purpose
+	origin                *string
+	operation_id          *[]byte
+	public_key            *[]byte
+	session_binding       *[]byte
+	token_hash            *[]byte
+	issued_ms             *int64
+	addissued_ms          *int64
+	expires_ms            *int64
+	addexpires_ms         *int64
+	gate_version          *int64
+	addgate_version       *int64
+	charge                *int64
+	addcharge             *int64
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	parent_session        *int
+	clearedparent_session bool
+	done                  bool
+	oldValue              func(context.Context) (*NativeConsumerSession, error)
+	predicates            []predicate.NativeConsumerSession
+}
+
+var _ ent.Mutation = (*NativeConsumerSessionMutation)(nil)
+
+// nativeconsumersessionOption allows management of the mutation configuration using functional options.
+type nativeconsumersessionOption func(*NativeConsumerSessionMutation)
+
+// newNativeConsumerSessionMutation creates new mutation for the NativeConsumerSession entity.
+func newNativeConsumerSessionMutation(c config, op Op, opts ...nativeconsumersessionOption) *NativeConsumerSessionMutation {
+	m := &NativeConsumerSessionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNativeConsumerSession,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNativeConsumerSessionID sets the ID field of the mutation.
+func withNativeConsumerSessionID(id int) nativeconsumersessionOption {
+	return func(m *NativeConsumerSessionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NativeConsumerSession
+		)
+		m.oldValue = func(ctx context.Context) (*NativeConsumerSession, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NativeConsumerSession.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNativeConsumerSession sets the old NativeConsumerSession of the mutation.
+func withNativeConsumerSession(node *NativeConsumerSession) nativeconsumersessionOption {
+	return func(m *NativeConsumerSessionMutation) {
+		m.oldValue = func(context.Context) (*NativeConsumerSession, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NativeConsumerSessionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NativeConsumerSessionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NativeConsumerSessionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NativeConsumerSessionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NativeConsumerSession.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPublicID sets the "public_id" field.
+func (m *NativeConsumerSessionMutation) SetPublicID(s string) {
+	m.public_id = &s
+}
+
+// PublicID returns the value of the "public_id" field in the mutation.
+func (m *NativeConsumerSessionMutation) PublicID() (r string, exists bool) {
+	v := m.public_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicID returns the old "public_id" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldPublicID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicID: %w", err)
+	}
+	return oldValue.PublicID, nil
+}
+
+// ResetPublicID resets all changes to the "public_id" field.
+func (m *NativeConsumerSessionMutation) ResetPublicID() {
+	m.public_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *NativeConsumerSessionMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *NativeConsumerSessionMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *NativeConsumerSessionMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetParentSessionID sets the "parent_session_id" field.
+func (m *NativeConsumerSessionMutation) SetParentSessionID(i int) {
+	m.parent_session = &i
+}
+
+// ParentSessionID returns the value of the "parent_session_id" field in the mutation.
+func (m *NativeConsumerSessionMutation) ParentSessionID() (r int, exists bool) {
+	v := m.parent_session
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentSessionID returns the old "parent_session_id" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldParentSessionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentSessionID: %w", err)
+	}
+	return oldValue.ParentSessionID, nil
+}
+
+// ResetParentSessionID resets all changes to the "parent_session_id" field.
+func (m *NativeConsumerSessionMutation) ResetParentSessionID() {
+	m.parent_session = nil
+}
+
+// SetPurpose sets the "purpose" field.
+func (m *NativeConsumerSessionMutation) SetPurpose(n nativeconsumersession.Purpose) {
+	m.purpose = &n
+}
+
+// Purpose returns the value of the "purpose" field in the mutation.
+func (m *NativeConsumerSessionMutation) Purpose() (r nativeconsumersession.Purpose, exists bool) {
+	v := m.purpose
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPurpose returns the old "purpose" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldPurpose(ctx context.Context) (v nativeconsumersession.Purpose, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPurpose is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPurpose requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPurpose: %w", err)
+	}
+	return oldValue.Purpose, nil
+}
+
+// ResetPurpose resets all changes to the "purpose" field.
+func (m *NativeConsumerSessionMutation) ResetPurpose() {
+	m.purpose = nil
+}
+
+// SetOrigin sets the "origin" field.
+func (m *NativeConsumerSessionMutation) SetOrigin(s string) {
+	m.origin = &s
+}
+
+// Origin returns the value of the "origin" field in the mutation.
+func (m *NativeConsumerSessionMutation) Origin() (r string, exists bool) {
+	v := m.origin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrigin returns the old "origin" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldOrigin(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrigin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrigin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrigin: %w", err)
+	}
+	return oldValue.Origin, nil
+}
+
+// ResetOrigin resets all changes to the "origin" field.
+func (m *NativeConsumerSessionMutation) ResetOrigin() {
+	m.origin = nil
+}
+
+// SetOperationID sets the "operation_id" field.
+func (m *NativeConsumerSessionMutation) SetOperationID(b []byte) {
+	m.operation_id = &b
+}
+
+// OperationID returns the value of the "operation_id" field in the mutation.
+func (m *NativeConsumerSessionMutation) OperationID() (r []byte, exists bool) {
+	v := m.operation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperationID returns the old "operation_id" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldOperationID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperationID: %w", err)
+	}
+	return oldValue.OperationID, nil
+}
+
+// ResetOperationID resets all changes to the "operation_id" field.
+func (m *NativeConsumerSessionMutation) ResetOperationID() {
+	m.operation_id = nil
+}
+
+// SetPublicKey sets the "public_key" field.
+func (m *NativeConsumerSessionMutation) SetPublicKey(b []byte) {
+	m.public_key = &b
+}
+
+// PublicKey returns the value of the "public_key" field in the mutation.
+func (m *NativeConsumerSessionMutation) PublicKey() (r []byte, exists bool) {
+	v := m.public_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicKey returns the old "public_key" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldPublicKey(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicKey: %w", err)
+	}
+	return oldValue.PublicKey, nil
+}
+
+// ResetPublicKey resets all changes to the "public_key" field.
+func (m *NativeConsumerSessionMutation) ResetPublicKey() {
+	m.public_key = nil
+}
+
+// SetSessionBinding sets the "session_binding" field.
+func (m *NativeConsumerSessionMutation) SetSessionBinding(b []byte) {
+	m.session_binding = &b
+}
+
+// SessionBinding returns the value of the "session_binding" field in the mutation.
+func (m *NativeConsumerSessionMutation) SessionBinding() (r []byte, exists bool) {
+	v := m.session_binding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionBinding returns the old "session_binding" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldSessionBinding(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionBinding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionBinding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionBinding: %w", err)
+	}
+	return oldValue.SessionBinding, nil
+}
+
+// ResetSessionBinding resets all changes to the "session_binding" field.
+func (m *NativeConsumerSessionMutation) ResetSessionBinding() {
+	m.session_binding = nil
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (m *NativeConsumerSessionMutation) SetTokenHash(b []byte) {
+	m.token_hash = &b
+}
+
+// TokenHash returns the value of the "token_hash" field in the mutation.
+func (m *NativeConsumerSessionMutation) TokenHash() (r []byte, exists bool) {
+	v := m.token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenHash returns the old "token_hash" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldTokenHash(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenHash: %w", err)
+	}
+	return oldValue.TokenHash, nil
+}
+
+// ResetTokenHash resets all changes to the "token_hash" field.
+func (m *NativeConsumerSessionMutation) ResetTokenHash() {
+	m.token_hash = nil
+}
+
+// SetIssuedMs sets the "issued_ms" field.
+func (m *NativeConsumerSessionMutation) SetIssuedMs(i int64) {
+	m.issued_ms = &i
+	m.addissued_ms = nil
+}
+
+// IssuedMs returns the value of the "issued_ms" field in the mutation.
+func (m *NativeConsumerSessionMutation) IssuedMs() (r int64, exists bool) {
+	v := m.issued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuedMs returns the old "issued_ms" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldIssuedMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuedMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuedMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuedMs: %w", err)
+	}
+	return oldValue.IssuedMs, nil
+}
+
+// AddIssuedMs adds i to the "issued_ms" field.
+func (m *NativeConsumerSessionMutation) AddIssuedMs(i int64) {
+	if m.addissued_ms != nil {
+		*m.addissued_ms += i
+	} else {
+		m.addissued_ms = &i
+	}
+}
+
+// AddedIssuedMs returns the value that was added to the "issued_ms" field in this mutation.
+func (m *NativeConsumerSessionMutation) AddedIssuedMs() (r int64, exists bool) {
+	v := m.addissued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIssuedMs resets all changes to the "issued_ms" field.
+func (m *NativeConsumerSessionMutation) ResetIssuedMs() {
+	m.issued_ms = nil
+	m.addissued_ms = nil
+}
+
+// SetExpiresMs sets the "expires_ms" field.
+func (m *NativeConsumerSessionMutation) SetExpiresMs(i int64) {
+	m.expires_ms = &i
+	m.addexpires_ms = nil
+}
+
+// ExpiresMs returns the value of the "expires_ms" field in the mutation.
+func (m *NativeConsumerSessionMutation) ExpiresMs() (r int64, exists bool) {
+	v := m.expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresMs returns the old "expires_ms" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldExpiresMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresMs: %w", err)
+	}
+	return oldValue.ExpiresMs, nil
+}
+
+// AddExpiresMs adds i to the "expires_ms" field.
+func (m *NativeConsumerSessionMutation) AddExpiresMs(i int64) {
+	if m.addexpires_ms != nil {
+		*m.addexpires_ms += i
+	} else {
+		m.addexpires_ms = &i
+	}
+}
+
+// AddedExpiresMs returns the value that was added to the "expires_ms" field in this mutation.
+func (m *NativeConsumerSessionMutation) AddedExpiresMs() (r int64, exists bool) {
+	v := m.addexpires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExpiresMs resets all changes to the "expires_ms" field.
+func (m *NativeConsumerSessionMutation) ResetExpiresMs() {
+	m.expires_ms = nil
+	m.addexpires_ms = nil
+}
+
+// SetGateVersion sets the "gate_version" field.
+func (m *NativeConsumerSessionMutation) SetGateVersion(i int64) {
+	m.gate_version = &i
+	m.addgate_version = nil
+}
+
+// GateVersion returns the value of the "gate_version" field in the mutation.
+func (m *NativeConsumerSessionMutation) GateVersion() (r int64, exists bool) {
+	v := m.gate_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGateVersion returns the old "gate_version" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldGateVersion(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGateVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGateVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGateVersion: %w", err)
+	}
+	return oldValue.GateVersion, nil
+}
+
+// AddGateVersion adds i to the "gate_version" field.
+func (m *NativeConsumerSessionMutation) AddGateVersion(i int64) {
+	if m.addgate_version != nil {
+		*m.addgate_version += i
+	} else {
+		m.addgate_version = &i
+	}
+}
+
+// AddedGateVersion returns the value that was added to the "gate_version" field in this mutation.
+func (m *NativeConsumerSessionMutation) AddedGateVersion() (r int64, exists bool) {
+	v := m.addgate_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGateVersion resets all changes to the "gate_version" field.
+func (m *NativeConsumerSessionMutation) ResetGateVersion() {
+	m.gate_version = nil
+	m.addgate_version = nil
+}
+
+// SetCharge sets the "charge" field.
+func (m *NativeConsumerSessionMutation) SetCharge(i int64) {
+	m.charge = &i
+	m.addcharge = nil
+}
+
+// Charge returns the value of the "charge" field in the mutation.
+func (m *NativeConsumerSessionMutation) Charge() (r int64, exists bool) {
+	v := m.charge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharge returns the old "charge" field's value of the NativeConsumerSession entity.
+// If the NativeConsumerSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeConsumerSessionMutation) OldCharge(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharge: %w", err)
+	}
+	return oldValue.Charge, nil
+}
+
+// AddCharge adds i to the "charge" field.
+func (m *NativeConsumerSessionMutation) AddCharge(i int64) {
+	if m.addcharge != nil {
+		*m.addcharge += i
+	} else {
+		m.addcharge = &i
+	}
+}
+
+// AddedCharge returns the value that was added to the "charge" field in this mutation.
+func (m *NativeConsumerSessionMutation) AddedCharge() (r int64, exists bool) {
+	v := m.addcharge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCharge resets all changes to the "charge" field.
+func (m *NativeConsumerSessionMutation) ResetCharge() {
+	m.charge = nil
+	m.addcharge = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *NativeConsumerSessionMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[nativeconsumersession.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *NativeConsumerSessionMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *NativeConsumerSessionMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *NativeConsumerSessionMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearParentSession clears the "parent_session" edge to the Session entity.
+func (m *NativeConsumerSessionMutation) ClearParentSession() {
+	m.clearedparent_session = true
+	m.clearedFields[nativeconsumersession.FieldParentSessionID] = struct{}{}
+}
+
+// ParentSessionCleared reports if the "parent_session" edge to the Session entity was cleared.
+func (m *NativeConsumerSessionMutation) ParentSessionCleared() bool {
+	return m.clearedparent_session
+}
+
+// ParentSessionIDs returns the "parent_session" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentSessionID instead. It exists only for internal usage by the builders.
+func (m *NativeConsumerSessionMutation) ParentSessionIDs() (ids []int) {
+	if id := m.parent_session; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParentSession resets all changes to the "parent_session" edge.
+func (m *NativeConsumerSessionMutation) ResetParentSession() {
+	m.parent_session = nil
+	m.clearedparent_session = false
+}
+
+// Where appends a list predicates to the NativeConsumerSessionMutation builder.
+func (m *NativeConsumerSessionMutation) Where(ps ...predicate.NativeConsumerSession) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NativeConsumerSessionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NativeConsumerSessionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NativeConsumerSession, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NativeConsumerSessionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NativeConsumerSessionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NativeConsumerSession).
+func (m *NativeConsumerSessionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NativeConsumerSessionMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.public_id != nil {
+		fields = append(fields, nativeconsumersession.FieldPublicID)
+	}
+	if m.user != nil {
+		fields = append(fields, nativeconsumersession.FieldUserID)
+	}
+	if m.parent_session != nil {
+		fields = append(fields, nativeconsumersession.FieldParentSessionID)
+	}
+	if m.purpose != nil {
+		fields = append(fields, nativeconsumersession.FieldPurpose)
+	}
+	if m.origin != nil {
+		fields = append(fields, nativeconsumersession.FieldOrigin)
+	}
+	if m.operation_id != nil {
+		fields = append(fields, nativeconsumersession.FieldOperationID)
+	}
+	if m.public_key != nil {
+		fields = append(fields, nativeconsumersession.FieldPublicKey)
+	}
+	if m.session_binding != nil {
+		fields = append(fields, nativeconsumersession.FieldSessionBinding)
+	}
+	if m.token_hash != nil {
+		fields = append(fields, nativeconsumersession.FieldTokenHash)
+	}
+	if m.issued_ms != nil {
+		fields = append(fields, nativeconsumersession.FieldIssuedMs)
+	}
+	if m.expires_ms != nil {
+		fields = append(fields, nativeconsumersession.FieldExpiresMs)
+	}
+	if m.gate_version != nil {
+		fields = append(fields, nativeconsumersession.FieldGateVersion)
+	}
+	if m.charge != nil {
+		fields = append(fields, nativeconsumersession.FieldCharge)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NativeConsumerSessionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nativeconsumersession.FieldPublicID:
+		return m.PublicID()
+	case nativeconsumersession.FieldUserID:
+		return m.UserID()
+	case nativeconsumersession.FieldParentSessionID:
+		return m.ParentSessionID()
+	case nativeconsumersession.FieldPurpose:
+		return m.Purpose()
+	case nativeconsumersession.FieldOrigin:
+		return m.Origin()
+	case nativeconsumersession.FieldOperationID:
+		return m.OperationID()
+	case nativeconsumersession.FieldPublicKey:
+		return m.PublicKey()
+	case nativeconsumersession.FieldSessionBinding:
+		return m.SessionBinding()
+	case nativeconsumersession.FieldTokenHash:
+		return m.TokenHash()
+	case nativeconsumersession.FieldIssuedMs:
+		return m.IssuedMs()
+	case nativeconsumersession.FieldExpiresMs:
+		return m.ExpiresMs()
+	case nativeconsumersession.FieldGateVersion:
+		return m.GateVersion()
+	case nativeconsumersession.FieldCharge:
+		return m.Charge()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NativeConsumerSessionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nativeconsumersession.FieldPublicID:
+		return m.OldPublicID(ctx)
+	case nativeconsumersession.FieldUserID:
+		return m.OldUserID(ctx)
+	case nativeconsumersession.FieldParentSessionID:
+		return m.OldParentSessionID(ctx)
+	case nativeconsumersession.FieldPurpose:
+		return m.OldPurpose(ctx)
+	case nativeconsumersession.FieldOrigin:
+		return m.OldOrigin(ctx)
+	case nativeconsumersession.FieldOperationID:
+		return m.OldOperationID(ctx)
+	case nativeconsumersession.FieldPublicKey:
+		return m.OldPublicKey(ctx)
+	case nativeconsumersession.FieldSessionBinding:
+		return m.OldSessionBinding(ctx)
+	case nativeconsumersession.FieldTokenHash:
+		return m.OldTokenHash(ctx)
+	case nativeconsumersession.FieldIssuedMs:
+		return m.OldIssuedMs(ctx)
+	case nativeconsumersession.FieldExpiresMs:
+		return m.OldExpiresMs(ctx)
+	case nativeconsumersession.FieldGateVersion:
+		return m.OldGateVersion(ctx)
+	case nativeconsumersession.FieldCharge:
+		return m.OldCharge(ctx)
+	}
+	return nil, fmt.Errorf("unknown NativeConsumerSession field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeConsumerSessionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nativeconsumersession.FieldPublicID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicID(v)
+		return nil
+	case nativeconsumersession.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case nativeconsumersession.FieldParentSessionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentSessionID(v)
+		return nil
+	case nativeconsumersession.FieldPurpose:
+		v, ok := value.(nativeconsumersession.Purpose)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPurpose(v)
+		return nil
+	case nativeconsumersession.FieldOrigin:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrigin(v)
+		return nil
+	case nativeconsumersession.FieldOperationID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperationID(v)
+		return nil
+	case nativeconsumersession.FieldPublicKey:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicKey(v)
+		return nil
+	case nativeconsumersession.FieldSessionBinding:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionBinding(v)
+		return nil
+	case nativeconsumersession.FieldTokenHash:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenHash(v)
+		return nil
+	case nativeconsumersession.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuedMs(v)
+		return nil
+	case nativeconsumersession.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresMs(v)
+		return nil
+	case nativeconsumersession.FieldGateVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGateVersion(v)
+		return nil
+	case nativeconsumersession.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerSession field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NativeConsumerSessionMutation) AddedFields() []string {
+	var fields []string
+	if m.addissued_ms != nil {
+		fields = append(fields, nativeconsumersession.FieldIssuedMs)
+	}
+	if m.addexpires_ms != nil {
+		fields = append(fields, nativeconsumersession.FieldExpiresMs)
+	}
+	if m.addgate_version != nil {
+		fields = append(fields, nativeconsumersession.FieldGateVersion)
+	}
+	if m.addcharge != nil {
+		fields = append(fields, nativeconsumersession.FieldCharge)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NativeConsumerSessionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nativeconsumersession.FieldIssuedMs:
+		return m.AddedIssuedMs()
+	case nativeconsumersession.FieldExpiresMs:
+		return m.AddedExpiresMs()
+	case nativeconsumersession.FieldGateVersion:
+		return m.AddedGateVersion()
+	case nativeconsumersession.FieldCharge:
+		return m.AddedCharge()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeConsumerSessionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nativeconsumersession.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIssuedMs(v)
+		return nil
+	case nativeconsumersession.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExpiresMs(v)
+		return nil
+	case nativeconsumersession.FieldGateVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGateVersion(v)
+		return nil
+	case nativeconsumersession.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerSession numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NativeConsumerSessionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NativeConsumerSessionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NativeConsumerSessionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NativeConsumerSession nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NativeConsumerSessionMutation) ResetField(name string) error {
+	switch name {
+	case nativeconsumersession.FieldPublicID:
+		m.ResetPublicID()
+		return nil
+	case nativeconsumersession.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case nativeconsumersession.FieldParentSessionID:
+		m.ResetParentSessionID()
+		return nil
+	case nativeconsumersession.FieldPurpose:
+		m.ResetPurpose()
+		return nil
+	case nativeconsumersession.FieldOrigin:
+		m.ResetOrigin()
+		return nil
+	case nativeconsumersession.FieldOperationID:
+		m.ResetOperationID()
+		return nil
+	case nativeconsumersession.FieldPublicKey:
+		m.ResetPublicKey()
+		return nil
+	case nativeconsumersession.FieldSessionBinding:
+		m.ResetSessionBinding()
+		return nil
+	case nativeconsumersession.FieldTokenHash:
+		m.ResetTokenHash()
+		return nil
+	case nativeconsumersession.FieldIssuedMs:
+		m.ResetIssuedMs()
+		return nil
+	case nativeconsumersession.FieldExpiresMs:
+		m.ResetExpiresMs()
+		return nil
+	case nativeconsumersession.FieldGateVersion:
+		m.ResetGateVersion()
+		return nil
+	case nativeconsumersession.FieldCharge:
+		m.ResetCharge()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerSession field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NativeConsumerSessionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, nativeconsumersession.EdgeUser)
+	}
+	if m.parent_session != nil {
+		edges = append(edges, nativeconsumersession.EdgeParentSession)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NativeConsumerSessionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nativeconsumersession.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativeconsumersession.EdgeParentSession:
+		if id := m.parent_session; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NativeConsumerSessionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NativeConsumerSessionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NativeConsumerSessionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, nativeconsumersession.EdgeUser)
+	}
+	if m.clearedparent_session {
+		edges = append(edges, nativeconsumersession.EdgeParentSession)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NativeConsumerSessionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nativeconsumersession.EdgeUser:
+		return m.cleareduser
+	case nativeconsumersession.EdgeParentSession:
+		return m.clearedparent_session
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NativeConsumerSessionMutation) ClearEdge(name string) error {
+	switch name {
+	case nativeconsumersession.EdgeUser:
+		m.ClearUser()
+		return nil
+	case nativeconsumersession.EdgeParentSession:
+		m.ClearParentSession()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerSession unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NativeConsumerSessionMutation) ResetEdge(name string) error {
+	switch name {
+	case nativeconsumersession.EdgeUser:
+		m.ResetUser()
+		return nil
+	case nativeconsumersession.EdgeParentSession:
+		m.ResetParentSession()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeConsumerSession edge %s", name)
+}
+
 // OIDCIdentityMutation represents an operation that mutates the OIDCIdentity nodes in the graph.
 type OIDCIdentityMutation struct {
 	config
@@ -12333,18 +14863,24 @@ func (m *ServerMetadataMutation) ResetEdge(name string) error {
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
 type SessionMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	token_hash    *[]byte
-	issued_at     *time.Time
-	expires_at    *time.Time
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*Session, error)
-	predicates    []predicate.Session
+	op                                Op
+	typ                               string
+	id                                *int
+	token_hash                        *[]byte
+	issued_at                         *time.Time
+	expires_at                        *time.Time
+	clearedFields                     map[string]struct{}
+	user                              *int
+	cleareduser                       bool
+	native_consumer_challenges        map[int]struct{}
+	removednative_consumer_challenges map[int]struct{}
+	clearednative_consumer_challenges bool
+	native_consumer_sessions          map[int]struct{}
+	removednative_consumer_sessions   map[int]struct{}
+	clearednative_consumer_sessions   bool
+	done                              bool
+	oldValue                          func(context.Context) (*Session, error)
+	predicates                        []predicate.Session
 }
 
 var _ ent.Mutation = (*SessionMutation)(nil)
@@ -12616,6 +15152,114 @@ func (m *SessionMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by ids.
+func (m *SessionMutation) AddNativeConsumerChallengeIDs(ids ...int) {
+	if m.native_consumer_challenges == nil {
+		m.native_consumer_challenges = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_consumer_challenges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeConsumerChallenges clears the "native_consumer_challenges" edge to the NativeConsumerChallenge entity.
+func (m *SessionMutation) ClearNativeConsumerChallenges() {
+	m.clearednative_consumer_challenges = true
+}
+
+// NativeConsumerChallengesCleared reports if the "native_consumer_challenges" edge to the NativeConsumerChallenge entity was cleared.
+func (m *SessionMutation) NativeConsumerChallengesCleared() bool {
+	return m.clearednative_consumer_challenges
+}
+
+// RemoveNativeConsumerChallengeIDs removes the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
+func (m *SessionMutation) RemoveNativeConsumerChallengeIDs(ids ...int) {
+	if m.removednative_consumer_challenges == nil {
+		m.removednative_consumer_challenges = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_consumer_challenges, ids[i])
+		m.removednative_consumer_challenges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeConsumerChallenges returns the removed IDs of the "native_consumer_challenges" edge to the NativeConsumerChallenge entity.
+func (m *SessionMutation) RemovedNativeConsumerChallengesIDs() (ids []int) {
+	for id := range m.removednative_consumer_challenges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeConsumerChallengesIDs returns the "native_consumer_challenges" edge IDs in the mutation.
+func (m *SessionMutation) NativeConsumerChallengesIDs() (ids []int) {
+	for id := range m.native_consumer_challenges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeConsumerChallenges resets all changes to the "native_consumer_challenges" edge.
+func (m *SessionMutation) ResetNativeConsumerChallenges() {
+	m.native_consumer_challenges = nil
+	m.clearednative_consumer_challenges = false
+	m.removednative_consumer_challenges = nil
+}
+
+// AddNativeConsumerSessionIDs adds the "native_consumer_sessions" edge to the NativeConsumerSession entity by ids.
+func (m *SessionMutation) AddNativeConsumerSessionIDs(ids ...int) {
+	if m.native_consumer_sessions == nil {
+		m.native_consumer_sessions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_consumer_sessions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeConsumerSessions clears the "native_consumer_sessions" edge to the NativeConsumerSession entity.
+func (m *SessionMutation) ClearNativeConsumerSessions() {
+	m.clearednative_consumer_sessions = true
+}
+
+// NativeConsumerSessionsCleared reports if the "native_consumer_sessions" edge to the NativeConsumerSession entity was cleared.
+func (m *SessionMutation) NativeConsumerSessionsCleared() bool {
+	return m.clearednative_consumer_sessions
+}
+
+// RemoveNativeConsumerSessionIDs removes the "native_consumer_sessions" edge to the NativeConsumerSession entity by IDs.
+func (m *SessionMutation) RemoveNativeConsumerSessionIDs(ids ...int) {
+	if m.removednative_consumer_sessions == nil {
+		m.removednative_consumer_sessions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_consumer_sessions, ids[i])
+		m.removednative_consumer_sessions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeConsumerSessions returns the removed IDs of the "native_consumer_sessions" edge to the NativeConsumerSession entity.
+func (m *SessionMutation) RemovedNativeConsumerSessionsIDs() (ids []int) {
+	for id := range m.removednative_consumer_sessions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeConsumerSessionsIDs returns the "native_consumer_sessions" edge IDs in the mutation.
+func (m *SessionMutation) NativeConsumerSessionsIDs() (ids []int) {
+	for id := range m.native_consumer_sessions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeConsumerSessions resets all changes to the "native_consumer_sessions" edge.
+func (m *SessionMutation) ResetNativeConsumerSessions() {
+	m.native_consumer_sessions = nil
+	m.clearednative_consumer_sessions = false
+	m.removednative_consumer_sessions = nil
+}
+
 // Where appends a list predicates to the SessionMutation builder.
 func (m *SessionMutation) Where(ps ...predicate.Session) {
 	m.predicates = append(m.predicates, ps...)
@@ -12803,9 +15447,15 @@ func (m *SessionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SessionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.user != nil {
 		edges = append(edges, session.EdgeUser)
+	}
+	if m.native_consumer_challenges != nil {
+		edges = append(edges, session.EdgeNativeConsumerChallenges)
+	}
+	if m.native_consumer_sessions != nil {
+		edges = append(edges, session.EdgeNativeConsumerSessions)
 	}
 	return edges
 }
@@ -12818,27 +15468,65 @@ func (m *SessionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case session.EdgeNativeConsumerChallenges:
+		ids := make([]ent.Value, 0, len(m.native_consumer_challenges))
+		for id := range m.native_consumer_challenges {
+			ids = append(ids, id)
+		}
+		return ids
+	case session.EdgeNativeConsumerSessions:
+		ids := make([]ent.Value, 0, len(m.native_consumer_sessions))
+		for id := range m.native_consumer_sessions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SessionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.removednative_consumer_challenges != nil {
+		edges = append(edges, session.EdgeNativeConsumerChallenges)
+	}
+	if m.removednative_consumer_sessions != nil {
+		edges = append(edges, session.EdgeNativeConsumerSessions)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SessionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case session.EdgeNativeConsumerChallenges:
+		ids := make([]ent.Value, 0, len(m.removednative_consumer_challenges))
+		for id := range m.removednative_consumer_challenges {
+			ids = append(ids, id)
+		}
+		return ids
+	case session.EdgeNativeConsumerSessions:
+		ids := make([]ent.Value, 0, len(m.removednative_consumer_sessions))
+		for id := range m.removednative_consumer_sessions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SessionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.cleareduser {
 		edges = append(edges, session.EdgeUser)
+	}
+	if m.clearednative_consumer_challenges {
+		edges = append(edges, session.EdgeNativeConsumerChallenges)
+	}
+	if m.clearednative_consumer_sessions {
+		edges = append(edges, session.EdgeNativeConsumerSessions)
 	}
 	return edges
 }
@@ -12849,6 +15537,10 @@ func (m *SessionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case session.EdgeUser:
 		return m.cleareduser
+	case session.EdgeNativeConsumerChallenges:
+		return m.clearednative_consumer_challenges
+	case session.EdgeNativeConsumerSessions:
+		return m.clearednative_consumer_sessions
 	}
 	return false
 }
@@ -12871,6 +15563,12 @@ func (m *SessionMutation) ResetEdge(name string) error {
 	case session.EdgeUser:
 		m.ResetUser()
 		return nil
+	case session.EdgeNativeConsumerChallenges:
+		m.ResetNativeConsumerChallenges()
+		return nil
+	case session.EdgeNativeConsumerSessions:
+		m.ResetNativeConsumerSessions()
+		return nil
 	}
 	return fmt.Errorf("unknown Session edge %s", name)
 }
@@ -12878,45 +15576,51 @@ func (m *SessionMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                            Op
-	typ                           string
-	id                            *int
-	user_key                      *string
-	clearedFields                 map[string]struct{}
-	github_credential             *int
-	clearedgithub_credential      bool
-	github_lists                  map[int]struct{}
-	removedgithub_lists           map[int]struct{}
-	clearedgithub_lists           bool
-	github_repositories           map[int]struct{}
-	removedgithub_repositories    map[int]struct{}
-	clearedgithub_repositories    bool
-	local_account                 *int
-	clearedlocal_account          bool
-	sessions                      map[int]struct{}
-	removedsessions               map[int]struct{}
-	clearedsessions               bool
-	oidc_identities               map[int]struct{}
-	removedoidc_identities        map[int]struct{}
-	clearedoidc_identities        bool
-	collected_repositories        map[int]struct{}
-	removedcollected_repositories map[int]struct{}
-	clearedcollected_repositories bool
-	packs                         map[int]struct{}
-	removedpacks                  map[int]struct{}
-	clearedpacks                  bool
-	mcp_credentials               map[int]struct{}
-	removedmcp_credentials        map[int]struct{}
-	clearedmcp_credentials        bool
-	categories                    map[int]struct{}
-	removedcategories             map[int]struct{}
-	clearedcategories             bool
-	configuration_assets          map[int]struct{}
-	removedconfiguration_assets   map[int]struct{}
-	clearedconfiguration_assets   bool
-	done                          bool
-	oldValue                      func(context.Context) (*User, error)
-	predicates                    []predicate.User
+	op                                Op
+	typ                               string
+	id                                *int
+	user_key                          *string
+	clearedFields                     map[string]struct{}
+	github_credential                 *int
+	clearedgithub_credential          bool
+	github_lists                      map[int]struct{}
+	removedgithub_lists               map[int]struct{}
+	clearedgithub_lists               bool
+	github_repositories               map[int]struct{}
+	removedgithub_repositories        map[int]struct{}
+	clearedgithub_repositories        bool
+	local_account                     *int
+	clearedlocal_account              bool
+	sessions                          map[int]struct{}
+	removedsessions                   map[int]struct{}
+	clearedsessions                   bool
+	oidc_identities                   map[int]struct{}
+	removedoidc_identities            map[int]struct{}
+	clearedoidc_identities            bool
+	collected_repositories            map[int]struct{}
+	removedcollected_repositories     map[int]struct{}
+	clearedcollected_repositories     bool
+	packs                             map[int]struct{}
+	removedpacks                      map[int]struct{}
+	clearedpacks                      bool
+	mcp_credentials                   map[int]struct{}
+	removedmcp_credentials            map[int]struct{}
+	clearedmcp_credentials            bool
+	categories                        map[int]struct{}
+	removedcategories                 map[int]struct{}
+	clearedcategories                 bool
+	configuration_assets              map[int]struct{}
+	removedconfiguration_assets       map[int]struct{}
+	clearedconfiguration_assets       bool
+	native_consumer_challenges        map[int]struct{}
+	removednative_consumer_challenges map[int]struct{}
+	clearednative_consumer_challenges bool
+	native_consumer_sessions          map[int]struct{}
+	removednative_consumer_sessions   map[int]struct{}
+	clearednative_consumer_sessions   bool
+	done                              bool
+	oldValue                          func(context.Context) (*User, error)
+	predicates                        []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -13617,6 +16321,114 @@ func (m *UserMutation) ResetConfigurationAssets() {
 	m.removedconfiguration_assets = nil
 }
 
+// AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by ids.
+func (m *UserMutation) AddNativeConsumerChallengeIDs(ids ...int) {
+	if m.native_consumer_challenges == nil {
+		m.native_consumer_challenges = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_consumer_challenges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeConsumerChallenges clears the "native_consumer_challenges" edge to the NativeConsumerChallenge entity.
+func (m *UserMutation) ClearNativeConsumerChallenges() {
+	m.clearednative_consumer_challenges = true
+}
+
+// NativeConsumerChallengesCleared reports if the "native_consumer_challenges" edge to the NativeConsumerChallenge entity was cleared.
+func (m *UserMutation) NativeConsumerChallengesCleared() bool {
+	return m.clearednative_consumer_challenges
+}
+
+// RemoveNativeConsumerChallengeIDs removes the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
+func (m *UserMutation) RemoveNativeConsumerChallengeIDs(ids ...int) {
+	if m.removednative_consumer_challenges == nil {
+		m.removednative_consumer_challenges = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_consumer_challenges, ids[i])
+		m.removednative_consumer_challenges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeConsumerChallenges returns the removed IDs of the "native_consumer_challenges" edge to the NativeConsumerChallenge entity.
+func (m *UserMutation) RemovedNativeConsumerChallengesIDs() (ids []int) {
+	for id := range m.removednative_consumer_challenges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeConsumerChallengesIDs returns the "native_consumer_challenges" edge IDs in the mutation.
+func (m *UserMutation) NativeConsumerChallengesIDs() (ids []int) {
+	for id := range m.native_consumer_challenges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeConsumerChallenges resets all changes to the "native_consumer_challenges" edge.
+func (m *UserMutation) ResetNativeConsumerChallenges() {
+	m.native_consumer_challenges = nil
+	m.clearednative_consumer_challenges = false
+	m.removednative_consumer_challenges = nil
+}
+
+// AddNativeConsumerSessionIDs adds the "native_consumer_sessions" edge to the NativeConsumerSession entity by ids.
+func (m *UserMutation) AddNativeConsumerSessionIDs(ids ...int) {
+	if m.native_consumer_sessions == nil {
+		m.native_consumer_sessions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_consumer_sessions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeConsumerSessions clears the "native_consumer_sessions" edge to the NativeConsumerSession entity.
+func (m *UserMutation) ClearNativeConsumerSessions() {
+	m.clearednative_consumer_sessions = true
+}
+
+// NativeConsumerSessionsCleared reports if the "native_consumer_sessions" edge to the NativeConsumerSession entity was cleared.
+func (m *UserMutation) NativeConsumerSessionsCleared() bool {
+	return m.clearednative_consumer_sessions
+}
+
+// RemoveNativeConsumerSessionIDs removes the "native_consumer_sessions" edge to the NativeConsumerSession entity by IDs.
+func (m *UserMutation) RemoveNativeConsumerSessionIDs(ids ...int) {
+	if m.removednative_consumer_sessions == nil {
+		m.removednative_consumer_sessions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_consumer_sessions, ids[i])
+		m.removednative_consumer_sessions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeConsumerSessions returns the removed IDs of the "native_consumer_sessions" edge to the NativeConsumerSession entity.
+func (m *UserMutation) RemovedNativeConsumerSessionsIDs() (ids []int) {
+	for id := range m.removednative_consumer_sessions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeConsumerSessionsIDs returns the "native_consumer_sessions" edge IDs in the mutation.
+func (m *UserMutation) NativeConsumerSessionsIDs() (ids []int) {
+	for id := range m.native_consumer_sessions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeConsumerSessions resets all changes to the "native_consumer_sessions" edge.
+func (m *UserMutation) ResetNativeConsumerSessions() {
+	m.native_consumer_sessions = nil
+	m.clearednative_consumer_sessions = false
+	m.removednative_consumer_sessions = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -13750,7 +16562,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	if m.github_credential != nil {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -13783,6 +16595,12 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.configuration_assets != nil {
 		edges = append(edges, user.EdgeConfigurationAssets)
+	}
+	if m.native_consumer_challenges != nil {
+		edges = append(edges, user.EdgeNativeConsumerChallenges)
+	}
+	if m.native_consumer_sessions != nil {
+		edges = append(edges, user.EdgeNativeConsumerSessions)
 	}
 	return edges
 }
@@ -13853,13 +16671,25 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeNativeConsumerChallenges:
+		ids := make([]ent.Value, 0, len(m.native_consumer_challenges))
+		for id := range m.native_consumer_challenges {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNativeConsumerSessions:
+		ids := make([]ent.Value, 0, len(m.native_consumer_sessions))
+		for id := range m.native_consumer_sessions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	if m.removedgithub_lists != nil {
 		edges = append(edges, user.EdgeGithubLists)
 	}
@@ -13886,6 +16716,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedconfiguration_assets != nil {
 		edges = append(edges, user.EdgeConfigurationAssets)
+	}
+	if m.removednative_consumer_challenges != nil {
+		edges = append(edges, user.EdgeNativeConsumerChallenges)
+	}
+	if m.removednative_consumer_sessions != nil {
+		edges = append(edges, user.EdgeNativeConsumerSessions)
 	}
 	return edges
 }
@@ -13948,13 +16784,25 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeNativeConsumerChallenges:
+		ids := make([]ent.Value, 0, len(m.removednative_consumer_challenges))
+		for id := range m.removednative_consumer_challenges {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNativeConsumerSessions:
+		ids := make([]ent.Value, 0, len(m.removednative_consumer_sessions))
+		for id := range m.removednative_consumer_sessions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	if m.clearedgithub_credential {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -13988,6 +16836,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedconfiguration_assets {
 		edges = append(edges, user.EdgeConfigurationAssets)
 	}
+	if m.clearednative_consumer_challenges {
+		edges = append(edges, user.EdgeNativeConsumerChallenges)
+	}
+	if m.clearednative_consumer_sessions {
+		edges = append(edges, user.EdgeNativeConsumerSessions)
+	}
 	return edges
 }
 
@@ -14017,6 +16871,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcategories
 	case user.EdgeConfigurationAssets:
 		return m.clearedconfiguration_assets
+	case user.EdgeNativeConsumerChallenges:
+		return m.clearednative_consumer_challenges
+	case user.EdgeNativeConsumerSessions:
+		return m.clearednative_consumer_sessions
 	}
 	return false
 }
@@ -14071,6 +16929,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeConfigurationAssets:
 		m.ResetConfigurationAssets()
+		return nil
+	case user.EdgeNativeConsumerChallenges:
+		m.ResetNativeConsumerChallenges()
+		return nil
+	case user.EdgeNativeConsumerSessions:
+		m.ResetNativeConsumerSessions()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

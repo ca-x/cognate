@@ -141,6 +141,30 @@ func (f MCPCredentialFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MCPCredentialMutation", m)
 }
 
+// The NativeConsumerChallengeFunc type is an adapter to allow the use of ordinary
+// function as NativeConsumerChallenge mutator.
+type NativeConsumerChallengeFunc func(context.Context, *ent.NativeConsumerChallengeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NativeConsumerChallengeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NativeConsumerChallengeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NativeConsumerChallengeMutation", m)
+}
+
+// The NativeConsumerSessionFunc type is an adapter to allow the use of ordinary
+// function as NativeConsumerSession mutator.
+type NativeConsumerSessionFunc func(context.Context, *ent.NativeConsumerSessionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NativeConsumerSessionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NativeConsumerSessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NativeConsumerSessionMutation", m)
+}
+
 // The OIDCIdentityFunc type is an adapter to allow the use of ordinary
 // function as OIDCIdentity mutator.
 type OIDCIdentityFunc func(context.Context, *ent.OIDCIdentityMutation) (ent.Value, error)

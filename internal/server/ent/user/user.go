@@ -36,6 +36,10 @@ const (
 	EdgeCategories = "categories"
 	// EdgeConfigurationAssets holds the string denoting the configuration_assets edge name in mutations.
 	EdgeConfigurationAssets = "configuration_assets"
+	// EdgeNativeConsumerChallenges holds the string denoting the native_consumer_challenges edge name in mutations.
+	EdgeNativeConsumerChallenges = "native_consumer_challenges"
+	// EdgeNativeConsumerSessions holds the string denoting the native_consumer_sessions edge name in mutations.
+	EdgeNativeConsumerSessions = "native_consumer_sessions"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GithubCredentialTable is the table that holds the github_credential relation/edge.
@@ -115,6 +119,20 @@ const (
 	ConfigurationAssetsInverseTable = "configuration_assets"
 	// ConfigurationAssetsColumn is the table column denoting the configuration_assets relation/edge.
 	ConfigurationAssetsColumn = "user_id"
+	// NativeConsumerChallengesTable is the table that holds the native_consumer_challenges relation/edge.
+	NativeConsumerChallengesTable = "native_consumer_challenges"
+	// NativeConsumerChallengesInverseTable is the table name for the NativeConsumerChallenge entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeconsumerchallenge" package.
+	NativeConsumerChallengesInverseTable = "native_consumer_challenges"
+	// NativeConsumerChallengesColumn is the table column denoting the native_consumer_challenges relation/edge.
+	NativeConsumerChallengesColumn = "user_id"
+	// NativeConsumerSessionsTable is the table that holds the native_consumer_sessions relation/edge.
+	NativeConsumerSessionsTable = "native_consumer_sessions"
+	// NativeConsumerSessionsInverseTable is the table name for the NativeConsumerSession entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeconsumersession" package.
+	NativeConsumerSessionsInverseTable = "native_consumer_sessions"
+	// NativeConsumerSessionsColumn is the table column denoting the native_consumer_sessions relation/edge.
+	NativeConsumerSessionsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -290,6 +308,34 @@ func ByConfigurationAssets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newConfigurationAssetsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNativeConsumerChallengesCount orders the results by native_consumer_challenges count.
+func ByNativeConsumerChallengesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeConsumerChallengesStep(), opts...)
+	}
+}
+
+// ByNativeConsumerChallenges orders the results by native_consumer_challenges terms.
+func ByNativeConsumerChallenges(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeConsumerChallengesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNativeConsumerSessionsCount orders the results by native_consumer_sessions count.
+func ByNativeConsumerSessionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeConsumerSessionsStep(), opts...)
+	}
+}
+
+// ByNativeConsumerSessions orders the results by native_consumer_sessions terms.
+func ByNativeConsumerSessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeConsumerSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGithubCredentialStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -365,5 +411,19 @@ func newConfigurationAssetsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ConfigurationAssetsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAssetsTable, ConfigurationAssetsColumn),
+	)
+}
+func newNativeConsumerChallengesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeConsumerChallengesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerChallengesTable, NativeConsumerChallengesColumn),
+	)
+}
+func newNativeConsumerSessionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeConsumerSessionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerSessionsTable, NativeConsumerSessionsColumn),
 	)
 }

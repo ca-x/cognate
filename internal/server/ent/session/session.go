@@ -22,6 +22,10 @@ const (
 	FieldExpiresAt = "expires_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeNativeConsumerChallenges holds the string denoting the native_consumer_challenges edge name in mutations.
+	EdgeNativeConsumerChallenges = "native_consumer_challenges"
+	// EdgeNativeConsumerSessions holds the string denoting the native_consumer_sessions edge name in mutations.
+	EdgeNativeConsumerSessions = "native_consumer_sessions"
 	// Table holds the table name of the session in the database.
 	Table = "sessions"
 	// UserTable is the table that holds the user relation/edge.
@@ -31,6 +35,20 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// NativeConsumerChallengesTable is the table that holds the native_consumer_challenges relation/edge.
+	NativeConsumerChallengesTable = "native_consumer_challenges"
+	// NativeConsumerChallengesInverseTable is the table name for the NativeConsumerChallenge entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeconsumerchallenge" package.
+	NativeConsumerChallengesInverseTable = "native_consumer_challenges"
+	// NativeConsumerChallengesColumn is the table column denoting the native_consumer_challenges relation/edge.
+	NativeConsumerChallengesColumn = "parent_session_id"
+	// NativeConsumerSessionsTable is the table that holds the native_consumer_sessions relation/edge.
+	NativeConsumerSessionsTable = "native_consumer_sessions"
+	// NativeConsumerSessionsInverseTable is the table name for the NativeConsumerSession entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeconsumersession" package.
+	NativeConsumerSessionsInverseTable = "native_consumer_sessions"
+	// NativeConsumerSessionsColumn is the table column denoting the native_consumer_sessions relation/edge.
+	NativeConsumerSessionsColumn = "parent_session_id"
 )
 
 // Columns holds all SQL columns for session fields.
@@ -86,10 +104,52 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByNativeConsumerChallengesCount orders the results by native_consumer_challenges count.
+func ByNativeConsumerChallengesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeConsumerChallengesStep(), opts...)
+	}
+}
+
+// ByNativeConsumerChallenges orders the results by native_consumer_challenges terms.
+func ByNativeConsumerChallenges(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeConsumerChallengesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNativeConsumerSessionsCount orders the results by native_consumer_sessions count.
+func ByNativeConsumerSessionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeConsumerSessionsStep(), opts...)
+	}
+}
+
+// ByNativeConsumerSessions orders the results by native_consumer_sessions terms.
+func ByNativeConsumerSessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeConsumerSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newNativeConsumerChallengesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeConsumerChallengesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerChallengesTable, NativeConsumerChallengesColumn),
+	)
+}
+func newNativeConsumerSessionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeConsumerSessionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerSessionsTable, NativeConsumerSessionsColumn),
 	)
 }

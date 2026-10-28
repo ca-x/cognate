@@ -26,6 +26,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
+	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -62,6 +64,10 @@ type Client struct {
 	MCPAudit *MCPAuditClient
 	// MCPCredential is the client for interacting with the MCPCredential builders.
 	MCPCredential *MCPCredentialClient
+	// NativeConsumerChallenge is the client for interacting with the NativeConsumerChallenge builders.
+	NativeConsumerChallenge *NativeConsumerChallengeClient
+	// NativeConsumerSession is the client for interacting with the NativeConsumerSession builders.
+	NativeConsumerSession *NativeConsumerSessionClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Pack is the client for interacting with the Pack builders.
@@ -98,6 +104,8 @@ func (c *Client) init() {
 	c.LocalAccount = NewLocalAccountClient(c.config)
 	c.MCPAudit = NewMCPAuditClient(c.config)
 	c.MCPCredential = NewMCPCredentialClient(c.config)
+	c.NativeConsumerChallenge = NewNativeConsumerChallengeClient(c.config)
+	c.NativeConsumerSession = NewNativeConsumerSessionClient(c.config)
 	c.OIDCIdentity = NewOIDCIdentityClient(c.config)
 	c.Pack = NewPackClient(c.config)
 	c.PackItem = NewPackItemClient(c.config)
@@ -195,26 +203,28 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Category:            NewCategoryClient(cfg),
-		CollectedRepository: NewCollectedRepositoryClient(cfg),
-		CollectedSkill:      NewCollectedSkillClient(cfg),
-		ConfigurationAsset:  NewConfigurationAssetClient(cfg),
-		GitHubCredential:    NewGitHubCredentialClient(cfg),
-		GitHubList:          NewGitHubListClient(cfg),
-		GitHubMembership:    NewGitHubMembershipClient(cfg),
-		GitHubRepository:    NewGitHubRepositoryClient(cfg),
-		LocalAccount:        NewLocalAccountClient(cfg),
-		MCPAudit:            NewMCPAuditClient(cfg),
-		MCPCredential:       NewMCPCredentialClient(cfg),
-		OIDCIdentity:        NewOIDCIdentityClient(cfg),
-		Pack:                NewPackClient(cfg),
-		PackItem:            NewPackItemClient(cfg),
-		PackShare:           NewPackShareClient(cfg),
-		ServerMetadata:      NewServerMetadataClient(cfg),
-		Session:             NewSessionClient(cfg),
-		User:                NewUserClient(cfg),
+		ctx:                     ctx,
+		config:                  cfg,
+		Category:                NewCategoryClient(cfg),
+		CollectedRepository:     NewCollectedRepositoryClient(cfg),
+		CollectedSkill:          NewCollectedSkillClient(cfg),
+		ConfigurationAsset:      NewConfigurationAssetClient(cfg),
+		GitHubCredential:        NewGitHubCredentialClient(cfg),
+		GitHubList:              NewGitHubListClient(cfg),
+		GitHubMembership:        NewGitHubMembershipClient(cfg),
+		GitHubRepository:        NewGitHubRepositoryClient(cfg),
+		LocalAccount:            NewLocalAccountClient(cfg),
+		MCPAudit:                NewMCPAuditClient(cfg),
+		MCPCredential:           NewMCPCredentialClient(cfg),
+		NativeConsumerChallenge: NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:   NewNativeConsumerSessionClient(cfg),
+		OIDCIdentity:            NewOIDCIdentityClient(cfg),
+		Pack:                    NewPackClient(cfg),
+		PackItem:                NewPackItemClient(cfg),
+		PackShare:               NewPackShareClient(cfg),
+		ServerMetadata:          NewServerMetadataClient(cfg),
+		Session:                 NewSessionClient(cfg),
+		User:                    NewUserClient(cfg),
 	}, nil
 }
 
@@ -232,26 +242,28 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Category:            NewCategoryClient(cfg),
-		CollectedRepository: NewCollectedRepositoryClient(cfg),
-		CollectedSkill:      NewCollectedSkillClient(cfg),
-		ConfigurationAsset:  NewConfigurationAssetClient(cfg),
-		GitHubCredential:    NewGitHubCredentialClient(cfg),
-		GitHubList:          NewGitHubListClient(cfg),
-		GitHubMembership:    NewGitHubMembershipClient(cfg),
-		GitHubRepository:    NewGitHubRepositoryClient(cfg),
-		LocalAccount:        NewLocalAccountClient(cfg),
-		MCPAudit:            NewMCPAuditClient(cfg),
-		MCPCredential:       NewMCPCredentialClient(cfg),
-		OIDCIdentity:        NewOIDCIdentityClient(cfg),
-		Pack:                NewPackClient(cfg),
-		PackItem:            NewPackItemClient(cfg),
-		PackShare:           NewPackShareClient(cfg),
-		ServerMetadata:      NewServerMetadataClient(cfg),
-		Session:             NewSessionClient(cfg),
-		User:                NewUserClient(cfg),
+		ctx:                     ctx,
+		config:                  cfg,
+		Category:                NewCategoryClient(cfg),
+		CollectedRepository:     NewCollectedRepositoryClient(cfg),
+		CollectedSkill:          NewCollectedSkillClient(cfg),
+		ConfigurationAsset:      NewConfigurationAssetClient(cfg),
+		GitHubCredential:        NewGitHubCredentialClient(cfg),
+		GitHubList:              NewGitHubListClient(cfg),
+		GitHubMembership:        NewGitHubMembershipClient(cfg),
+		GitHubRepository:        NewGitHubRepositoryClient(cfg),
+		LocalAccount:            NewLocalAccountClient(cfg),
+		MCPAudit:                NewMCPAuditClient(cfg),
+		MCPCredential:           NewMCPCredentialClient(cfg),
+		NativeConsumerChallenge: NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:   NewNativeConsumerSessionClient(cfg),
+		OIDCIdentity:            NewOIDCIdentityClient(cfg),
+		Pack:                    NewPackClient(cfg),
+		PackItem:                NewPackItemClient(cfg),
+		PackShare:               NewPackShareClient(cfg),
+		ServerMetadata:          NewServerMetadataClient(cfg),
+		Session:                 NewSessionClient(cfg),
+		User:                    NewUserClient(cfg),
 	}, nil
 }
 
@@ -283,8 +295,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack,
-		c.PackItem, c.PackShare, c.ServerMetadata, c.Session, c.User,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeConsumerChallenge,
+		c.NativeConsumerSession, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -296,8 +309,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack,
-		c.PackItem, c.PackShare, c.ServerMetadata, c.Session, c.User,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeConsumerChallenge,
+		c.NativeConsumerSession, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -328,6 +342,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MCPAudit.mutate(ctx, m)
 	case *MCPCredentialMutation:
 		return c.MCPCredential.mutate(ctx, m)
+	case *NativeConsumerChallengeMutation:
+		return c.NativeConsumerChallenge.mutate(ctx, m)
+	case *NativeConsumerSessionMutation:
+		return c.NativeConsumerSession.mutate(ctx, m)
 	case *OIDCIdentityMutation:
 		return c.OIDCIdentity.mutate(ctx, m)
 	case *PackMutation:
@@ -2114,6 +2132,336 @@ func (c *MCPCredentialClient) mutate(ctx context.Context, m *MCPCredentialMutati
 	}
 }
 
+// NativeConsumerChallengeClient is a client for the NativeConsumerChallenge schema.
+type NativeConsumerChallengeClient struct {
+	config
+}
+
+// NewNativeConsumerChallengeClient returns a client for the NativeConsumerChallenge from the given config.
+func NewNativeConsumerChallengeClient(c config) *NativeConsumerChallengeClient {
+	return &NativeConsumerChallengeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nativeconsumerchallenge.Hooks(f(g(h())))`.
+func (c *NativeConsumerChallengeClient) Use(hooks ...Hook) {
+	c.hooks.NativeConsumerChallenge = append(c.hooks.NativeConsumerChallenge, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nativeconsumerchallenge.Intercept(f(g(h())))`.
+func (c *NativeConsumerChallengeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NativeConsumerChallenge = append(c.inters.NativeConsumerChallenge, interceptors...)
+}
+
+// Create returns a builder for creating a NativeConsumerChallenge entity.
+func (c *NativeConsumerChallengeClient) Create() *NativeConsumerChallengeCreate {
+	mutation := newNativeConsumerChallengeMutation(c.config, OpCreate)
+	return &NativeConsumerChallengeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NativeConsumerChallenge entities.
+func (c *NativeConsumerChallengeClient) CreateBulk(builders ...*NativeConsumerChallengeCreate) *NativeConsumerChallengeCreateBulk {
+	return &NativeConsumerChallengeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NativeConsumerChallengeClient) MapCreateBulk(slice any, setFunc func(*NativeConsumerChallengeCreate, int)) *NativeConsumerChallengeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NativeConsumerChallengeCreateBulk{err: fmt.Errorf("calling to NativeConsumerChallengeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NativeConsumerChallengeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NativeConsumerChallengeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NativeConsumerChallenge.
+func (c *NativeConsumerChallengeClient) Update() *NativeConsumerChallengeUpdate {
+	mutation := newNativeConsumerChallengeMutation(c.config, OpUpdate)
+	return &NativeConsumerChallengeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NativeConsumerChallengeClient) UpdateOne(_m *NativeConsumerChallenge) *NativeConsumerChallengeUpdateOne {
+	mutation := newNativeConsumerChallengeMutation(c.config, OpUpdateOne, withNativeConsumerChallenge(_m))
+	return &NativeConsumerChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NativeConsumerChallengeClient) UpdateOneID(id int) *NativeConsumerChallengeUpdateOne {
+	mutation := newNativeConsumerChallengeMutation(c.config, OpUpdateOne, withNativeConsumerChallengeID(id))
+	return &NativeConsumerChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NativeConsumerChallenge.
+func (c *NativeConsumerChallengeClient) Delete() *NativeConsumerChallengeDelete {
+	mutation := newNativeConsumerChallengeMutation(c.config, OpDelete)
+	return &NativeConsumerChallengeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NativeConsumerChallengeClient) DeleteOne(_m *NativeConsumerChallenge) *NativeConsumerChallengeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NativeConsumerChallengeClient) DeleteOneID(id int) *NativeConsumerChallengeDeleteOne {
+	builder := c.Delete().Where(nativeconsumerchallenge.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NativeConsumerChallengeDeleteOne{builder}
+}
+
+// Query returns a query builder for NativeConsumerChallenge.
+func (c *NativeConsumerChallengeClient) Query() *NativeConsumerChallengeQuery {
+	return &NativeConsumerChallengeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNativeConsumerChallenge},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NativeConsumerChallenge entity by its id.
+func (c *NativeConsumerChallengeClient) Get(ctx context.Context, id int) (*NativeConsumerChallenge, error) {
+	return c.Query().Where(nativeconsumerchallenge.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NativeConsumerChallengeClient) GetX(ctx context.Context, id int) *NativeConsumerChallenge {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a NativeConsumerChallenge.
+func (c *NativeConsumerChallengeClient) QueryUser(_m *NativeConsumerChallenge) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumerchallenge.Table, nativeconsumerchallenge.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeconsumerchallenge.UserTable, nativeconsumerchallenge.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParentSession queries the parent_session edge of a NativeConsumerChallenge.
+func (c *NativeConsumerChallengeClient) QueryParentSession(_m *NativeConsumerChallenge) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumerchallenge.Table, nativeconsumerchallenge.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeconsumerchallenge.ParentSessionTable, nativeconsumerchallenge.ParentSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NativeConsumerChallengeClient) Hooks() []Hook {
+	return c.hooks.NativeConsumerChallenge
+}
+
+// Interceptors returns the client interceptors.
+func (c *NativeConsumerChallengeClient) Interceptors() []Interceptor {
+	return c.inters.NativeConsumerChallenge
+}
+
+func (c *NativeConsumerChallengeClient) mutate(ctx context.Context, m *NativeConsumerChallengeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NativeConsumerChallengeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NativeConsumerChallengeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NativeConsumerChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NativeConsumerChallengeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NativeConsumerChallenge mutation op: %q", m.Op())
+	}
+}
+
+// NativeConsumerSessionClient is a client for the NativeConsumerSession schema.
+type NativeConsumerSessionClient struct {
+	config
+}
+
+// NewNativeConsumerSessionClient returns a client for the NativeConsumerSession from the given config.
+func NewNativeConsumerSessionClient(c config) *NativeConsumerSessionClient {
+	return &NativeConsumerSessionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nativeconsumersession.Hooks(f(g(h())))`.
+func (c *NativeConsumerSessionClient) Use(hooks ...Hook) {
+	c.hooks.NativeConsumerSession = append(c.hooks.NativeConsumerSession, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nativeconsumersession.Intercept(f(g(h())))`.
+func (c *NativeConsumerSessionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NativeConsumerSession = append(c.inters.NativeConsumerSession, interceptors...)
+}
+
+// Create returns a builder for creating a NativeConsumerSession entity.
+func (c *NativeConsumerSessionClient) Create() *NativeConsumerSessionCreate {
+	mutation := newNativeConsumerSessionMutation(c.config, OpCreate)
+	return &NativeConsumerSessionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NativeConsumerSession entities.
+func (c *NativeConsumerSessionClient) CreateBulk(builders ...*NativeConsumerSessionCreate) *NativeConsumerSessionCreateBulk {
+	return &NativeConsumerSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NativeConsumerSessionClient) MapCreateBulk(slice any, setFunc func(*NativeConsumerSessionCreate, int)) *NativeConsumerSessionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NativeConsumerSessionCreateBulk{err: fmt.Errorf("calling to NativeConsumerSessionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NativeConsumerSessionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NativeConsumerSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NativeConsumerSession.
+func (c *NativeConsumerSessionClient) Update() *NativeConsumerSessionUpdate {
+	mutation := newNativeConsumerSessionMutation(c.config, OpUpdate)
+	return &NativeConsumerSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NativeConsumerSessionClient) UpdateOne(_m *NativeConsumerSession) *NativeConsumerSessionUpdateOne {
+	mutation := newNativeConsumerSessionMutation(c.config, OpUpdateOne, withNativeConsumerSession(_m))
+	return &NativeConsumerSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NativeConsumerSessionClient) UpdateOneID(id int) *NativeConsumerSessionUpdateOne {
+	mutation := newNativeConsumerSessionMutation(c.config, OpUpdateOne, withNativeConsumerSessionID(id))
+	return &NativeConsumerSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NativeConsumerSession.
+func (c *NativeConsumerSessionClient) Delete() *NativeConsumerSessionDelete {
+	mutation := newNativeConsumerSessionMutation(c.config, OpDelete)
+	return &NativeConsumerSessionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NativeConsumerSessionClient) DeleteOne(_m *NativeConsumerSession) *NativeConsumerSessionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NativeConsumerSessionClient) DeleteOneID(id int) *NativeConsumerSessionDeleteOne {
+	builder := c.Delete().Where(nativeconsumersession.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NativeConsumerSessionDeleteOne{builder}
+}
+
+// Query returns a query builder for NativeConsumerSession.
+func (c *NativeConsumerSessionClient) Query() *NativeConsumerSessionQuery {
+	return &NativeConsumerSessionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNativeConsumerSession},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NativeConsumerSession entity by its id.
+func (c *NativeConsumerSessionClient) Get(ctx context.Context, id int) (*NativeConsumerSession, error) {
+	return c.Query().Where(nativeconsumersession.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NativeConsumerSessionClient) GetX(ctx context.Context, id int) *NativeConsumerSession {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a NativeConsumerSession.
+func (c *NativeConsumerSessionClient) QueryUser(_m *NativeConsumerSession) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeconsumersession.UserTable, nativeconsumersession.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParentSession queries the parent_session edge of a NativeConsumerSession.
+func (c *NativeConsumerSessionClient) QueryParentSession(_m *NativeConsumerSession) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeconsumersession.ParentSessionTable, nativeconsumersession.ParentSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NativeConsumerSessionClient) Hooks() []Hook {
+	return c.hooks.NativeConsumerSession
+}
+
+// Interceptors returns the client interceptors.
+func (c *NativeConsumerSessionClient) Interceptors() []Interceptor {
+	return c.inters.NativeConsumerSession
+}
+
+func (c *NativeConsumerSessionClient) mutate(ctx context.Context, m *NativeConsumerSessionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NativeConsumerSessionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NativeConsumerSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NativeConsumerSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NativeConsumerSessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NativeConsumerSession mutation op: %q", m.Op())
+	}
+}
+
 // OIDCIdentityClient is a client for the OIDCIdentity schema.
 type OIDCIdentityClient struct {
 	config
@@ -3015,6 +3363,38 @@ func (c *SessionClient) QueryUser(_m *Session) *UserQuery {
 	return query
 }
 
+// QueryNativeConsumerChallenges queries the native_consumer_challenges edge of a Session.
+func (c *SessionClient) QueryNativeConsumerChallenges(_m *Session) *NativeConsumerChallengeQuery {
+	query := (&NativeConsumerChallengeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(nativeconsumerchallenge.Table, nativeconsumerchallenge.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.NativeConsumerChallengesTable, session.NativeConsumerChallengesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeConsumerSessions queries the native_consumer_sessions edge of a Session.
+func (c *SessionClient) QueryNativeConsumerSessions(_m *Session) *NativeConsumerSessionQuery {
+	query := (&NativeConsumerSessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(nativeconsumersession.Table, nativeconsumersession.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.NativeConsumerSessionsTable, session.NativeConsumerSessionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SessionClient) Hooks() []Hook {
 	return c.hooks.Session
@@ -3324,6 +3704,38 @@ func (c *UserClient) QueryConfigurationAssets(_m *User) *ConfigurationAssetQuery
 	return query
 }
 
+// QueryNativeConsumerChallenges queries the native_consumer_challenges edge of a User.
+func (c *UserClient) QueryNativeConsumerChallenges(_m *User) *NativeConsumerChallengeQuery {
+	query := (&NativeConsumerChallengeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(nativeconsumerchallenge.Table, nativeconsumerchallenge.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeConsumerChallengesTable, user.NativeConsumerChallengesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeConsumerSessions queries the native_consumer_sessions edge of a User.
+func (c *UserClient) QueryNativeConsumerSessions(_m *User) *NativeConsumerSessionQuery {
+	query := (&NativeConsumerSessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(nativeconsumersession.Table, nativeconsumersession.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeConsumerSessionsTable, user.NativeConsumerSessionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -3354,13 +3766,15 @@ type (
 	hooks struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, OIDCIdentity, Pack, PackItem, PackShare,
-		ServerMetadata, Session, User []ent.Hook
+		MCPAudit, MCPCredential, NativeConsumerChallenge, NativeConsumerSession,
+		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
+		User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, OIDCIdentity, Pack, PackItem, PackShare,
-		ServerMetadata, Session, User []ent.Interceptor
+		MCPAudit, MCPCredential, NativeConsumerChallenge, NativeConsumerSession,
+		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
+		User []ent.Interceptor
 	}
 )

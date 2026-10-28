@@ -36,9 +36,13 @@ type Session struct {
 type SessionEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// NativeConsumerChallenges holds the value of the native_consumer_challenges edge.
+	NativeConsumerChallenges []*NativeConsumerChallenge `json:"native_consumer_challenges,omitempty"`
+	// NativeConsumerSessions holds the value of the native_consumer_sessions edge.
+	NativeConsumerSessions []*NativeConsumerSession `json:"native_consumer_sessions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -50,6 +54,24 @@ func (e SessionEdges) UserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
+}
+
+// NativeConsumerChallengesOrErr returns the NativeConsumerChallenges value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, error) {
+	if e.loadedTypes[1] {
+		return e.NativeConsumerChallenges, nil
+	}
+	return nil, &NotLoadedError{edge: "native_consumer_challenges"}
+}
+
+// NativeConsumerSessionsOrErr returns the NativeConsumerSessions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, error) {
+	if e.loadedTypes[2] {
+		return e.NativeConsumerSessions, nil
+	}
+	return nil, &NotLoadedError{edge: "native_consumer_sessions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -124,6 +146,16 @@ func (_m *Session) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the Session entity.
 func (_m *Session) QueryUser() *UserQuery {
 	return NewSessionClient(_m.config).QueryUser(_m)
+}
+
+// QueryNativeConsumerChallenges queries the "native_consumer_challenges" edge of the Session entity.
+func (_m *Session) QueryNativeConsumerChallenges() *NativeConsumerChallengeQuery {
+	return NewSessionClient(_m.config).QueryNativeConsumerChallenges(_m)
+}
+
+// QueryNativeConsumerSessions queries the "native_consumer_sessions" edge of the Session entity.
+func (_m *Session) QueryNativeConsumerSessions() *NativeConsumerSessionQuery {
+	return NewSessionClient(_m.config).QueryNativeConsumerSessions(_m)
 }
 
 // Update returns a builder for updating this Session.
