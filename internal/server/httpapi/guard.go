@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	"github.com/ca-x/cognate/gen/skillhub/configuration/v1/configurationv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 	"github.com/labstack/echo/v4"
@@ -72,6 +73,16 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 				}
 			}
 			var maxBytes int64 = 4096
+			switch request.URL.Path {
+			case configurationv1connect.ConfigurationServiceListAssetsProcedure,
+				configurationv1connect.ConfigurationServiceGetAssetProcedure,
+				configurationv1connect.ConfigurationServiceReadDraftProcedure,
+				configurationv1connect.ConfigurationServiceCreateAssetProcedure,
+				configurationv1connect.ConfigurationServiceUpdateAssetProcedure,
+				configurationv1connect.ConfigurationServiceCopyAssetProcedure,
+				configurationv1connect.ConfigurationServiceDeleteAssetProcedure:
+				maxBytes = configurationMaxRequestBytes
+			}
 			if request.URL.Path == importv1connect.ImportServicePreviewLibraryExportProcedure {
 				maxBytes = importMaxWireBytes
 			}

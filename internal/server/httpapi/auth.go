@@ -15,6 +15,7 @@ import (
 	"github.com/ca-x/cognate/gen/skillhub/mcp/v1/mcpv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
@@ -36,6 +37,7 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
+	Configuration *configuration.Service
 	PublicOrigin  string
 	Store         *state.Store
 	GitHubClient  *http.Client
@@ -71,6 +73,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	authentication := &authHandler{service: service, oidc: options.OIDC}
 	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
 	server.Any(path+"*", echo.WrapHandler(handler))
+	if options.Configuration != nil {
+		path, handler := configurationTransport(&configurationHandler{auth: authentication, service: options.Configuration})
+		server.Any(path+"*", echo.WrapHandler(handler))
+	}
 	if options.Store != nil {
 		path, handler := githubv1connect.NewGitHubServiceHandler(&githubHandler{auth: authentication, store: options.Store, client: options.GitHubClient, device: options.GitHubDevice, slots: make(chan struct{}, 2)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(8<<20))
 		server.Any(path+"*", echo.WrapHandler(handler))

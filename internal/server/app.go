@@ -18,6 +18,7 @@ import (
 
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/auth"
+	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/httpapi"
 	"github.com/ca-x/cognate/internal/server/library"
@@ -217,7 +218,7 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		_ = app.Close()
 		return nil, err
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports})
+	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store)})
 	return app, nil
 }
 
