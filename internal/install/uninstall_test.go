@@ -119,11 +119,22 @@ func TestPrepareUninstallRejectsChangedInstallation(t *testing.T) {
 				}
 			case "symlink":
 				path := filepath.Join(projection, "demo")
-				if err := os.Remove(path); err != nil {
+				before, err := os.Lstat(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Rename(path, path+".saved"); err != nil {
 					t.Fatal(err)
 				}
 				if err := os.Symlink(filepath.Join(canonical, "demo"), path); err != nil {
 					t.Fatal(err)
+				}
+				after, err := os.Lstat(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if os.SameFile(before, after) {
+					t.Fatal("replacement symlink has the original object identity")
 				}
 			}
 			if _, _, err := session.PrepareUninstallLocal(t.Context(), "demo"); err == nil {
