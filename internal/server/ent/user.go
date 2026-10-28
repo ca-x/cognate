@@ -54,9 +54,13 @@ type UserEdges struct {
 	NativeConsumerChallenges []*NativeConsumerChallenge `json:"native_consumer_challenges,omitempty"`
 	// NativeConsumerSessions holds the value of the native_consumer_sessions edge.
 	NativeConsumerSessions []*NativeConsumerSession `json:"native_consumer_sessions,omitempty"`
+	// NativeApplyPreparations holds the value of the native_apply_preparations edge.
+	NativeApplyPreparations []*NativeApplyPreparation `json:"native_apply_preparations,omitempty"`
+	// NativeMaterializationGrants holds the value of the native_materialization_grants edge.
+	NativeMaterializationGrants []*NativeMaterializationGrant `json:"native_materialization_grants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [13]bool
+	loadedTypes [15]bool
 }
 
 // GithubCredentialOrErr returns the GithubCredential value or an error if the edge
@@ -180,6 +184,24 @@ func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, erro
 	return nil, &NotLoadedError{edge: "native_consumer_sessions"}
 }
 
+// NativeApplyPreparationsOrErr returns the NativeApplyPreparations value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NativeApplyPreparationsOrErr() ([]*NativeApplyPreparation, error) {
+	if e.loadedTypes[13] {
+		return e.NativeApplyPreparations, nil
+	}
+	return nil, &NotLoadedError{edge: "native_apply_preparations"}
+}
+
+// NativeMaterializationGrantsOrErr returns the NativeMaterializationGrants value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) NativeMaterializationGrantsOrErr() ([]*NativeMaterializationGrant, error) {
+	if e.loadedTypes[14] {
+		return e.NativeMaterializationGrants, nil
+	}
+	return nil, &NotLoadedError{edge: "native_materialization_grants"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -292,6 +314,16 @@ func (_m *User) QueryNativeConsumerChallenges() *NativeConsumerChallengeQuery {
 // QueryNativeConsumerSessions queries the "native_consumer_sessions" edge of the User entity.
 func (_m *User) QueryNativeConsumerSessions() *NativeConsumerSessionQuery {
 	return NewUserClient(_m.config).QueryNativeConsumerSessions(_m)
+}
+
+// QueryNativeApplyPreparations queries the "native_apply_preparations" edge of the User entity.
+func (_m *User) QueryNativeApplyPreparations() *NativeApplyPreparationQuery {
+	return NewUserClient(_m.config).QueryNativeApplyPreparations(_m)
+}
+
+// QueryNativeMaterializationGrants queries the "native_materialization_grants" edge of the User entity.
+func (_m *User) QueryNativeMaterializationGrants() *NativeMaterializationGrantQuery {
+	return NewUserClient(_m.config).QueryNativeMaterializationGrants(_m)
 }
 
 // Update returns a builder for updating this User.

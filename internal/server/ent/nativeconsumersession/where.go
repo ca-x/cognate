@@ -669,6 +669,52 @@ func HasParentSessionWith(preds ...predicate.Session) predicate.NativeConsumerSe
 	})
 }
 
+// HasPreparations applies the HasEdge predicate on the "preparations" edge.
+func HasPreparations() predicate.NativeConsumerSession {
+	return predicate.NativeConsumerSession(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PreparationsTable, PreparationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPreparationsWith applies the HasEdge predicate on the "preparations" edge with a given conditions (other predicates).
+func HasPreparationsWith(preds ...predicate.NativeApplyPreparation) predicate.NativeConsumerSession {
+	return predicate.NativeConsumerSession(func(s *sql.Selector) {
+		step := newPreparationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGrants applies the HasEdge predicate on the "grants" edge.
+func HasGrants() predicate.NativeConsumerSession {
+	return predicate.NativeConsumerSession(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GrantsTable, GrantsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGrantsWith applies the HasEdge predicate on the "grants" edge with a given conditions (other predicates).
+func HasGrantsWith(preds ...predicate.NativeMaterializationGrant) predicate.NativeConsumerSession {
+	return predicate.NativeConsumerSession(func(s *sql.Selector) {
+		step := newGrantsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.NativeConsumerSession) predicate.NativeConsumerSession {
 	return predicate.NativeConsumerSession(sql.AndPredicates(predicates...))

@@ -362,6 +362,53 @@ var (
 			},
 		},
 	}
+	// NativeApplyPreparationsColumns holds the columns for the "native_apply_preparations" table.
+	NativeApplyPreparationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "operation_id", Type: field.TypeBytes, Size: 16},
+		{Name: "request_digest", Type: field.TypeBytes, Size: 32},
+		{Name: "authorize_challenge", Type: field.TypeBytes, Size: 32},
+		{Name: "ciphertext", Type: field.TypeBytes, Size: 16384},
+		{Name: "phase", Type: field.TypeEnum, Enums: []string{"patch-ready", "bound-with-grant", "bound-no-secret", "expired", "retired"}, Default: "patch-ready"},
+		{Name: "issued_ms", Type: field.TypeInt64},
+		{Name: "expires_ms", Type: field.TypeInt64},
+		{Name: "charge", Type: field.TypeInt64},
+		{Name: "native_session_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// NativeApplyPreparationsTable holds the schema information for the "native_apply_preparations" table.
+	NativeApplyPreparationsTable = &schema.Table{
+		Name:       "native_apply_preparations",
+		Columns:    NativeApplyPreparationsColumns,
+		PrimaryKey: []*schema.Column{NativeApplyPreparationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "native_apply_preparations_native_consumer_sessions_preparations",
+				Columns:    []*schema.Column{NativeApplyPreparationsColumns[10]},
+				RefColumns: []*schema.Column{NativeConsumerSessionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "native_apply_preparations_users_native_apply_preparations",
+				Columns:    []*schema.Column{NativeApplyPreparationsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "nativeapplypreparation_native_session_id_operation_id",
+				Unique:  true,
+				Columns: []*schema.Column{NativeApplyPreparationsColumns[10], NativeApplyPreparationsColumns[2]},
+			},
+			{
+				Name:    "nativeapplypreparation_user_id_native_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeApplyPreparationsColumns[11], NativeApplyPreparationsColumns[10]},
+			},
+		},
+	}
 	// NativeConsumerChallengesColumns holds the columns for the "native_consumer_challenges" table.
 	NativeConsumerChallengesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -469,6 +516,56 @@ var (
 				Name:    "nativeconsumersession_parent_session_id_operation_id",
 				Unique:  true,
 				Columns: []*schema.Column{NativeConsumerSessionsColumns[12], NativeConsumerSessionsColumns[4]},
+			},
+		},
+	}
+	// NativeMaterializationGrantsColumns holds the columns for the "native_materialization_grants" table.
+	NativeMaterializationGrantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "token_hash", Type: field.TypeBytes, Unique: true, Size: 32},
+		{Name: "consume_challenge", Type: field.TypeBytes, Size: 32},
+		{Name: "binding_digest", Type: field.TypeBytes, Size: 32},
+		{Name: "issued_ms", Type: field.TypeInt64},
+		{Name: "expires_ms", Type: field.TypeInt64},
+		{Name: "consumed_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "retired", Type: field.TypeBool, Default: false},
+		{Name: "expired", Type: field.TypeBool, Default: false},
+		{Name: "charge", Type: field.TypeInt64},
+		{Name: "prepare_id", Type: field.TypeInt, Unique: true},
+		{Name: "native_session_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// NativeMaterializationGrantsTable holds the schema information for the "native_materialization_grants" table.
+	NativeMaterializationGrantsTable = &schema.Table{
+		Name:       "native_materialization_grants",
+		Columns:    NativeMaterializationGrantsColumns,
+		PrimaryKey: []*schema.Column{NativeMaterializationGrantsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "native_materialization_grants_native_apply_preparations_grant",
+				Columns:    []*schema.Column{NativeMaterializationGrantsColumns[11]},
+				RefColumns: []*schema.Column{NativeApplyPreparationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "native_materialization_grants_native_consumer_sessions_grants",
+				Columns:    []*schema.Column{NativeMaterializationGrantsColumns[12]},
+				RefColumns: []*schema.Column{NativeConsumerSessionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "native_materialization_grants_users_native_materialization_grants",
+				Columns:    []*schema.Column{NativeMaterializationGrantsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "nativematerializationgrant_user_id_native_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{NativeMaterializationGrantsColumns[13], NativeMaterializationGrantsColumns[12]},
 			},
 		},
 	}
@@ -682,8 +779,10 @@ var (
 		LocalAccountsTable,
 		McpAuditsTable,
 		McpCredentialsTable,
+		NativeApplyPreparationsTable,
 		NativeConsumerChallengesTable,
 		NativeConsumerSessionsTable,
+		NativeMaterializationGrantsTable,
 		OidcIdentitiesTable,
 		PacksTable,
 		PackItemsTable,
@@ -708,10 +807,15 @@ func init() {
 	LocalAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	McpAuditsTable.ForeignKeys[0].RefTable = McpCredentialsTable
 	McpCredentialsTable.ForeignKeys[0].RefTable = UsersTable
+	NativeApplyPreparationsTable.ForeignKeys[0].RefTable = NativeConsumerSessionsTable
+	NativeApplyPreparationsTable.ForeignKeys[1].RefTable = UsersTable
 	NativeConsumerChallengesTable.ForeignKeys[0].RefTable = SessionsTable
 	NativeConsumerChallengesTable.ForeignKeys[1].RefTable = UsersTable
 	NativeConsumerSessionsTable.ForeignKeys[0].RefTable = SessionsTable
 	NativeConsumerSessionsTable.ForeignKeys[1].RefTable = UsersTable
+	NativeMaterializationGrantsTable.ForeignKeys[0].RefTable = NativeApplyPreparationsTable
+	NativeMaterializationGrantsTable.ForeignKeys[1].RefTable = NativeConsumerSessionsTable
+	NativeMaterializationGrantsTable.ForeignKeys[2].RefTable = UsersTable
 	OidcIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	PacksTable.ForeignKeys[0].RefTable = UsersTable
 	PackItemsTable.ForeignKeys[0].RefTable = CollectedSkillsTable

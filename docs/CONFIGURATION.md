@@ -32,4 +32,14 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 
 已交付的本地 JSON codec 仅在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；它不自行读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离也已单独提供，但没有开放原生消费 endpoint，不构成“可应用”状态。
 
+## Native 内部存储候选（Task2C）
+
+2026-10-29：当前候选已由作者以合成数据库、真实 owner MAC/Ed25519、真实服务端 moejs 和真实 SQLite 验证内部 Prepare→Authorize→Consume→Status 闭环；仍须 exact-tree 独立验收，尚未注册 HTTP/App，也未接 CLI/MyGo 或本机应用。不是原生应用/F12/完整首发完成。
+
+Prepare 先固定版本与安全七槽 patch，Authorize 后才绑定完整 intent；API key、Auth token 分别验证精确一次原文返回，native-login 不生成 grant。凭据与配置同处一个加密 envelope，其版本由资产 CAS revision 覆盖，没有独立 credential_version。普通 Web/配置 CRUD/MCP 不获得秘密。
+
+四张 native 表执行已审逐表及 parent/owner/instance 行数与字节硬额度（总额 56/416 KiB、128/896 KiB、512/3584 KiB），所有未物理删除的终态/过期项仍计费；这是逻辑 charge，不是 SQLite/WAL 或整库磁盘上限。真实 Logout 删除父 session 并级联全部后代，不受 GC 批额度阻止。有界 prune 已提供，30 秒生命周期调度仍待后续接线，不能因此宣称生产入口已启用。
+
+grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、不重放响应，已提交事实保留；Status 不回 token/hash/patch/value。检查与 driver COMMIT/return 之间不是原子保证，不能保证远端收包时身份仍有效。仅清理已知 owned buffer；Go 字符串、副本、GC 与 WAL 不允许宣称完全清零/物理擦除。raw generated DTO 仍不安全，禁止日志。冻结实施合同见 `superpowers/plans/2026-10-29-native-configuration-store.md`。
+
 来源配置导入、十四类 agent 的完整专属交互、期望选择与 Pack 附件、原生预览/安全发布/备份/恢复，以及明确选择后的自动应用仍为后续门禁。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以本首片缩减首发范围。

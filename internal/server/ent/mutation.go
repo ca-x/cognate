@@ -22,8 +22,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -43,26 +45,28 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCategory                = "Category"
-	TypeCollectedRepository     = "CollectedRepository"
-	TypeCollectedSkill          = "CollectedSkill"
-	TypeConfigurationAsset      = "ConfigurationAsset"
-	TypeGitHubCredential        = "GitHubCredential"
-	TypeGitHubList              = "GitHubList"
-	TypeGitHubMembership        = "GitHubMembership"
-	TypeGitHubRepository        = "GitHubRepository"
-	TypeLocalAccount            = "LocalAccount"
-	TypeMCPAudit                = "MCPAudit"
-	TypeMCPCredential           = "MCPCredential"
-	TypeNativeConsumerChallenge = "NativeConsumerChallenge"
-	TypeNativeConsumerSession   = "NativeConsumerSession"
-	TypeOIDCIdentity            = "OIDCIdentity"
-	TypePack                    = "Pack"
-	TypePackItem                = "PackItem"
-	TypePackShare               = "PackShare"
-	TypeServerMetadata          = "ServerMetadata"
-	TypeSession                 = "Session"
-	TypeUser                    = "User"
+	TypeCategory                   = "Category"
+	TypeCollectedRepository        = "CollectedRepository"
+	TypeCollectedSkill             = "CollectedSkill"
+	TypeConfigurationAsset         = "ConfigurationAsset"
+	TypeGitHubCredential           = "GitHubCredential"
+	TypeGitHubList                 = "GitHubList"
+	TypeGitHubMembership           = "GitHubMembership"
+	TypeGitHubRepository           = "GitHubRepository"
+	TypeLocalAccount               = "LocalAccount"
+	TypeMCPAudit                   = "MCPAudit"
+	TypeMCPCredential              = "MCPCredential"
+	TypeNativeApplyPreparation     = "NativeApplyPreparation"
+	TypeNativeConsumerChallenge    = "NativeConsumerChallenge"
+	TypeNativeConsumerSession      = "NativeConsumerSession"
+	TypeNativeMaterializationGrant = "NativeMaterializationGrant"
+	TypeOIDCIdentity               = "OIDCIdentity"
+	TypePack                       = "Pack"
+	TypePackItem                   = "PackItem"
+	TypePackShare                  = "PackShare"
+	TypeServerMetadata             = "ServerMetadata"
+	TypeSession                    = "Session"
+	TypeUser                       = "User"
 )
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
@@ -9183,6 +9187,1133 @@ func (m *MCPCredentialMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown MCPCredential edge %s", name)
 }
 
+// NativeApplyPreparationMutation represents an operation that mutates the NativeApplyPreparation nodes in the graph.
+type NativeApplyPreparationMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	public_id             *string
+	operation_id          *[]byte
+	request_digest        *[]byte
+	authorize_challenge   *[]byte
+	ciphertext            *[]byte
+	phase                 *nativeapplypreparation.Phase
+	issued_ms             *int64
+	addissued_ms          *int64
+	expires_ms            *int64
+	addexpires_ms         *int64
+	charge                *int64
+	addcharge             *int64
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	native_session        *int
+	clearednative_session bool
+	grant                 *int
+	clearedgrant          bool
+	done                  bool
+	oldValue              func(context.Context) (*NativeApplyPreparation, error)
+	predicates            []predicate.NativeApplyPreparation
+}
+
+var _ ent.Mutation = (*NativeApplyPreparationMutation)(nil)
+
+// nativeapplypreparationOption allows management of the mutation configuration using functional options.
+type nativeapplypreparationOption func(*NativeApplyPreparationMutation)
+
+// newNativeApplyPreparationMutation creates new mutation for the NativeApplyPreparation entity.
+func newNativeApplyPreparationMutation(c config, op Op, opts ...nativeapplypreparationOption) *NativeApplyPreparationMutation {
+	m := &NativeApplyPreparationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNativeApplyPreparation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNativeApplyPreparationID sets the ID field of the mutation.
+func withNativeApplyPreparationID(id int) nativeapplypreparationOption {
+	return func(m *NativeApplyPreparationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NativeApplyPreparation
+		)
+		m.oldValue = func(ctx context.Context) (*NativeApplyPreparation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NativeApplyPreparation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNativeApplyPreparation sets the old NativeApplyPreparation of the mutation.
+func withNativeApplyPreparation(node *NativeApplyPreparation) nativeapplypreparationOption {
+	return func(m *NativeApplyPreparationMutation) {
+		m.oldValue = func(context.Context) (*NativeApplyPreparation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NativeApplyPreparationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NativeApplyPreparationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NativeApplyPreparationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NativeApplyPreparationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NativeApplyPreparation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPublicID sets the "public_id" field.
+func (m *NativeApplyPreparationMutation) SetPublicID(s string) {
+	m.public_id = &s
+}
+
+// PublicID returns the value of the "public_id" field in the mutation.
+func (m *NativeApplyPreparationMutation) PublicID() (r string, exists bool) {
+	v := m.public_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicID returns the old "public_id" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldPublicID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicID: %w", err)
+	}
+	return oldValue.PublicID, nil
+}
+
+// ResetPublicID resets all changes to the "public_id" field.
+func (m *NativeApplyPreparationMutation) ResetPublicID() {
+	m.public_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *NativeApplyPreparationMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *NativeApplyPreparationMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *NativeApplyPreparationMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetNativeSessionID sets the "native_session_id" field.
+func (m *NativeApplyPreparationMutation) SetNativeSessionID(i int) {
+	m.native_session = &i
+}
+
+// NativeSessionID returns the value of the "native_session_id" field in the mutation.
+func (m *NativeApplyPreparationMutation) NativeSessionID() (r int, exists bool) {
+	v := m.native_session
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNativeSessionID returns the old "native_session_id" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldNativeSessionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNativeSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNativeSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNativeSessionID: %w", err)
+	}
+	return oldValue.NativeSessionID, nil
+}
+
+// ResetNativeSessionID resets all changes to the "native_session_id" field.
+func (m *NativeApplyPreparationMutation) ResetNativeSessionID() {
+	m.native_session = nil
+}
+
+// SetOperationID sets the "operation_id" field.
+func (m *NativeApplyPreparationMutation) SetOperationID(b []byte) {
+	m.operation_id = &b
+}
+
+// OperationID returns the value of the "operation_id" field in the mutation.
+func (m *NativeApplyPreparationMutation) OperationID() (r []byte, exists bool) {
+	v := m.operation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperationID returns the old "operation_id" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldOperationID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperationID: %w", err)
+	}
+	return oldValue.OperationID, nil
+}
+
+// ResetOperationID resets all changes to the "operation_id" field.
+func (m *NativeApplyPreparationMutation) ResetOperationID() {
+	m.operation_id = nil
+}
+
+// SetRequestDigest sets the "request_digest" field.
+func (m *NativeApplyPreparationMutation) SetRequestDigest(b []byte) {
+	m.request_digest = &b
+}
+
+// RequestDigest returns the value of the "request_digest" field in the mutation.
+func (m *NativeApplyPreparationMutation) RequestDigest() (r []byte, exists bool) {
+	v := m.request_digest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestDigest returns the old "request_digest" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldRequestDigest(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestDigest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestDigest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestDigest: %w", err)
+	}
+	return oldValue.RequestDigest, nil
+}
+
+// ResetRequestDigest resets all changes to the "request_digest" field.
+func (m *NativeApplyPreparationMutation) ResetRequestDigest() {
+	m.request_digest = nil
+}
+
+// SetAuthorizeChallenge sets the "authorize_challenge" field.
+func (m *NativeApplyPreparationMutation) SetAuthorizeChallenge(b []byte) {
+	m.authorize_challenge = &b
+}
+
+// AuthorizeChallenge returns the value of the "authorize_challenge" field in the mutation.
+func (m *NativeApplyPreparationMutation) AuthorizeChallenge() (r []byte, exists bool) {
+	v := m.authorize_challenge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuthorizeChallenge returns the old "authorize_challenge" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldAuthorizeChallenge(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuthorizeChallenge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuthorizeChallenge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuthorizeChallenge: %w", err)
+	}
+	return oldValue.AuthorizeChallenge, nil
+}
+
+// ResetAuthorizeChallenge resets all changes to the "authorize_challenge" field.
+func (m *NativeApplyPreparationMutation) ResetAuthorizeChallenge() {
+	m.authorize_challenge = nil
+}
+
+// SetCiphertext sets the "ciphertext" field.
+func (m *NativeApplyPreparationMutation) SetCiphertext(b []byte) {
+	m.ciphertext = &b
+}
+
+// Ciphertext returns the value of the "ciphertext" field in the mutation.
+func (m *NativeApplyPreparationMutation) Ciphertext() (r []byte, exists bool) {
+	v := m.ciphertext
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCiphertext returns the old "ciphertext" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldCiphertext(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCiphertext is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCiphertext requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCiphertext: %w", err)
+	}
+	return oldValue.Ciphertext, nil
+}
+
+// ResetCiphertext resets all changes to the "ciphertext" field.
+func (m *NativeApplyPreparationMutation) ResetCiphertext() {
+	m.ciphertext = nil
+}
+
+// SetPhase sets the "phase" field.
+func (m *NativeApplyPreparationMutation) SetPhase(n nativeapplypreparation.Phase) {
+	m.phase = &n
+}
+
+// Phase returns the value of the "phase" field in the mutation.
+func (m *NativeApplyPreparationMutation) Phase() (r nativeapplypreparation.Phase, exists bool) {
+	v := m.phase
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhase returns the old "phase" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldPhase(ctx context.Context) (v nativeapplypreparation.Phase, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhase: %w", err)
+	}
+	return oldValue.Phase, nil
+}
+
+// ResetPhase resets all changes to the "phase" field.
+func (m *NativeApplyPreparationMutation) ResetPhase() {
+	m.phase = nil
+}
+
+// SetIssuedMs sets the "issued_ms" field.
+func (m *NativeApplyPreparationMutation) SetIssuedMs(i int64) {
+	m.issued_ms = &i
+	m.addissued_ms = nil
+}
+
+// IssuedMs returns the value of the "issued_ms" field in the mutation.
+func (m *NativeApplyPreparationMutation) IssuedMs() (r int64, exists bool) {
+	v := m.issued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuedMs returns the old "issued_ms" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldIssuedMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuedMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuedMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuedMs: %w", err)
+	}
+	return oldValue.IssuedMs, nil
+}
+
+// AddIssuedMs adds i to the "issued_ms" field.
+func (m *NativeApplyPreparationMutation) AddIssuedMs(i int64) {
+	if m.addissued_ms != nil {
+		*m.addissued_ms += i
+	} else {
+		m.addissued_ms = &i
+	}
+}
+
+// AddedIssuedMs returns the value that was added to the "issued_ms" field in this mutation.
+func (m *NativeApplyPreparationMutation) AddedIssuedMs() (r int64, exists bool) {
+	v := m.addissued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIssuedMs resets all changes to the "issued_ms" field.
+func (m *NativeApplyPreparationMutation) ResetIssuedMs() {
+	m.issued_ms = nil
+	m.addissued_ms = nil
+}
+
+// SetExpiresMs sets the "expires_ms" field.
+func (m *NativeApplyPreparationMutation) SetExpiresMs(i int64) {
+	m.expires_ms = &i
+	m.addexpires_ms = nil
+}
+
+// ExpiresMs returns the value of the "expires_ms" field in the mutation.
+func (m *NativeApplyPreparationMutation) ExpiresMs() (r int64, exists bool) {
+	v := m.expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresMs returns the old "expires_ms" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldExpiresMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresMs: %w", err)
+	}
+	return oldValue.ExpiresMs, nil
+}
+
+// AddExpiresMs adds i to the "expires_ms" field.
+func (m *NativeApplyPreparationMutation) AddExpiresMs(i int64) {
+	if m.addexpires_ms != nil {
+		*m.addexpires_ms += i
+	} else {
+		m.addexpires_ms = &i
+	}
+}
+
+// AddedExpiresMs returns the value that was added to the "expires_ms" field in this mutation.
+func (m *NativeApplyPreparationMutation) AddedExpiresMs() (r int64, exists bool) {
+	v := m.addexpires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExpiresMs resets all changes to the "expires_ms" field.
+func (m *NativeApplyPreparationMutation) ResetExpiresMs() {
+	m.expires_ms = nil
+	m.addexpires_ms = nil
+}
+
+// SetCharge sets the "charge" field.
+func (m *NativeApplyPreparationMutation) SetCharge(i int64) {
+	m.charge = &i
+	m.addcharge = nil
+}
+
+// Charge returns the value of the "charge" field in the mutation.
+func (m *NativeApplyPreparationMutation) Charge() (r int64, exists bool) {
+	v := m.charge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharge returns the old "charge" field's value of the NativeApplyPreparation entity.
+// If the NativeApplyPreparation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeApplyPreparationMutation) OldCharge(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharge: %w", err)
+	}
+	return oldValue.Charge, nil
+}
+
+// AddCharge adds i to the "charge" field.
+func (m *NativeApplyPreparationMutation) AddCharge(i int64) {
+	if m.addcharge != nil {
+		*m.addcharge += i
+	} else {
+		m.addcharge = &i
+	}
+}
+
+// AddedCharge returns the value that was added to the "charge" field in this mutation.
+func (m *NativeApplyPreparationMutation) AddedCharge() (r int64, exists bool) {
+	v := m.addcharge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCharge resets all changes to the "charge" field.
+func (m *NativeApplyPreparationMutation) ResetCharge() {
+	m.charge = nil
+	m.addcharge = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *NativeApplyPreparationMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[nativeapplypreparation.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *NativeApplyPreparationMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *NativeApplyPreparationMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *NativeApplyPreparationMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearNativeSession clears the "native_session" edge to the NativeConsumerSession entity.
+func (m *NativeApplyPreparationMutation) ClearNativeSession() {
+	m.clearednative_session = true
+	m.clearedFields[nativeapplypreparation.FieldNativeSessionID] = struct{}{}
+}
+
+// NativeSessionCleared reports if the "native_session" edge to the NativeConsumerSession entity was cleared.
+func (m *NativeApplyPreparationMutation) NativeSessionCleared() bool {
+	return m.clearednative_session
+}
+
+// NativeSessionIDs returns the "native_session" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NativeSessionID instead. It exists only for internal usage by the builders.
+func (m *NativeApplyPreparationMutation) NativeSessionIDs() (ids []int) {
+	if id := m.native_session; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNativeSession resets all changes to the "native_session" edge.
+func (m *NativeApplyPreparationMutation) ResetNativeSession() {
+	m.native_session = nil
+	m.clearednative_session = false
+}
+
+// SetGrantID sets the "grant" edge to the NativeMaterializationGrant entity by id.
+func (m *NativeApplyPreparationMutation) SetGrantID(id int) {
+	m.grant = &id
+}
+
+// ClearGrant clears the "grant" edge to the NativeMaterializationGrant entity.
+func (m *NativeApplyPreparationMutation) ClearGrant() {
+	m.clearedgrant = true
+}
+
+// GrantCleared reports if the "grant" edge to the NativeMaterializationGrant entity was cleared.
+func (m *NativeApplyPreparationMutation) GrantCleared() bool {
+	return m.clearedgrant
+}
+
+// GrantID returns the "grant" edge ID in the mutation.
+func (m *NativeApplyPreparationMutation) GrantID() (id int, exists bool) {
+	if m.grant != nil {
+		return *m.grant, true
+	}
+	return
+}
+
+// GrantIDs returns the "grant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GrantID instead. It exists only for internal usage by the builders.
+func (m *NativeApplyPreparationMutation) GrantIDs() (ids []int) {
+	if id := m.grant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGrant resets all changes to the "grant" edge.
+func (m *NativeApplyPreparationMutation) ResetGrant() {
+	m.grant = nil
+	m.clearedgrant = false
+}
+
+// Where appends a list predicates to the NativeApplyPreparationMutation builder.
+func (m *NativeApplyPreparationMutation) Where(ps ...predicate.NativeApplyPreparation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NativeApplyPreparationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NativeApplyPreparationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NativeApplyPreparation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NativeApplyPreparationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NativeApplyPreparationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NativeApplyPreparation).
+func (m *NativeApplyPreparationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NativeApplyPreparationMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.public_id != nil {
+		fields = append(fields, nativeapplypreparation.FieldPublicID)
+	}
+	if m.user != nil {
+		fields = append(fields, nativeapplypreparation.FieldUserID)
+	}
+	if m.native_session != nil {
+		fields = append(fields, nativeapplypreparation.FieldNativeSessionID)
+	}
+	if m.operation_id != nil {
+		fields = append(fields, nativeapplypreparation.FieldOperationID)
+	}
+	if m.request_digest != nil {
+		fields = append(fields, nativeapplypreparation.FieldRequestDigest)
+	}
+	if m.authorize_challenge != nil {
+		fields = append(fields, nativeapplypreparation.FieldAuthorizeChallenge)
+	}
+	if m.ciphertext != nil {
+		fields = append(fields, nativeapplypreparation.FieldCiphertext)
+	}
+	if m.phase != nil {
+		fields = append(fields, nativeapplypreparation.FieldPhase)
+	}
+	if m.issued_ms != nil {
+		fields = append(fields, nativeapplypreparation.FieldIssuedMs)
+	}
+	if m.expires_ms != nil {
+		fields = append(fields, nativeapplypreparation.FieldExpiresMs)
+	}
+	if m.charge != nil {
+		fields = append(fields, nativeapplypreparation.FieldCharge)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NativeApplyPreparationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nativeapplypreparation.FieldPublicID:
+		return m.PublicID()
+	case nativeapplypreparation.FieldUserID:
+		return m.UserID()
+	case nativeapplypreparation.FieldNativeSessionID:
+		return m.NativeSessionID()
+	case nativeapplypreparation.FieldOperationID:
+		return m.OperationID()
+	case nativeapplypreparation.FieldRequestDigest:
+		return m.RequestDigest()
+	case nativeapplypreparation.FieldAuthorizeChallenge:
+		return m.AuthorizeChallenge()
+	case nativeapplypreparation.FieldCiphertext:
+		return m.Ciphertext()
+	case nativeapplypreparation.FieldPhase:
+		return m.Phase()
+	case nativeapplypreparation.FieldIssuedMs:
+		return m.IssuedMs()
+	case nativeapplypreparation.FieldExpiresMs:
+		return m.ExpiresMs()
+	case nativeapplypreparation.FieldCharge:
+		return m.Charge()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NativeApplyPreparationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nativeapplypreparation.FieldPublicID:
+		return m.OldPublicID(ctx)
+	case nativeapplypreparation.FieldUserID:
+		return m.OldUserID(ctx)
+	case nativeapplypreparation.FieldNativeSessionID:
+		return m.OldNativeSessionID(ctx)
+	case nativeapplypreparation.FieldOperationID:
+		return m.OldOperationID(ctx)
+	case nativeapplypreparation.FieldRequestDigest:
+		return m.OldRequestDigest(ctx)
+	case nativeapplypreparation.FieldAuthorizeChallenge:
+		return m.OldAuthorizeChallenge(ctx)
+	case nativeapplypreparation.FieldCiphertext:
+		return m.OldCiphertext(ctx)
+	case nativeapplypreparation.FieldPhase:
+		return m.OldPhase(ctx)
+	case nativeapplypreparation.FieldIssuedMs:
+		return m.OldIssuedMs(ctx)
+	case nativeapplypreparation.FieldExpiresMs:
+		return m.OldExpiresMs(ctx)
+	case nativeapplypreparation.FieldCharge:
+		return m.OldCharge(ctx)
+	}
+	return nil, fmt.Errorf("unknown NativeApplyPreparation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeApplyPreparationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nativeapplypreparation.FieldPublicID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicID(v)
+		return nil
+	case nativeapplypreparation.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case nativeapplypreparation.FieldNativeSessionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNativeSessionID(v)
+		return nil
+	case nativeapplypreparation.FieldOperationID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperationID(v)
+		return nil
+	case nativeapplypreparation.FieldRequestDigest:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestDigest(v)
+		return nil
+	case nativeapplypreparation.FieldAuthorizeChallenge:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuthorizeChallenge(v)
+		return nil
+	case nativeapplypreparation.FieldCiphertext:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCiphertext(v)
+		return nil
+	case nativeapplypreparation.FieldPhase:
+		v, ok := value.(nativeapplypreparation.Phase)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhase(v)
+		return nil
+	case nativeapplypreparation.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuedMs(v)
+		return nil
+	case nativeapplypreparation.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresMs(v)
+		return nil
+	case nativeapplypreparation.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeApplyPreparation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NativeApplyPreparationMutation) AddedFields() []string {
+	var fields []string
+	if m.addissued_ms != nil {
+		fields = append(fields, nativeapplypreparation.FieldIssuedMs)
+	}
+	if m.addexpires_ms != nil {
+		fields = append(fields, nativeapplypreparation.FieldExpiresMs)
+	}
+	if m.addcharge != nil {
+		fields = append(fields, nativeapplypreparation.FieldCharge)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NativeApplyPreparationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nativeapplypreparation.FieldIssuedMs:
+		return m.AddedIssuedMs()
+	case nativeapplypreparation.FieldExpiresMs:
+		return m.AddedExpiresMs()
+	case nativeapplypreparation.FieldCharge:
+		return m.AddedCharge()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeApplyPreparationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nativeapplypreparation.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIssuedMs(v)
+		return nil
+	case nativeapplypreparation.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExpiresMs(v)
+		return nil
+	case nativeapplypreparation.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeApplyPreparation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NativeApplyPreparationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NativeApplyPreparationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NativeApplyPreparationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NativeApplyPreparation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NativeApplyPreparationMutation) ResetField(name string) error {
+	switch name {
+	case nativeapplypreparation.FieldPublicID:
+		m.ResetPublicID()
+		return nil
+	case nativeapplypreparation.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case nativeapplypreparation.FieldNativeSessionID:
+		m.ResetNativeSessionID()
+		return nil
+	case nativeapplypreparation.FieldOperationID:
+		m.ResetOperationID()
+		return nil
+	case nativeapplypreparation.FieldRequestDigest:
+		m.ResetRequestDigest()
+		return nil
+	case nativeapplypreparation.FieldAuthorizeChallenge:
+		m.ResetAuthorizeChallenge()
+		return nil
+	case nativeapplypreparation.FieldCiphertext:
+		m.ResetCiphertext()
+		return nil
+	case nativeapplypreparation.FieldPhase:
+		m.ResetPhase()
+		return nil
+	case nativeapplypreparation.FieldIssuedMs:
+		m.ResetIssuedMs()
+		return nil
+	case nativeapplypreparation.FieldExpiresMs:
+		m.ResetExpiresMs()
+		return nil
+	case nativeapplypreparation.FieldCharge:
+		m.ResetCharge()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeApplyPreparation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NativeApplyPreparationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.user != nil {
+		edges = append(edges, nativeapplypreparation.EdgeUser)
+	}
+	if m.native_session != nil {
+		edges = append(edges, nativeapplypreparation.EdgeNativeSession)
+	}
+	if m.grant != nil {
+		edges = append(edges, nativeapplypreparation.EdgeGrant)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NativeApplyPreparationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nativeapplypreparation.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativeapplypreparation.EdgeNativeSession:
+		if id := m.native_session; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativeapplypreparation.EdgeGrant:
+		if id := m.grant; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NativeApplyPreparationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NativeApplyPreparationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NativeApplyPreparationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleareduser {
+		edges = append(edges, nativeapplypreparation.EdgeUser)
+	}
+	if m.clearednative_session {
+		edges = append(edges, nativeapplypreparation.EdgeNativeSession)
+	}
+	if m.clearedgrant {
+		edges = append(edges, nativeapplypreparation.EdgeGrant)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NativeApplyPreparationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nativeapplypreparation.EdgeUser:
+		return m.cleareduser
+	case nativeapplypreparation.EdgeNativeSession:
+		return m.clearednative_session
+	case nativeapplypreparation.EdgeGrant:
+		return m.clearedgrant
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NativeApplyPreparationMutation) ClearEdge(name string) error {
+	switch name {
+	case nativeapplypreparation.EdgeUser:
+		m.ClearUser()
+		return nil
+	case nativeapplypreparation.EdgeNativeSession:
+		m.ClearNativeSession()
+		return nil
+	case nativeapplypreparation.EdgeGrant:
+		m.ClearGrant()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeApplyPreparation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NativeApplyPreparationMutation) ResetEdge(name string) error {
+	switch name {
+	case nativeapplypreparation.EdgeUser:
+		m.ResetUser()
+		return nil
+	case nativeapplypreparation.EdgeNativeSession:
+		m.ResetNativeSession()
+		return nil
+	case nativeapplypreparation.EdgeGrant:
+		m.ResetGrant()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeApplyPreparation edge %s", name)
+}
+
 // NativeConsumerChallengeMutation represents an operation that mutates the NativeConsumerChallenge nodes in the graph.
 type NativeConsumerChallengeMutation struct {
 	config
@@ -10526,6 +11657,12 @@ type NativeConsumerSessionMutation struct {
 	cleareduser           bool
 	parent_session        *int
 	clearedparent_session bool
+	preparations          map[int]struct{}
+	removedpreparations   map[int]struct{}
+	clearedpreparations   bool
+	grants                map[int]struct{}
+	removedgrants         map[int]struct{}
+	clearedgrants         bool
 	done                  bool
 	oldValue              func(context.Context) (*NativeConsumerSession, error)
 	predicates            []predicate.NativeConsumerSession
@@ -11231,6 +12368,114 @@ func (m *NativeConsumerSessionMutation) ResetParentSession() {
 	m.clearedparent_session = false
 }
 
+// AddPreparationIDs adds the "preparations" edge to the NativeApplyPreparation entity by ids.
+func (m *NativeConsumerSessionMutation) AddPreparationIDs(ids ...int) {
+	if m.preparations == nil {
+		m.preparations = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.preparations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPreparations clears the "preparations" edge to the NativeApplyPreparation entity.
+func (m *NativeConsumerSessionMutation) ClearPreparations() {
+	m.clearedpreparations = true
+}
+
+// PreparationsCleared reports if the "preparations" edge to the NativeApplyPreparation entity was cleared.
+func (m *NativeConsumerSessionMutation) PreparationsCleared() bool {
+	return m.clearedpreparations
+}
+
+// RemovePreparationIDs removes the "preparations" edge to the NativeApplyPreparation entity by IDs.
+func (m *NativeConsumerSessionMutation) RemovePreparationIDs(ids ...int) {
+	if m.removedpreparations == nil {
+		m.removedpreparations = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.preparations, ids[i])
+		m.removedpreparations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPreparations returns the removed IDs of the "preparations" edge to the NativeApplyPreparation entity.
+func (m *NativeConsumerSessionMutation) RemovedPreparationsIDs() (ids []int) {
+	for id := range m.removedpreparations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PreparationsIDs returns the "preparations" edge IDs in the mutation.
+func (m *NativeConsumerSessionMutation) PreparationsIDs() (ids []int) {
+	for id := range m.preparations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPreparations resets all changes to the "preparations" edge.
+func (m *NativeConsumerSessionMutation) ResetPreparations() {
+	m.preparations = nil
+	m.clearedpreparations = false
+	m.removedpreparations = nil
+}
+
+// AddGrantIDs adds the "grants" edge to the NativeMaterializationGrant entity by ids.
+func (m *NativeConsumerSessionMutation) AddGrantIDs(ids ...int) {
+	if m.grants == nil {
+		m.grants = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.grants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGrants clears the "grants" edge to the NativeMaterializationGrant entity.
+func (m *NativeConsumerSessionMutation) ClearGrants() {
+	m.clearedgrants = true
+}
+
+// GrantsCleared reports if the "grants" edge to the NativeMaterializationGrant entity was cleared.
+func (m *NativeConsumerSessionMutation) GrantsCleared() bool {
+	return m.clearedgrants
+}
+
+// RemoveGrantIDs removes the "grants" edge to the NativeMaterializationGrant entity by IDs.
+func (m *NativeConsumerSessionMutation) RemoveGrantIDs(ids ...int) {
+	if m.removedgrants == nil {
+		m.removedgrants = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.grants, ids[i])
+		m.removedgrants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGrants returns the removed IDs of the "grants" edge to the NativeMaterializationGrant entity.
+func (m *NativeConsumerSessionMutation) RemovedGrantsIDs() (ids []int) {
+	for id := range m.removedgrants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GrantsIDs returns the "grants" edge IDs in the mutation.
+func (m *NativeConsumerSessionMutation) GrantsIDs() (ids []int) {
+	for id := range m.grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGrants resets all changes to the "grants" edge.
+func (m *NativeConsumerSessionMutation) ResetGrants() {
+	m.grants = nil
+	m.clearedgrants = false
+	m.removedgrants = nil
+}
+
 // Where appends a list predicates to the NativeConsumerSessionMutation builder.
 func (m *NativeConsumerSessionMutation) Where(ps ...predicate.NativeConsumerSession) {
 	m.predicates = append(m.predicates, ps...)
@@ -11619,12 +12864,18 @@ func (m *NativeConsumerSessionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NativeConsumerSessionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, nativeconsumersession.EdgeUser)
 	}
 	if m.parent_session != nil {
 		edges = append(edges, nativeconsumersession.EdgeParentSession)
+	}
+	if m.preparations != nil {
+		edges = append(edges, nativeconsumersession.EdgePreparations)
+	}
+	if m.grants != nil {
+		edges = append(edges, nativeconsumersession.EdgeGrants)
 	}
 	return edges
 }
@@ -11641,30 +12892,68 @@ func (m *NativeConsumerSessionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.parent_session; id != nil {
 			return []ent.Value{*id}
 		}
+	case nativeconsumersession.EdgePreparations:
+		ids := make([]ent.Value, 0, len(m.preparations))
+		for id := range m.preparations {
+			ids = append(ids, id)
+		}
+		return ids
+	case nativeconsumersession.EdgeGrants:
+		ids := make([]ent.Value, 0, len(m.grants))
+		for id := range m.grants {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NativeConsumerSessionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
+	if m.removedpreparations != nil {
+		edges = append(edges, nativeconsumersession.EdgePreparations)
+	}
+	if m.removedgrants != nil {
+		edges = append(edges, nativeconsumersession.EdgeGrants)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *NativeConsumerSessionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case nativeconsumersession.EdgePreparations:
+		ids := make([]ent.Value, 0, len(m.removedpreparations))
+		for id := range m.removedpreparations {
+			ids = append(ids, id)
+		}
+		return ids
+	case nativeconsumersession.EdgeGrants:
+		ids := make([]ent.Value, 0, len(m.removedgrants))
+		for id := range m.removedgrants {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NativeConsumerSessionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, nativeconsumersession.EdgeUser)
 	}
 	if m.clearedparent_session {
 		edges = append(edges, nativeconsumersession.EdgeParentSession)
+	}
+	if m.clearedpreparations {
+		edges = append(edges, nativeconsumersession.EdgePreparations)
+	}
+	if m.clearedgrants {
+		edges = append(edges, nativeconsumersession.EdgeGrants)
 	}
 	return edges
 }
@@ -11677,6 +12966,10 @@ func (m *NativeConsumerSessionMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case nativeconsumersession.EdgeParentSession:
 		return m.clearedparent_session
+	case nativeconsumersession.EdgePreparations:
+		return m.clearedpreparations
+	case nativeconsumersession.EdgeGrants:
+		return m.clearedgrants
 	}
 	return false
 }
@@ -11705,8 +12998,1269 @@ func (m *NativeConsumerSessionMutation) ResetEdge(name string) error {
 	case nativeconsumersession.EdgeParentSession:
 		m.ResetParentSession()
 		return nil
+	case nativeconsumersession.EdgePreparations:
+		m.ResetPreparations()
+		return nil
+	case nativeconsumersession.EdgeGrants:
+		m.ResetGrants()
+		return nil
 	}
 	return fmt.Errorf("unknown NativeConsumerSession edge %s", name)
+}
+
+// NativeMaterializationGrantMutation represents an operation that mutates the NativeMaterializationGrant nodes in the graph.
+type NativeMaterializationGrantMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	public_id             *string
+	token_hash            *[]byte
+	consume_challenge     *[]byte
+	binding_digest        *[]byte
+	issued_ms             *int64
+	addissued_ms          *int64
+	expires_ms            *int64
+	addexpires_ms         *int64
+	consumed_ms           *int64
+	addconsumed_ms        *int64
+	retired               *bool
+	expired               *bool
+	charge                *int64
+	addcharge             *int64
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	native_session        *int
+	clearednative_session bool
+	prepare               *int
+	clearedprepare        bool
+	done                  bool
+	oldValue              func(context.Context) (*NativeMaterializationGrant, error)
+	predicates            []predicate.NativeMaterializationGrant
+}
+
+var _ ent.Mutation = (*NativeMaterializationGrantMutation)(nil)
+
+// nativematerializationgrantOption allows management of the mutation configuration using functional options.
+type nativematerializationgrantOption func(*NativeMaterializationGrantMutation)
+
+// newNativeMaterializationGrantMutation creates new mutation for the NativeMaterializationGrant entity.
+func newNativeMaterializationGrantMutation(c config, op Op, opts ...nativematerializationgrantOption) *NativeMaterializationGrantMutation {
+	m := &NativeMaterializationGrantMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNativeMaterializationGrant,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNativeMaterializationGrantID sets the ID field of the mutation.
+func withNativeMaterializationGrantID(id int) nativematerializationgrantOption {
+	return func(m *NativeMaterializationGrantMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NativeMaterializationGrant
+		)
+		m.oldValue = func(ctx context.Context) (*NativeMaterializationGrant, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NativeMaterializationGrant.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNativeMaterializationGrant sets the old NativeMaterializationGrant of the mutation.
+func withNativeMaterializationGrant(node *NativeMaterializationGrant) nativematerializationgrantOption {
+	return func(m *NativeMaterializationGrantMutation) {
+		m.oldValue = func(context.Context) (*NativeMaterializationGrant, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NativeMaterializationGrantMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NativeMaterializationGrantMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NativeMaterializationGrantMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NativeMaterializationGrantMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NativeMaterializationGrant.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPublicID sets the "public_id" field.
+func (m *NativeMaterializationGrantMutation) SetPublicID(s string) {
+	m.public_id = &s
+}
+
+// PublicID returns the value of the "public_id" field in the mutation.
+func (m *NativeMaterializationGrantMutation) PublicID() (r string, exists bool) {
+	v := m.public_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicID returns the old "public_id" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldPublicID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicID: %w", err)
+	}
+	return oldValue.PublicID, nil
+}
+
+// ResetPublicID resets all changes to the "public_id" field.
+func (m *NativeMaterializationGrantMutation) ResetPublicID() {
+	m.public_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *NativeMaterializationGrantMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *NativeMaterializationGrantMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *NativeMaterializationGrantMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetNativeSessionID sets the "native_session_id" field.
+func (m *NativeMaterializationGrantMutation) SetNativeSessionID(i int) {
+	m.native_session = &i
+}
+
+// NativeSessionID returns the value of the "native_session_id" field in the mutation.
+func (m *NativeMaterializationGrantMutation) NativeSessionID() (r int, exists bool) {
+	v := m.native_session
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNativeSessionID returns the old "native_session_id" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldNativeSessionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNativeSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNativeSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNativeSessionID: %w", err)
+	}
+	return oldValue.NativeSessionID, nil
+}
+
+// ResetNativeSessionID resets all changes to the "native_session_id" field.
+func (m *NativeMaterializationGrantMutation) ResetNativeSessionID() {
+	m.native_session = nil
+}
+
+// SetPrepareID sets the "prepare_id" field.
+func (m *NativeMaterializationGrantMutation) SetPrepareID(i int) {
+	m.prepare = &i
+}
+
+// PrepareID returns the value of the "prepare_id" field in the mutation.
+func (m *NativeMaterializationGrantMutation) PrepareID() (r int, exists bool) {
+	v := m.prepare
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrepareID returns the old "prepare_id" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldPrepareID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrepareID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrepareID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrepareID: %w", err)
+	}
+	return oldValue.PrepareID, nil
+}
+
+// ResetPrepareID resets all changes to the "prepare_id" field.
+func (m *NativeMaterializationGrantMutation) ResetPrepareID() {
+	m.prepare = nil
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (m *NativeMaterializationGrantMutation) SetTokenHash(b []byte) {
+	m.token_hash = &b
+}
+
+// TokenHash returns the value of the "token_hash" field in the mutation.
+func (m *NativeMaterializationGrantMutation) TokenHash() (r []byte, exists bool) {
+	v := m.token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenHash returns the old "token_hash" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldTokenHash(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenHash: %w", err)
+	}
+	return oldValue.TokenHash, nil
+}
+
+// ResetTokenHash resets all changes to the "token_hash" field.
+func (m *NativeMaterializationGrantMutation) ResetTokenHash() {
+	m.token_hash = nil
+}
+
+// SetConsumeChallenge sets the "consume_challenge" field.
+func (m *NativeMaterializationGrantMutation) SetConsumeChallenge(b []byte) {
+	m.consume_challenge = &b
+}
+
+// ConsumeChallenge returns the value of the "consume_challenge" field in the mutation.
+func (m *NativeMaterializationGrantMutation) ConsumeChallenge() (r []byte, exists bool) {
+	v := m.consume_challenge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsumeChallenge returns the old "consume_challenge" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldConsumeChallenge(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsumeChallenge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsumeChallenge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsumeChallenge: %w", err)
+	}
+	return oldValue.ConsumeChallenge, nil
+}
+
+// ResetConsumeChallenge resets all changes to the "consume_challenge" field.
+func (m *NativeMaterializationGrantMutation) ResetConsumeChallenge() {
+	m.consume_challenge = nil
+}
+
+// SetBindingDigest sets the "binding_digest" field.
+func (m *NativeMaterializationGrantMutation) SetBindingDigest(b []byte) {
+	m.binding_digest = &b
+}
+
+// BindingDigest returns the value of the "binding_digest" field in the mutation.
+func (m *NativeMaterializationGrantMutation) BindingDigest() (r []byte, exists bool) {
+	v := m.binding_digest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBindingDigest returns the old "binding_digest" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldBindingDigest(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBindingDigest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBindingDigest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBindingDigest: %w", err)
+	}
+	return oldValue.BindingDigest, nil
+}
+
+// ResetBindingDigest resets all changes to the "binding_digest" field.
+func (m *NativeMaterializationGrantMutation) ResetBindingDigest() {
+	m.binding_digest = nil
+}
+
+// SetIssuedMs sets the "issued_ms" field.
+func (m *NativeMaterializationGrantMutation) SetIssuedMs(i int64) {
+	m.issued_ms = &i
+	m.addissued_ms = nil
+}
+
+// IssuedMs returns the value of the "issued_ms" field in the mutation.
+func (m *NativeMaterializationGrantMutation) IssuedMs() (r int64, exists bool) {
+	v := m.issued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuedMs returns the old "issued_ms" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldIssuedMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuedMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuedMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuedMs: %w", err)
+	}
+	return oldValue.IssuedMs, nil
+}
+
+// AddIssuedMs adds i to the "issued_ms" field.
+func (m *NativeMaterializationGrantMutation) AddIssuedMs(i int64) {
+	if m.addissued_ms != nil {
+		*m.addissued_ms += i
+	} else {
+		m.addissued_ms = &i
+	}
+}
+
+// AddedIssuedMs returns the value that was added to the "issued_ms" field in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedIssuedMs() (r int64, exists bool) {
+	v := m.addissued_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIssuedMs resets all changes to the "issued_ms" field.
+func (m *NativeMaterializationGrantMutation) ResetIssuedMs() {
+	m.issued_ms = nil
+	m.addissued_ms = nil
+}
+
+// SetExpiresMs sets the "expires_ms" field.
+func (m *NativeMaterializationGrantMutation) SetExpiresMs(i int64) {
+	m.expires_ms = &i
+	m.addexpires_ms = nil
+}
+
+// ExpiresMs returns the value of the "expires_ms" field in the mutation.
+func (m *NativeMaterializationGrantMutation) ExpiresMs() (r int64, exists bool) {
+	v := m.expires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresMs returns the old "expires_ms" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldExpiresMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresMs: %w", err)
+	}
+	return oldValue.ExpiresMs, nil
+}
+
+// AddExpiresMs adds i to the "expires_ms" field.
+func (m *NativeMaterializationGrantMutation) AddExpiresMs(i int64) {
+	if m.addexpires_ms != nil {
+		*m.addexpires_ms += i
+	} else {
+		m.addexpires_ms = &i
+	}
+}
+
+// AddedExpiresMs returns the value that was added to the "expires_ms" field in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedExpiresMs() (r int64, exists bool) {
+	v := m.addexpires_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExpiresMs resets all changes to the "expires_ms" field.
+func (m *NativeMaterializationGrantMutation) ResetExpiresMs() {
+	m.expires_ms = nil
+	m.addexpires_ms = nil
+}
+
+// SetConsumedMs sets the "consumed_ms" field.
+func (m *NativeMaterializationGrantMutation) SetConsumedMs(i int64) {
+	m.consumed_ms = &i
+	m.addconsumed_ms = nil
+}
+
+// ConsumedMs returns the value of the "consumed_ms" field in the mutation.
+func (m *NativeMaterializationGrantMutation) ConsumedMs() (r int64, exists bool) {
+	v := m.consumed_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsumedMs returns the old "consumed_ms" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldConsumedMs(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsumedMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsumedMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsumedMs: %w", err)
+	}
+	return oldValue.ConsumedMs, nil
+}
+
+// AddConsumedMs adds i to the "consumed_ms" field.
+func (m *NativeMaterializationGrantMutation) AddConsumedMs(i int64) {
+	if m.addconsumed_ms != nil {
+		*m.addconsumed_ms += i
+	} else {
+		m.addconsumed_ms = &i
+	}
+}
+
+// AddedConsumedMs returns the value that was added to the "consumed_ms" field in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedConsumedMs() (r int64, exists bool) {
+	v := m.addconsumed_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetConsumedMs resets all changes to the "consumed_ms" field.
+func (m *NativeMaterializationGrantMutation) ResetConsumedMs() {
+	m.consumed_ms = nil
+	m.addconsumed_ms = nil
+}
+
+// SetRetired sets the "retired" field.
+func (m *NativeMaterializationGrantMutation) SetRetired(b bool) {
+	m.retired = &b
+}
+
+// Retired returns the value of the "retired" field in the mutation.
+func (m *NativeMaterializationGrantMutation) Retired() (r bool, exists bool) {
+	v := m.retired
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetired returns the old "retired" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldRetired(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetired is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetired requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetired: %w", err)
+	}
+	return oldValue.Retired, nil
+}
+
+// ResetRetired resets all changes to the "retired" field.
+func (m *NativeMaterializationGrantMutation) ResetRetired() {
+	m.retired = nil
+}
+
+// SetExpired sets the "expired" field.
+func (m *NativeMaterializationGrantMutation) SetExpired(b bool) {
+	m.expired = &b
+}
+
+// Expired returns the value of the "expired" field in the mutation.
+func (m *NativeMaterializationGrantMutation) Expired() (r bool, exists bool) {
+	v := m.expired
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpired returns the old "expired" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldExpired(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpired is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpired requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpired: %w", err)
+	}
+	return oldValue.Expired, nil
+}
+
+// ResetExpired resets all changes to the "expired" field.
+func (m *NativeMaterializationGrantMutation) ResetExpired() {
+	m.expired = nil
+}
+
+// SetCharge sets the "charge" field.
+func (m *NativeMaterializationGrantMutation) SetCharge(i int64) {
+	m.charge = &i
+	m.addcharge = nil
+}
+
+// Charge returns the value of the "charge" field in the mutation.
+func (m *NativeMaterializationGrantMutation) Charge() (r int64, exists bool) {
+	v := m.charge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharge returns the old "charge" field's value of the NativeMaterializationGrant entity.
+// If the NativeMaterializationGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NativeMaterializationGrantMutation) OldCharge(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharge: %w", err)
+	}
+	return oldValue.Charge, nil
+}
+
+// AddCharge adds i to the "charge" field.
+func (m *NativeMaterializationGrantMutation) AddCharge(i int64) {
+	if m.addcharge != nil {
+		*m.addcharge += i
+	} else {
+		m.addcharge = &i
+	}
+}
+
+// AddedCharge returns the value that was added to the "charge" field in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedCharge() (r int64, exists bool) {
+	v := m.addcharge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCharge resets all changes to the "charge" field.
+func (m *NativeMaterializationGrantMutation) ResetCharge() {
+	m.charge = nil
+	m.addcharge = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *NativeMaterializationGrantMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[nativematerializationgrant.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *NativeMaterializationGrantMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *NativeMaterializationGrantMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *NativeMaterializationGrantMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearNativeSession clears the "native_session" edge to the NativeConsumerSession entity.
+func (m *NativeMaterializationGrantMutation) ClearNativeSession() {
+	m.clearednative_session = true
+	m.clearedFields[nativematerializationgrant.FieldNativeSessionID] = struct{}{}
+}
+
+// NativeSessionCleared reports if the "native_session" edge to the NativeConsumerSession entity was cleared.
+func (m *NativeMaterializationGrantMutation) NativeSessionCleared() bool {
+	return m.clearednative_session
+}
+
+// NativeSessionIDs returns the "native_session" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NativeSessionID instead. It exists only for internal usage by the builders.
+func (m *NativeMaterializationGrantMutation) NativeSessionIDs() (ids []int) {
+	if id := m.native_session; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNativeSession resets all changes to the "native_session" edge.
+func (m *NativeMaterializationGrantMutation) ResetNativeSession() {
+	m.native_session = nil
+	m.clearednative_session = false
+}
+
+// ClearPrepare clears the "prepare" edge to the NativeApplyPreparation entity.
+func (m *NativeMaterializationGrantMutation) ClearPrepare() {
+	m.clearedprepare = true
+	m.clearedFields[nativematerializationgrant.FieldPrepareID] = struct{}{}
+}
+
+// PrepareCleared reports if the "prepare" edge to the NativeApplyPreparation entity was cleared.
+func (m *NativeMaterializationGrantMutation) PrepareCleared() bool {
+	return m.clearedprepare
+}
+
+// PrepareIDs returns the "prepare" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PrepareID instead. It exists only for internal usage by the builders.
+func (m *NativeMaterializationGrantMutation) PrepareIDs() (ids []int) {
+	if id := m.prepare; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPrepare resets all changes to the "prepare" edge.
+func (m *NativeMaterializationGrantMutation) ResetPrepare() {
+	m.prepare = nil
+	m.clearedprepare = false
+}
+
+// Where appends a list predicates to the NativeMaterializationGrantMutation builder.
+func (m *NativeMaterializationGrantMutation) Where(ps ...predicate.NativeMaterializationGrant) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NativeMaterializationGrantMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NativeMaterializationGrantMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NativeMaterializationGrant, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NativeMaterializationGrantMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NativeMaterializationGrantMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NativeMaterializationGrant).
+func (m *NativeMaterializationGrantMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NativeMaterializationGrantMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.public_id != nil {
+		fields = append(fields, nativematerializationgrant.FieldPublicID)
+	}
+	if m.user != nil {
+		fields = append(fields, nativematerializationgrant.FieldUserID)
+	}
+	if m.native_session != nil {
+		fields = append(fields, nativematerializationgrant.FieldNativeSessionID)
+	}
+	if m.prepare != nil {
+		fields = append(fields, nativematerializationgrant.FieldPrepareID)
+	}
+	if m.token_hash != nil {
+		fields = append(fields, nativematerializationgrant.FieldTokenHash)
+	}
+	if m.consume_challenge != nil {
+		fields = append(fields, nativematerializationgrant.FieldConsumeChallenge)
+	}
+	if m.binding_digest != nil {
+		fields = append(fields, nativematerializationgrant.FieldBindingDigest)
+	}
+	if m.issued_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldIssuedMs)
+	}
+	if m.expires_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldExpiresMs)
+	}
+	if m.consumed_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldConsumedMs)
+	}
+	if m.retired != nil {
+		fields = append(fields, nativematerializationgrant.FieldRetired)
+	}
+	if m.expired != nil {
+		fields = append(fields, nativematerializationgrant.FieldExpired)
+	}
+	if m.charge != nil {
+		fields = append(fields, nativematerializationgrant.FieldCharge)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NativeMaterializationGrantMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nativematerializationgrant.FieldPublicID:
+		return m.PublicID()
+	case nativematerializationgrant.FieldUserID:
+		return m.UserID()
+	case nativematerializationgrant.FieldNativeSessionID:
+		return m.NativeSessionID()
+	case nativematerializationgrant.FieldPrepareID:
+		return m.PrepareID()
+	case nativematerializationgrant.FieldTokenHash:
+		return m.TokenHash()
+	case nativematerializationgrant.FieldConsumeChallenge:
+		return m.ConsumeChallenge()
+	case nativematerializationgrant.FieldBindingDigest:
+		return m.BindingDigest()
+	case nativematerializationgrant.FieldIssuedMs:
+		return m.IssuedMs()
+	case nativematerializationgrant.FieldExpiresMs:
+		return m.ExpiresMs()
+	case nativematerializationgrant.FieldConsumedMs:
+		return m.ConsumedMs()
+	case nativematerializationgrant.FieldRetired:
+		return m.Retired()
+	case nativematerializationgrant.FieldExpired:
+		return m.Expired()
+	case nativematerializationgrant.FieldCharge:
+		return m.Charge()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NativeMaterializationGrantMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nativematerializationgrant.FieldPublicID:
+		return m.OldPublicID(ctx)
+	case nativematerializationgrant.FieldUserID:
+		return m.OldUserID(ctx)
+	case nativematerializationgrant.FieldNativeSessionID:
+		return m.OldNativeSessionID(ctx)
+	case nativematerializationgrant.FieldPrepareID:
+		return m.OldPrepareID(ctx)
+	case nativematerializationgrant.FieldTokenHash:
+		return m.OldTokenHash(ctx)
+	case nativematerializationgrant.FieldConsumeChallenge:
+		return m.OldConsumeChallenge(ctx)
+	case nativematerializationgrant.FieldBindingDigest:
+		return m.OldBindingDigest(ctx)
+	case nativematerializationgrant.FieldIssuedMs:
+		return m.OldIssuedMs(ctx)
+	case nativematerializationgrant.FieldExpiresMs:
+		return m.OldExpiresMs(ctx)
+	case nativematerializationgrant.FieldConsumedMs:
+		return m.OldConsumedMs(ctx)
+	case nativematerializationgrant.FieldRetired:
+		return m.OldRetired(ctx)
+	case nativematerializationgrant.FieldExpired:
+		return m.OldExpired(ctx)
+	case nativematerializationgrant.FieldCharge:
+		return m.OldCharge(ctx)
+	}
+	return nil, fmt.Errorf("unknown NativeMaterializationGrant field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeMaterializationGrantMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nativematerializationgrant.FieldPublicID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicID(v)
+		return nil
+	case nativematerializationgrant.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case nativematerializationgrant.FieldNativeSessionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNativeSessionID(v)
+		return nil
+	case nativematerializationgrant.FieldPrepareID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrepareID(v)
+		return nil
+	case nativematerializationgrant.FieldTokenHash:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenHash(v)
+		return nil
+	case nativematerializationgrant.FieldConsumeChallenge:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsumeChallenge(v)
+		return nil
+	case nativematerializationgrant.FieldBindingDigest:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBindingDigest(v)
+		return nil
+	case nativematerializationgrant.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuedMs(v)
+		return nil
+	case nativematerializationgrant.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresMs(v)
+		return nil
+	case nativematerializationgrant.FieldConsumedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsumedMs(v)
+		return nil
+	case nativematerializationgrant.FieldRetired:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetired(v)
+		return nil
+	case nativematerializationgrant.FieldExpired:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpired(v)
+		return nil
+	case nativematerializationgrant.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeMaterializationGrant field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NativeMaterializationGrantMutation) AddedFields() []string {
+	var fields []string
+	if m.addissued_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldIssuedMs)
+	}
+	if m.addexpires_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldExpiresMs)
+	}
+	if m.addconsumed_ms != nil {
+		fields = append(fields, nativematerializationgrant.FieldConsumedMs)
+	}
+	if m.addcharge != nil {
+		fields = append(fields, nativematerializationgrant.FieldCharge)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NativeMaterializationGrantMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nativematerializationgrant.FieldIssuedMs:
+		return m.AddedIssuedMs()
+	case nativematerializationgrant.FieldExpiresMs:
+		return m.AddedExpiresMs()
+	case nativematerializationgrant.FieldConsumedMs:
+		return m.AddedConsumedMs()
+	case nativematerializationgrant.FieldCharge:
+		return m.AddedCharge()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NativeMaterializationGrantMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nativematerializationgrant.FieldIssuedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIssuedMs(v)
+		return nil
+	case nativematerializationgrant.FieldExpiresMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExpiresMs(v)
+		return nil
+	case nativematerializationgrant.FieldConsumedMs:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddConsumedMs(v)
+		return nil
+	case nativematerializationgrant.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NativeMaterializationGrant numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NativeMaterializationGrantMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NativeMaterializationGrantMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NativeMaterializationGrantMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NativeMaterializationGrant nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NativeMaterializationGrantMutation) ResetField(name string) error {
+	switch name {
+	case nativematerializationgrant.FieldPublicID:
+		m.ResetPublicID()
+		return nil
+	case nativematerializationgrant.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case nativematerializationgrant.FieldNativeSessionID:
+		m.ResetNativeSessionID()
+		return nil
+	case nativematerializationgrant.FieldPrepareID:
+		m.ResetPrepareID()
+		return nil
+	case nativematerializationgrant.FieldTokenHash:
+		m.ResetTokenHash()
+		return nil
+	case nativematerializationgrant.FieldConsumeChallenge:
+		m.ResetConsumeChallenge()
+		return nil
+	case nativematerializationgrant.FieldBindingDigest:
+		m.ResetBindingDigest()
+		return nil
+	case nativematerializationgrant.FieldIssuedMs:
+		m.ResetIssuedMs()
+		return nil
+	case nativematerializationgrant.FieldExpiresMs:
+		m.ResetExpiresMs()
+		return nil
+	case nativematerializationgrant.FieldConsumedMs:
+		m.ResetConsumedMs()
+		return nil
+	case nativematerializationgrant.FieldRetired:
+		m.ResetRetired()
+		return nil
+	case nativematerializationgrant.FieldExpired:
+		m.ResetExpired()
+		return nil
+	case nativematerializationgrant.FieldCharge:
+		m.ResetCharge()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeMaterializationGrant field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.user != nil {
+		edges = append(edges, nativematerializationgrant.EdgeUser)
+	}
+	if m.native_session != nil {
+		edges = append(edges, nativematerializationgrant.EdgeNativeSession)
+	}
+	if m.prepare != nil {
+		edges = append(edges, nativematerializationgrant.EdgePrepare)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NativeMaterializationGrantMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nativematerializationgrant.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativematerializationgrant.EdgeNativeSession:
+		if id := m.native_session; id != nil {
+			return []ent.Value{*id}
+		}
+	case nativematerializationgrant.EdgePrepare:
+		if id := m.prepare; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NativeMaterializationGrantMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NativeMaterializationGrantMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NativeMaterializationGrantMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleareduser {
+		edges = append(edges, nativematerializationgrant.EdgeUser)
+	}
+	if m.clearednative_session {
+		edges = append(edges, nativematerializationgrant.EdgeNativeSession)
+	}
+	if m.clearedprepare {
+		edges = append(edges, nativematerializationgrant.EdgePrepare)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NativeMaterializationGrantMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nativematerializationgrant.EdgeUser:
+		return m.cleareduser
+	case nativematerializationgrant.EdgeNativeSession:
+		return m.clearednative_session
+	case nativematerializationgrant.EdgePrepare:
+		return m.clearedprepare
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NativeMaterializationGrantMutation) ClearEdge(name string) error {
+	switch name {
+	case nativematerializationgrant.EdgeUser:
+		m.ClearUser()
+		return nil
+	case nativematerializationgrant.EdgeNativeSession:
+		m.ClearNativeSession()
+		return nil
+	case nativematerializationgrant.EdgePrepare:
+		m.ClearPrepare()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeMaterializationGrant unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NativeMaterializationGrantMutation) ResetEdge(name string) error {
+	switch name {
+	case nativematerializationgrant.EdgeUser:
+		m.ResetUser()
+		return nil
+	case nativematerializationgrant.EdgeNativeSession:
+		m.ResetNativeSession()
+		return nil
+	case nativematerializationgrant.EdgePrepare:
+		m.ResetPrepare()
+		return nil
+	}
+	return fmt.Errorf("unknown NativeMaterializationGrant edge %s", name)
 }
 
 // OIDCIdentityMutation represents an operation that mutates the OIDCIdentity nodes in the graph.
@@ -15576,51 +18130,57 @@ func (m *SessionMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                                Op
-	typ                               string
-	id                                *int
-	user_key                          *string
-	clearedFields                     map[string]struct{}
-	github_credential                 *int
-	clearedgithub_credential          bool
-	github_lists                      map[int]struct{}
-	removedgithub_lists               map[int]struct{}
-	clearedgithub_lists               bool
-	github_repositories               map[int]struct{}
-	removedgithub_repositories        map[int]struct{}
-	clearedgithub_repositories        bool
-	local_account                     *int
-	clearedlocal_account              bool
-	sessions                          map[int]struct{}
-	removedsessions                   map[int]struct{}
-	clearedsessions                   bool
-	oidc_identities                   map[int]struct{}
-	removedoidc_identities            map[int]struct{}
-	clearedoidc_identities            bool
-	collected_repositories            map[int]struct{}
-	removedcollected_repositories     map[int]struct{}
-	clearedcollected_repositories     bool
-	packs                             map[int]struct{}
-	removedpacks                      map[int]struct{}
-	clearedpacks                      bool
-	mcp_credentials                   map[int]struct{}
-	removedmcp_credentials            map[int]struct{}
-	clearedmcp_credentials            bool
-	categories                        map[int]struct{}
-	removedcategories                 map[int]struct{}
-	clearedcategories                 bool
-	configuration_assets              map[int]struct{}
-	removedconfiguration_assets       map[int]struct{}
-	clearedconfiguration_assets       bool
-	native_consumer_challenges        map[int]struct{}
-	removednative_consumer_challenges map[int]struct{}
-	clearednative_consumer_challenges bool
-	native_consumer_sessions          map[int]struct{}
-	removednative_consumer_sessions   map[int]struct{}
-	clearednative_consumer_sessions   bool
-	done                              bool
-	oldValue                          func(context.Context) (*User, error)
-	predicates                        []predicate.User
+	op                                   Op
+	typ                                  string
+	id                                   *int
+	user_key                             *string
+	clearedFields                        map[string]struct{}
+	github_credential                    *int
+	clearedgithub_credential             bool
+	github_lists                         map[int]struct{}
+	removedgithub_lists                  map[int]struct{}
+	clearedgithub_lists                  bool
+	github_repositories                  map[int]struct{}
+	removedgithub_repositories           map[int]struct{}
+	clearedgithub_repositories           bool
+	local_account                        *int
+	clearedlocal_account                 bool
+	sessions                             map[int]struct{}
+	removedsessions                      map[int]struct{}
+	clearedsessions                      bool
+	oidc_identities                      map[int]struct{}
+	removedoidc_identities               map[int]struct{}
+	clearedoidc_identities               bool
+	collected_repositories               map[int]struct{}
+	removedcollected_repositories        map[int]struct{}
+	clearedcollected_repositories        bool
+	packs                                map[int]struct{}
+	removedpacks                         map[int]struct{}
+	clearedpacks                         bool
+	mcp_credentials                      map[int]struct{}
+	removedmcp_credentials               map[int]struct{}
+	clearedmcp_credentials               bool
+	categories                           map[int]struct{}
+	removedcategories                    map[int]struct{}
+	clearedcategories                    bool
+	configuration_assets                 map[int]struct{}
+	removedconfiguration_assets          map[int]struct{}
+	clearedconfiguration_assets          bool
+	native_consumer_challenges           map[int]struct{}
+	removednative_consumer_challenges    map[int]struct{}
+	clearednative_consumer_challenges    bool
+	native_consumer_sessions             map[int]struct{}
+	removednative_consumer_sessions      map[int]struct{}
+	clearednative_consumer_sessions      bool
+	native_apply_preparations            map[int]struct{}
+	removednative_apply_preparations     map[int]struct{}
+	clearednative_apply_preparations     bool
+	native_materialization_grants        map[int]struct{}
+	removednative_materialization_grants map[int]struct{}
+	clearednative_materialization_grants bool
+	done                                 bool
+	oldValue                             func(context.Context) (*User, error)
+	predicates                           []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -16429,6 +18989,114 @@ func (m *UserMutation) ResetNativeConsumerSessions() {
 	m.removednative_consumer_sessions = nil
 }
 
+// AddNativeApplyPreparationIDs adds the "native_apply_preparations" edge to the NativeApplyPreparation entity by ids.
+func (m *UserMutation) AddNativeApplyPreparationIDs(ids ...int) {
+	if m.native_apply_preparations == nil {
+		m.native_apply_preparations = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_apply_preparations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeApplyPreparations clears the "native_apply_preparations" edge to the NativeApplyPreparation entity.
+func (m *UserMutation) ClearNativeApplyPreparations() {
+	m.clearednative_apply_preparations = true
+}
+
+// NativeApplyPreparationsCleared reports if the "native_apply_preparations" edge to the NativeApplyPreparation entity was cleared.
+func (m *UserMutation) NativeApplyPreparationsCleared() bool {
+	return m.clearednative_apply_preparations
+}
+
+// RemoveNativeApplyPreparationIDs removes the "native_apply_preparations" edge to the NativeApplyPreparation entity by IDs.
+func (m *UserMutation) RemoveNativeApplyPreparationIDs(ids ...int) {
+	if m.removednative_apply_preparations == nil {
+		m.removednative_apply_preparations = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_apply_preparations, ids[i])
+		m.removednative_apply_preparations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeApplyPreparations returns the removed IDs of the "native_apply_preparations" edge to the NativeApplyPreparation entity.
+func (m *UserMutation) RemovedNativeApplyPreparationsIDs() (ids []int) {
+	for id := range m.removednative_apply_preparations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeApplyPreparationsIDs returns the "native_apply_preparations" edge IDs in the mutation.
+func (m *UserMutation) NativeApplyPreparationsIDs() (ids []int) {
+	for id := range m.native_apply_preparations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeApplyPreparations resets all changes to the "native_apply_preparations" edge.
+func (m *UserMutation) ResetNativeApplyPreparations() {
+	m.native_apply_preparations = nil
+	m.clearednative_apply_preparations = false
+	m.removednative_apply_preparations = nil
+}
+
+// AddNativeMaterializationGrantIDs adds the "native_materialization_grants" edge to the NativeMaterializationGrant entity by ids.
+func (m *UserMutation) AddNativeMaterializationGrantIDs(ids ...int) {
+	if m.native_materialization_grants == nil {
+		m.native_materialization_grants = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.native_materialization_grants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNativeMaterializationGrants clears the "native_materialization_grants" edge to the NativeMaterializationGrant entity.
+func (m *UserMutation) ClearNativeMaterializationGrants() {
+	m.clearednative_materialization_grants = true
+}
+
+// NativeMaterializationGrantsCleared reports if the "native_materialization_grants" edge to the NativeMaterializationGrant entity was cleared.
+func (m *UserMutation) NativeMaterializationGrantsCleared() bool {
+	return m.clearednative_materialization_grants
+}
+
+// RemoveNativeMaterializationGrantIDs removes the "native_materialization_grants" edge to the NativeMaterializationGrant entity by IDs.
+func (m *UserMutation) RemoveNativeMaterializationGrantIDs(ids ...int) {
+	if m.removednative_materialization_grants == nil {
+		m.removednative_materialization_grants = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.native_materialization_grants, ids[i])
+		m.removednative_materialization_grants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNativeMaterializationGrants returns the removed IDs of the "native_materialization_grants" edge to the NativeMaterializationGrant entity.
+func (m *UserMutation) RemovedNativeMaterializationGrantsIDs() (ids []int) {
+	for id := range m.removednative_materialization_grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NativeMaterializationGrantsIDs returns the "native_materialization_grants" edge IDs in the mutation.
+func (m *UserMutation) NativeMaterializationGrantsIDs() (ids []int) {
+	for id := range m.native_materialization_grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNativeMaterializationGrants resets all changes to the "native_materialization_grants" edge.
+func (m *UserMutation) ResetNativeMaterializationGrants() {
+	m.native_materialization_grants = nil
+	m.clearednative_materialization_grants = false
+	m.removednative_materialization_grants = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -16562,7 +19230,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 15)
 	if m.github_credential != nil {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -16601,6 +19269,12 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.native_consumer_sessions != nil {
 		edges = append(edges, user.EdgeNativeConsumerSessions)
+	}
+	if m.native_apply_preparations != nil {
+		edges = append(edges, user.EdgeNativeApplyPreparations)
+	}
+	if m.native_materialization_grants != nil {
+		edges = append(edges, user.EdgeNativeMaterializationGrants)
 	}
 	return edges
 }
@@ -16683,13 +19357,25 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeNativeApplyPreparations:
+		ids := make([]ent.Value, 0, len(m.native_apply_preparations))
+		for id := range m.native_apply_preparations {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNativeMaterializationGrants:
+		ids := make([]ent.Value, 0, len(m.native_materialization_grants))
+		for id := range m.native_materialization_grants {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 15)
 	if m.removedgithub_lists != nil {
 		edges = append(edges, user.EdgeGithubLists)
 	}
@@ -16722,6 +19408,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removednative_consumer_sessions != nil {
 		edges = append(edges, user.EdgeNativeConsumerSessions)
+	}
+	if m.removednative_apply_preparations != nil {
+		edges = append(edges, user.EdgeNativeApplyPreparations)
+	}
+	if m.removednative_materialization_grants != nil {
+		edges = append(edges, user.EdgeNativeMaterializationGrants)
 	}
 	return edges
 }
@@ -16796,13 +19488,25 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeNativeApplyPreparations:
+		ids := make([]ent.Value, 0, len(m.removednative_apply_preparations))
+		for id := range m.removednative_apply_preparations {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNativeMaterializationGrants:
+		ids := make([]ent.Value, 0, len(m.removednative_materialization_grants))
+		for id := range m.removednative_materialization_grants {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 15)
 	if m.clearedgithub_credential {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -16842,6 +19546,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearednative_consumer_sessions {
 		edges = append(edges, user.EdgeNativeConsumerSessions)
 	}
+	if m.clearednative_apply_preparations {
+		edges = append(edges, user.EdgeNativeApplyPreparations)
+	}
+	if m.clearednative_materialization_grants {
+		edges = append(edges, user.EdgeNativeMaterializationGrants)
+	}
 	return edges
 }
 
@@ -16875,6 +19585,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearednative_consumer_challenges
 	case user.EdgeNativeConsumerSessions:
 		return m.clearednative_consumer_sessions
+	case user.EdgeNativeApplyPreparations:
+		return m.clearednative_apply_preparations
+	case user.EdgeNativeMaterializationGrants:
+		return m.clearednative_materialization_grants
 	}
 	return false
 }
@@ -16935,6 +19649,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeNativeConsumerSessions:
 		m.ResetNativeConsumerSessions()
+		return nil
+	case user.EdgeNativeApplyPreparations:
+		m.ResetNativeApplyPreparations()
+		return nil
+	case user.EdgeNativeMaterializationGrants:
+		m.ResetNativeMaterializationGrants()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

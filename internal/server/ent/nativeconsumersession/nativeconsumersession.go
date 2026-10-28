@@ -44,6 +44,10 @@ const (
 	EdgeUser = "user"
 	// EdgeParentSession holds the string denoting the parent_session edge name in mutations.
 	EdgeParentSession = "parent_session"
+	// EdgePreparations holds the string denoting the preparations edge name in mutations.
+	EdgePreparations = "preparations"
+	// EdgeGrants holds the string denoting the grants edge name in mutations.
+	EdgeGrants = "grants"
 	// Table holds the table name of the nativeconsumersession in the database.
 	Table = "native_consumer_sessions"
 	// UserTable is the table that holds the user relation/edge.
@@ -60,6 +64,20 @@ const (
 	ParentSessionInverseTable = "sessions"
 	// ParentSessionColumn is the table column denoting the parent_session relation/edge.
 	ParentSessionColumn = "parent_session_id"
+	// PreparationsTable is the table that holds the preparations relation/edge.
+	PreparationsTable = "native_apply_preparations"
+	// PreparationsInverseTable is the table name for the NativeApplyPreparation entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeapplypreparation" package.
+	PreparationsInverseTable = "native_apply_preparations"
+	// PreparationsColumn is the table column denoting the preparations relation/edge.
+	PreparationsColumn = "native_session_id"
+	// GrantsTable is the table that holds the grants relation/edge.
+	GrantsTable = "native_materialization_grants"
+	// GrantsInverseTable is the table name for the NativeMaterializationGrant entity.
+	// It exists in this package in order to avoid circular dependency with the "nativematerializationgrant" package.
+	GrantsInverseTable = "native_materialization_grants"
+	// GrantsColumn is the table column denoting the grants relation/edge.
+	GrantsColumn = "native_session_id"
 )
 
 // Columns holds all SQL columns for nativeconsumersession fields.
@@ -203,6 +221,34 @@ func ByParentSessionField(field string, opts ...sql.OrderTermOption) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newParentSessionStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPreparationsCount orders the results by preparations count.
+func ByPreparationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPreparationsStep(), opts...)
+	}
+}
+
+// ByPreparations orders the results by preparations terms.
+func ByPreparations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPreparationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByGrantsCount orders the results by grants count.
+func ByGrantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGrantsStep(), opts...)
+	}
+}
+
+// ByGrants orders the results by grants terms.
+func ByGrants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGrantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -215,5 +261,19 @@ func newParentSessionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ParentSessionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ParentSessionTable, ParentSessionColumn),
+	)
+}
+func newPreparationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PreparationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PreparationsTable, PreparationsColumn),
+	)
+}
+func newGrantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GrantsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GrantsTable, GrantsColumn),
 	)
 }

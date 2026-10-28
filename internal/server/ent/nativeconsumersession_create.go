@@ -9,7 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -115,6 +117,36 @@ func (_c *NativeConsumerSessionCreate) SetUser(v *User) *NativeConsumerSessionCr
 // SetParentSession sets the "parent_session" edge to the Session entity.
 func (_c *NativeConsumerSessionCreate) SetParentSession(v *Session) *NativeConsumerSessionCreate {
 	return _c.SetParentSessionID(v.ID)
+}
+
+// AddPreparationIDs adds the "preparations" edge to the NativeApplyPreparation entity by IDs.
+func (_c *NativeConsumerSessionCreate) AddPreparationIDs(ids ...int) *NativeConsumerSessionCreate {
+	_c.mutation.AddPreparationIDs(ids...)
+	return _c
+}
+
+// AddPreparations adds the "preparations" edges to the NativeApplyPreparation entity.
+func (_c *NativeConsumerSessionCreate) AddPreparations(v ...*NativeApplyPreparation) *NativeConsumerSessionCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPreparationIDs(ids...)
+}
+
+// AddGrantIDs adds the "grants" edge to the NativeMaterializationGrant entity by IDs.
+func (_c *NativeConsumerSessionCreate) AddGrantIDs(ids ...int) *NativeConsumerSessionCreate {
+	_c.mutation.AddGrantIDs(ids...)
+	return _c
+}
+
+// AddGrants adds the "grants" edges to the NativeMaterializationGrant entity.
+func (_c *NativeConsumerSessionCreate) AddGrants(v ...*NativeMaterializationGrant) *NativeConsumerSessionCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddGrantIDs(ids...)
 }
 
 // Mutation returns the NativeConsumerSessionMutation object of the builder.
@@ -362,6 +394,38 @@ func (_c *NativeConsumerSessionCreate) createSpec() (*NativeConsumerSession, *sq
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ParentSessionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PreparationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   nativeconsumersession.PreparationsTable,
+			Columns: []string{nativeconsumersession.PreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.GrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   nativeconsumersession.GrantsTable,
+			Columns: []string{nativeconsumersession.GrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

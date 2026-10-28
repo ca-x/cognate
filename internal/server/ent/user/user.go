@@ -40,6 +40,10 @@ const (
 	EdgeNativeConsumerChallenges = "native_consumer_challenges"
 	// EdgeNativeConsumerSessions holds the string denoting the native_consumer_sessions edge name in mutations.
 	EdgeNativeConsumerSessions = "native_consumer_sessions"
+	// EdgeNativeApplyPreparations holds the string denoting the native_apply_preparations edge name in mutations.
+	EdgeNativeApplyPreparations = "native_apply_preparations"
+	// EdgeNativeMaterializationGrants holds the string denoting the native_materialization_grants edge name in mutations.
+	EdgeNativeMaterializationGrants = "native_materialization_grants"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GithubCredentialTable is the table that holds the github_credential relation/edge.
@@ -133,6 +137,20 @@ const (
 	NativeConsumerSessionsInverseTable = "native_consumer_sessions"
 	// NativeConsumerSessionsColumn is the table column denoting the native_consumer_sessions relation/edge.
 	NativeConsumerSessionsColumn = "user_id"
+	// NativeApplyPreparationsTable is the table that holds the native_apply_preparations relation/edge.
+	NativeApplyPreparationsTable = "native_apply_preparations"
+	// NativeApplyPreparationsInverseTable is the table name for the NativeApplyPreparation entity.
+	// It exists in this package in order to avoid circular dependency with the "nativeapplypreparation" package.
+	NativeApplyPreparationsInverseTable = "native_apply_preparations"
+	// NativeApplyPreparationsColumn is the table column denoting the native_apply_preparations relation/edge.
+	NativeApplyPreparationsColumn = "user_id"
+	// NativeMaterializationGrantsTable is the table that holds the native_materialization_grants relation/edge.
+	NativeMaterializationGrantsTable = "native_materialization_grants"
+	// NativeMaterializationGrantsInverseTable is the table name for the NativeMaterializationGrant entity.
+	// It exists in this package in order to avoid circular dependency with the "nativematerializationgrant" package.
+	NativeMaterializationGrantsInverseTable = "native_materialization_grants"
+	// NativeMaterializationGrantsColumn is the table column denoting the native_materialization_grants relation/edge.
+	NativeMaterializationGrantsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -336,6 +354,34 @@ func ByNativeConsumerSessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 		sqlgraph.OrderByNeighborTerms(s, newNativeConsumerSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNativeApplyPreparationsCount orders the results by native_apply_preparations count.
+func ByNativeApplyPreparationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeApplyPreparationsStep(), opts...)
+	}
+}
+
+// ByNativeApplyPreparations orders the results by native_apply_preparations terms.
+func ByNativeApplyPreparations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeApplyPreparationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNativeMaterializationGrantsCount orders the results by native_materialization_grants count.
+func ByNativeMaterializationGrantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNativeMaterializationGrantsStep(), opts...)
+	}
+}
+
+// ByNativeMaterializationGrants orders the results by native_materialization_grants terms.
+func ByNativeMaterializationGrants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNativeMaterializationGrantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGithubCredentialStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -425,5 +471,19 @@ func newNativeConsumerSessionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NativeConsumerSessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NativeConsumerSessionsTable, NativeConsumerSessionsColumn),
+	)
+}
+func newNativeApplyPreparationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeApplyPreparationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeApplyPreparationsTable, NativeApplyPreparationsColumn),
+	)
+}
+func newNativeMaterializationGrantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NativeMaterializationGrantsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NativeMaterializationGrantsTable, NativeMaterializationGrantsColumn),
 	)
 }

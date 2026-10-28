@@ -56,9 +56,13 @@ type NativeConsumerSessionEdges struct {
 	User *User `json:"user,omitempty"`
 	// ParentSession holds the value of the parent_session edge.
 	ParentSession *Session `json:"parent_session,omitempty"`
+	// Preparations holds the value of the preparations edge.
+	Preparations []*NativeApplyPreparation `json:"preparations,omitempty"`
+	// Grants holds the value of the grants edge.
+	Grants []*NativeMaterializationGrant `json:"grants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -81,6 +85,24 @@ func (e NativeConsumerSessionEdges) ParentSessionOrErr() (*Session, error) {
 		return nil, &NotFoundError{label: session.Label}
 	}
 	return nil, &NotLoadedError{edge: "parent_session"}
+}
+
+// PreparationsOrErr returns the Preparations value or an error if the edge
+// was not loaded in eager-loading.
+func (e NativeConsumerSessionEdges) PreparationsOrErr() ([]*NativeApplyPreparation, error) {
+	if e.loadedTypes[2] {
+		return e.Preparations, nil
+	}
+	return nil, &NotLoadedError{edge: "preparations"}
+}
+
+// GrantsOrErr returns the Grants value or an error if the edge
+// was not loaded in eager-loading.
+func (e NativeConsumerSessionEdges) GrantsOrErr() ([]*NativeMaterializationGrant, error) {
+	if e.loadedTypes[3] {
+		return e.Grants, nil
+	}
+	return nil, &NotLoadedError{edge: "grants"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -214,6 +236,16 @@ func (_m *NativeConsumerSession) QueryUser() *UserQuery {
 // QueryParentSession queries the "parent_session" edge of the NativeConsumerSession entity.
 func (_m *NativeConsumerSession) QueryParentSession() *SessionQuery {
 	return NewNativeConsumerSessionClient(_m.config).QueryParentSession(_m)
+}
+
+// QueryPreparations queries the "preparations" edge of the NativeConsumerSession entity.
+func (_m *NativeConsumerSession) QueryPreparations() *NativeApplyPreparationQuery {
+	return NewNativeConsumerSessionClient(_m.config).QueryPreparations(_m)
+}
+
+// QueryGrants queries the "grants" edge of the NativeConsumerSession entity.
+func (_m *NativeConsumerSession) QueryGrants() *NativeMaterializationGrantQuery {
+	return NewNativeConsumerSessionClient(_m.config).QueryGrants(_m)
 }
 
 // Update returns a builder for updating this NativeConsumerSession.

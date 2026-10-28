@@ -18,6 +18,22 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 )
 
+func TestNativeConfigurationFrozenBudgetContract(test *testing.T) {
+	want := nativeBudget{
+		tables: [4][3]nativeLimit{
+			{{8, 32768}, {32, 131072}, {128, 524288}},
+			{{16, 65536}, {32, 131072}, {128, 524288}},
+			{{16, 262144}, {32, 524288}, {128, 2097152}},
+			{{16, 65536}, {32, 131072}, {128, 524288}},
+		},
+		totals:   [3]nativeLimit{{56, 425984}, {128, 917504}, {512, 3670016}},
+		rowBytes: [4]int64{4096, 4096, 16384, 4096},
+	}
+	if nativeDefaultBudget() != want {
+		test.Fatal("frozen C1 row/byte budgets changed")
+	}
+}
+
 func nativePeer(test *testing.T, fixture nativeFixture) *Store {
 	test.Helper()
 	peer, err := Open(test.Context(), fixture.path, fixture.key)

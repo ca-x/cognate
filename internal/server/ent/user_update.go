@@ -18,8 +18,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
@@ -241,6 +243,36 @@ func (_u *UserUpdate) AddNativeConsumerSessions(v ...*NativeConsumerSession) *Us
 		ids[i] = v[i].ID
 	}
 	return _u.AddNativeConsumerSessionIDs(ids...)
+}
+
+// AddNativeApplyPreparationIDs adds the "native_apply_preparations" edge to the NativeApplyPreparation entity by IDs.
+func (_u *UserUpdate) AddNativeApplyPreparationIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddNativeApplyPreparationIDs(ids...)
+	return _u
+}
+
+// AddNativeApplyPreparations adds the "native_apply_preparations" edges to the NativeApplyPreparation entity.
+func (_u *UserUpdate) AddNativeApplyPreparations(v ...*NativeApplyPreparation) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNativeApplyPreparationIDs(ids...)
+}
+
+// AddNativeMaterializationGrantIDs adds the "native_materialization_grants" edge to the NativeMaterializationGrant entity by IDs.
+func (_u *UserUpdate) AddNativeMaterializationGrantIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddNativeMaterializationGrantIDs(ids...)
+	return _u
+}
+
+// AddNativeMaterializationGrants adds the "native_materialization_grants" edges to the NativeMaterializationGrant entity.
+func (_u *UserUpdate) AddNativeMaterializationGrants(v ...*NativeMaterializationGrant) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNativeMaterializationGrantIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -489,6 +521,48 @@ func (_u *UserUpdate) RemoveNativeConsumerSessions(v ...*NativeConsumerSession) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNativeConsumerSessionIDs(ids...)
+}
+
+// ClearNativeApplyPreparations clears all "native_apply_preparations" edges to the NativeApplyPreparation entity.
+func (_u *UserUpdate) ClearNativeApplyPreparations() *UserUpdate {
+	_u.mutation.ClearNativeApplyPreparations()
+	return _u
+}
+
+// RemoveNativeApplyPreparationIDs removes the "native_apply_preparations" edge to NativeApplyPreparation entities by IDs.
+func (_u *UserUpdate) RemoveNativeApplyPreparationIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveNativeApplyPreparationIDs(ids...)
+	return _u
+}
+
+// RemoveNativeApplyPreparations removes "native_apply_preparations" edges to NativeApplyPreparation entities.
+func (_u *UserUpdate) RemoveNativeApplyPreparations(v ...*NativeApplyPreparation) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNativeApplyPreparationIDs(ids...)
+}
+
+// ClearNativeMaterializationGrants clears all "native_materialization_grants" edges to the NativeMaterializationGrant entity.
+func (_u *UserUpdate) ClearNativeMaterializationGrants() *UserUpdate {
+	_u.mutation.ClearNativeMaterializationGrants()
+	return _u
+}
+
+// RemoveNativeMaterializationGrantIDs removes the "native_materialization_grants" edge to NativeMaterializationGrant entities by IDs.
+func (_u *UserUpdate) RemoveNativeMaterializationGrantIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveNativeMaterializationGrantIDs(ids...)
+	return _u
+}
+
+// RemoveNativeMaterializationGrants removes "native_materialization_grants" edges to NativeMaterializationGrant entities.
+func (_u *UserUpdate) RemoveNativeMaterializationGrants(v ...*NativeMaterializationGrant) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNativeMaterializationGrantIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1080,6 +1154,96 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.NativeApplyPreparationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNativeApplyPreparationsIDs(); len(nodes) > 0 && !_u.mutation.NativeApplyPreparationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NativeApplyPreparationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NativeMaterializationGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNativeMaterializationGrantsIDs(); len(nodes) > 0 && !_u.mutation.NativeMaterializationGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NativeMaterializationGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1301,6 +1465,36 @@ func (_u *UserUpdateOne) AddNativeConsumerSessions(v ...*NativeConsumerSession) 
 		ids[i] = v[i].ID
 	}
 	return _u.AddNativeConsumerSessionIDs(ids...)
+}
+
+// AddNativeApplyPreparationIDs adds the "native_apply_preparations" edge to the NativeApplyPreparation entity by IDs.
+func (_u *UserUpdateOne) AddNativeApplyPreparationIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddNativeApplyPreparationIDs(ids...)
+	return _u
+}
+
+// AddNativeApplyPreparations adds the "native_apply_preparations" edges to the NativeApplyPreparation entity.
+func (_u *UserUpdateOne) AddNativeApplyPreparations(v ...*NativeApplyPreparation) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNativeApplyPreparationIDs(ids...)
+}
+
+// AddNativeMaterializationGrantIDs adds the "native_materialization_grants" edge to the NativeMaterializationGrant entity by IDs.
+func (_u *UserUpdateOne) AddNativeMaterializationGrantIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddNativeMaterializationGrantIDs(ids...)
+	return _u
+}
+
+// AddNativeMaterializationGrants adds the "native_materialization_grants" edges to the NativeMaterializationGrant entity.
+func (_u *UserUpdateOne) AddNativeMaterializationGrants(v ...*NativeMaterializationGrant) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNativeMaterializationGrantIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1549,6 +1743,48 @@ func (_u *UserUpdateOne) RemoveNativeConsumerSessions(v ...*NativeConsumerSessio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNativeConsumerSessionIDs(ids...)
+}
+
+// ClearNativeApplyPreparations clears all "native_apply_preparations" edges to the NativeApplyPreparation entity.
+func (_u *UserUpdateOne) ClearNativeApplyPreparations() *UserUpdateOne {
+	_u.mutation.ClearNativeApplyPreparations()
+	return _u
+}
+
+// RemoveNativeApplyPreparationIDs removes the "native_apply_preparations" edge to NativeApplyPreparation entities by IDs.
+func (_u *UserUpdateOne) RemoveNativeApplyPreparationIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveNativeApplyPreparationIDs(ids...)
+	return _u
+}
+
+// RemoveNativeApplyPreparations removes "native_apply_preparations" edges to NativeApplyPreparation entities.
+func (_u *UserUpdateOne) RemoveNativeApplyPreparations(v ...*NativeApplyPreparation) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNativeApplyPreparationIDs(ids...)
+}
+
+// ClearNativeMaterializationGrants clears all "native_materialization_grants" edges to the NativeMaterializationGrant entity.
+func (_u *UserUpdateOne) ClearNativeMaterializationGrants() *UserUpdateOne {
+	_u.mutation.ClearNativeMaterializationGrants()
+	return _u
+}
+
+// RemoveNativeMaterializationGrantIDs removes the "native_materialization_grants" edge to NativeMaterializationGrant entities by IDs.
+func (_u *UserUpdateOne) RemoveNativeMaterializationGrantIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveNativeMaterializationGrantIDs(ids...)
+	return _u
+}
+
+// RemoveNativeMaterializationGrants removes "native_materialization_grants" edges to NativeMaterializationGrant entities.
+func (_u *UserUpdateOne) RemoveNativeMaterializationGrants(v ...*NativeMaterializationGrant) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNativeMaterializationGrantIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -2163,6 +2399,96 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nativeconsumersession.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NativeApplyPreparationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNativeApplyPreparationsIDs(); len(nodes) > 0 && !_u.mutation.NativeApplyPreparationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NativeApplyPreparationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NativeMaterializationGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNativeMaterializationGrantsIDs(); len(nodes) > 0 && !_u.mutation.NativeMaterializationGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NativeMaterializationGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

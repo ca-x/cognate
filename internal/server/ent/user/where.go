@@ -422,6 +422,52 @@ func HasNativeConsumerSessionsWith(preds ...predicate.NativeConsumerSession) pre
 	})
 }
 
+// HasNativeApplyPreparations applies the HasEdge predicate on the "native_apply_preparations" edge.
+func HasNativeApplyPreparations() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeApplyPreparationsTable, NativeApplyPreparationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeApplyPreparationsWith applies the HasEdge predicate on the "native_apply_preparations" edge with a given conditions (other predicates).
+func HasNativeApplyPreparationsWith(preds ...predicate.NativeApplyPreparation) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newNativeApplyPreparationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNativeMaterializationGrants applies the HasEdge predicate on the "native_materialization_grants" edge.
+func HasNativeMaterializationGrants() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NativeMaterializationGrantsTable, NativeMaterializationGrantsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNativeMaterializationGrantsWith applies the HasEdge predicate on the "native_materialization_grants" edge with a given conditions (other predicates).
+func HasNativeMaterializationGrantsWith(preds ...predicate.NativeMaterializationGrant) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newNativeMaterializationGrantsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

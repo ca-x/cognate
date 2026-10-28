@@ -141,6 +141,18 @@ func (f MCPCredentialFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MCPCredentialMutation", m)
 }
 
+// The NativeApplyPreparationFunc type is an adapter to allow the use of ordinary
+// function as NativeApplyPreparation mutator.
+type NativeApplyPreparationFunc func(context.Context, *ent.NativeApplyPreparationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NativeApplyPreparationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NativeApplyPreparationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NativeApplyPreparationMutation", m)
+}
+
 // The NativeConsumerChallengeFunc type is an adapter to allow the use of ordinary
 // function as NativeConsumerChallenge mutator.
 type NativeConsumerChallengeFunc func(context.Context, *ent.NativeConsumerChallengeMutation) (ent.Value, error)
@@ -163,6 +175,18 @@ func (f NativeConsumerSessionFunc) Mutate(ctx context.Context, m ent.Mutation) (
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NativeConsumerSessionMutation", m)
+}
+
+// The NativeMaterializationGrantFunc type is an adapter to allow the use of ordinary
+// function as NativeMaterializationGrant mutator.
+type NativeMaterializationGrantFunc func(context.Context, *ent.NativeMaterializationGrantMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NativeMaterializationGrantFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NativeMaterializationGrantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NativeMaterializationGrantMutation", m)
 }
 
 // The OIDCIdentityFunc type is an adapter to allow the use of ordinary

@@ -19,9 +19,104 @@ import (
 	"testing"
 	"time"
 
+	nativev1 "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1"
+	"github.com/ca-x/cognate/internal/configclient"
 	"github.com/ca-x/cognate/internal/nativesessionauth"
 	"github.com/ca-x/cognate/internal/server/ent"
 )
+
+func TestNativeApplyDirectStateRejectsSignedCallerSnapshot(test *testing.T) {
+	for _, mode := range []string{"key", "binding", "owner", "adapter", "revision", "commitment", "expiry", "authorize-challenge", "consume-challenge", "grant", "issuer", "bearer"} {
+		test.Run(mode, func(test *testing.T) {
+			flow := newNativeConfigurationFlow(test)
+			flow.authorize(test)
+			fields := nativesessionauth.ConsumeFields{Apply: flow.authorization.Binding(), AuthorizeChallenge: flow.prepared.Challenge(), ConsumeChallenge: flow.authorization.Challenge(), GrantExpiresMS: flow.authorization.ExpiresMS(), Request: flow.consume}
+			key, verifier, bearer := flow.key, flow.verifier, flow.bearer
+			switch mode {
+			case "key":
+				key = ed25519.NewKeyFromSeed(bytes.Repeat([]byte{99}, 32))
+				fields.Apply.Preparation.Consumer.PublicKey = [32]byte(key.Public().(ed25519.PublicKey))
+			case "binding":
+				fields.Apply.Preparation.Consumer.SessionBinding[0]++
+			case "owner":
+				fields.Apply.Preparation.Consumer.OwnerID = "bob"
+				fields.Apply.Preparation.Request.OwnerID = "bob"
+			case "adapter":
+				fields.Apply.Preparation.Request.Adapter.DefinitionDigest = strings.Repeat("b", 64)
+			case "revision":
+				fields.Apply.Preparation.Request.AssetRevision++
+			case "commitment":
+				fields.Apply.Commitment[0]++
+				fields.Request.Commitment = fields.Apply.Commitment
+			case "expiry":
+				fields.Apply.IntentExpiresMS--
+			case "authorize-challenge":
+				fields.AuthorizeChallenge[0]++
+			case "consume-challenge":
+				fields.ConsumeChallenge[0]++
+			case "grant":
+				fields.Request.GrantID += "x"
+			case "issuer":
+				verifier, _ = nativesessionauth.NewVerifier(bytes.Repeat([]byte{99}, 32))
+			case "bearer":
+				bearer, _ = nativesessionauth.ParseNativeBearer("cn1." + base64.RawURLEncoding.EncodeToString(bytes.Repeat([]byte{99}, 32)))
+			}
+			apply := fields.Apply
+			transcript, err := configclient.ConsumeTranscript(&nativev1.ApplyBinding{Preparation: nativeFlowWire(apply.Preparation), IntentCommitment: apply.Commitment[:], IntentExpiresAtUnixMs: apply.IntentExpiresMS}, fields.AuthorizeChallenge[:], fields.ConsumeChallenge[:], fields.GrantExpiresMS, &nativev1.ConsumeNativeMaterializationRequest{PrepareId: fields.Request.PrepareID, GrantId: fields.Request.GrantID, GrantToken: flow.token, OperationId: fields.Request.OperationID[:], IntentCommitment: fields.Request.Commitment[:], ClientNonce: fields.Request.Nonce[:]})
+			if err != nil {
+				test.Fatal(err)
+			}
+			proof, err := verifier.VerifyConsume(bearer, fields, ed25519.Sign(key, transcript.CopyBytes()))
+			if err != nil {
+				test.Fatal("test must possess a real signature on valid alternative canonical fields")
+			}
+			if snapshot, err := flow.fixture.store.PreflightNativeConfigurationConsume(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, proof); !errors.Is(err, ErrNativeUnauthorized) || snapshot.present() {
+				test.Fatal("signed caller snapshot bypassed authoritative preflight")
+			}
+			response, err := flow.fixture.store.ConsumeNativeConfigurationGrant(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, proof, nativeStateMaterializer)
+			if !errors.Is(err, ErrNativeUnauthorized) || len(response.Reveal()) != 0 {
+				test.Fatal("signed caller snapshot bypassed authoritative state")
+			}
+			if _, err := flow.fixture.store.PreflightNativeConfigurationConsume(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, flow.proof); err != nil {
+				test.Fatal("invalid preflight burned a legitimate grant")
+			}
+			response, err = flow.fixture.store.ConsumeNativeConfigurationGrant(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, flow.proof, nativeStateMaterializer)
+			if err != nil || string(response.Reveal()) != "synthetic-state-secret-6d0" {
+				test.Fatal("rejected proof burned legitimate grant")
+			}
+			response.Destroy()
+		})
+	}
+}
+
+func TestNativeApplyPreflightRejectsZeroProofAndPreservesStickyExpiry(test *testing.T) {
+	flow := newNativeConfigurationFlow(test)
+	if _, err := flow.fixture.store.PreflightNativeConfigurationPrepare(test.Context(), flow.credential, flow.requestOrigin(), flow.request, nativesessionauth.VerifiedApplyProof{}); !errors.Is(err, ErrNativeUnauthorized) {
+		test.Fatal("prepare preflight trusted credential without stage proof")
+	}
+	request, proof := flow.authorizeEvidence(test)
+	if _, err := flow.fixture.store.PreflightNativeConfigurationAuthorize(test.Context(), flow.credential, flow.requestOrigin(), request, nativesessionauth.VerifiedApplyProof{}); !errors.Is(err, ErrNativeUnauthorized) {
+		test.Fatal("authorize preflight trusted credential without stage proof")
+	}
+	if _, err := flow.fixture.store.PreflightNativeConfigurationAuthorize(test.Context(), flow.credential, flow.requestOrigin(), request, proof); err != nil {
+		test.Fatal("valid authorization preflight failed")
+	}
+	flow.authorize(test)
+	if _, err := flow.fixture.store.PreflightNativeConfigurationConsume(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, nativesessionauth.VerifiedApplyProof{}); !errors.Is(err, ErrNativeUnauthorized) {
+		test.Fatal("consume preflight trusted credential without stage proof")
+	}
+	flow.fixture.clock.Store(time.UnixMilli(flow.authorization.ExpiresMS()).UnixNano())
+	if _, err := flow.fixture.store.PreflightNativeConfigurationConsume(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, flow.proof); !errors.Is(err, ErrNativePrecondition) {
+		test.Fatal("expired preflight was not rejected")
+	}
+	flow.fixture.clock.Add(-int64(time.Second))
+	if _, err := flow.fixture.store.PreflightNativeConfigurationConsume(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, flow.proof); !errors.Is(err, ErrNativePrecondition) {
+		test.Fatal("preflight expiry revived after clock rollback")
+	}
+	if response, err := flow.fixture.store.ConsumeNativeConfigurationGrant(test.Context(), flow.credential, flow.requestOrigin(), flow.consume, flow.proof, nativeStateMaterializer); !errors.Is(err, ErrNativePrecondition) || len(response.Reveal()) != 0 {
+		test.Fatal("final transaction ignored preflight terminal expiry")
+	}
+}
 
 func seamParent(test *testing.T, fixture nativeFixture, owner string, nonce byte) (OwnerSessionCredential, nativesessionauth.VerifiedOwnerSession) {
 	test.Helper()

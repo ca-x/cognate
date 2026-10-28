@@ -17,8 +17,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/session"
@@ -239,6 +241,36 @@ func (_c *UserCreate) AddNativeConsumerSessions(v ...*NativeConsumerSession) *Us
 		ids[i] = v[i].ID
 	}
 	return _c.AddNativeConsumerSessionIDs(ids...)
+}
+
+// AddNativeApplyPreparationIDs adds the "native_apply_preparations" edge to the NativeApplyPreparation entity by IDs.
+func (_c *UserCreate) AddNativeApplyPreparationIDs(ids ...int) *UserCreate {
+	_c.mutation.AddNativeApplyPreparationIDs(ids...)
+	return _c
+}
+
+// AddNativeApplyPreparations adds the "native_apply_preparations" edges to the NativeApplyPreparation entity.
+func (_c *UserCreate) AddNativeApplyPreparations(v ...*NativeApplyPreparation) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNativeApplyPreparationIDs(ids...)
+}
+
+// AddNativeMaterializationGrantIDs adds the "native_materialization_grants" edge to the NativeMaterializationGrant entity by IDs.
+func (_c *UserCreate) AddNativeMaterializationGrantIDs(ids ...int) *UserCreate {
+	_c.mutation.AddNativeMaterializationGrantIDs(ids...)
+	return _c
+}
+
+// AddNativeMaterializationGrants adds the "native_materialization_grants" edges to the NativeMaterializationGrant entity.
+func (_c *UserCreate) AddNativeMaterializationGrants(v ...*NativeMaterializationGrant) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNativeMaterializationGrantIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -514,6 +546,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nativeconsumersession.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NativeApplyPreparationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeApplyPreparationsTable,
+			Columns: []string{user.NativeApplyPreparationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativeapplypreparation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NativeMaterializationGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NativeMaterializationGrantsTable,
+			Columns: []string{user.NativeMaterializationGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nativematerializationgrant.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

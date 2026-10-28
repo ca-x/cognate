@@ -26,8 +26,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -64,10 +66,14 @@ type Client struct {
 	MCPAudit *MCPAuditClient
 	// MCPCredential is the client for interacting with the MCPCredential builders.
 	MCPCredential *MCPCredentialClient
+	// NativeApplyPreparation is the client for interacting with the NativeApplyPreparation builders.
+	NativeApplyPreparation *NativeApplyPreparationClient
 	// NativeConsumerChallenge is the client for interacting with the NativeConsumerChallenge builders.
 	NativeConsumerChallenge *NativeConsumerChallengeClient
 	// NativeConsumerSession is the client for interacting with the NativeConsumerSession builders.
 	NativeConsumerSession *NativeConsumerSessionClient
+	// NativeMaterializationGrant is the client for interacting with the NativeMaterializationGrant builders.
+	NativeMaterializationGrant *NativeMaterializationGrantClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Pack is the client for interacting with the Pack builders.
@@ -104,8 +110,10 @@ func (c *Client) init() {
 	c.LocalAccount = NewLocalAccountClient(c.config)
 	c.MCPAudit = NewMCPAuditClient(c.config)
 	c.MCPCredential = NewMCPCredentialClient(c.config)
+	c.NativeApplyPreparation = NewNativeApplyPreparationClient(c.config)
 	c.NativeConsumerChallenge = NewNativeConsumerChallengeClient(c.config)
 	c.NativeConsumerSession = NewNativeConsumerSessionClient(c.config)
+	c.NativeMaterializationGrant = NewNativeMaterializationGrantClient(c.config)
 	c.OIDCIdentity = NewOIDCIdentityClient(c.config)
 	c.Pack = NewPackClient(c.config)
 	c.PackItem = NewPackItemClient(c.config)
@@ -203,28 +211,30 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                     ctx,
-		config:                  cfg,
-		Category:                NewCategoryClient(cfg),
-		CollectedRepository:     NewCollectedRepositoryClient(cfg),
-		CollectedSkill:          NewCollectedSkillClient(cfg),
-		ConfigurationAsset:      NewConfigurationAssetClient(cfg),
-		GitHubCredential:        NewGitHubCredentialClient(cfg),
-		GitHubList:              NewGitHubListClient(cfg),
-		GitHubMembership:        NewGitHubMembershipClient(cfg),
-		GitHubRepository:        NewGitHubRepositoryClient(cfg),
-		LocalAccount:            NewLocalAccountClient(cfg),
-		MCPAudit:                NewMCPAuditClient(cfg),
-		MCPCredential:           NewMCPCredentialClient(cfg),
-		NativeConsumerChallenge: NewNativeConsumerChallengeClient(cfg),
-		NativeConsumerSession:   NewNativeConsumerSessionClient(cfg),
-		OIDCIdentity:            NewOIDCIdentityClient(cfg),
-		Pack:                    NewPackClient(cfg),
-		PackItem:                NewPackItemClient(cfg),
-		PackShare:               NewPackShareClient(cfg),
-		ServerMetadata:          NewServerMetadataClient(cfg),
-		Session:                 NewSessionClient(cfg),
-		User:                    NewUserClient(cfg),
+		ctx:                        ctx,
+		config:                     cfg,
+		Category:                   NewCategoryClient(cfg),
+		CollectedRepository:        NewCollectedRepositoryClient(cfg),
+		CollectedSkill:             NewCollectedSkillClient(cfg),
+		ConfigurationAsset:         NewConfigurationAssetClient(cfg),
+		GitHubCredential:           NewGitHubCredentialClient(cfg),
+		GitHubList:                 NewGitHubListClient(cfg),
+		GitHubMembership:           NewGitHubMembershipClient(cfg),
+		GitHubRepository:           NewGitHubRepositoryClient(cfg),
+		LocalAccount:               NewLocalAccountClient(cfg),
+		MCPAudit:                   NewMCPAuditClient(cfg),
+		MCPCredential:              NewMCPCredentialClient(cfg),
+		NativeApplyPreparation:     NewNativeApplyPreparationClient(cfg),
+		NativeConsumerChallenge:    NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:      NewNativeConsumerSessionClient(cfg),
+		NativeMaterializationGrant: NewNativeMaterializationGrantClient(cfg),
+		OIDCIdentity:               NewOIDCIdentityClient(cfg),
+		Pack:                       NewPackClient(cfg),
+		PackItem:                   NewPackItemClient(cfg),
+		PackShare:                  NewPackShareClient(cfg),
+		ServerMetadata:             NewServerMetadataClient(cfg),
+		Session:                    NewSessionClient(cfg),
+		User:                       NewUserClient(cfg),
 	}, nil
 }
 
@@ -242,28 +252,30 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                     ctx,
-		config:                  cfg,
-		Category:                NewCategoryClient(cfg),
-		CollectedRepository:     NewCollectedRepositoryClient(cfg),
-		CollectedSkill:          NewCollectedSkillClient(cfg),
-		ConfigurationAsset:      NewConfigurationAssetClient(cfg),
-		GitHubCredential:        NewGitHubCredentialClient(cfg),
-		GitHubList:              NewGitHubListClient(cfg),
-		GitHubMembership:        NewGitHubMembershipClient(cfg),
-		GitHubRepository:        NewGitHubRepositoryClient(cfg),
-		LocalAccount:            NewLocalAccountClient(cfg),
-		MCPAudit:                NewMCPAuditClient(cfg),
-		MCPCredential:           NewMCPCredentialClient(cfg),
-		NativeConsumerChallenge: NewNativeConsumerChallengeClient(cfg),
-		NativeConsumerSession:   NewNativeConsumerSessionClient(cfg),
-		OIDCIdentity:            NewOIDCIdentityClient(cfg),
-		Pack:                    NewPackClient(cfg),
-		PackItem:                NewPackItemClient(cfg),
-		PackShare:               NewPackShareClient(cfg),
-		ServerMetadata:          NewServerMetadataClient(cfg),
-		Session:                 NewSessionClient(cfg),
-		User:                    NewUserClient(cfg),
+		ctx:                        ctx,
+		config:                     cfg,
+		Category:                   NewCategoryClient(cfg),
+		CollectedRepository:        NewCollectedRepositoryClient(cfg),
+		CollectedSkill:             NewCollectedSkillClient(cfg),
+		ConfigurationAsset:         NewConfigurationAssetClient(cfg),
+		GitHubCredential:           NewGitHubCredentialClient(cfg),
+		GitHubList:                 NewGitHubListClient(cfg),
+		GitHubMembership:           NewGitHubMembershipClient(cfg),
+		GitHubRepository:           NewGitHubRepositoryClient(cfg),
+		LocalAccount:               NewLocalAccountClient(cfg),
+		MCPAudit:                   NewMCPAuditClient(cfg),
+		MCPCredential:              NewMCPCredentialClient(cfg),
+		NativeApplyPreparation:     NewNativeApplyPreparationClient(cfg),
+		NativeConsumerChallenge:    NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:      NewNativeConsumerSessionClient(cfg),
+		NativeMaterializationGrant: NewNativeMaterializationGrantClient(cfg),
+		OIDCIdentity:               NewOIDCIdentityClient(cfg),
+		Pack:                       NewPackClient(cfg),
+		PackItem:                   NewPackItemClient(cfg),
+		PackShare:                  NewPackShareClient(cfg),
+		ServerMetadata:             NewServerMetadataClient(cfg),
+		Session:                    NewSessionClient(cfg),
+		User:                       NewUserClient(cfg),
 	}, nil
 }
 
@@ -295,8 +307,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeConsumerChallenge,
-		c.NativeConsumerSession, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
+		c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
 		c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Use(hooks...)
@@ -309,8 +322,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeConsumerChallenge,
-		c.NativeConsumerSession, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
+		c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
 		c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -342,10 +356,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MCPAudit.mutate(ctx, m)
 	case *MCPCredentialMutation:
 		return c.MCPCredential.mutate(ctx, m)
+	case *NativeApplyPreparationMutation:
+		return c.NativeApplyPreparation.mutate(ctx, m)
 	case *NativeConsumerChallengeMutation:
 		return c.NativeConsumerChallenge.mutate(ctx, m)
 	case *NativeConsumerSessionMutation:
 		return c.NativeConsumerSession.mutate(ctx, m)
+	case *NativeMaterializationGrantMutation:
+		return c.NativeMaterializationGrant.mutate(ctx, m)
 	case *OIDCIdentityMutation:
 		return c.OIDCIdentity.mutate(ctx, m)
 	case *PackMutation:
@@ -2132,6 +2150,187 @@ func (c *MCPCredentialClient) mutate(ctx context.Context, m *MCPCredentialMutati
 	}
 }
 
+// NativeApplyPreparationClient is a client for the NativeApplyPreparation schema.
+type NativeApplyPreparationClient struct {
+	config
+}
+
+// NewNativeApplyPreparationClient returns a client for the NativeApplyPreparation from the given config.
+func NewNativeApplyPreparationClient(c config) *NativeApplyPreparationClient {
+	return &NativeApplyPreparationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nativeapplypreparation.Hooks(f(g(h())))`.
+func (c *NativeApplyPreparationClient) Use(hooks ...Hook) {
+	c.hooks.NativeApplyPreparation = append(c.hooks.NativeApplyPreparation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nativeapplypreparation.Intercept(f(g(h())))`.
+func (c *NativeApplyPreparationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NativeApplyPreparation = append(c.inters.NativeApplyPreparation, interceptors...)
+}
+
+// Create returns a builder for creating a NativeApplyPreparation entity.
+func (c *NativeApplyPreparationClient) Create() *NativeApplyPreparationCreate {
+	mutation := newNativeApplyPreparationMutation(c.config, OpCreate)
+	return &NativeApplyPreparationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NativeApplyPreparation entities.
+func (c *NativeApplyPreparationClient) CreateBulk(builders ...*NativeApplyPreparationCreate) *NativeApplyPreparationCreateBulk {
+	return &NativeApplyPreparationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NativeApplyPreparationClient) MapCreateBulk(slice any, setFunc func(*NativeApplyPreparationCreate, int)) *NativeApplyPreparationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NativeApplyPreparationCreateBulk{err: fmt.Errorf("calling to NativeApplyPreparationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NativeApplyPreparationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NativeApplyPreparationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) Update() *NativeApplyPreparationUpdate {
+	mutation := newNativeApplyPreparationMutation(c.config, OpUpdate)
+	return &NativeApplyPreparationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NativeApplyPreparationClient) UpdateOne(_m *NativeApplyPreparation) *NativeApplyPreparationUpdateOne {
+	mutation := newNativeApplyPreparationMutation(c.config, OpUpdateOne, withNativeApplyPreparation(_m))
+	return &NativeApplyPreparationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NativeApplyPreparationClient) UpdateOneID(id int) *NativeApplyPreparationUpdateOne {
+	mutation := newNativeApplyPreparationMutation(c.config, OpUpdateOne, withNativeApplyPreparationID(id))
+	return &NativeApplyPreparationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) Delete() *NativeApplyPreparationDelete {
+	mutation := newNativeApplyPreparationMutation(c.config, OpDelete)
+	return &NativeApplyPreparationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NativeApplyPreparationClient) DeleteOne(_m *NativeApplyPreparation) *NativeApplyPreparationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NativeApplyPreparationClient) DeleteOneID(id int) *NativeApplyPreparationDeleteOne {
+	builder := c.Delete().Where(nativeapplypreparation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NativeApplyPreparationDeleteOne{builder}
+}
+
+// Query returns a query builder for NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) Query() *NativeApplyPreparationQuery {
+	return &NativeApplyPreparationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNativeApplyPreparation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NativeApplyPreparation entity by its id.
+func (c *NativeApplyPreparationClient) Get(ctx context.Context, id int) (*NativeApplyPreparation, error) {
+	return c.Query().Where(nativeapplypreparation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NativeApplyPreparationClient) GetX(ctx context.Context, id int) *NativeApplyPreparation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) QueryUser(_m *NativeApplyPreparation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeapplypreparation.Table, nativeapplypreparation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeapplypreparation.UserTable, nativeapplypreparation.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeSession queries the native_session edge of a NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) QueryNativeSession(_m *NativeApplyPreparation) *NativeConsumerSessionQuery {
+	query := (&NativeConsumerSessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeapplypreparation.Table, nativeapplypreparation.FieldID, id),
+			sqlgraph.To(nativeconsumersession.Table, nativeconsumersession.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativeapplypreparation.NativeSessionTable, nativeapplypreparation.NativeSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGrant queries the grant edge of a NativeApplyPreparation.
+func (c *NativeApplyPreparationClient) QueryGrant(_m *NativeApplyPreparation) *NativeMaterializationGrantQuery {
+	query := (&NativeMaterializationGrantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeapplypreparation.Table, nativeapplypreparation.FieldID, id),
+			sqlgraph.To(nativematerializationgrant.Table, nativematerializationgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, nativeapplypreparation.GrantTable, nativeapplypreparation.GrantColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NativeApplyPreparationClient) Hooks() []Hook {
+	return c.hooks.NativeApplyPreparation
+}
+
+// Interceptors returns the client interceptors.
+func (c *NativeApplyPreparationClient) Interceptors() []Interceptor {
+	return c.inters.NativeApplyPreparation
+}
+
+func (c *NativeApplyPreparationClient) mutate(ctx context.Context, m *NativeApplyPreparationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NativeApplyPreparationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NativeApplyPreparationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NativeApplyPreparationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NativeApplyPreparationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NativeApplyPreparation mutation op: %q", m.Op())
+	}
+}
+
 // NativeConsumerChallengeClient is a client for the NativeConsumerChallenge schema.
 type NativeConsumerChallengeClient struct {
 	config
@@ -2437,6 +2636,38 @@ func (c *NativeConsumerSessionClient) QueryParentSession(_m *NativeConsumerSessi
 	return query
 }
 
+// QueryPreparations queries the preparations edge of a NativeConsumerSession.
+func (c *NativeConsumerSessionClient) QueryPreparations(_m *NativeConsumerSession) *NativeApplyPreparationQuery {
+	query := (&NativeApplyPreparationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, id),
+			sqlgraph.To(nativeapplypreparation.Table, nativeapplypreparation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, nativeconsumersession.PreparationsTable, nativeconsumersession.PreparationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGrants queries the grants edge of a NativeConsumerSession.
+func (c *NativeConsumerSessionClient) QueryGrants(_m *NativeConsumerSession) *NativeMaterializationGrantQuery {
+	query := (&NativeMaterializationGrantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, id),
+			sqlgraph.To(nativematerializationgrant.Table, nativematerializationgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, nativeconsumersession.GrantsTable, nativeconsumersession.GrantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *NativeConsumerSessionClient) Hooks() []Hook {
 	return c.hooks.NativeConsumerSession
@@ -2459,6 +2690,187 @@ func (c *NativeConsumerSessionClient) mutate(ctx context.Context, m *NativeConsu
 		return (&NativeConsumerSessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown NativeConsumerSession mutation op: %q", m.Op())
+	}
+}
+
+// NativeMaterializationGrantClient is a client for the NativeMaterializationGrant schema.
+type NativeMaterializationGrantClient struct {
+	config
+}
+
+// NewNativeMaterializationGrantClient returns a client for the NativeMaterializationGrant from the given config.
+func NewNativeMaterializationGrantClient(c config) *NativeMaterializationGrantClient {
+	return &NativeMaterializationGrantClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nativematerializationgrant.Hooks(f(g(h())))`.
+func (c *NativeMaterializationGrantClient) Use(hooks ...Hook) {
+	c.hooks.NativeMaterializationGrant = append(c.hooks.NativeMaterializationGrant, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nativematerializationgrant.Intercept(f(g(h())))`.
+func (c *NativeMaterializationGrantClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NativeMaterializationGrant = append(c.inters.NativeMaterializationGrant, interceptors...)
+}
+
+// Create returns a builder for creating a NativeMaterializationGrant entity.
+func (c *NativeMaterializationGrantClient) Create() *NativeMaterializationGrantCreate {
+	mutation := newNativeMaterializationGrantMutation(c.config, OpCreate)
+	return &NativeMaterializationGrantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NativeMaterializationGrant entities.
+func (c *NativeMaterializationGrantClient) CreateBulk(builders ...*NativeMaterializationGrantCreate) *NativeMaterializationGrantCreateBulk {
+	return &NativeMaterializationGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NativeMaterializationGrantClient) MapCreateBulk(slice any, setFunc func(*NativeMaterializationGrantCreate, int)) *NativeMaterializationGrantCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NativeMaterializationGrantCreateBulk{err: fmt.Errorf("calling to NativeMaterializationGrantClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NativeMaterializationGrantCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NativeMaterializationGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) Update() *NativeMaterializationGrantUpdate {
+	mutation := newNativeMaterializationGrantMutation(c.config, OpUpdate)
+	return &NativeMaterializationGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NativeMaterializationGrantClient) UpdateOne(_m *NativeMaterializationGrant) *NativeMaterializationGrantUpdateOne {
+	mutation := newNativeMaterializationGrantMutation(c.config, OpUpdateOne, withNativeMaterializationGrant(_m))
+	return &NativeMaterializationGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NativeMaterializationGrantClient) UpdateOneID(id int) *NativeMaterializationGrantUpdateOne {
+	mutation := newNativeMaterializationGrantMutation(c.config, OpUpdateOne, withNativeMaterializationGrantID(id))
+	return &NativeMaterializationGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) Delete() *NativeMaterializationGrantDelete {
+	mutation := newNativeMaterializationGrantMutation(c.config, OpDelete)
+	return &NativeMaterializationGrantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NativeMaterializationGrantClient) DeleteOne(_m *NativeMaterializationGrant) *NativeMaterializationGrantDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NativeMaterializationGrantClient) DeleteOneID(id int) *NativeMaterializationGrantDeleteOne {
+	builder := c.Delete().Where(nativematerializationgrant.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NativeMaterializationGrantDeleteOne{builder}
+}
+
+// Query returns a query builder for NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) Query() *NativeMaterializationGrantQuery {
+	return &NativeMaterializationGrantQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNativeMaterializationGrant},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NativeMaterializationGrant entity by its id.
+func (c *NativeMaterializationGrantClient) Get(ctx context.Context, id int) (*NativeMaterializationGrant, error) {
+	return c.Query().Where(nativematerializationgrant.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NativeMaterializationGrantClient) GetX(ctx context.Context, id int) *NativeMaterializationGrant {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) QueryUser(_m *NativeMaterializationGrant) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativematerializationgrant.Table, nativematerializationgrant.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativematerializationgrant.UserTable, nativematerializationgrant.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeSession queries the native_session edge of a NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) QueryNativeSession(_m *NativeMaterializationGrant) *NativeConsumerSessionQuery {
+	query := (&NativeConsumerSessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativematerializationgrant.Table, nativematerializationgrant.FieldID, id),
+			sqlgraph.To(nativeconsumersession.Table, nativeconsumersession.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, nativematerializationgrant.NativeSessionTable, nativematerializationgrant.NativeSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrepare queries the prepare edge of a NativeMaterializationGrant.
+func (c *NativeMaterializationGrantClient) QueryPrepare(_m *NativeMaterializationGrant) *NativeApplyPreparationQuery {
+	query := (&NativeApplyPreparationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativematerializationgrant.Table, nativematerializationgrant.FieldID, id),
+			sqlgraph.To(nativeapplypreparation.Table, nativeapplypreparation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, nativematerializationgrant.PrepareTable, nativematerializationgrant.PrepareColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NativeMaterializationGrantClient) Hooks() []Hook {
+	return c.hooks.NativeMaterializationGrant
+}
+
+// Interceptors returns the client interceptors.
+func (c *NativeMaterializationGrantClient) Interceptors() []Interceptor {
+	return c.inters.NativeMaterializationGrant
+}
+
+func (c *NativeMaterializationGrantClient) mutate(ctx context.Context, m *NativeMaterializationGrantMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NativeMaterializationGrantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NativeMaterializationGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NativeMaterializationGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NativeMaterializationGrantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NativeMaterializationGrant mutation op: %q", m.Op())
 	}
 }
 
@@ -3736,6 +4148,38 @@ func (c *UserClient) QueryNativeConsumerSessions(_m *User) *NativeConsumerSessio
 	return query
 }
 
+// QueryNativeApplyPreparations queries the native_apply_preparations edge of a User.
+func (c *UserClient) QueryNativeApplyPreparations(_m *User) *NativeApplyPreparationQuery {
+	query := (&NativeApplyPreparationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(nativeapplypreparation.Table, nativeapplypreparation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeApplyPreparationsTable, user.NativeApplyPreparationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNativeMaterializationGrants queries the native_materialization_grants edge of a User.
+func (c *UserClient) QueryNativeMaterializationGrants(_m *User) *NativeMaterializationGrantQuery {
+	query := (&NativeMaterializationGrantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(nativematerializationgrant.Table, nativematerializationgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeMaterializationGrantsTable, user.NativeMaterializationGrantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -3766,15 +4210,15 @@ type (
 	hooks struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, NativeConsumerChallenge, NativeConsumerSession,
-		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
-		User []ent.Hook
+		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
+		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
+		PackItem, PackShare, ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, NativeConsumerChallenge, NativeConsumerSession,
-		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
-		User []ent.Interceptor
+		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
+		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
+		PackItem, PackShare, ServerMetadata, Session, User []ent.Interceptor
 	}
 )

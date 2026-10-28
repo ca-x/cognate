@@ -141,19 +141,21 @@ type nativeLimit struct {
 	bytes int64
 }
 type nativeBudget struct {
-	tables   [2][3]nativeLimit
+	tables   [4][3]nativeLimit
 	totals   [3]nativeLimit
-	rowBytes [2]int64
+	rowBytes [4]int64
 }
 
 func nativeDefaultBudget() nativeBudget {
 	return nativeBudget{
-		tables: [2][3]nativeLimit{
+		tables: [4][3]nativeLimit{
 			{{8, 32 << 10}, {32, 128 << 10}, {128, 512 << 10}},
+			{{16, 64 << 10}, {32, 128 << 10}, {128, 512 << 10}},
+			{{16, 256 << 10}, {32, 512 << 10}, {128, 2048 << 10}},
 			{{16, 64 << 10}, {32, 128 << 10}, {128, 512 << 10}},
 		},
 		totals:   [3]nativeLimit{{56, 416 << 10}, {128, 896 << 10}, {512, 3584 << 10}},
-		rowBytes: [2]int64{4096, 4096},
+		rowBytes: [4]int64{4096, 4096, 16384, 4096},
 	}
 }
 
@@ -208,58 +210,7 @@ type nativeUsageRow struct {
 }
 
 func nativeCheckQuota(ctx context.Context, tx *ent.Tx, added nativeUsageRow, budget nativeBudget) error {
-	if added.charge < 512 || added.charge > budget.rowBytes[added.table] {
-		return ErrNativeQuota
-	}
-	challenges, err := tx.NativeConsumerChallenge.Query().Limit(129).All(ctx)
-	if err != nil {
-		return err
-	}
-	children, err := tx.NativeConsumerSession.Query().Limit(129).All(ctx)
-	if err != nil {
-		return err
-	}
-	if len(challenges) > 128 || len(children) > 128 {
-		return ErrNativeUnavailable
-	}
-	rows := make([]nativeUsageRow, 0, len(challenges)+len(children)+1)
-	for _, row := range challenges {
-		if !nativeChallengeRecordValid(row) {
-			return ErrNativeUnavailable
-		}
-		rows = append(rows, nativeUsageRow{0, row.ParentSessionID, row.UserID, row.Charge})
-	}
-	for _, row := range children {
-		if !nativeSessionRecordValid(row) {
-			return ErrNativeUnavailable
-		}
-		rows = append(rows, nativeUsageRow{1, row.ParentSessionID, row.UserID, row.Charge})
-	}
-	rows = append(rows, added)
-	var usage [2][3]nativeLimit
-	var total [3]nativeLimit
-	for _, row := range rows {
-		for scope := range 3 {
-			if scope == 0 && row.parent != added.parent || scope == 1 && row.owner != added.owner {
-				continue
-			}
-			usage[row.table][scope].rows++
-			usage[row.table][scope].bytes += row.charge
-			total[scope].rows++
-			total[scope].bytes += row.charge
-		}
-	}
-	for scope := range 3 {
-		if total[scope].rows > budget.totals[scope].rows || total[scope].bytes > budget.totals[scope].bytes {
-			return ErrNativeQuota
-		}
-		for table := range 2 {
-			if usage[table][scope].rows > budget.tables[table][scope].rows || usage[table][scope].bytes > budget.tables[table][scope].bytes {
-				return ErrNativeQuota
-			}
-		}
-	}
-	return nil
+	return nativeCheckPostStateQuota(ctx, tx, []nativeQuotaChange{{post: added}}, budget)
 }
 
 func nativeSnapshot(row *ent.NativeConsumerChallenge, owner string) nativeChallengeSnapshot {
@@ -436,7 +387,7 @@ func nativeFailure(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-	for _, known := range []error{ErrNativeUnauthorized, ErrNativeInvalid, ErrNativeQuota, ErrNativeUnavailable, ErrNativeOutcomeUnknown} {
+	for _, known := range []error{ErrNativeUnauthorized, ErrNativeInvalid, ErrNativeQuota, ErrNativeUnavailable, ErrNativeOutcomeUnknown, ErrNativePrecondition, ErrConfigurationNotFound, ErrConfigurationConflict} {
 		if errors.Is(err, known) {
 			return known
 		}
@@ -524,6 +475,10 @@ func (store *Store) PruneNativeConsumers(ctx context.Context) (NativePruneResult
 	ctx, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
 	defer cancel()
 	return store.nativeTransaction(ctx, func(tx *ent.Tx) (NativePruneResult, func(time.Time) error, error) {
+		inventory, err := nativeLoadInventory(ctx, tx)
+		if err != nil {
+			return NativePruneResult{}, nil, err
+		}
 		now := store.state.now().UTC()
 		used, err := tx.NativeConsumerChallenge.Query().Where(nativeconsumerchallenge.UsedEQ(true)).Order(ent.Asc(nativeconsumerchallenge.FieldExpiresMs), ent.Asc(nativeconsumerchallenge.FieldID)).Limit(64).All(ctx)
 		if err != nil {
@@ -555,7 +510,11 @@ func (store *Store) PruneNativeConsumers(ctx context.Context) (NativePruneResult
 		})
 		result := NativePruneResult{}
 		for _, root := range roots {
-			if result.Roots >= 64 || result.Rows >= 256 || root.charge > (1<<20)-result.Bytes {
+			rows, charge := inventory.closure(root)
+			if rows > 256 || charge > 1<<20 {
+				return NativePruneResult{}, nil, ErrNativeUnavailable
+			}
+			if result.Roots >= 64 || rows > 256-result.Rows || charge > (1<<20)-result.Bytes {
 				break
 			}
 			var count int
@@ -572,8 +531,8 @@ func (store *Store) PruneNativeConsumers(ctx context.Context) (NativePruneResult
 				continue
 			}
 			result.Roots++
-			result.Rows++
-			result.Bytes += root.charge
+			result.Rows += rows
+			result.Bytes += charge
 		}
 		return result, nil, nil
 	})

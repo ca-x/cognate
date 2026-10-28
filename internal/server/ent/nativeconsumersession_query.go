@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -26,6 +29,8 @@ type NativeConsumerSessionQuery struct {
 	predicates        []predicate.NativeConsumerSession
 	withUser          *UserQuery
 	withParentSession *SessionQuery
+	withPreparations  *NativeApplyPreparationQuery
+	withGrants        *NativeMaterializationGrantQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -99,6 +104,50 @@ func (_q *NativeConsumerSessionQuery) QueryParentSession() *SessionQuery {
 			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, selector),
 			sqlgraph.To(session.Table, session.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, nativeconsumersession.ParentSessionTable, nativeconsumersession.ParentSessionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPreparations chains the current query on the "preparations" edge.
+func (_q *NativeConsumerSessionQuery) QueryPreparations() *NativeApplyPreparationQuery {
+	query := (&NativeApplyPreparationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, selector),
+			sqlgraph.To(nativeapplypreparation.Table, nativeapplypreparation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, nativeconsumersession.PreparationsTable, nativeconsumersession.PreparationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGrants chains the current query on the "grants" edge.
+func (_q *NativeConsumerSessionQuery) QueryGrants() *NativeMaterializationGrantQuery {
+	query := (&NativeMaterializationGrantClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nativeconsumersession.Table, nativeconsumersession.FieldID, selector),
+			sqlgraph.To(nativematerializationgrant.Table, nativematerializationgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, nativeconsumersession.GrantsTable, nativeconsumersession.GrantsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -300,6 +349,8 @@ func (_q *NativeConsumerSessionQuery) Clone() *NativeConsumerSessionQuery {
 		predicates:        append([]predicate.NativeConsumerSession{}, _q.predicates...),
 		withUser:          _q.withUser.Clone(),
 		withParentSession: _q.withParentSession.Clone(),
+		withPreparations:  _q.withPreparations.Clone(),
+		withGrants:        _q.withGrants.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -325,6 +376,28 @@ func (_q *NativeConsumerSessionQuery) WithParentSession(opts ...func(*SessionQue
 		opt(query)
 	}
 	_q.withParentSession = query
+	return _q
+}
+
+// WithPreparations tells the query-builder to eager-load the nodes that are connected to
+// the "preparations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NativeConsumerSessionQuery) WithPreparations(opts ...func(*NativeApplyPreparationQuery)) *NativeConsumerSessionQuery {
+	query := (&NativeApplyPreparationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPreparations = query
+	return _q
+}
+
+// WithGrants tells the query-builder to eager-load the nodes that are connected to
+// the "grants" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NativeConsumerSessionQuery) WithGrants(opts ...func(*NativeMaterializationGrantQuery)) *NativeConsumerSessionQuery {
+	query := (&NativeMaterializationGrantClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGrants = query
 	return _q
 }
 
@@ -406,9 +479,11 @@ func (_q *NativeConsumerSessionQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*NativeConsumerSession{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withParentSession != nil,
+			_q.withPreparations != nil,
+			_q.withGrants != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -438,6 +513,24 @@ func (_q *NativeConsumerSessionQuery) sqlAll(ctx context.Context, hooks ...query
 	if query := _q.withParentSession; query != nil {
 		if err := _q.loadParentSession(ctx, query, nodes, nil,
 			func(n *NativeConsumerSession, e *Session) { n.Edges.ParentSession = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPreparations; query != nil {
+		if err := _q.loadPreparations(ctx, query, nodes,
+			func(n *NativeConsumerSession) { n.Edges.Preparations = []*NativeApplyPreparation{} },
+			func(n *NativeConsumerSession, e *NativeApplyPreparation) {
+				n.Edges.Preparations = append(n.Edges.Preparations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGrants; query != nil {
+		if err := _q.loadGrants(ctx, query, nodes,
+			func(n *NativeConsumerSession) { n.Edges.Grants = []*NativeMaterializationGrant{} },
+			func(n *NativeConsumerSession, e *NativeMaterializationGrant) {
+				n.Edges.Grants = append(n.Edges.Grants, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -499,6 +592,66 @@ func (_q *NativeConsumerSessionQuery) loadParentSession(ctx context.Context, que
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *NativeConsumerSessionQuery) loadPreparations(ctx context.Context, query *NativeApplyPreparationQuery, nodes []*NativeConsumerSession, init func(*NativeConsumerSession), assign func(*NativeConsumerSession, *NativeApplyPreparation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*NativeConsumerSession)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativeapplypreparation.FieldNativeSessionID)
+	}
+	query.Where(predicate.NativeApplyPreparation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(nativeconsumersession.PreparationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.NativeSessionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "native_session_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *NativeConsumerSessionQuery) loadGrants(ctx context.Context, query *NativeMaterializationGrantQuery, nodes []*NativeConsumerSession, init func(*NativeConsumerSession), assign func(*NativeConsumerSession, *NativeMaterializationGrant)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*NativeConsumerSession)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativematerializationgrant.FieldNativeSessionID)
+	}
+	query.Where(predicate.NativeMaterializationGrant(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(nativeconsumersession.GrantsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.NativeSessionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "native_session_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

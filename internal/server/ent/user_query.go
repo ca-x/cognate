@@ -20,8 +20,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
@@ -32,23 +34,25 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                          *QueryContext
-	order                        []user.OrderOption
-	inters                       []Interceptor
-	predicates                   []predicate.User
-	withGithubCredential         *GitHubCredentialQuery
-	withGithubLists              *GitHubListQuery
-	withGithubRepositories       *GitHubRepositoryQuery
-	withLocalAccount             *LocalAccountQuery
-	withSessions                 *SessionQuery
-	withOidcIdentities           *OIDCIdentityQuery
-	withCollectedRepositories    *CollectedRepositoryQuery
-	withPacks                    *PackQuery
-	withMcpCredentials           *MCPCredentialQuery
-	withCategories               *CategoryQuery
-	withConfigurationAssets      *ConfigurationAssetQuery
-	withNativeConsumerChallenges *NativeConsumerChallengeQuery
-	withNativeConsumerSessions   *NativeConsumerSessionQuery
+	ctx                             *QueryContext
+	order                           []user.OrderOption
+	inters                          []Interceptor
+	predicates                      []predicate.User
+	withGithubCredential            *GitHubCredentialQuery
+	withGithubLists                 *GitHubListQuery
+	withGithubRepositories          *GitHubRepositoryQuery
+	withLocalAccount                *LocalAccountQuery
+	withSessions                    *SessionQuery
+	withOidcIdentities              *OIDCIdentityQuery
+	withCollectedRepositories       *CollectedRepositoryQuery
+	withPacks                       *PackQuery
+	withMcpCredentials              *MCPCredentialQuery
+	withCategories                  *CategoryQuery
+	withConfigurationAssets         *ConfigurationAssetQuery
+	withNativeConsumerChallenges    *NativeConsumerChallengeQuery
+	withNativeConsumerSessions      *NativeConsumerSessionQuery
+	withNativeApplyPreparations     *NativeApplyPreparationQuery
+	withNativeMaterializationGrants *NativeMaterializationGrantQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -371,6 +375,50 @@ func (_q *UserQuery) QueryNativeConsumerSessions() *NativeConsumerSessionQuery {
 	return query
 }
 
+// QueryNativeApplyPreparations chains the current query on the "native_apply_preparations" edge.
+func (_q *UserQuery) QueryNativeApplyPreparations() *NativeApplyPreparationQuery {
+	query := (&NativeApplyPreparationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(nativeapplypreparation.Table, nativeapplypreparation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeApplyPreparationsTable, user.NativeApplyPreparationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNativeMaterializationGrants chains the current query on the "native_materialization_grants" edge.
+func (_q *UserQuery) QueryNativeMaterializationGrants() *NativeMaterializationGrantQuery {
+	query := (&NativeMaterializationGrantClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(nativematerializationgrant.Table, nativematerializationgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NativeMaterializationGrantsTable, user.NativeMaterializationGrantsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -558,24 +606,26 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                       _q.config,
-		ctx:                          _q.ctx.Clone(),
-		order:                        append([]user.OrderOption{}, _q.order...),
-		inters:                       append([]Interceptor{}, _q.inters...),
-		predicates:                   append([]predicate.User{}, _q.predicates...),
-		withGithubCredential:         _q.withGithubCredential.Clone(),
-		withGithubLists:              _q.withGithubLists.Clone(),
-		withGithubRepositories:       _q.withGithubRepositories.Clone(),
-		withLocalAccount:             _q.withLocalAccount.Clone(),
-		withSessions:                 _q.withSessions.Clone(),
-		withOidcIdentities:           _q.withOidcIdentities.Clone(),
-		withCollectedRepositories:    _q.withCollectedRepositories.Clone(),
-		withPacks:                    _q.withPacks.Clone(),
-		withMcpCredentials:           _q.withMcpCredentials.Clone(),
-		withCategories:               _q.withCategories.Clone(),
-		withConfigurationAssets:      _q.withConfigurationAssets.Clone(),
-		withNativeConsumerChallenges: _q.withNativeConsumerChallenges.Clone(),
-		withNativeConsumerSessions:   _q.withNativeConsumerSessions.Clone(),
+		config:                          _q.config,
+		ctx:                             _q.ctx.Clone(),
+		order:                           append([]user.OrderOption{}, _q.order...),
+		inters:                          append([]Interceptor{}, _q.inters...),
+		predicates:                      append([]predicate.User{}, _q.predicates...),
+		withGithubCredential:            _q.withGithubCredential.Clone(),
+		withGithubLists:                 _q.withGithubLists.Clone(),
+		withGithubRepositories:          _q.withGithubRepositories.Clone(),
+		withLocalAccount:                _q.withLocalAccount.Clone(),
+		withSessions:                    _q.withSessions.Clone(),
+		withOidcIdentities:              _q.withOidcIdentities.Clone(),
+		withCollectedRepositories:       _q.withCollectedRepositories.Clone(),
+		withPacks:                       _q.withPacks.Clone(),
+		withMcpCredentials:              _q.withMcpCredentials.Clone(),
+		withCategories:                  _q.withCategories.Clone(),
+		withConfigurationAssets:         _q.withConfigurationAssets.Clone(),
+		withNativeConsumerChallenges:    _q.withNativeConsumerChallenges.Clone(),
+		withNativeConsumerSessions:      _q.withNativeConsumerSessions.Clone(),
+		withNativeApplyPreparations:     _q.withNativeApplyPreparations.Clone(),
+		withNativeMaterializationGrants: _q.withNativeMaterializationGrants.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -725,6 +775,28 @@ func (_q *UserQuery) WithNativeConsumerSessions(opts ...func(*NativeConsumerSess
 	return _q
 }
 
+// WithNativeApplyPreparations tells the query-builder to eager-load the nodes that are connected to
+// the "native_apply_preparations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNativeApplyPreparations(opts ...func(*NativeApplyPreparationQuery)) *UserQuery {
+	query := (&NativeApplyPreparationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNativeApplyPreparations = query
+	return _q
+}
+
+// WithNativeMaterializationGrants tells the query-builder to eager-load the nodes that are connected to
+// the "native_materialization_grants" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNativeMaterializationGrants(opts ...func(*NativeMaterializationGrantQuery)) *UserQuery {
+	query := (&NativeMaterializationGrantClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNativeMaterializationGrants = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -803,7 +875,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [13]bool{
+		loadedTypes = [15]bool{
 			_q.withGithubCredential != nil,
 			_q.withGithubLists != nil,
 			_q.withGithubRepositories != nil,
@@ -817,6 +889,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withConfigurationAssets != nil,
 			_q.withNativeConsumerChallenges != nil,
 			_q.withNativeConsumerSessions != nil,
+			_q.withNativeApplyPreparations != nil,
+			_q.withNativeMaterializationGrants != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -930,6 +1004,24 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.NativeConsumerSessions = []*NativeConsumerSession{} },
 			func(n *User, e *NativeConsumerSession) {
 				n.Edges.NativeConsumerSessions = append(n.Edges.NativeConsumerSessions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNativeApplyPreparations; query != nil {
+		if err := _q.loadNativeApplyPreparations(ctx, query, nodes,
+			func(n *User) { n.Edges.NativeApplyPreparations = []*NativeApplyPreparation{} },
+			func(n *User, e *NativeApplyPreparation) {
+				n.Edges.NativeApplyPreparations = append(n.Edges.NativeApplyPreparations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNativeMaterializationGrants; query != nil {
+		if err := _q.loadNativeMaterializationGrants(ctx, query, nodes,
+			func(n *User) { n.Edges.NativeMaterializationGrants = []*NativeMaterializationGrant{} },
+			func(n *User, e *NativeMaterializationGrant) {
+				n.Edges.NativeMaterializationGrants = append(n.Edges.NativeMaterializationGrants, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1306,6 +1398,66 @@ func (_q *UserQuery) loadNativeConsumerSessions(ctx context.Context, query *Nati
 	}
 	query.Where(predicate.NativeConsumerSession(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.NativeConsumerSessionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadNativeApplyPreparations(ctx context.Context, query *NativeApplyPreparationQuery, nodes []*User, init func(*User), assign func(*User, *NativeApplyPreparation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativeapplypreparation.FieldUserID)
+	}
+	query.Where(predicate.NativeApplyPreparation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.NativeApplyPreparationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadNativeMaterializationGrants(ctx context.Context, query *NativeMaterializationGrantQuery, nodes []*User, init func(*User), assign func(*User, *NativeMaterializationGrant)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(nativematerializationgrant.FieldUserID)
+	}
+	query.Where(predicate.NativeMaterializationGrant(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.NativeMaterializationGrantsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

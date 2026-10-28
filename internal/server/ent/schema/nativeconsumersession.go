@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -31,6 +32,8 @@ func (NativeConsumerSession) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).Ref("native_consumer_sessions").Field("user_id").Unique().Required().Immutable(),
 		edge.From("parent_session", Session.Type).Ref("native_consumer_sessions").Field("parent_session_id").Unique().Required().Immutable(),
+		edge.To("preparations", NativeApplyPreparation.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("grants", NativeMaterializationGrant.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

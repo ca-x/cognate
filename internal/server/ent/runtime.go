@@ -16,8 +16,10 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
+	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumerchallenge"
 	"github.com/ca-x/cognate/internal/server/ent/nativeconsumersession"
+	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
@@ -360,6 +362,124 @@ func init() {
 	mcpcredential.DefaultRevision = mcpcredentialDescRevision.Default.(int64)
 	// mcpcredential.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
 	mcpcredential.RevisionValidator = mcpcredentialDescRevision.Validators[0].(func(int64) error)
+	nativeapplypreparationFields := schema.NativeApplyPreparation{}.Fields()
+	_ = nativeapplypreparationFields
+	// nativeapplypreparationDescPublicID is the schema descriptor for public_id field.
+	nativeapplypreparationDescPublicID := nativeapplypreparationFields[0].Descriptor()
+	// nativeapplypreparation.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	nativeapplypreparation.PublicIDValidator = func() func(string) error {
+		validators := nativeapplypreparationDescPublicID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(public_id string) error {
+			for _, fn := range fns {
+				if err := fn(public_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeapplypreparationDescOperationID is the schema descriptor for operation_id field.
+	nativeapplypreparationDescOperationID := nativeapplypreparationFields[3].Descriptor()
+	// nativeapplypreparation.OperationIDValidator is a validator for the "operation_id" field. It is called by the builders before save.
+	nativeapplypreparation.OperationIDValidator = func() func([]byte) error {
+		validators := nativeapplypreparationDescOperationID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(operation_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(operation_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeapplypreparationDescRequestDigest is the schema descriptor for request_digest field.
+	nativeapplypreparationDescRequestDigest := nativeapplypreparationFields[4].Descriptor()
+	// nativeapplypreparation.RequestDigestValidator is a validator for the "request_digest" field. It is called by the builders before save.
+	nativeapplypreparation.RequestDigestValidator = func() func([]byte) error {
+		validators := nativeapplypreparationDescRequestDigest.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(request_digest []byte) error {
+			for _, fn := range fns {
+				if err := fn(request_digest); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeapplypreparationDescAuthorizeChallenge is the schema descriptor for authorize_challenge field.
+	nativeapplypreparationDescAuthorizeChallenge := nativeapplypreparationFields[5].Descriptor()
+	// nativeapplypreparation.AuthorizeChallengeValidator is a validator for the "authorize_challenge" field. It is called by the builders before save.
+	nativeapplypreparation.AuthorizeChallengeValidator = func() func([]byte) error {
+		validators := nativeapplypreparationDescAuthorizeChallenge.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(authorize_challenge []byte) error {
+			for _, fn := range fns {
+				if err := fn(authorize_challenge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeapplypreparationDescCiphertext is the schema descriptor for ciphertext field.
+	nativeapplypreparationDescCiphertext := nativeapplypreparationFields[6].Descriptor()
+	// nativeapplypreparation.CiphertextValidator is a validator for the "ciphertext" field. It is called by the builders before save.
+	nativeapplypreparation.CiphertextValidator = func() func([]byte) error {
+		validators := nativeapplypreparationDescCiphertext.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(ciphertext []byte) error {
+			for _, fn := range fns {
+				if err := fn(ciphertext); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativeapplypreparationDescIssuedMs is the schema descriptor for issued_ms field.
+	nativeapplypreparationDescIssuedMs := nativeapplypreparationFields[8].Descriptor()
+	// nativeapplypreparation.IssuedMsValidator is a validator for the "issued_ms" field. It is called by the builders before save.
+	nativeapplypreparation.IssuedMsValidator = nativeapplypreparationDescIssuedMs.Validators[0].(func(int64) error)
+	// nativeapplypreparationDescExpiresMs is the schema descriptor for expires_ms field.
+	nativeapplypreparationDescExpiresMs := nativeapplypreparationFields[9].Descriptor()
+	// nativeapplypreparation.ExpiresMsValidator is a validator for the "expires_ms" field. It is called by the builders before save.
+	nativeapplypreparation.ExpiresMsValidator = nativeapplypreparationDescExpiresMs.Validators[0].(func(int64) error)
+	// nativeapplypreparationDescCharge is the schema descriptor for charge field.
+	nativeapplypreparationDescCharge := nativeapplypreparationFields[10].Descriptor()
+	// nativeapplypreparation.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
+	nativeapplypreparation.ChargeValidator = func() func(int64) error {
+		validators := nativeapplypreparationDescCharge.Validators
+		fns := [...]func(int64) error{
+			validators[0].(func(int64) error),
+			validators[1].(func(int64) error),
+		}
+		return func(charge int64) error {
+			for _, fn := range fns {
+				if err := fn(charge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	nativeconsumerchallengeFields := schema.NativeConsumerChallenge{}.Fields()
 	_ = nativeconsumerchallengeFields
 	// nativeconsumerchallengeDescPublicID is the schema descriptor for public_id field.
@@ -651,6 +771,120 @@ func init() {
 	// nativeconsumersession.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
 	nativeconsumersession.ChargeValidator = func() func(int64) error {
 		validators := nativeconsumersessionDescCharge.Validators
+		fns := [...]func(int64) error{
+			validators[0].(func(int64) error),
+			validators[1].(func(int64) error),
+		}
+		return func(charge int64) error {
+			for _, fn := range fns {
+				if err := fn(charge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	nativematerializationgrantFields := schema.NativeMaterializationGrant{}.Fields()
+	_ = nativematerializationgrantFields
+	// nativematerializationgrantDescPublicID is the schema descriptor for public_id field.
+	nativematerializationgrantDescPublicID := nativematerializationgrantFields[0].Descriptor()
+	// nativematerializationgrant.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	nativematerializationgrant.PublicIDValidator = func() func(string) error {
+		validators := nativematerializationgrantDescPublicID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(public_id string) error {
+			for _, fn := range fns {
+				if err := fn(public_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativematerializationgrantDescTokenHash is the schema descriptor for token_hash field.
+	nativematerializationgrantDescTokenHash := nativematerializationgrantFields[4].Descriptor()
+	// nativematerializationgrant.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	nativematerializationgrant.TokenHashValidator = func() func([]byte) error {
+		validators := nativematerializationgrantDescTokenHash.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(token_hash []byte) error {
+			for _, fn := range fns {
+				if err := fn(token_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativematerializationgrantDescConsumeChallenge is the schema descriptor for consume_challenge field.
+	nativematerializationgrantDescConsumeChallenge := nativematerializationgrantFields[5].Descriptor()
+	// nativematerializationgrant.ConsumeChallengeValidator is a validator for the "consume_challenge" field. It is called by the builders before save.
+	nativematerializationgrant.ConsumeChallengeValidator = func() func([]byte) error {
+		validators := nativematerializationgrantDescConsumeChallenge.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(consume_challenge []byte) error {
+			for _, fn := range fns {
+				if err := fn(consume_challenge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativematerializationgrantDescBindingDigest is the schema descriptor for binding_digest field.
+	nativematerializationgrantDescBindingDigest := nativematerializationgrantFields[6].Descriptor()
+	// nativematerializationgrant.BindingDigestValidator is a validator for the "binding_digest" field. It is called by the builders before save.
+	nativematerializationgrant.BindingDigestValidator = func() func([]byte) error {
+		validators := nativematerializationgrantDescBindingDigest.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(binding_digest []byte) error {
+			for _, fn := range fns {
+				if err := fn(binding_digest); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nativematerializationgrantDescIssuedMs is the schema descriptor for issued_ms field.
+	nativematerializationgrantDescIssuedMs := nativematerializationgrantFields[7].Descriptor()
+	// nativematerializationgrant.IssuedMsValidator is a validator for the "issued_ms" field. It is called by the builders before save.
+	nativematerializationgrant.IssuedMsValidator = nativematerializationgrantDescIssuedMs.Validators[0].(func(int64) error)
+	// nativematerializationgrantDescExpiresMs is the schema descriptor for expires_ms field.
+	nativematerializationgrantDescExpiresMs := nativematerializationgrantFields[8].Descriptor()
+	// nativematerializationgrant.ExpiresMsValidator is a validator for the "expires_ms" field. It is called by the builders before save.
+	nativematerializationgrant.ExpiresMsValidator = nativematerializationgrantDescExpiresMs.Validators[0].(func(int64) error)
+	// nativematerializationgrantDescConsumedMs is the schema descriptor for consumed_ms field.
+	nativematerializationgrantDescConsumedMs := nativematerializationgrantFields[9].Descriptor()
+	// nativematerializationgrant.DefaultConsumedMs holds the default value on creation for the consumed_ms field.
+	nativematerializationgrant.DefaultConsumedMs = nativematerializationgrantDescConsumedMs.Default.(int64)
+	// nativematerializationgrant.ConsumedMsValidator is a validator for the "consumed_ms" field. It is called by the builders before save.
+	nativematerializationgrant.ConsumedMsValidator = nativematerializationgrantDescConsumedMs.Validators[0].(func(int64) error)
+	// nativematerializationgrantDescRetired is the schema descriptor for retired field.
+	nativematerializationgrantDescRetired := nativematerializationgrantFields[10].Descriptor()
+	// nativematerializationgrant.DefaultRetired holds the default value on creation for the retired field.
+	nativematerializationgrant.DefaultRetired = nativematerializationgrantDescRetired.Default.(bool)
+	// nativematerializationgrantDescExpired is the schema descriptor for expired field.
+	nativematerializationgrantDescExpired := nativematerializationgrantFields[11].Descriptor()
+	// nativematerializationgrant.DefaultExpired holds the default value on creation for the expired field.
+	nativematerializationgrant.DefaultExpired = nativematerializationgrantDescExpired.Default.(bool)
+	// nativematerializationgrantDescCharge is the schema descriptor for charge field.
+	nativematerializationgrantDescCharge := nativematerializationgrantFields[12].Descriptor()
+	// nativematerializationgrant.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
+	nativematerializationgrant.ChargeValidator = func() func(int64) error {
+		validators := nativematerializationgrantDescCharge.Validators
 		fns := [...]func(int64) error{
 			validators[0].(func(int64) error),
 			validators[1].(func(int64) error),
