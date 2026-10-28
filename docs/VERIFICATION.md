@@ -161,3 +161,7 @@ Build Actions `40719035614` 精确绑定容器提交，`40722843461` 精确绑�
 - 独立 reviewer 对最终 tree 核全部 695 blobs/mode，八文件与已实测修复候选相同；fresh 构建的完整 Web dist 与 server executable 也逐字相同，将此前真实浏览器证据绑定最终运行时，而不是声称又跑了一次新 origin。最终 fresh Web/server/HTTP configuration seams 通过；主线程另跑 clean-export Web build、全 Go tests/vet、相关包 count10、模块校验全部通过。
 
 对应 Build Actions `40727877287` 精确绑定该 commit，completed/success；实际 test、六组 binaries、两架构 docker jobs 全绿，不由本地通过推断。独立最终报告为 `configuration-ui-final-review.md`，旧竞态拒签与两次修复复验均保留。该首片不是十四类 agent 完整编辑器、来源配置导入、选择/Pack 附件或 CLI/MyGo 原生 apply/restore，也不关闭本地 JSON codec 的独立 finding。用户操作说明见 `CONFIGURATION.md`。
+
+## 桌面打包身份门禁结果
+
+桌面修复 `39013dacfc01b2b50d6633cee3b2c324f09bf945` 的 Native Actions `40726579335` 已 completed/success，verify 与三系统双架构实际包装全部成功，publish=false/skipped。六 payload 在各 runner 的真实 metadata 检查全部验证 Go/CGO/目标架构、精确源码 revision 与 clean 标记；旧 Windows dirty 的因果复现和拒绝历史继续保留。普通 Build `40726569509` 也 completed/success。已核实际 job 结论与六条执行输出，不将后续 artifact 下载、安装或跨系统运行自动算作完成；完整限制见 `DESKTOP.md`。

@@ -126,3 +126,7 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 修复候选包含 scoped ignore 与六平台 payload 元数据门禁（Go、CGO、GOOS、GOARCH、精确 revision、clean 状态）。原 Windows 产物触发门禁 red，隔离重编两包 green；尚需独立验收、提交及新三系统实际打包 CI，不能将本地 payload 重编等同 NSIS 安装器重打包。
 
 后续 checkpoint：两文件修复已按独立签收 tree `9c5b5d45de94f8c3265ab166630910a910f17aa4` 提交并 SSH 推送 `39013dacfc01b2b50d6633cee3b2c324f09bf945`。独立 reviewer 另做同源 A/B/A 实际 MyGo Windows 重编：不排除资源为 dirty、精确排除后两架构 clean、撤回排除后再次 dirty，未关闭 VCS 信息。Native desktop Actions `40726579335` 以 `publish=false` 手动触发，精确绑定该 commit；当前 checkpoint 仅记录启动，不将尚未核对完成的三系统结果写成全绿，也不证明安装或可信签名。
+
+完成 checkpoint（2026-10-29 续接核对，Actions 原始日志日期为 2026-10-28）：该 Native run 已 completed/success，verify 及 Linux、Windows、macOS 三个 package jobs 全绿，publish 按设计 skipped。已逐 job 核对真实 metadata step success 及六条实际完成输出：两架构分别满足 Go 1.27.3、CGO0、正确 GOOS/GOARCH、精确 `39013dac` revision、`vcs.modified=false`。Windows 两架构 Setup 存在性断言也实际成功；这是新 runner 上的真实打包与身份检查，不是旧 payload、本机交叉编译或文本 fixture。
+
+该 run 的 Linux、Windows、Darwin unsigned artifacts 均已登记；新 ZIP 下载和落地摘要/包内容复核独立进行，不能把 CI 日志核对冒称全部下载完成。此 checkpoint 不代表安装/卸载、跨 OS 原生运行、可信签名、正式 Release 或完整客户端配置功能。对应普通 Build `40726569509` 同样精确绑定 `39013dac`，completed/success，不再用 Native 绿色替代普通构建结果。
