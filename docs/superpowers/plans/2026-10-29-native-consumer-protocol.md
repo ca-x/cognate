@@ -442,3 +442,46 @@ inputs:
 4. **实际运行证据仍 pending**：Ed25519 编码向量、SQLite 竞态/commit fault、真实 Connect、secret privacy、native decode，以及原 spec §10.2 已 ACCEPT 条件对应的 publisher 崩溃恢复与三 OS 证据。协议 green 不等于 native apply green；独立 docs 审阅也不代替实现验收。
 
 建议下一实施窄片为 **Task 1 的 proof 向量 + Task 2 的父 session/子会话认证事务测试**，先不加秘密 HTTP 响应、不触本机文件/GUI；由主线程确认独占写集后才能开工。最小出口是“已撤销/跨 owner/不同父 session/key 的 consumer 在真实 SQLite 事务内必被拒绝”，不是“已能应用配置”。本设计不会阻塞当前 providerpatch、desktop 身份或 UI/codec 提交。
+
+## 9. C1 补充：hard budgets 与 Task2A 最小授权草案（待 main + Gauss 批准）
+
+本节仅补累计容量/GC 接缝，不改已审两阶段 wire 字段、purpose 或 proof。基线计划 SHA 为 `a81268981c9c3ce44d5d6ad6b9842b0b41a31d8d89f74ef568543a5a3cd64670`；主线程已告知 docs 提交 a168eb5，Task1 schema/Buf 和 Wegener pureproof 分别独立推进，本节不把它们当作已验收。下列参数是**推荐默认硬上限，不是已经批准/实现的配置**；批准前不开工 Task2A，更不注册 HTTP。
+
+### 9.1 推荐默认额度（行数 / charged bytes 同时限制）
+
+| 新表 | 每行最大 charge | 每 parent Session | 每 owner（汇总所有 parent） | 每实例（汇总所有 owner） |
+| --- | --- | --- | --- | --- |
+| NativeConsumerChallenge | 4 KiB | 8 行 / 32 KiB | 32 行 / 128 KiB | 128 行 / 512 KiB |
+| NativeConsumerSession（children） | 4 KiB | 16 行 / 64 KiB | 32 行 / 128 KiB | 128 行 / 512 KiB |
+| NativeApplyPreparation | 16 KiB | 16 行 / 256 KiB | 32 行 / 512 KiB | 128 行 / 2 MiB |
+| NativeMaterializationGrant | 4 KiB | 16 行 / 64 KiB | 32 行 / 128 KiB | 128 行 / 512 KiB |
+| 四表总计（另设总闸） | — | 56 行 / 416 KiB | 128 行 / 896 KiB | 512 行 / 3.5 MiB |
+
+- parent 是不可替换的真实 Session 行，不是 token 字符串前缀；owner 由该行关系确定，instance 指同一 SQLite 数据集，所有 Store/进程共享额度。不得靠不断 bootstrap/重新登录绕过 owner/instance 总闸。一个 child 仍只允许一个 operation/一个 preparation/最多一个 grant，不能把 16 行理解为每 child 可开 16 次授权。
+- 推荐理由：16 个 child 可容纳 14 agent **顺序**批操作及少量失败重试余量，owner 32 给两个父会话有限余量；实例 128 刻意约束个人/小团队服务，而不是 SaaS 无限并发承诺。现有第一片仍仅 Claude；这是容量规划，不声称另 13 agent 已实现。单调用/worker 限流与累计额度分别生效，达到 hard budget 就等待旧生命周期结束或用户显式 logout，不驱逐活 session 腾位。
+- charge 定义为每行固定 512 bytes 保守开销 + 所有实际持久化可变字段的 byte length 之和（UTF-8/二进制、公钥/nonce/hash、编码 binding/patch、ciphertext 及其 AEAD 开销，重复存储的副本分别计入）。不把客户端提供的 size 当事实；由可信 store 计算、用非负整数持久化，更新/复制/失败重试重新核算，溢出或计量损坏 fail closed。三层计数/字节均计**仍存在的全部行**，包含 used、consumed、expired、retired，不只数活项。
+- 此为四表逻辑持久量预算，不是 SQLite 文件/WAL/索引/RAM 或全库磁盘上限；不能据 3.5 MiB 宣称磁盘最多 3.5 MiB。现有账号/普通 Session 表和其它业务资源不由本片偷偷改配额。快照/日志/全库磁盘预算另属运维策略；row cap、分页和既有限额共同约束临时分配。
+- admission 的身份重核、三层 COUNT/SUM、行 charge 校验和 INSERT/状态转移须在同一 SQLite 写事务内排序；仅用进程 mutex/缓存计数不合格。Bind 的 challenge used 与 child 创建一同提交；未来 Authorize 的 intent 绑定与 grant 创建也一同计费/提交。读升级遇 SQLITE_BUSY/SNAPSHOT 时仅明确 rollback 后重试、重新读 quota，不能复用旧计数；多 Store 抢最后一格只准一个成功。GC/DELETE 以真实剩余行重新计算额度，不依赖可能与 cascade 脱节的内存计数器。
+
+### 9.2 Expiry、GC 与留存一致策略
+
+- 不改既有 TTL：unused challenge 最长 60s，native child 最长 5min 且不晚于父 session，preparation 不晚于 child，grant 最长 60s 且不晚于完整 intent/child/parent。每次事务 fresh clock 判定有效性；时钟回拨不重新启用已写入 used/consumed/retired 的终态，不承诺 wall clock 自身可信。
+- used challenge 在 Bind 已确认提交后可删，unused 只在过期后删；无 child→challenge FK，所以 cleanup 不撤销已创建 child。parent/child 有效期间，preparation/grant 的终态元数据保留至 child expiry（或更早的显式 parent/native 删除），不因 quota 满而淘汰活授权/状态。expiry 先使鉴权失效，物理 GC 延迟不延寿。
+- 推荐 GC 间隔 30s；每轮最多 64 个根记录、**含 cascade 总计最多 256 行 / 1 MiB charged bytes**，并有 50ms cooperative context budget，任一项先到即停。根只选可删的 used/expired challenge 或 expired child；先估算后代闭包再删，单根超预算则拒绝并报固定内部错误，不能无界递归。事务中重新核对 expiry，竞争或取消就 rollback；50ms 是取消预算，不冒称平台实时完成保证。
+- 启动/定时/容量不足时均只允许有界 pass，按 expiry、主键稳定分页，不做整表读入、无界删除或无限“清到能创建”。一次 admission 最多触发一轮 GC 后重新鉴权/计费再试；仍超额即 QUOTA。Task2A 只提供可调用的 bounded store prune 和测试，不新增 App 后台任务/HTTP；实际启用前必须有可信生命周期调用该 prune，GC 不可用也不能突破 hard limit。
+- Logout/RevokeSession **不受 GC batch 或 quota 拒绝**：继续真实 DELETE 父 Session，按 §4.1.1 九 FK 同事务级联，不能为了 retained status/audit 拦住撤销。本推荐父链最多 56 个新表行 / 416 KiB，撤销其全部，不拆成多轮留下可用 child；owner 删除遵守既有旧表排序后对新增关系 cascade。新四表的物理删行即释放 charge，回滚则额度不释放。
+- 不新增长期 audit 表：consumed 状态不能比授权身份留得更久；子/父失效后 Status 不旁路身份。保留的非 FK 运维事件仅用既定随机 event ID、阶段/结果码、时间/计数，无原始身份、token、key/proof、commitment、patch 或响应；日志不可重建授权且不参与 FK。GC 延迟不承诺精确到期擦除、SQLite 空闲页/WAL 的物理密文或旧数据安全擦除。
+
+### 9.3 QUOTA 失败合同
+
+建议新增内部固定 sentinel `state.ErrNativeQuota`，审计/安全指标 reason=`QUOTA`；未来 HTTP 映射 Connect `ResourceExhausted`、固定文案 `native capacity exhausted`，不改 wire enum/字段，不向调用者暴露哪个 owner/全局计数/占用字节。它与 malformed 输入的 InvalidArgument、失效身份的 Unauthenticated、SQLite/计量损坏的 Unavailable 分开；先鉴权再检查累计 quota，未认证者不能探测容量。
+
+一次因 quota 失败的 Bind 不消耗 challenge、不创建 child；未来 Prepare/Authorize 失败也不留下半个绑定/grant。不得以延长 TTL、删除别人的活项或 soft-revoke 返回假成功。网络层限流与 quota 不是同一概念；可建议最多 30s 后手动重试，但不能自动无限 bootstrap/重试或承诺该时刻一定腾位。
+
+### 9.4 Task2A 最小未来写集与验收（批准后另授独占权）
+
+- **只建前两表**：`internal/server/ent/schema/nativeconsumerchallenge.go`、`nativeconsumersession.go`；必要的 `schema/session.go`、`schema/user.go` 反向 edge 和生成器产生的 `internal/server/ent/**`/迁移元数据。不得手改 generated ent、改现有 wire/proto/module，或提前建 preparation/grant/秘密响应。本片对前两表执行上述各表/合计额度；后两表额度先登记，待后续建表/启用前加入同事务计量，不声称已实现四表功能。
+- **state/auth 新文件草案**：`internal/server/state/native_consumer.go`、`native_consumer_test.go`（必要 white-box 测试另用 `native_consumer_internal_test.go`）；`internal/server/auth/native_consumer.go`、`native_consumer_test.go`。仅含 exact owner-session credential、Begin/Bind 子会话事务、鉴权/expiry、bounded quota/prune；复用 Wegener 冻结的 pureproof 接口，不修改其 `internal/configclient/**` 写集。现有 RevokeSession 的真实 DELETE 必须保持可行，不改成 soft revoke。若发现额外生产接缝先报告，不能自行扩写集。
+- **TDD 出口**：真实临时 SQLite、隔离 home/key、多 Store 同 DB；父撤销/过期、child expiry、跨 owner/父 session/key 绑定、challenge 一次使用、两 Store 争最后 quota/同 challenge、Bind 与 RevokeSession 两种提交顺序、GC 与 Bind 竞争/rollback、QUOTA 不消耗 challenge。测 parent 真 DELETE 整链清零且他人不变，并核前两表四条 FK 的 CASCADE；完整九 FK/含 consumed grant 的删除验收仍留后续 Task2，不以本片替代。
+- **容量负例**：不断 Begin/Bind 或换 parent 时 owner/instance 闸仍限制；已过期但未 GC 行仍计费，有界 GC 后按真实删除释放；字节先于行数耗尽、边界/溢出、used challenge 清理不反删 child、固定错误及无秘密日志。Task2A 注入较低测试阈值验证原子性并另测默认值；不得用缩小 fixture 掩盖生产硬上限未执行。
+- **明确不交付**：不注册 HTTP、不改 App/GUI/CLI、不实现 grant/秘密消费、不触本机 apply 文件、不签收 full native apply/F12。main + Gauss 批准本节参数/写集且 Task1 接口具备后才授权实施；运行证据及独立 review 均 pending。
