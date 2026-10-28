@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/category"
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
@@ -191,6 +192,21 @@ func (_c *UserCreate) AddCategories(v ...*Category) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCategoryIDs(ids...)
+}
+
+// AddConfigurationAssetIDs adds the "configuration_assets" edge to the ConfigurationAsset entity by IDs.
+func (_c *UserCreate) AddConfigurationAssetIDs(ids ...int) *UserCreate {
+	_c.mutation.AddConfigurationAssetIDs(ids...)
+	return _c
+}
+
+// AddConfigurationAssets adds the "configuration_assets" edges to the ConfigurationAsset entity.
+func (_c *UserCreate) AddConfigurationAssets(v ...*ConfigurationAsset) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfigurationAssetIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -418,6 +434,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfigurationAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

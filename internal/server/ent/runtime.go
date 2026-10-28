@@ -8,6 +8,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/category"
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -125,6 +126,76 @@ func init() {
 	collectedskillDescContentHash := collectedskillFields[5].Descriptor()
 	// collectedskill.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
 	collectedskill.ContentHashValidator = collectedskillDescContentHash.Validators[0].(func(string) error)
+	configurationassetFields := schema.ConfigurationAsset{}.Fields()
+	_ = configurationassetFields
+	// configurationassetDescPublicID is the schema descriptor for public_id field.
+	configurationassetDescPublicID := configurationassetFields[0].Descriptor()
+	// configurationasset.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	configurationasset.PublicIDValidator = configurationassetDescPublicID.Validators[0].(func(string) error)
+	// configurationassetDescAgentID is the schema descriptor for agent_id field.
+	configurationassetDescAgentID := configurationassetFields[2].Descriptor()
+	// configurationasset.AgentIDValidator is a validator for the "agent_id" field. It is called by the builders before save.
+	configurationasset.AgentIDValidator = func() func(string) error {
+		validators := configurationassetDescAgentID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(agent_id string) error {
+			for _, fn := range fns {
+				if err := fn(agent_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// configurationassetDescName is the schema descriptor for name field.
+	configurationassetDescName := configurationassetFields[4].Descriptor()
+	// configurationasset.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	configurationasset.NameValidator = func() func(string) error {
+		validators := configurationassetDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// configurationassetDescSchemaVersion is the schema descriptor for schema_version field.
+	configurationassetDescSchemaVersion := configurationassetFields[5].Descriptor()
+	// configurationasset.SchemaVersionValidator is a validator for the "schema_version" field. It is called by the builders before save.
+	configurationasset.SchemaVersionValidator = func() func(int) error {
+		validators := configurationassetDescSchemaVersion.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(schema_version int) error {
+			for _, fn := range fns {
+				if err := fn(schema_version); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// configurationassetDescRevision is the schema descriptor for revision field.
+	configurationassetDescRevision := configurationassetFields[6].Descriptor()
+	// configurationasset.DefaultRevision holds the default value on creation for the revision field.
+	configurationasset.DefaultRevision = configurationassetDescRevision.Default.(int64)
+	// configurationasset.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
+	configurationasset.RevisionValidator = configurationassetDescRevision.Validators[0].(func(int64) error)
+	// configurationassetDescCiphertext is the schema descriptor for ciphertext field.
+	configurationassetDescCiphertext := configurationassetFields[9].Descriptor()
+	// configurationasset.CiphertextValidator is a validator for the "ciphertext" field. It is called by the builders before save.
+	configurationasset.CiphertextValidator = configurationassetDescCiphertext.Validators[0].(func([]byte) error)
 	githubcredentialFields := schema.GitHubCredential{}.Fields()
 	_ = githubcredentialFields
 	// githubcredentialDescViewerID is the schema descriptor for viewer_id field.

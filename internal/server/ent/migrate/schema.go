@@ -109,6 +109,41 @@ var (
 			},
 		},
 	}
+	// ConfigurationAssetsColumns holds the columns for the "configuration_assets" table.
+	ConfigurationAssetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true},
+		{Name: "agent_id", Type: field.TypeString, Size: 64},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"provider", "mcp", "prompt", "agent-settings", "workspace"}},
+		{Name: "name", Type: field.TypeString, Size: 128},
+		{Name: "schema_version", Type: field.TypeInt},
+		{Name: "revision", Type: field.TypeInt64, Default: 1},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "ciphertext", Type: field.TypeBytes},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// ConfigurationAssetsTable holds the schema information for the "configuration_assets" table.
+	ConfigurationAssetsTable = &schema.Table{
+		Name:       "configuration_assets",
+		Columns:    ConfigurationAssetsColumns,
+		PrimaryKey: []*schema.Column{ConfigurationAssetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "configuration_assets_users_configuration_assets",
+				Columns:    []*schema.Column{ConfigurationAssetsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "configurationasset_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ConfigurationAssetsColumns[10], ConfigurationAssetsColumns[7]},
+			},
+		},
+	}
 	// GitHubCredentialsColumns holds the columns for the "git_hub_credentials" table.
 	GitHubCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -529,6 +564,7 @@ var (
 		CategoriesTable,
 		CollectedRepositoriesTable,
 		CollectedSkillsTable,
+		ConfigurationAssetsTable,
 		GitHubCredentialsTable,
 		GitHubListsTable,
 		GitHubMembershipsTable,
@@ -551,6 +587,7 @@ func init() {
 	CategoriesTable.ForeignKeys[0].RefTable = UsersTable
 	CollectedRepositoriesTable.ForeignKeys[0].RefTable = UsersTable
 	CollectedSkillsTable.ForeignKeys[0].RefTable = CollectedRepositoriesTable
+	ConfigurationAssetsTable.ForeignKeys[0].RefTable = UsersTable
 	GitHubCredentialsTable.ForeignKeys[0].RefTable = UsersTable
 	GitHubListsTable.ForeignKeys[0].RefTable = UsersTable
 	GitHubMembershipsTable.ForeignKeys[0].RefTable = GitHubListsTable

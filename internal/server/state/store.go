@@ -26,6 +26,7 @@ type Store struct{ state *storeState }
 type storeState struct {
 	client            *ent.Client
 	aead              cipher.AEAD
+	configurationAEAD cipher.AEAD
 	keyID             string
 	observationMaxAge time.Duration
 	now               func() time.Time
@@ -71,6 +72,10 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 	if err != nil {
 		return nil, fmt.Errorf("initialize server credential encryption")
 	}
+	configurationAEAD, err := newConfigurationAEAD(key)
+	if err != nil {
+		return nil, fmt.Errorf("initialize configuration encryption")
+	}
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path || filepath.Base(path) == "." || filepath.Dir(path) == path {
 		return nil, fmt.Errorf("server database path must be absolute and clean")
 	}
@@ -111,7 +116,7 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		return nil, fmt.Errorf("initialize server database: %w", err)
 	}
 	fingerprint := sha256.Sum256(key)
-	store := &Store{state: &storeState{client: client, aead: aead, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now}}
+	store := &Store{state: &storeState{client: client, aead: aead, configurationAEAD: configurationAEAD, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now}}
 	if err := store.verifyDatabaseKey(ctx); err != nil {
 		_ = client.Close()
 		return nil, err

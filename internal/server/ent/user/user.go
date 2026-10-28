@@ -34,6 +34,8 @@ const (
 	EdgeMcpCredentials = "mcp_credentials"
 	// EdgeCategories holds the string denoting the categories edge name in mutations.
 	EdgeCategories = "categories"
+	// EdgeConfigurationAssets holds the string denoting the configuration_assets edge name in mutations.
+	EdgeConfigurationAssets = "configuration_assets"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GithubCredentialTable is the table that holds the github_credential relation/edge.
@@ -106,6 +108,13 @@ const (
 	CategoriesInverseTable = "categories"
 	// CategoriesColumn is the table column denoting the categories relation/edge.
 	CategoriesColumn = "user_id"
+	// ConfigurationAssetsTable is the table that holds the configuration_assets relation/edge.
+	ConfigurationAssetsTable = "configuration_assets"
+	// ConfigurationAssetsInverseTable is the table name for the ConfigurationAsset entity.
+	// It exists in this package in order to avoid circular dependency with the "configurationasset" package.
+	ConfigurationAssetsInverseTable = "configuration_assets"
+	// ConfigurationAssetsColumn is the table column denoting the configuration_assets relation/edge.
+	ConfigurationAssetsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -267,6 +276,20 @@ func ByCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByConfigurationAssetsCount orders the results by configuration_assets count.
+func ByConfigurationAssetsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfigurationAssetsStep(), opts...)
+	}
+}
+
+// ByConfigurationAssets orders the results by configuration_assets terms.
+func ByConfigurationAssets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfigurationAssetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGithubCredentialStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -335,5 +358,12 @@ func newCategoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CategoriesTable, CategoriesColumn),
+	)
+}
+func newConfigurationAssetsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfigurationAssetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAssetsTable, ConfigurationAssetsColumn),
 	)
 }

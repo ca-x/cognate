@@ -18,6 +18,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/category"
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
+	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -45,6 +46,8 @@ type Client struct {
 	CollectedRepository *CollectedRepositoryClient
 	// CollectedSkill is the client for interacting with the CollectedSkill builders.
 	CollectedSkill *CollectedSkillClient
+	// ConfigurationAsset is the client for interacting with the ConfigurationAsset builders.
+	ConfigurationAsset *ConfigurationAssetClient
 	// GitHubCredential is the client for interacting with the GitHubCredential builders.
 	GitHubCredential *GitHubCredentialClient
 	// GitHubList is the client for interacting with the GitHubList builders.
@@ -87,6 +90,7 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.CollectedRepository = NewCollectedRepositoryClient(c.config)
 	c.CollectedSkill = NewCollectedSkillClient(c.config)
+	c.ConfigurationAsset = NewConfigurationAssetClient(c.config)
 	c.GitHubCredential = NewGitHubCredentialClient(c.config)
 	c.GitHubList = NewGitHubListClient(c.config)
 	c.GitHubMembership = NewGitHubMembershipClient(c.config)
@@ -196,6 +200,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Category:            NewCategoryClient(cfg),
 		CollectedRepository: NewCollectedRepositoryClient(cfg),
 		CollectedSkill:      NewCollectedSkillClient(cfg),
+		ConfigurationAsset:  NewConfigurationAssetClient(cfg),
 		GitHubCredential:    NewGitHubCredentialClient(cfg),
 		GitHubList:          NewGitHubListClient(cfg),
 		GitHubMembership:    NewGitHubMembershipClient(cfg),
@@ -232,6 +237,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Category:            NewCategoryClient(cfg),
 		CollectedRepository: NewCollectedRepositoryClient(cfg),
 		CollectedSkill:      NewCollectedSkillClient(cfg),
+		ConfigurationAsset:  NewConfigurationAssetClient(cfg),
 		GitHubCredential:    NewGitHubCredentialClient(cfg),
 		GitHubList:          NewGitHubListClient(cfg),
 		GitHubMembership:    NewGitHubMembershipClient(cfg),
@@ -275,10 +281,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Category, c.CollectedRepository, c.CollectedSkill, c.GitHubCredential,
-		c.GitHubList, c.GitHubMembership, c.GitHubRepository, c.LocalAccount,
-		c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
-		c.ServerMetadata, c.Session, c.User,
+		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
+		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack,
+		c.PackItem, c.PackShare, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -288,10 +294,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Category, c.CollectedRepository, c.CollectedSkill, c.GitHubCredential,
-		c.GitHubList, c.GitHubMembership, c.GitHubRepository, c.LocalAccount,
-		c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
-		c.ServerMetadata, c.Session, c.User,
+		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
+		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.OIDCIdentity, c.Pack,
+		c.PackItem, c.PackShare, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -306,6 +312,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CollectedRepository.mutate(ctx, m)
 	case *CollectedSkillMutation:
 		return c.CollectedSkill.mutate(ctx, m)
+	case *ConfigurationAssetMutation:
+		return c.ConfigurationAsset.mutate(ctx, m)
 	case *GitHubCredentialMutation:
 		return c.GitHubCredential.mutate(ctx, m)
 	case *GitHubListMutation:
@@ -847,6 +855,155 @@ func (c *CollectedSkillClient) mutate(ctx context.Context, m *CollectedSkillMuta
 		return (&CollectedSkillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CollectedSkill mutation op: %q", m.Op())
+	}
+}
+
+// ConfigurationAssetClient is a client for the ConfigurationAsset schema.
+type ConfigurationAssetClient struct {
+	config
+}
+
+// NewConfigurationAssetClient returns a client for the ConfigurationAsset from the given config.
+func NewConfigurationAssetClient(c config) *ConfigurationAssetClient {
+	return &ConfigurationAssetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `configurationasset.Hooks(f(g(h())))`.
+func (c *ConfigurationAssetClient) Use(hooks ...Hook) {
+	c.hooks.ConfigurationAsset = append(c.hooks.ConfigurationAsset, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `configurationasset.Intercept(f(g(h())))`.
+func (c *ConfigurationAssetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ConfigurationAsset = append(c.inters.ConfigurationAsset, interceptors...)
+}
+
+// Create returns a builder for creating a ConfigurationAsset entity.
+func (c *ConfigurationAssetClient) Create() *ConfigurationAssetCreate {
+	mutation := newConfigurationAssetMutation(c.config, OpCreate)
+	return &ConfigurationAssetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ConfigurationAsset entities.
+func (c *ConfigurationAssetClient) CreateBulk(builders ...*ConfigurationAssetCreate) *ConfigurationAssetCreateBulk {
+	return &ConfigurationAssetCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConfigurationAssetClient) MapCreateBulk(slice any, setFunc func(*ConfigurationAssetCreate, int)) *ConfigurationAssetCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConfigurationAssetCreateBulk{err: fmt.Errorf("calling to ConfigurationAssetClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConfigurationAssetCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ConfigurationAssetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ConfigurationAsset.
+func (c *ConfigurationAssetClient) Update() *ConfigurationAssetUpdate {
+	mutation := newConfigurationAssetMutation(c.config, OpUpdate)
+	return &ConfigurationAssetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConfigurationAssetClient) UpdateOne(_m *ConfigurationAsset) *ConfigurationAssetUpdateOne {
+	mutation := newConfigurationAssetMutation(c.config, OpUpdateOne, withConfigurationAsset(_m))
+	return &ConfigurationAssetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConfigurationAssetClient) UpdateOneID(id int) *ConfigurationAssetUpdateOne {
+	mutation := newConfigurationAssetMutation(c.config, OpUpdateOne, withConfigurationAssetID(id))
+	return &ConfigurationAssetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ConfigurationAsset.
+func (c *ConfigurationAssetClient) Delete() *ConfigurationAssetDelete {
+	mutation := newConfigurationAssetMutation(c.config, OpDelete)
+	return &ConfigurationAssetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConfigurationAssetClient) DeleteOne(_m *ConfigurationAsset) *ConfigurationAssetDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConfigurationAssetClient) DeleteOneID(id int) *ConfigurationAssetDeleteOne {
+	builder := c.Delete().Where(configurationasset.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConfigurationAssetDeleteOne{builder}
+}
+
+// Query returns a query builder for ConfigurationAsset.
+func (c *ConfigurationAssetClient) Query() *ConfigurationAssetQuery {
+	return &ConfigurationAssetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConfigurationAsset},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ConfigurationAsset entity by its id.
+func (c *ConfigurationAssetClient) Get(ctx context.Context, id int) (*ConfigurationAsset, error) {
+	return c.Query().Where(configurationasset.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConfigurationAssetClient) GetX(ctx context.Context, id int) *ConfigurationAsset {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ConfigurationAsset.
+func (c *ConfigurationAssetClient) QueryUser(_m *ConfigurationAsset) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configurationasset.Table, configurationasset.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, configurationasset.UserTable, configurationasset.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ConfigurationAssetClient) Hooks() []Hook {
+	return c.hooks.ConfigurationAsset
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConfigurationAssetClient) Interceptors() []Interceptor {
+	return c.inters.ConfigurationAsset
+}
+
+func (c *ConfigurationAssetClient) mutate(ctx context.Context, m *ConfigurationAssetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConfigurationAssetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConfigurationAssetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConfigurationAssetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConfigurationAssetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ConfigurationAsset mutation op: %q", m.Op())
 	}
 }
 
@@ -3151,6 +3308,22 @@ func (c *UserClient) QueryCategories(_m *User) *CategoryQuery {
 	return query
 }
 
+// QueryConfigurationAssets queries the configuration_assets edge of a User.
+func (c *UserClient) QueryConfigurationAssets(_m *User) *ConfigurationAssetQuery {
+	query := (&ConfigurationAssetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(configurationasset.Table, configurationasset.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfigurationAssetsTable, user.ConfigurationAssetsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -3179,15 +3352,15 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Category, CollectedRepository, CollectedSkill, GitHubCredential, GitHubList,
-		GitHubMembership, GitHubRepository, LocalAccount, MCPAudit, MCPCredential,
-		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
-		User []ent.Hook
+		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
+		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
+		MCPAudit, MCPCredential, OIDCIdentity, Pack, PackItem, PackShare,
+		ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
-		Category, CollectedRepository, CollectedSkill, GitHubCredential, GitHubList,
-		GitHubMembership, GitHubRepository, LocalAccount, MCPAudit, MCPCredential,
-		OIDCIdentity, Pack, PackItem, PackShare, ServerMetadata, Session,
-		User []ent.Interceptor
+		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
+		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
+		MCPAudit, MCPCredential, OIDCIdentity, Pack, PackItem, PackShare,
+		ServerMetadata, Session, User []ent.Interceptor
 	}
 )

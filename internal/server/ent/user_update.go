@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/category"
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
+	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
@@ -193,6 +194,21 @@ func (_u *UserUpdate) AddCategories(v ...*Category) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCategoryIDs(ids...)
+}
+
+// AddConfigurationAssetIDs adds the "configuration_assets" edge to the ConfigurationAsset entity by IDs.
+func (_u *UserUpdate) AddConfigurationAssetIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddConfigurationAssetIDs(ids...)
+	return _u
+}
+
+// AddConfigurationAssets adds the "configuration_assets" edges to the ConfigurationAsset entity.
+func (_u *UserUpdate) AddConfigurationAssets(v ...*ConfigurationAsset) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfigurationAssetIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -378,6 +394,27 @@ func (_u *UserUpdate) RemoveCategories(v ...*Category) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCategoryIDs(ids...)
+}
+
+// ClearConfigurationAssets clears all "configuration_assets" edges to the ConfigurationAsset entity.
+func (_u *UserUpdate) ClearConfigurationAssets() *UserUpdate {
+	_u.mutation.ClearConfigurationAssets()
+	return _u
+}
+
+// RemoveConfigurationAssetIDs removes the "configuration_assets" edge to ConfigurationAsset entities by IDs.
+func (_u *UserUpdate) RemoveConfigurationAssetIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveConfigurationAssetIDs(ids...)
+	return _u
+}
+
+// RemoveConfigurationAssets removes "configuration_assets" edges to ConfigurationAsset entities.
+func (_u *UserUpdate) RemoveConfigurationAssets(v ...*ConfigurationAsset) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfigurationAssetIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -834,6 +871,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ConfigurationAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfigurationAssetsIDs(); len(nodes) > 0 && !_u.mutation.ConfigurationAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfigurationAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1010,6 +1092,21 @@ func (_u *UserUpdateOne) AddCategories(v ...*Category) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCategoryIDs(ids...)
+}
+
+// AddConfigurationAssetIDs adds the "configuration_assets" edge to the ConfigurationAsset entity by IDs.
+func (_u *UserUpdateOne) AddConfigurationAssetIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddConfigurationAssetIDs(ids...)
+	return _u
+}
+
+// AddConfigurationAssets adds the "configuration_assets" edges to the ConfigurationAsset entity.
+func (_u *UserUpdateOne) AddConfigurationAssets(v ...*ConfigurationAsset) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfigurationAssetIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1195,6 +1292,27 @@ func (_u *UserUpdateOne) RemoveCategories(v ...*Category) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCategoryIDs(ids...)
+}
+
+// ClearConfigurationAssets clears all "configuration_assets" edges to the ConfigurationAsset entity.
+func (_u *UserUpdateOne) ClearConfigurationAssets() *UserUpdateOne {
+	_u.mutation.ClearConfigurationAssets()
+	return _u
+}
+
+// RemoveConfigurationAssetIDs removes the "configuration_assets" edge to ConfigurationAsset entities by IDs.
+func (_u *UserUpdateOne) RemoveConfigurationAssetIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveConfigurationAssetIDs(ids...)
+	return _u
+}
+
+// RemoveConfigurationAssets removes "configuration_assets" edges to ConfigurationAsset entities.
+func (_u *UserUpdateOne) RemoveConfigurationAssets(v ...*ConfigurationAsset) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfigurationAssetIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1674,6 +1792,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfigurationAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfigurationAssetsIDs(); len(nodes) > 0 && !_u.mutation.ConfigurationAssetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfigurationAssetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfigurationAssetsTable,
+			Columns: []string{user.ConfigurationAssetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

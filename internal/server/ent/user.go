@@ -48,9 +48,11 @@ type UserEdges struct {
 	McpCredentials []*MCPCredential `json:"mcp_credentials,omitempty"`
 	// Categories holds the value of the categories edge.
 	Categories []*Category `json:"categories,omitempty"`
+	// ConfigurationAssets holds the value of the configuration_assets edge.
+	ConfigurationAssets []*ConfigurationAsset `json:"configuration_assets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 }
 
 // GithubCredentialOrErr returns the GithubCredential value or an error if the edge
@@ -145,6 +147,15 @@ func (e UserEdges) CategoriesOrErr() ([]*Category, error) {
 		return e.Categories, nil
 	}
 	return nil, &NotLoadedError{edge: "categories"}
+}
+
+// ConfigurationAssetsOrErr returns the ConfigurationAssets value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
+	if e.loadedTypes[10] {
+		return e.ConfigurationAssets, nil
+	}
+	return nil, &NotLoadedError{edge: "configuration_assets"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -244,6 +255,11 @@ func (_m *User) QueryMcpCredentials() *MCPCredentialQuery {
 // QueryCategories queries the "categories" edge of the User entity.
 func (_m *User) QueryCategories() *CategoryQuery {
 	return NewUserClient(_m.config).QueryCategories(_m)
+}
+
+// QueryConfigurationAssets queries the "configuration_assets" edge of the User entity.
+func (_m *User) QueryConfigurationAssets() *ConfigurationAssetQuery {
+	return NewUserClient(_m.config).QueryConfigurationAssets(_m)
 }
 
 // Update returns a builder for updating this User.

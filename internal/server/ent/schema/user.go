@@ -26,5 +26,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("packs", Pack.Type),
 		edge.To("mcp_credentials", MCPCredential.Type),
 		edge.To("categories", Category.Type),
+		edge.To("configuration_assets", ConfigurationAsset.Type),
 	}
 }

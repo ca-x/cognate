@@ -45,6 +45,18 @@ func (f CollectedSkillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CollectedSkillMutation", m)
 }
 
+// The ConfigurationAssetFunc type is an adapter to allow the use of ordinary
+// function as ConfigurationAsset mutator.
+type ConfigurationAssetFunc func(context.Context, *ent.ConfigurationAssetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConfigurationAssetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ConfigurationAssetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationAssetMutation", m)
+}
+
 // The GitHubCredentialFunc type is an adapter to allow the use of ordinary
 // function as GitHubCredential mutator.
 type GitHubCredentialFunc func(context.Context, *ent.GitHubCredentialMutation) (ent.Value, error)

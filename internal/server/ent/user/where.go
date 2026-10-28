@@ -353,6 +353,29 @@ func HasCategoriesWith(preds ...predicate.Category) predicate.User {
 	})
 }
 
+// HasConfigurationAssets applies the HasEdge predicate on the "configuration_assets" edge.
+func HasConfigurationAssets() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAssetsTable, ConfigurationAssetsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfigurationAssetsWith applies the HasEdge predicate on the "configuration_assets" edge with a given conditions (other predicates).
+func HasConfigurationAssetsWith(preds ...predicate.ConfigurationAsset) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfigurationAssetsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

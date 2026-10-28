@@ -15,6 +15,9 @@ type CollectedRepository func(*sql.Selector)
 // CollectedSkill is the predicate function for collectedskill builders.
 type CollectedSkill func(*sql.Selector)
 
+// ConfigurationAsset is the predicate function for configurationasset builders.
+type ConfigurationAsset func(*sql.Selector)
+
 // GitHubCredential is the predicate function for githubcredential builders.
 type GitHubCredential func(*sql.Selector)
 
