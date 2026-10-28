@@ -56,7 +56,10 @@ type ArchiveSnapshot struct {
 	Skills []ArchivedSkill
 }
 
-type ArchiveFetcher struct{ client *http.Client }
+type ArchiveFetcher struct {
+	client   *http.Client
+	cooldown archiveCooldown
+}
 
 func ParseReference(input, branch string) (Reference, error) {
 	input = strings.TrimSuffix(strings.TrimSpace(input), "/")
@@ -96,6 +99,9 @@ func (fetcher *ArchiveFetcher) Fetch(ctx context.Context, reference Reference) (
 	if err != nil || parsed != reference {
 		return nil, ErrInvalidReference
 	}
+	if err := fetcher.cooldown.admit(ctx); err != nil {
+		return nil, err
+	}
 	branch := reference.Branch
 	if branch == "" {
 		branch = "HEAD"
@@ -115,6 +121,7 @@ func (fetcher *ArchiveFetcher) Fetch(ctx context.Context, reference Reference) (
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusTooManyRequests {
+		fetcher.cooldown.observe(response.Header.Get("Retry-After"))
 		return nil, ErrArchiveRateLimited
 	}
 	if response.StatusCode != http.StatusOK {
