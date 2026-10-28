@@ -1,0 +1,144 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skillhub-web
+          path: web/dist
+          if-no-files-found: error
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: '1.75.0'
+      - name: Check protobuf generation and compatibility
+        env:
+          CGO_ENABLED: '0'
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          buf lint
+          generated="$(mktemp -d)"
+          buf generate -o "$generated"
+          diff -ru gen "$generated/gen"
+          buf generate --template buf.gen.web.yaml -o "$generated"
+          diff -ru web/src/gen "$generated/web/src/gen"
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --unshallow origin
+            if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+              echo 'Cannot verify compatibility from a shallow repository.' >&2
+              exit 1
+            fi
+          fi
+          base="${PR_BASE:-$PUSH_BASE}"
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ]; then
+            if [ "$GITHUB_EVENT_NAME" = push ]; then
+              git fetch --no-tags origin "+refs/heads/$DEFAULT_BRANCH:refs/remotes/origin/$DEFAULT_BRANCH"
+              base="$(git merge-base HEAD "refs/remotes/origin/$DEFAULT_BRANCH")"
+              if [ "$base" = "$(git rev-parse HEAD)" ] && [ "$GITHUB_REF_NAME" = "$DEFAULT_BRANCH" ]; then
+                base="$(git rev-parse --verify HEAD^ 2>/dev/null || true)"
+              fi
+            else
+              base="$(git rev-parse --verify HEAD^ 2>/dev/null || true)"
+            fi
+          fi
+          if [ -z "$base" ]; then
+            echo 'No parent commit exists; skipping initial schema compatibility check.'
+          else
+            git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --no-tags origin "$base"
+            git cat-file -e "$base^{commit}"
+            if [ -z "$(git ls-tree "$base" proto)" ]; then
+              echo 'Baseline has no proto directory; this is an initial schema introduction.'
+              exit 0
+            fi
+            if ! git cat-file -e "$base:buf.yaml" 2>/dev/null; then
+              echo 'Baseline has proto files but no buf.yaml; compatibility cannot be verified.' >&2
+              exit 1
+            fi
+            baseline="$(mktemp -d)"
+            git archive "$base" buf.yaml proto | tar -x -C "$baseline"
+            buf breaking --against "$baseline"
+          fi
+      - run: CGO_ENABLED=0 go test ./...
+      - run: CGO_ENABLED=0 go vet ./...
+
+  binaries:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/download-artifact@v4
+        with:
+          name: skillhub-web
+          path: web/dist
+      - name: Build CLI client and server
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p dist
+          name="skillhub-${GOOS}-${GOARCH}"
+          if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
+          go build -trimpath -o "dist/$name" ./cmd/skillhub
+          name="skillhub-server-${GOOS}-${GOARCH}"
+          if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
+          go build -trimpath -o "dist/$name" ./cmd/skillhub-server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skillhub-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          outputs: type=oci,dest=/tmp/skillhub-${{ matrix.arch }}.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skillhub-docker-${{ matrix.arch }}
+          path: /tmp/skillhub-${{ matrix.arch }}.tar
+          if-no-files-found: error

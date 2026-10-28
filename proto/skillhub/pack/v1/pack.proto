@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package skillhub.pack.v1;
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/pack/v1;packv1";
+
+service PackService {
+  rpc CreatePack(CreatePackRequest) returns (CreatePackResponse);
+  rpc UpdatePack(UpdatePackRequest) returns (UpdatePackResponse);
+  rpc ListPacks(ListPacksRequest) returns (ListPacksResponse);
+  rpc GetPack(GetPackRequest) returns (GetPackResponse);
+  rpc DeletePack(DeletePackRequest) returns (DeletePackResponse);
+  rpc CreateShare(CreateShareRequest) returns (CreateShareResponse);
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse);
+  rpc RevokeShare(RevokeShareRequest) returns (RevokeShareResponse);
+}
+
+service DistributionService {
+  rpc GetManifest(GetManifestRequest) returns (GetManifestResponse);
+  rpc DownloadSkill(DownloadSkillRequest) returns (stream DownloadSkillResponse);
+}
+
+message PackSelection {
+  string skill_id = 1;
+  string slug = 2;
+}
+
+message PackDraft {
+  string name = 1;
+  string description = 2;
+  repeated PackSelection items = 3;
+}
+
+message PackSkill {
+  string skill_id = 1;
+  string slug = 2;
+  string name = 3;
+  string description = 4;
+  string content_hash = 5;
+  string repository_id = 6;
+  string repository_name = 7;
+  string path = 8;
+}
+
+message Pack {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int64 revision = 4;
+  uint32 item_count = 5;
+  int64 created_at_unix = 6;
+  int64 updated_at_unix = 7;
+  repeated PackSkill items = 8;
+}
+
+message Share {
+  string id = 1;
+  string pack_id = 2;
+  int64 created_at_unix = 3;
+  int64 expires_at_unix = 4;
+  int64 revoked_at_unix = 5;
+}
+
+message CreatePackRequest {
+  PackDraft draft = 1;
+}
+message CreatePackResponse {
+  Pack pack = 1;
+}
+message UpdatePackRequest {
+  string pack_id = 1;
+  int64 expected_revision = 2;
+  PackDraft draft = 3;
+}
+message UpdatePackResponse {
+  Pack pack = 1;
+}
+message ListPacksRequest {}
+message ListPacksResponse {
+  repeated Pack packs = 1;
+}
+message GetPackRequest {
+  string pack_id = 1;
+}
+message GetPackResponse {
+  Pack pack = 1;
+}
+message DeletePackRequest {
+  string pack_id = 1;
+  int64 expected_revision = 2;
+}
+message DeletePackResponse {}
+message CreateShareRequest {
+  string pack_id = 1;
+  int64 expires_at_unix = 2;
+}
+message CreateShareResponse {
+  Share share = 1;
+  string share_token = 2;
+}
+message ListSharesRequest {
+  string pack_id = 1;
+}
+message ListSharesResponse {
+  repeated Share shares = 1;
+}
+message RevokeShareRequest {
+  string pack_id = 1;
+  string share_id = 2;
+}
+message RevokeShareResponse {}
+message GetManifestRequest {}
+message GetManifestResponse {
+  uint32 format_version = 1;
+  string pack_id = 2;
+  string name = 3;
+  string description = 4;
+  int64 revision = 5;
+  string manifest_hash = 6;
+  repeated PackSkill skills = 7;
+}
+message DownloadSkillRequest {
+  string skill_id = 1;
+  string content_hash = 2;
+  int64 pack_revision = 3;
+}
+message DownloadSkillResponse {
+  int64 offset = 1;
+  bytes data = 2;
+  bool final = 3;
+  string transfer_sha256 = 4;
+  string content_hash = 5;
+}

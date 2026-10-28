@@ -1,0 +1,15 @@
+{
+  "instructions": {"agents": [], "sets": []},
+  "mcp": [{"name": "private-server", "transport": "stdio", "command": "do-not-execute", "env": {"TOKEN": "MAGPIE_FIXTURE_SECRET"}, "agents": []}],
+  "skills": [
+    {"name": "review-guide", "source": {"kind": "github", "repo": "Example/Toolkit", "path": "skills/review"}, "agents": ["codex"], "hash": "ignored-content-hash"},
+    {"name": "hidden-guide", "source": {"kind": "github", "repo": "example/toolkit", "ref": "HEAD", "path": ".claude/skills/hidden"}, "agents": []},
+    {"name": "release-guide", "source": {"kind": "github", "repo": "example/toolkit", "ref": "release/v2"}, "agents": ["claude-code"]},
+    {"name": "lowercase-guide", "source": {"kind": "github", "repo": "example/toolkit", "ref": "head", "path": "skills/head"}, "agents": []},
+    {"name": "git-guide", "source": {"kind": "git", "repo": "https://user:MAGPIE_FIXTURE_SECRET@example.invalid/skills.git", "ref": "main", "path": "skills/git"}, "agents": []},
+    {"name": "folder-guide", "source": {"kind": "folder", "dir": "/MAGPIE_FIXTURE_PRIVATE/do-not-read"}, "agents": ["codex"]},
+    {"name": "untracked-guide", "agents": [], "from": "not-a-source/ignored"}
+  ],
+  "applied": {"codex": {"skills": ["not-an-installed-record"]}},
+  "seenSkills": {"not-a-source/ignored@main": ["not-an-installed-record"]}
+}

@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package skillhub.github.v1;
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/github/v1;githubv1";
+
+service GitHubService {
+  rpc ConnectToken(ConnectTokenRequest) returns (ConnectTokenResponse);
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse);
+  rpc Sync(SyncRequest) returns (SyncResponse);
+  rpc SetListSubscription(SetListSubscriptionRequest) returns (SetListSubscriptionResponse);
+  rpc StartDeviceAuthorization(StartDeviceAuthorizationRequest) returns (StartDeviceAuthorizationResponse);
+  rpc GetDeviceAuthorization(GetDeviceAuthorizationRequest) returns (GetDeviceAuthorizationResponse);
+  rpc CancelDeviceAuthorization(CancelDeviceAuthorizationRequest) returns (CancelDeviceAuthorizationResponse);
+}
+
+message ConnectTokenRequest {
+  string access_token = 1;
+  string expected_generation = 2;
+}
+
+message ConnectTokenResponse {
+  string credential_generation = 1;
+  string viewer_id = 2;
+}
+
+message GetCatalogRequest {}
+
+message GetCatalogResponse {
+  Catalog catalog = 1;
+}
+
+message SyncRequest {}
+
+message SyncResponse {
+  Catalog catalog = 1;
+}
+
+message SetListSubscriptionRequest {
+  string list_id = 1;
+  bool subscribed = 2;
+}
+
+message SetListSubscriptionResponse {}
+
+message Catalog {
+  bool connected = 1;
+  string viewer_id = 2;
+  string credential_generation = 3;
+  repeated List lists = 4;
+  repeated Repository repositories = 5;
+  int64 valid_until_unix = 6;
+  bool device_flow_enabled = 7;
+  bool authorization_required = 8;
+}
+
+message StartDeviceAuthorizationRequest {
+  bool request_user_scope = 1;
+  string expected_generation = 2;
+}
+
+message StartDeviceAuthorizationResponse {
+  DeviceAuthorization authorization = 1;
+}
+
+message GetDeviceAuthorizationRequest {
+  string authorization_id = 1;
+}
+
+message GetDeviceAuthorizationResponse {
+  DeviceAuthorization authorization = 1;
+}
+
+message CancelDeviceAuthorizationRequest {
+  string authorization_id = 1;
+}
+
+message CancelDeviceAuthorizationResponse {
+  DeviceAuthorization authorization = 1;
+}
+
+enum DeviceAuthorizationState {
+  DEVICE_AUTHORIZATION_STATE_UNSPECIFIED = 0;
+  DEVICE_AUTHORIZATION_STATE_PENDING = 1;
+  DEVICE_AUTHORIZATION_STATE_COMPLETE = 2;
+  DEVICE_AUTHORIZATION_STATE_DENIED = 3;
+  DEVICE_AUTHORIZATION_STATE_EXPIRED = 4;
+  DEVICE_AUTHORIZATION_STATE_CANCELED = 5;
+  DEVICE_AUTHORIZATION_STATE_FAILED = 6;
+  DEVICE_AUTHORIZATION_STATE_SUPERSEDED = 7;
+}
+
+message DeviceAuthorization {
+  string id = 1;
+  DeviceAuthorizationState state = 2;
+  string user_code = 3;
+  string verification_uri = 4;
+  int64 expires_at_unix = 5;
+  string credential_generation = 6;
+  string viewer_id = 7;
+}
+
+message List {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  bool private = 4;
+  bool subscribed = 5;
+  int64 updated_at_unix = 6;
+  int64 last_added_at_unix = 7;
+  int64 verified_at_unix = 8;
+}
+
+message Repository {
+  string id = 1;
+  string name_with_owner = 2;
+  optional int64 database_id = 3;
+  bool private = 4;
+}

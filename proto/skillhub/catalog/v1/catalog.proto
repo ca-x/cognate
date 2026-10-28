@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package skillhub.catalog.v1;
+
+import "skillhub/pack/v1/pack.proto";
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/catalog/v1;catalogv1";
+
+service CategoryService {
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
+  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+  rpc GetSkillCategories(GetSkillCategoriesRequest) returns (GetSkillCategoriesResponse);
+  rpc SetSkillCategories(SetSkillCategoriesRequest) returns (SetSkillCategoriesResponse);
+}
+
+service PublicationService {
+  rpc GetPublication(GetPublicationRequest) returns (GetPublicationResponse);
+  rpc SetPublication(SetPublicationRequest) returns (SetPublicationResponse);
+}
+
+service PublicCatalogService {
+  rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
+  rpc ListCategories(PublicCatalogServiceListCategoriesRequest) returns (PublicCatalogServiceListCategoriesResponse);
+  rpc GetSkill(GetSkillRequest) returns (GetSkillResponse);
+  rpc DownloadSkill(DownloadSkillRequest) returns (stream skillhub.pack.v1.DownloadSkillResponse);
+}
+
+message Category {
+  string id = 1;
+  string name = 2;
+  uint32 skill_count = 3;
+  int64 revision = 4;
+}
+
+message Publication {
+  string repository_id = 1;
+  bool published = 2;
+  int64 revision = 3;
+}
+
+message PublicCategory {
+  string id = 1;
+  string name = 2;
+  uint32 skill_count = 3;
+}
+
+message PublicSkill {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string description = 4;
+  string content_hash = 5;
+  string repository_id = 6;
+  string repository_name = 7;
+  string path = 8;
+  string branch = 9;
+  int64 publication_revision = 10;
+  repeated PublicCategory categories = 11;
+}
+
+message ListCategoriesRequest {}
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+}
+message CreateCategoryRequest {
+  string name = 1;
+}
+message CreateCategoryResponse {
+  Category category = 1;
+}
+message UpdateCategoryRequest {
+  string category_id = 1;
+  int64 expected_revision = 2;
+  string name = 3;
+}
+message UpdateCategoryResponse {
+  Category category = 1;
+}
+message DeleteCategoryRequest {
+  string category_id = 1;
+  int64 expected_revision = 2;
+}
+message DeleteCategoryResponse {}
+message GetSkillCategoriesRequest {
+  string skill_id = 1;
+}
+message GetSkillCategoriesResponse {
+  repeated Category categories = 1;
+}
+message SetSkillCategoriesRequest {
+  string skill_id = 1;
+  repeated string category_ids = 2;
+}
+message SetSkillCategoriesResponse {
+  repeated Category categories = 1;
+}
+message GetPublicationRequest {
+  string repository_id = 1;
+}
+message GetPublicationResponse {
+  Publication publication = 1;
+}
+message SetPublicationRequest {
+  string repository_id = 1;
+  int64 expected_revision = 2;
+  bool published = 3;
+  bool confirm_full_contents = 4;
+}
+message SetPublicationResponse {
+  Publication publication = 1;
+}
+message ListSkillsRequest {
+  string query = 1;
+  string category_id = 2;
+  uint32 limit = 3;
+  string cursor = 4;
+}
+message ListSkillsResponse {
+  repeated PublicSkill skills = 1;
+  string next_cursor = 2;
+}
+message PublicCatalogServiceListCategoriesRequest {
+  uint32 limit = 1;
+  string cursor = 2;
+}
+message PublicCatalogServiceListCategoriesResponse {
+  repeated PublicCategory categories = 1;
+  string next_cursor = 2;
+}
+message GetSkillRequest {
+  string skill_id = 1;
+}
+message GetSkillResponse {
+  PublicSkill skill = 1;
+}
+message DownloadSkillRequest {
+  string skill_id = 1;
+  string content_hash = 2;
+  int64 publication_revision = 3;
+}

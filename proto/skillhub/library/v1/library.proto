@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package skillhub.library.v1;
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/library/v1;libraryv1";
+
+service LibraryService {
+  rpc CollectRepository(CollectRepositoryRequest) returns (CollectRepositoryResponse);
+  rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse);
+  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+}
+
+message CollectRepositoryRequest {
+  string repository = 1;
+  string branch = 2;
+}
+
+message CollectRepositoryResponse {
+  Repository repository = 1;
+}
+
+message ListRepositoriesRequest {}
+
+message ListRepositoriesResponse {
+  repeated Repository repositories = 1;
+}
+
+message GetRepositoryRequest {
+  string repository_id = 1;
+}
+
+message GetRepositoryResponse {
+  Repository repository = 1;
+  repeated Skill skills = 2;
+}
+
+message Repository {
+  string id = 1;
+  string name_with_owner = 2;
+  string branch = 3;
+  string archive_hash = 4;
+  uint32 skill_count = 5;
+  bool manual = 6;
+  int64 collected_at_unix = 7;
+}
+
+message Skill {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string path = 4;
+  string content_hash = 5;
+}

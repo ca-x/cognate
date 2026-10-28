@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package skillhub.mcp.v1;
+
+option go_package = "github.com/ca-x/skillhub/gen/skillhub/mcp/v1;mcpv1";
+
+service MCPManagementService {
+  rpc CreateCredential(CreateCredentialRequest) returns (CreateCredentialResponse);
+  rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse);
+  rpc GetCredential(GetCredentialRequest) returns (GetCredentialResponse);
+  rpc UpdateCredential(UpdateCredentialRequest) returns (UpdateCredentialResponse);
+  rpc RotateCredential(RotateCredentialRequest) returns (RotateCredentialResponse);
+  rpc RevokeCredential(RevokeCredentialRequest) returns (RevokeCredentialResponse);
+  rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
+}
+
+message CredentialSpec {
+  string name = 1;
+  repeated string scopes = 2;
+  int64 expires_at_unix = 3;
+}
+
+message Credential {
+  string id = 1;
+  string name = 2;
+  repeated string scopes = 3;
+  int64 created_at_unix = 4;
+  int64 expires_at_unix = 5;
+  int64 revoked_at_unix = 6;
+  int64 revision = 7;
+}
+
+message CreateCredentialRequest {
+  CredentialSpec spec = 1;
+}
+message CreateCredentialResponse {
+  Credential credential = 1;
+  string token = 2;
+}
+message ListCredentialsRequest {}
+message ListCredentialsResponse {
+  repeated Credential credentials = 1;
+}
+message GetCredentialRequest {
+  string id = 1;
+}
+message GetCredentialResponse {
+  Credential credential = 1;
+}
+message UpdateCredentialRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+  CredentialSpec spec = 3;
+}
+message UpdateCredentialResponse {
+  Credential credential = 1;
+}
+message RotateCredentialRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+}
+message RotateCredentialResponse {
+  Credential credential = 1;
+  string token = 2;
+}
+message RevokeCredentialRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+}
+message RevokeCredentialResponse {
+  Credential credential = 1;
+}
+message ListAuditRequest {
+  string credential_id = 1;
+}
+message Audit {
+  string credential_id = 1;
+  string action = 2;
+  string resource = 3;
+  string outcome = 4;
+  int64 created_at_unix = 5;
+}
+message ListAuditResponse {
+  repeated Audit entries = 1;
+}
