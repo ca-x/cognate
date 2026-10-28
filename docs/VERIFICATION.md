@@ -166,6 +166,8 @@ Build Actions `40719035614` 精确绑定容器提交，`40722843461` 精确绑�
 
 桌面修复 `39013dacfc01b2b50d6633cee3b2c324f09bf945` 的 Native Actions `40726579335` 已 completed/success，verify 与三系统双架构实际包装全部成功，publish=false/skipped。六 payload 在各 runner 的真实 metadata 检查全部验证 Go/CGO/目标架构、精确源码 revision 与 clean 标记；旧 Windows dirty 的因果复现和拒绝历史继续保留。普通 Build `40726569509` 也 completed/success。已核实际 job 结论与六条执行输出，不将后续 artifact 下载、安装或跨系统运行自动算作完成；完整限制见 `DESKTOP.md`。
 
+2026-10-29 下载独立复核：该 run 三个 unsigned ZIP 的大小/摘要与实时 artifact API 匹配，28 个条目与落地 bytes 一致；六个 payload 的 Go 1.27.3、CGO0、目标架构、精确 `39013dac` 与 modified=false 均通过，八个包装存在且非空，14 个 metadata 负控被拒绝。没有执行或安装 payload、挂载 DMG、验证可信签名或证明包装内部同一性；下载摘要和 embedded VCS 信息不等于源码到二进制的密码学证明。三个实际 ZIP SHA-256 及限制见 `DESKTOP.md`，独立报告为 `desktop-downloaded-payload-review.md`。此项不签收 native auth/state、备份或完整首发。
+
 ## 本地 JSON codec 与 Native schema
 
 2026-10-29 续接，两个切片分别独立验收、提交；它们不包含原生秘密消费、文件发布、备份恢复或完整 F12。
@@ -182,3 +184,11 @@ Codec 独立完整 scoped 100 轮、fresh fuzz/vet/deps 通过；主线程最终
 Native schema 的独立 review 核 23 messages、6 enums、6 RPC 的全部 token 与已签协议一致，包含 reserved/options；实际 Buf 1.75.0 全 Go/TS parity、breaking against `a168eb5`、lint/format、CGO0 generated 包 compile/vet、Web build 与 actionlint 通过。未过滤模板真实产生 native TS 并使 boundary/parity red；过滤后普通 auth/configuration TS 保留而 native TS 缺席。CI exact gate 的 11 项负例、删除新 tag 的 breaking 负例均有效。静态 source literal gate 只是开发回归检查，不是防恶意同权限客户端的身份认证或 attestation。
 
 主线程对 schema 最终 clean export 另跑全仓 Go tests/vet、Web build、完整双模板生成 parity 与兼容性、模块校验全部通过。原生 proof、父/子 session 事务、一次性 grant、敏感 transport、平台安全 publisher 和真实 apply/restore 仍分别待验收；schema 可编译不能等同 native capability 可用。后续 CI 结果另按精确提交核对，不从本地通过推断。
+
+## Native Pure-Proof Checkpoint
+
+2026-10-29，纯 proof 切片按 exact tree `f30019c466d20baedbba207a3cd347dd51f77b0f` 独立 Spec/Quality PASS，四文件提交 `b5e2e0c426761d219a0068048104b676e1f2ed49` 已 SSH 推送并读回。五 purpose 的 canonical transcript、Preparation/Apply/Patch hashes、Ed25519 sign/verify、safe patch 验证和 strict raw protobuf decoder 已实现。decoder 在 merge 前拒绝重复 singular/oneof 与 nested unknown，失败不改变目标；12-type allowlist 明确排除三种秘密响应。Transcript/Signature 使用双层 opaque 表示；不承诺原始 DTO、显式 bytes/hash 或私钥适合日志。
+
+原 tree `69c6c4d8c4395ab6ee3ec501dee59a0f6b403759` 虽主全量通过，独立发现 auto-policy ID 错限任意 32 bytes：合法短 ASCII 被拒绝、32 个 NUL 被接受。该 P2 没有通过改协议豁免；最终复用已签 1–64 bytes ASCII opaque ID 规则，typed/raw 原反例 100 轮通过，独立字符边界通过，退回旧实现的 overlay 重新 red。原拒签、16 个独立 known-answer vectors、strict-wire/格式化隐私及四项有效 mutation 证据保留于 `native-proof-final-review.md`；作者六个 Python/OpenSSL fixture 的 parity 不替代独立 oracle。
+
+最终 clean export 的 Web build、Buf lint、完整 Go/Web 双模板 parity、全仓 Go tests/vet、proof 100 轮与模块校验通过，均 Go 1.27.3 / CGO0；没有运行需要 cgo 的 race detector。Build `40745938862` 已登记但本 checkpoint 未核完成，不声明远端 CI 通过。本片无 HTTP/磁盘/秘密消费，不证明 owner MAC、重放/授权、数据库时间与撤销、grant、客户端发布或完整配置应用；后续 native state/auth 及 watch WIP 不在本次签收内。

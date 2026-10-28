@@ -130,3 +130,13 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 完成 checkpoint（2026-10-29 续接核对，Actions 原始日志日期为 2026-10-28）：该 Native run 已 completed/success，verify 及 Linux、Windows、macOS 三个 package jobs 全绿，publish 按设计 skipped。已逐 job 核对真实 metadata step success 及六条实际完成输出：两架构分别满足 Go 1.27.3、CGO0、正确 GOOS/GOARCH、精确 `39013dac` revision、`vcs.modified=false`。Windows 两架构 Setup 存在性断言也实际成功；这是新 runner 上的真实打包与身份检查，不是旧 payload、本机交叉编译或文本 fixture。
 
 该 run 的 Linux、Windows、Darwin unsigned artifacts 均已登记；新 ZIP 下载和落地摘要/包内容复核独立进行，不能把 CI 日志核对冒称全部下载完成。此 checkpoint 不代表安装/卸载、跨 OS 原生运行、可信签名、正式 Release 或完整客户端配置功能。对应普通 Build `40726569509` 同样精确绑定 `39013dac`，completed/success，不再用 Native 绿色替代普通构建结果。
+
+下载复核 checkpoint（2026-10-29）：上述 run 的三个 ZIP 已实际下载，大小与 SHA-256 均匹配实时 GitHub artifact API，28 个 ZIP 条目逐项 CRC/hash 匹配落地内容。独立 reviewer 在无网络、空环境、只读输入的隔离中复核六个真实 payload：Go 1.27.3、CGO0、各自 GOOS/GOARCH、精确 `39013dac` revision、`vcs.modified=false` 全部成立；两个 Windows payload 不再带旧 dirty 标记。八个包装产物存在且非空，包括两个 Setup；14 个 metadata 拒绝负控实际失败。该复核没有执行、安装任何 payload；DMG 没有挂载，Setup stub 的机器类型不用于断言其内部 payload 架构。
+
+| ZIP | SHA-256 |
+| --- | --- |
+| `desktop-darwin-unsigned.zip` | `5088009688c8f06b269632cc1f2a409885f41fced0dcd71356b6af0976a35ee7` |
+| `desktop-linux-unsigned.zip` | `1ffa7ac3b6d35bee936a35f2f2f99fa217a4d03689c686962c34a45f8bc11ac3` |
+| `desktop-windows-unsigned.zip` | `3eb70d10836ab43d80c7f8aa8425fc4e513523d94741dc9a4e0e4c40ed7c65bf` |
+
+证据为 `.superpowers/sdd/2026-10-28-release/desktop-downloaded-payload-review.md` 与 `desktop-identity-{darwin,windows,linux}-payloads.log`。摘要证明下载 bytes 与该 API 声明一致，VCS 字段是实际读取的构建声明；二者不构成源码到二进制的密码学证明、供应链 attestation、签名/公证、包装内部同一性或跨 OS 运行验收。完整首发与最终功能版本的打包验收仍未关闭。
