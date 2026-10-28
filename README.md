@@ -24,7 +24,7 @@ CGO_ENABLED=0 go build -o cognate ./cmd/cognate
 
 Linux 开发环境可用 `./cognate install-local /path/to/skill --slug example` 实验性安装本地 skill。该命令只向已存在的 agent skills 目录创建链接，状态保存在 `~/.local/share/skillhub/`；重复安装时，只有已记录的内容和全部目标核验一致才会跳过。`./cognate uninstall-local example` 先完成备份再保守卸载已记录且未变化的目标。可用 `./cognate install-status` 查看未完成操作，或用 `./cognate install-status --reconcile` 取消未开始的操作并将已中断操作标记为需关注；该命令不会删除现场。自动恢复/续跑和人工处理界面仍未实现，请勿用于无法人工处理的环境。WSL 的 copy 安装及其他平台尚未完成。安全边界见 `docs/INSTALL-RECOVERY.md`。
 
-Pack 客户端命令为 `pack subscribe --server ORIGIN --token-stdin`、`pack list`、`pack sync` 和 `pack remove SUBSCRIPTION_ID`。分享原文仅从标准输入读取，使用独立私有密钥加密落库；同技能跨组合只安装一份，更新和最后一次取消订阅会先备份。完整顺序、密钥保管、Linux 限制及未完成恢复能力见 `docs/CLIENT-SUBSCRIPTIONS.md`。这不等于 F5 或 M2/M4 全部验收完成。
+Pack 客户端命令为 `pack subscribe --server ORIGIN --token-stdin`、`pack list`、`pack sync`、`pack watch --interval 5m --attempt-timeout 2m` 和 `pack remove SUBSCRIPTION_ID`。watch 在前台串行同步，失败有界退避、空闲时释放安装锁，Ctrl-C 停止，不自动创建后台服务。分享原文仅从标准输入读取，使用独立私有密钥加密落库；同技能跨组合只安装一份，更新和最后一次取消订阅会先备份。完整顺序、密钥保管、Linux 限制及未完成恢复能力见 `docs/CLIENT-SUBSCRIPTIONS.md`。这不等于 F5 或 M2/M4 全部验收完成。
 
 公开目录位于 `/explore`，不需要登录。仓库默认不发布；只有所有者确认公开完整 skill 目录后，游客才能浏览、搜索、分类筛选和安装。Linux 客户端使用 `./cognate install-public --server https://your-cognate.example --skill SKILL_ID`，只访问 Cognate，验证二进制传输和逻辑 hash 后安装到 canonical，不需要或生成 token。取消公开会拒绝新的下载授权，不会删除此前独立安装的本地文件。不要公开含敏感文件的 skill；隐藏文件和二进制也属于发布内容。
 

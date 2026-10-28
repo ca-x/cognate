@@ -5,11 +5,12 @@
 ## CLI
 
 ```sh
-skillhub pack subscribe --server https://your-cognate.example --token-stdin
-skillhub pack list
-skillhub pack sync
-skillhub pack remove SUBSCRIPTION_ID
-skillhub uninstall-local example
+cognate pack subscribe --server https://your-cognate.example --token-stdin
+cognate pack list
+cognate pack sync
+cognate pack watch --interval 5m --attempt-timeout 2m
+cognate pack remove SUBSCRIPTION_ID
+cognate uninstall-local example
 ```
 
 分享凭据仅从标准输入读取，不能通过命令行参数传入；可将密码管理器输出经管道交给命令。不要将令牌写入 shell 命令或脚本。服务端必须是 HTTPS origin，开发环境仅显式 loopback 允许 HTTP；不跟随重定向，不将凭据发往 GitHub。
@@ -17,6 +18,20 @@ skillhub uninstall-local example
 `subscribe` 先验证 manifest 并保存订阅，然后同步全部订阅；失败会明确提示订阅已经保存，不能误认为回滚。`remove` 先保存待移除状态，再统一清理；若其他订阅失权或本地内容变化，清理可能暂缓，原有状态仍在。`list` 只显示标识、名称、来源和版本，不显示凭据；尚无状态时不会创建目录。
 
 本轮安装/更新/卸载仅支持 Linux 非 WSL。macOS、Windows、WSL 的原生运行及 copy/junction 适配仍未完成，交叉编译不代表这些平台可用。
+
+## 持续同步
+
+`pack watch` 在前台运行，立即同步一次，之后从每轮完成时起等待 `--interval`（默认 5 分钟，范围 1 秒–24 小时）。每轮受 `--attempt-timeout` 限制（默认 2 分钟，范围 1 秒–10 分钟）；不会重叠执行或补跑积压的定时任务。Ctrl-C 取消在途操作并退出，不创建隐式系统服务或自动启动项。
+
+每轮都重新打开并关闭订阅管理器；进入等待或输出结果前已释放安装锁，其他手动安装命令可以在空闲期运行。同步过程中仍使用原有跨进程锁，不绕过 journal、备份、去重或本地修改检查。
+
+失败后从 `min(30 秒, interval)` 开始退避，连续失败加倍，上限为 interval；成功后重置。循环只输出固定失败提示、连续次数和下次延迟，不打印原始上游错误、分享令牌或部分成功计数。可停止 watch 后运行 `pack sync`、`install-status` 检查；有待恢复操作时仍保守拒绝，不因重试自动清理现场。共享调度器要求同步回调响应 context，不能强制打断任意不合作的内核调用。
+
+Linux 原生 stdout 管道/终端使用独立重开的非阻塞描述符：单次写入最多等待 5 秒，取消会唤醒在途写入并等待取消回调收尾，不遗弃写入 goroutine。caller 的描述符、flags、deadline 不被改动或关闭。普通文件保持原 offset 与所有权，只在同步写前后检查 context；**不保证打断不可中断的内核磁盘 I/O**，取消或短写也不表示没有字节写出。输出超时、短写或失败会以固定错误停止 watch，不回显底层错误。
+
+嵌入 CLI 时，输出仅接受原生文件、标准内存 buffer/builder，或显式实现且遵守 `WriteContext(context.Context, []byte) (int, error)` 的合作式 writer。未知的纯 `io.Writer` 会在访问客户端存储前被拒绝，不能靠私有字段包装假定其可取消；共享调度器的 report 回调也须响应传入 context。原生输出依赖 Linux `/proc/self/fd` 和实际 deadline 能力，能力缺失时明确拒绝，不静默退化为不可取消的管道写入。
+
+watch 会获取服务端已经提供的新 Pack manifest，但**不负责让服务端重新扫描源仓库**；已有源快照替换、MyGo 生命周期自动同步、OS 后台服务和自动恢复仍是独立的后续功能。
 
 ## 数据与密钥
 
@@ -44,4 +59,4 @@ skillhub uninstall-local example
 - 更新的旧版本备份会保留；若卸载后安装失败，下一次可重试或显式恢复备份。自动回滚/自动续跑中断删除尚未实现，不能把保守 `needs_attention` 当作恢复完成。
 - `install-status --reconcile` 不删除现场，只取消未开始操作或标记中断记录。不要直接手工删除 journal/锁/数据库来掩盖未完成操作。
 - 本地内容或投影被用户修改、替换或权限不可信时拒绝覆盖/卸载；最终路径操作仍依赖文档中的可信稳定路径假设，不承诺对同 UID 恶意并发改名者提供内核级条件 unlink。
-- 当前客户端同步是显式命令；持续后台自动同步、源仓库内容替换、配置附件/应用、MyGo 原生界面等尚需后续接线与验收。独立匿名公开安装已接 `install-public --server ORIGIN --skill ID` 并在单独整合验收；它不使用或放宽本节 Pack 凭据，也不被认领为订阅管理的安装。
+- CLI 支持显式同步和前台持续同步；MyGo 已有原生界面与手动同步，但生命周期自动同步、源仓库内容替换、配置附件/应用及完整恢复仍需后续接线与验收。独立匿名公开安装已接 `install-public --server ORIGIN --skill ID` 并在单独整合验收；它不使用或放宽本节 Pack 凭据，也不被认领为订阅管理的安装。
