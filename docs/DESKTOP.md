@@ -110,3 +110,9 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 独立只读 review 复现了三项缺陷并反馈实施方修正：详情刷新复用旧内容确认、注销响应未设字节上限、SHA256SUMS 把自身纳入清单。相应 UI/HTTP 回归的修前失败、修后通过证据分别为 `confirmation-red.log`、`logout-bound-red.log`、`review-regressions-green.log`；八个隔离假产物的校验清单修前失败/修后全通过见 `checksum-regression.log`。workflow 发布前也执行 `sha256sum -c`。这些是假产物的校验逻辑测试，不是实际发行包发布。
 
 独立 reviewer `01a1824f-c9a8-73f0-8ce8-719da9580452` 已再次复验三项修复，无剩余确认缺陷；该结论仅限本轮修复，不替代跨平台产品/M7验收。完整交付摘要、独立结论和证据映射见 `.superpowers/sdd/2026-10-28-release/mygo-spike/PRODUCTION-REPORT.md`。
+
+## 远端打包 checkpoint
+
+2026-10-28：桌面切片提交 `611f2a069acd5c6dbed40a86dd99a1636b3aa7be` 与独立签收 tree `6f189c637734959ac2245dca7db6baa83c1bd059` 完全一致，已 SSH 推送。手动触发 Native desktop Actions `40691777676`，`publish=false`：verify、Linux、Windows、macOS 三个原生 runner 包装任务全部 success，publish 按设计 skipped。verify 包括 headless HTTP/原生组件测试、六 CGO0 构建及 Linux Xvfb 实窗捕获；各包装任务实际检查两架构 Setup/DMG/Linux archive 等产物存在。
+
+该次远端产物补上了前述本机缺少 NSIS/DMG 工具的构建证据，不反向改写本机历史。Windows 安装器未做 Authenticode，macOS 仅 ad-hoc、未 Developer ID 签名/公证；此 checkpoint 不证明安装、首次启动、IME、各平台技能安装与完整配置体验，也不是 tag/Release。对应普通 Build Actions `40691768850` 则在旧 catalog deadline fixture 失败，未将桌面 workflow 的绿色替代完整构建结论；后续 fixture 修复和完整回归单独记录。

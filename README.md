@@ -34,9 +34,9 @@ Web 登录页、匿名目录和管理页均提供浅色/深色/跟随系统主�
 
 ## 自动构建
 
-GitHub Actions 构建 Web 面板，打包 Windows、macOS、Linux 的 amd64/arm64 CLI 与服务端二进制，以及 Linux amd64/arm64 Docker OCI 镜像 artifact。服务端目前在 Unix 上验证数据目录安全，Windows 服务端暂不能启动；能交叉编译不代表平台原生运行已通过。桌面客户端实现后加入对应打包。
+GitHub Actions 构建 Web 面板，打包 Windows、macOS、Linux 的 amd64/arm64 CLI 与服务端二进制，以及 Linux amd64/arm64 Docker OCI 镜像 artifact。服务端目前在 Unix 上验证数据目录安全，Windows 服务端暂不能启动；能交叉编译不代表平台原生运行已通过。MyGo 原生桌面客户端及独立打包流程见 `docs/DESKTOP.md`。
 
-CI 对 Protobuf 执行 Buf lint、Go/TypeScript 生成结果比对，并在基准提交已有 schema 时检查兼容性。当前 Actions 与 Docker 构建尚未实际执行验证。
+CI 对 Protobuf 执行 Buf lint、Go/TypeScript 生成结果比对，并在基准提交已有 schema 时检查兼容性。改名阶段的完整构建已在 Actions 验证；桌面阶段也已实际生成三系统双架构安装产物，但仍为未正式发布的 unsigned/ad-hoc preview，不能视为各平台安装与完整产品验收通过。逐提交结果及后续测试 fixture 问题见 `docs/VERIFICATION.md`；OCI 构建不等于容器实跑。
 
 ```sh
 docker build -t cognate .

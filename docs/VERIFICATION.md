@@ -6,9 +6,9 @@
 
 - Linux CLI Pack 订阅、显式同步、跨 Pack 去重与保守卸载；匿名公开 skill 安装复用内容校验，但不隐式加入订阅，不需要 token 或 client.key。
 - 服务端 Lists 定时增量/公开来源收录、公开目录与分类、默认私有及取消公开后的匿名拒绝；分类变更不修改 skill 内容 hash。
-- MCP 用户级 token 生命周期、权限/有效期校验、取消与关闭行为，以及 Web 管理和一次性显示。分类与发布 MCP tools/scopes 尚未接通。
+- MCP 用户级 token 生命周期、权限/有效期校验、取消与关闭行为，以及 Web 管理和一次性显示。后续 `e707dc0` 已接通分类与发布 tools/scopes，详见末尾阶段记录；不能把该增量追溯为早期切片已具备。
 - Web 匿名和管理界面的 light/dark/system、zh-CN/en；保留主题/语言切换前的未提交表单。独立代表保留并重放了 OIDC 失败提示后切换语言导致 MCP 草稿丢失的回归，修复后双向通过，且登录会话切换的清理边界未被削弱。
-- cc-switch 仍仅有服务端内部只读预览；Magpie 已新增授权上传预览和 Web 显式选择仓库收录，下节记录本轮证据。完整插件机制、skill 内容及客户端配置迁移仍未完成。CLI 和 MyGo 不执行插件。
+- cc-switch 在后续 `f429da9` 已接通自包含只读 SQLite snapshot 授权上传及显式选择仓库收录；Magpie 同样支持授权上传预览与仓库选择。下节保留早期切片及实际失败历史；这不等于 skill 内容或客户端配置迁移已完成。CLI 和 MyGo 不执行插件。
 
 验收不是仅凭构建结果：公开目录使用实际浏览器与受控或公开归档来源；MCP 管理使用真实嵌入式服务端和浏览器；后端争用/过期/取消及客户端安装另有保留回归测试。截图只在一次性凭据已清除后采集；不保留账号、密钥、数据库、会话导出或含凭据 HAR。
 
@@ -82,3 +82,56 @@ diff -ru web/src/gen "$generated/web/src/gen"
 `.github/workflows/build.yml` 对 push/PR 执行检查，生成 CLI/服务端六平台二进制、Web 和双架构 OCI 构建产物。检查具体提交的 Actions 结果，不能把本机测试视为远端 CI 成功。构建产物不等于 GitHub Release；MyGo 原生客户端及其打包仍待实现。
 
 本机没有 Docker，尚无本机容器运行验收；交叉编译不证明非 Linux 原生运行，Windows 服务端、WSL copy、断电恢复、外部真实 GitHub/OIDC、恶意插件操作系统级隔离仍不在已验证范围。无 cgo 测试也不替代 race detector。私有源、源快照自动替换、持续客户端自动同步、S3、完整导入、MyGo GUI 和首发验收仍待后续阶段。
+
+## 2026-10-28 仓库候选导入与 Cognate 改名
+
+导入切片提交 `f429da936d5bd317c3f8db6a22c1d6f42a3457da`，对应独立签收的30文件 tree `3684568b4dee166d8ab70832650dda89196c07e7`，Spec/Quality PASS、未关闭P1/P2为0；SSH推送至已更名的仓库并读回一致。Actions `40681924445` 首次 completed/success，测试、六组CLI/服务端二进制及双架构OCI全部成功。该切片仅为服务端cc-switch一致SQLite上传预览、Magpie CLI消费及Web显式选择/逐仓收录，不是完整配置迁移或M6完成。独立发现的Deserialize重建pager覆盖cache_size问题保留red，再在Deserialize后、任何查询前恢复策略并独立复验green。写入阻塞、尾flush、HTTP/2和同连接复用的增量验证及原始失败证据均保留。
+
+改名提交 `c96b4ae3baae03ecf36bd629eee88748c4ed7cfb` 精确匹配独立签收 tree `baa17d9e4514e2c83acc1bd78608eb75e2c0613c`，基线为前述导入提交。主线程从干净index导出，执行npm ci/typecheck/build/audit（0漏洞）、Go1.27.3/CGO0全量tests/vet/tidy-diff/module verify、Buf lint和Go/TS生成逐字比对，以及CLI+server六目标共12次CGO0交叉构建，全部退出0。独立代表另行导出并核对616个tracked blob，复验Spec/Quality PASS、P1/P2为0，没有纳入GUI、MCP、agent插件、配置资产或旧deadline fixture WIP。
+
+Go module及go_package按用户要求迁移，原始Buf FILE检查明确报7项go_package source API breaking，未隐藏为原样兼容。CI仅在临时历史基准中规范化精确的旧Go module前缀，仍运行全部FILE规则；normalized检查通过，另一个go_package与wire package变更负例仍拒绝。Connect namespace、持久化目录、加密与hash域等按 `COGNATE-RENAME.md` 有意保持旧标识。
+
+独立代表实际运行旧、新服务端，同DB/key/端口重启后旧session、账号、repository/skill/hash及公开metadata均可读；fixture使用旧版Store/ArchiveCache API明确构造，不冒充真实GitHub收录，首次504及缺cache的fixture失败亦记录。独立新binary Chromium验证Cognate标题、匿名安装命令、旧非敏感偏好键与中文/English切换，以及实际 `skillhub.*` RPC。没有复用旧服务页面充当新binary验收，没有输出真实密钥或token。
+
+改名提交经SSH推送并读回一致；对应Actions `40685515081` 首次 completed/success，测试、六组CLI/服务端二进制及双架构OCI全部成功。仓库现为 `ca-x/cognate`，尚无本阶段tag/Release，OCI成功仍不等于容器实跑或镜像发布。完整F1–F12/M1–M7首发门禁继续有效。
+
+用户提供的cc-switch本地checkout只读对照基线为 `6d6b7162f122ac0ce1356a14688c8c4f712db3c8`，交互矩阵见 `CCSWITCH-CONFIGURATION-MATRIX.md`。源码注册14种工具，独占/共存/特殊默认、MCP、prompt和OpenClaw配置必须分别验证；没有启动upstream或读取用户真实配置。是否首发纳入代理/协议转换/failover/模型路由已异步询问用户，不能静默决定或宣称完成；其余已明确配置开发继续进行。
+
+## MCP、原生桌面与配置存储增量
+
+2026-10-28，以下阶段均 SSH 推送并读回 main SHA，提交 tree 与各自独立报告完全相符，不含当时其它 WIP：
+
+| 阶段 | Commit / 独立签收 tree | 已证明范围 |
+| --- | --- | --- |
+| MCP 分类与发布 | `e707dc0d22150576f89cc7233cc400a4e8d2cff0` / `a7e9b2b0bb858a0335ea4d45367ca1f4098266f9` | 七 scopes、17 个 typed tools、全部十个业务写工具事务前/提交前复核权限、旧 token 不扩权；独立 SDK、真实旧凭据/新 binary 浏览器、失权负例通过 |
+| MyGo 桌面首片 | `611f2a069acd5c6dbed40a86dd99a1636b3aa7be` / `6f189c637734959ac2245dca7db6baa83c1bd059` | 真实 Linux 原生窗口、headless 原生组件+HTTP/共用内核流程、六 CGO0 构建、Linux 包内容；不等于跨系统安装或完整 M7 |
+| 两个 HTTP fixtures | `4c668b28858fd0bfc241837276a461ae46cc5d47` / `e1531dd3e5ce7a34530f5cd9901bafc9cb032767` | request body 每次重建、分发 socket timeout 与连接错误传播排序；独立确定性耗尽 body red/green、默认/单核压力与缺失 WriteDeadline 负例有效；没有生产代码修改 |
+| 配置资产内部存储 | `94668b7ad70949d50808fb16a8386c521b30300d` / `2e3029ecdce370bfb4d6e3d254d3811b867a664d` | ent+独立 HKDF/AES-GCM、owner/AAD/修订绑定、metadata/payload 隔离、CAS/容量竞争、单 SELECT 同版本、旧 schema 迁移；独立深审与整合测试通过，不等于配置产品功能 |
+
+Native desktop Actions `40691777676` 精确绑定 `611f2a0`，首次 completed/success：verify、Linux/Windows/macOS runner 的双架构包装全部 success，publish=false 按设计 skipped。Windows 两架构 NSIS Setup、macOS 两架构 DMG、Linux 两架构 deb/tar 均有实际构建检查，构建日志包含 Linux 原生实窗捕获。这是 unsigned/ad-hoc artifact，不是 Developer ID/公证、Authenticode、实际跨系统安装或正式 Release。
+
+不能将该桌面 workflow 的绿色替代普通 Build：MCP Actions `40689163056` 在 `mcpserver/lifecycle_test.go` 复用 body 上失败；修复后普通 Build `40691768850`、`40692998730`、配置存储提交对应 `40694979772` 又在既存 `catalog_lifecycle_test.go:238` 的 DeadlineExceeded/Canceled 排序上失败。原始远程失败日志保留，未靠 rerun 隐藏；catalog fixture 的定向修复另行冻结独立验收。配置存储的 clean-export 全仓测试/vet/Web build/Buf 已通过，但不将本机通过记成这些远端 run 成功。
+
+后续 catalog fixture 经独立原始失败复现、固定版本100轮、close/disconnect对照与缺失生产WriteDeadline负例验收后，按 tree `af4266c5ee05f96dbc4109c98089df3e5c1010ad` 提交并 SSH 推送 `fb45608bfe951497591e081b35352f88d20f842a`。对应普通 Build Actions `40698837803` completed/success，实际 test、六组 CLI/server binaries 和 amd64/arm64 两 OCI jobs 全部 success。该真实后续绿色不覆盖此前失败历史，也不把 OCI artifact 当运行中的容器。
+
+整合代表另外确认了既存 MCP 非 UTC 时区授权问题：SQLite 时间文本带不同 offset 时不能依赖 SQL 字符串排序表达真实时间。该问题在旧基线同样存在，不由配置存储引入；最终独立修复记录见下节，不借存储签收隐式关闭。MCP 发布归档缓存和审计 append 仍不与领域写事务构成跨资源原子提交。
+
+完整首发继续未达成：typed domain/API/编辑器、完整十四 agent 与导入、配置选择/Pack 附加、原生受控应用/恢复、源自动替换、持续客户端同步、S3、私有源和真实外部授权/跨平台运行等仍按原需求逐项推进，不以阶段 PASS 缩减范围。
+
+## 时区、moejs 目标适配与 Typed Configuration
+
+以下三个阶段均从精确冻结 tree 导出验证、由非作者独立验收，再单独提交并通过 SSH 推送与读回。它们不包含当时未冻结的 Web 编辑器或其它 WIP。
+
+| 阶段 | Commit / 签收 tree | 已证明范围 |
+| --- | --- | --- |
+| MCP 时间兼容 | `f3cae917cece5c1367131d487bd75f4b39fe76d7` / `c38d470fd61e51a18f47c51531fda08f3f791e92` | 查询 credential/owner 后 Go instant 校验；新 credential/audit 时间 UTC；启动锁内有界兼容旧 numeric zone/monotonic 文本，保留授权与审计身份 |
+| 服务端目标适配器 | `538c466b8e499ad0c656a192131c2dbe29e4344a` / `02d6b4d5e063e241247e77f46309b6f20c8fa4b8` | 真实 moejs registry、精确版本/digest/capability、Claude 四键 additive merge；未选旧 env/secret 留 Go 宿主；Codex/Gemini 仅 metadata，不是 provider switching |
+| Claude typed domain/API | `8a7eebe960a1270ac1ef24b98e0c77eb08e06c94` / `01f694d9cb0e91ca309914c5d0b47a240b1dc80d` | owner/CAS CRUD、同版编辑读取、keep/replace/clear、不带秘密复制、严格有界 Connect、真实日志/响应隐私；未知 agent 仅合法 metadata 浏览/删除，保存不等于应用 |
+
+MCP 旧 lexical 比较与真实 Kathmandu numeric zone 旧库分别保留 red。仅 credential 修复的旧候选没有被当作最终签收：audit 同样存在旧行无法读取及本地时区新写不可读，最终七文件候选把两者一并修复。代表用真正旧生产 writer、真实进程 TZ、MCP SDK endpoint/restart、审计 append/读取和撤销复验；错误 key、后批坏时间、幂等、owner/scope、transaction/commit 时间 gate 另有独立负例。每批128条、每时间输入256字节，坏批回滚，无法恢复的值固定错误停止启动。升级前停止旧 writer，不承诺新旧 writer 长期混用。
+
+Typed API 首个默认打印合同 P2 已独立关闭，但不是给 generated DTO 新增自动脱敏承诺：domain wrapper/明确脱敏 view 才 safe-to-log，原始 Protobuf/Connect request 的 String/JSON/slog 能包含 replacement，严禁用于日志/持久化/error details。`debug_redact` 注解保留，当前 Go runtime 不因此自动安全。真实 proto/JSON 成功、失败、超限请求捕获标准 log/slog/HTTP ErrorLog 和响应；三项临时 mutation（stdlog、slog、错误回显）均触发实际隐私断言 red，去除后 green。窄 AST gate 不是全程序污点分析。
+
+主线程对上述各冻结 tree 重新执行 clean-export 全 Go tests/vet、Web build；最终 API 另有 domain count20、HTTP/App count10、Buf Go/TS 双模板完整生成目录 parity、六系统/架构组合 CLI/server 共十二次无 cgo 构建。独立代表执行自己的 package/protocol/日志负例，不借作者通过替代验收。完整日志索引在 `.superpowers/sdd/2026-10-28-release/`，关键行为合同已随本文件和各 spec 提交，临时合成数据库/凭据不提交。
+
+Build Actions `40709123040` 精确绑定 MCP 提交、`40709433501` 精确绑定 adapter 提交、`40709705439` 精确绑定 typed API 提交，均 completed/success；逐 job 核对 test、六组 binaries、amd64/arm64 两组 OCI 构建全绿。前述历史失败继续保留。没有新 tag/Release；OCI 构建不是容器运行，七键 provider switch、秘密原生消费、选择/Pack 附件与真实本机 apply/restore 尚未由本节交付。
