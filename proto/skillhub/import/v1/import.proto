@@ -6,6 +6,7 @@ option go_package = "github.com/ca-x/skillhub/gen/skillhub/import/v1;importv1";
 
 service ImportService {
   rpc PreviewLibraryExport(PreviewLibraryExportRequest) returns (PreviewLibraryExportResponse);
+  rpc PreviewCCSwitchSnapshot(PreviewCCSwitchSnapshotRequest) returns (PreviewCCSwitchSnapshotResponse);
 }
 
 enum ExportFormat {
@@ -22,9 +23,18 @@ message RepositoryCandidate {
   string repository = 1;
   string branch = 2;
   string existing_repository_id = 3;
+  optional bool source_enabled = 4;
 }
 
 message PreviewLibraryExportResponse {
   repeated RepositoryCandidate repositories = 1;
   uint32 referenced_skill_count = 2;
+}
+
+message PreviewCCSwitchSnapshotRequest {
+  bytes snapshot_data = 1;
+}
+
+message PreviewCCSwitchSnapshotResponse {
+  repeated RepositoryCandidate repositories = 1;
 }

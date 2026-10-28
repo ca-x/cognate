@@ -34,6 +34,7 @@ func New() *cobra.Command {
 	root.AddCommand(newInstallPublicCommand())
 	root.AddCommand(newUninstallLocalCommand())
 	root.AddCommand(newPackCommand())
+	root.AddCommand(newImportCommand())
 	root.AddCommand(newInstallStatusCommand())
 	root.AddCommand(newBackupLocalCommand())
 	root.AddCommand(newBackupListCommand())

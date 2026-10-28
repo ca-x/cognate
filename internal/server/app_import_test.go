@@ -23,6 +23,7 @@ import (
 )
 
 const importPreviewPath = "/skillhub.import.v1.ImportService/PreviewLibraryExport"
+const ccSwitchPreviewPath = "/skillhub.import.v1.ImportService/PreviewCCSwitchSnapshot"
 
 type importAppFixture struct {
 	app     *server.App
@@ -138,6 +139,11 @@ func TestAppImportPreviewDoesNotCollect(t *testing.T) {
 
 func (fixture importAppFixture) slowUpload(t *testing.T) net.Conn {
 	t.Helper()
+	return fixture.slowUploadPath(t, importPreviewPath)
+}
+
+func (fixture importAppFixture) slowUploadPath(t *testing.T, path string) net.Conn {
+	t.Helper()
 	connection, err := net.DialTimeout("tcp", fixture.address, time.Second)
 	if err != nil {
 		t.Fatal(err)
@@ -146,10 +152,79 @@ func (fixture importAppFixture) slowUpload(t *testing.T) net.Conn {
 	if err := connection.SetDeadline(time.Now().Add(9 * time.Second)); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := fmt.Fprintf(connection, "POST %s HTTP/1.1\r\nHost: %s\r\nAuthorization: Bearer %s\r\nContent-Type: application/json\r\nConnect-Protocol-Version: 1\r\nContent-Length: 1024\r\n\r\n{", importPreviewPath, fixture.address, fixture.session); err != nil {
+	if _, err := fmt.Fprintf(connection, "POST %s HTTP/1.1\r\nHost: %s\r\nAuthorization: Bearer %s\r\nContent-Type: application/json\r\nConnect-Protocol-Version: 1\r\nExpect: 100-continue\r\nContent-Length: 1024\r\n\r\n", path, fixture.address, fixture.session); err != nil {
 		t.Fatal("could not start partial upload")
 	}
+	interim, err := http.ReadResponse(bufio.NewReader(connection), nil)
+	if err != nil {
+		t.Fatal("could not observe partial upload admission")
+	}
+	_ = interim.Body.Close()
+	if interim.StatusCode != http.StatusContinue {
+		t.Fatalf("partial upload was rejected before body admission: %d", interim.StatusCode)
+	}
+	if _, err := io.WriteString(connection, "{"); err != nil {
+		t.Fatal("could not send partial upload body")
+	}
 	return connection
+}
+
+func TestAppCCSwitchSnapshotSharedAdmissionAndClose(t *testing.T) {
+	fixture := openImportApp(t)
+	connection := fixture.slowUploadPath(t, ccSwitchPreviewPath)
+	response := fixture.post(t, importPreviewPath, magpieRequest(`{"skills":[]}`))
+	_, _ = io.Copy(io.Discard, response.Body)
+	_ = response.Body.Close()
+	if response.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("cc-switch snapshot did not share the per-owner import slot: %d", response.StatusCode)
+	}
+	closed := make(chan error, 1)
+	go func() { closed <- fixture.app.Close() }()
+	select {
+	case err := <-closed:
+		if err != nil {
+			t.Fatalf("close snapshot request: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("snapshot upload was not interrupted before store teardown")
+	}
+	response, err := http.ReadResponse(bufio.NewReader(connection), nil)
+	if err != nil {
+		t.Fatal("closed snapshot upload did not produce a response")
+	}
+	defer response.Body.Close()
+	if response.StatusCode < 400 {
+		t.Fatal("closed snapshot upload unexpectedly succeeded")
+	}
+	response = fixture.post(t, ccSwitchPreviewPath, `{}`)
+	if response.StatusCode != http.StatusServiceUnavailable {
+		t.Fatal("closed snapshot handler accessed the store")
+	}
+}
+
+func TestAppCCSwitchSnapshotSlowBodyDeadline(t *testing.T) {
+	fixture := openImportApp(t)
+	started := time.Now()
+	connection := fixture.slowUploadPath(t, ccSwitchPreviewPath)
+	if err := connection.SetDeadline(time.Now().Add(19 * time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	response, err := http.ReadResponse(bufio.NewReader(connection), nil)
+	if err != nil {
+		t.Fatalf("snapshot upload did not reach its server read deadline: %v", err)
+	}
+	defer response.Body.Close()
+	elapsed := time.Since(started)
+	if response.StatusCode < 400 || elapsed < 14*time.Second || elapsed > 17500*time.Millisecond {
+		t.Fatalf("snapshot slow-body status=%d elapsed=%s", response.StatusCode, elapsed)
+	}
+	if _, err := io.Copy(io.Discard, response.Body); err != nil {
+		t.Fatal("snapshot deadline response did not finish")
+	}
+	response = fixture.post(t, importPreviewPath, magpieRequest(`{"skills":[]}`))
+	if response.StatusCode != http.StatusOK {
+		t.Fatal("snapshot deadline did not release the shared owner slot")
+	}
 }
 
 func TestAppImportPreviewSlowBodyDeadline(t *testing.T) {
@@ -176,23 +251,11 @@ func TestAppImportPreviewSlowBodyDeadline(t *testing.T) {
 func TestAppImportCloseDrainsUploadBeforeStore(t *testing.T) {
 	fixture := openImportApp(t)
 	connection := fixture.slowUpload(t)
-	admitted := false
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		response := fixture.post(t, importPreviewPath, magpieRequest(`{"skills":[]}`))
-		_, _ = io.Copy(io.Discard, response.Body)
-		_ = response.Body.Close()
-		if response.StatusCode == http.StatusTooManyRequests {
-			admitted = true
-			break
-		}
-		if response.StatusCode != http.StatusOK {
-			t.Fatalf("unexpected preview status while waiting for admission: %d", response.StatusCode)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	if !admitted {
-		t.Fatal("partial upload was not admitted")
+	response := fixture.post(t, importPreviewPath, magpieRequest(`{"skills":[]}`))
+	_, _ = io.Copy(io.Discard, response.Body)
+	_ = response.Body.Close()
+	if response.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("admitted partial upload did not retain its owner slot: %d", response.StatusCode)
 	}
 	finished := make(chan error, 1)
 	go func() { finished <- fixture.app.Close() }()

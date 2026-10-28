@@ -36,11 +36,15 @@ const (
 	// ImportServicePreviewLibraryExportProcedure is the fully-qualified name of the ImportService's
 	// PreviewLibraryExport RPC.
 	ImportServicePreviewLibraryExportProcedure = "/skillhub.import.v1.ImportService/PreviewLibraryExport"
+	// ImportServicePreviewCCSwitchSnapshotProcedure is the fully-qualified name of the ImportService's
+	// PreviewCCSwitchSnapshot RPC.
+	ImportServicePreviewCCSwitchSnapshotProcedure = "/skillhub.import.v1.ImportService/PreviewCCSwitchSnapshot"
 )
 
 // ImportServiceClient is a client for the skillhub.import.v1.ImportService service.
 type ImportServiceClient interface {
 	PreviewLibraryExport(context.Context, *connect.Request[v1.PreviewLibraryExportRequest]) (*connect.Response[v1.PreviewLibraryExportResponse], error)
+	PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error)
 }
 
 // NewImportServiceClient constructs a client for the skillhub.import.v1.ImportService service. By
@@ -60,12 +64,19 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(importServiceMethods.ByName("PreviewLibraryExport")),
 			connect.WithClientOptions(opts...),
 		),
+		previewCCSwitchSnapshot: connect.NewClient[v1.PreviewCCSwitchSnapshotRequest, v1.PreviewCCSwitchSnapshotResponse](
+			httpClient,
+			baseURL+ImportServicePreviewCCSwitchSnapshotProcedure,
+			connect.WithSchema(importServiceMethods.ByName("PreviewCCSwitchSnapshot")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // importServiceClient implements ImportServiceClient.
 type importServiceClient struct {
-	previewLibraryExport *connect.Client[v1.PreviewLibraryExportRequest, v1.PreviewLibraryExportResponse]
+	previewLibraryExport    *connect.Client[v1.PreviewLibraryExportRequest, v1.PreviewLibraryExportResponse]
+	previewCCSwitchSnapshot *connect.Client[v1.PreviewCCSwitchSnapshotRequest, v1.PreviewCCSwitchSnapshotResponse]
 }
 
 // PreviewLibraryExport calls skillhub.import.v1.ImportService.PreviewLibraryExport.
@@ -73,9 +84,15 @@ func (c *importServiceClient) PreviewLibraryExport(ctx context.Context, req *con
 	return c.previewLibraryExport.CallUnary(ctx, req)
 }
 
+// PreviewCCSwitchSnapshot calls skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot.
+func (c *importServiceClient) PreviewCCSwitchSnapshot(ctx context.Context, req *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error) {
+	return c.previewCCSwitchSnapshot.CallUnary(ctx, req)
+}
+
 // ImportServiceHandler is an implementation of the skillhub.import.v1.ImportService service.
 type ImportServiceHandler interface {
 	PreviewLibraryExport(context.Context, *connect.Request[v1.PreviewLibraryExportRequest]) (*connect.Response[v1.PreviewLibraryExportResponse], error)
+	PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error)
 }
 
 // NewImportServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -91,10 +108,18 @@ func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(importServiceMethods.ByName("PreviewLibraryExport")),
 		connect.WithHandlerOptions(opts...),
 	)
+	importServicePreviewCCSwitchSnapshotHandler := connect.NewUnaryHandler(
+		ImportServicePreviewCCSwitchSnapshotProcedure,
+		svc.PreviewCCSwitchSnapshot,
+		connect.WithSchema(importServiceMethods.ByName("PreviewCCSwitchSnapshot")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.import.v1.ImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ImportServicePreviewLibraryExportProcedure:
 			importServicePreviewLibraryExportHandler.ServeHTTP(w, r)
+		case ImportServicePreviewCCSwitchSnapshotProcedure:
+			importServicePreviewCCSwitchSnapshotHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -106,4 +131,8 @@ type UnimplementedImportServiceHandler struct{}
 
 func (UnimplementedImportServiceHandler) PreviewLibraryExport(context.Context, *connect.Request[v1.PreviewLibraryExportRequest]) (*connect.Response[v1.PreviewLibraryExportResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.PreviewLibraryExport is not implemented"))
+}
+
+func (UnimplementedImportServiceHandler) PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot is not implemented"))
 }

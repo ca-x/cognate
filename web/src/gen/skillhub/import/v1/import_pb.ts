@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/import/v1/import.proto.
  */
 export const file_skillhub_import_v1_import: GenFile = /*@__PURE__*/
-  fileDesc("Ch9za2lsbGh1Yi9pbXBvcnQvdjEvaW1wb3J0LnByb3RvEhJza2lsbGh1Yi5pbXBvcnQudjEiZAobUHJldmlld0xpYnJhcnlFeHBvcnRSZXF1ZXN0EjAKBmZvcm1hdBgBIAEoDjIgLnNraWxsaHViLmltcG9ydC52MS5FeHBvcnRGb3JtYXQSEwoLZXhwb3J0X2RhdGEYAiABKAwiWQoTUmVwb3NpdG9yeUNhbmRpZGF0ZRISCgpyZXBvc2l0b3J5GAEgASgJEg4KBmJyYW5jaBgCIAEoCRIeChZleGlzdGluZ19yZXBvc2l0b3J5X2lkGAMgASgJIn0KHFByZXZpZXdMaWJyYXJ5RXhwb3J0UmVzcG9uc2USPQoMcmVwb3NpdG9yaWVzGAEgAygLMicuc2tpbGxodWIuaW1wb3J0LnYxLlJlcG9zaXRvcnlDYW5kaWRhdGUSHgoWcmVmZXJlbmNlZF9za2lsbF9jb3VudBgCIAEoDSpUCgxFeHBvcnRGb3JtYXQSHQoZRVhQT1JUX0ZPUk1BVF9VTlNQRUNJRklFRBAAEiUKIUVYUE9SVF9GT1JNQVRfTUFHUElFX0xJQlJBUllfSlNPThABMooBCg1JbXBvcnRTZXJ2aWNlEnkKFFByZXZpZXdMaWJyYXJ5RXhwb3J0Ei8uc2tpbGxodWIuaW1wb3J0LnYxLlByZXZpZXdMaWJyYXJ5RXhwb3J0UmVxdWVzdBowLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlQjpaOGdpdGh1Yi5jb20vY2EteC9za2lsbGh1Yi9nZW4vc2tpbGxodWIvaW1wb3J0L3YxO2ltcG9ydHYxYgZwcm90bzM");
+  fileDesc("Ch9za2lsbGh1Yi9pbXBvcnQvdjEvaW1wb3J0LnByb3RvEhJza2lsbGh1Yi5pbXBvcnQudjEiZAobUHJldmlld0xpYnJhcnlFeHBvcnRSZXF1ZXN0EjAKBmZvcm1hdBgBIAEoDjIgLnNraWxsaHViLmltcG9ydC52MS5FeHBvcnRGb3JtYXQSEwoLZXhwb3J0X2RhdGEYAiABKAwiiQEKE1JlcG9zaXRvcnlDYW5kaWRhdGUSEgoKcmVwb3NpdG9yeRgBIAEoCRIOCgZicmFuY2gYAiABKAkSHgoWZXhpc3RpbmdfcmVwb3NpdG9yeV9pZBgDIAEoCRIbCg5zb3VyY2VfZW5hYmxlZBgEIAEoCEgAiAEBQhEKD19zb3VyY2VfZW5hYmxlZCJ9ChxQcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlEj0KDHJlcG9zaXRvcmllcxgBIAMoCzInLnNraWxsaHViLmltcG9ydC52MS5SZXBvc2l0b3J5Q2FuZGlkYXRlEh4KFnJlZmVyZW5jZWRfc2tpbGxfY291bnQYAiABKA0iNwoeUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXF1ZXN0EhUKDXNuYXBzaG90X2RhdGEYASABKAwiYAofUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXNwb25zZRI9CgxyZXBvc2l0b3JpZXMYASADKAsyJy5za2lsbGh1Yi5pbXBvcnQudjEuUmVwb3NpdG9yeUNhbmRpZGF0ZSpUCgxFeHBvcnRGb3JtYXQSHQoZRVhQT1JUX0ZPUk1BVF9VTlNQRUNJRklFRBAAEiUKIUVYUE9SVF9GT1JNQVRfTUFHUElFX0xJQlJBUllfSlNPThABMo8CCg1JbXBvcnRTZXJ2aWNlEnkKFFByZXZpZXdMaWJyYXJ5RXhwb3J0Ei8uc2tpbGxodWIuaW1wb3J0LnYxLlByZXZpZXdMaWJyYXJ5RXhwb3J0UmVxdWVzdBowLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlEoIBChdQcmV2aWV3Q0NTd2l0Y2hTbmFwc2hvdBIyLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3Q0NTd2l0Y2hTbmFwc2hvdFJlcXVlc3QaMy5za2lsbGh1Yi5pbXBvcnQudjEuUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXNwb25zZUI6WjhnaXRodWIuY29tL2NhLXgvc2tpbGxodWIvZ2VuL3NraWxsaHViL2ltcG9ydC92MTtpbXBvcnR2MWIGcHJvdG8z");
 
 /**
  * @generated from message skillhub.import.v1.PreviewLibraryExportRequest
@@ -52,6 +52,11 @@ export type RepositoryCandidate = Message<"skillhub.import.v1.RepositoryCandidat
    * @generated from field: string existing_repository_id = 3;
    */
   existingRepositoryId: string;
+
+  /**
+   * @generated from field: optional bool source_enabled = 4;
+   */
+  sourceEnabled?: boolean | undefined;
 };
 
 /**
@@ -82,6 +87,40 @@ export type PreviewLibraryExportResponse = Message<"skillhub.import.v1.PreviewLi
  */
 export const PreviewLibraryExportResponseSchema: GenMessage<PreviewLibraryExportResponse> = /*@__PURE__*/
   messageDesc(file_skillhub_import_v1_import, 2);
+
+/**
+ * @generated from message skillhub.import.v1.PreviewCCSwitchSnapshotRequest
+ */
+export type PreviewCCSwitchSnapshotRequest = Message<"skillhub.import.v1.PreviewCCSwitchSnapshotRequest"> & {
+  /**
+   * @generated from field: bytes snapshot_data = 1;
+   */
+  snapshotData: Uint8Array;
+};
+
+/**
+ * Describes the message skillhub.import.v1.PreviewCCSwitchSnapshotRequest.
+ * Use `create(PreviewCCSwitchSnapshotRequestSchema)` to create a new message.
+ */
+export const PreviewCCSwitchSnapshotRequestSchema: GenMessage<PreviewCCSwitchSnapshotRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 3);
+
+/**
+ * @generated from message skillhub.import.v1.PreviewCCSwitchSnapshotResponse
+ */
+export type PreviewCCSwitchSnapshotResponse = Message<"skillhub.import.v1.PreviewCCSwitchSnapshotResponse"> & {
+  /**
+   * @generated from field: repeated skillhub.import.v1.RepositoryCandidate repositories = 1;
+   */
+  repositories: RepositoryCandidate[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.PreviewCCSwitchSnapshotResponse.
+ * Use `create(PreviewCCSwitchSnapshotResponseSchema)` to create a new message.
+ */
+export const PreviewCCSwitchSnapshotResponseSchema: GenMessage<PreviewCCSwitchSnapshotResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 4);
 
 /**
  * @generated from enum skillhub.import.v1.ExportFormat
@@ -115,6 +154,14 @@ export const ImportService: GenService<{
     methodKind: "unary";
     input: typeof PreviewLibraryExportRequestSchema;
     output: typeof PreviewLibraryExportResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot
+   */
+  previewCCSwitchSnapshot: {
+    methodKind: "unary";
+    input: typeof PreviewCCSwitchSnapshotRequestSchema;
+    output: typeof PreviewCCSwitchSnapshotResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_skillhub_import_v1_import, 0);

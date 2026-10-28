@@ -87,7 +87,12 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 		server.Any(path+"*", echo.WrapHandler(handler))
 	}
 	if options.Imports != nil {
-		path, handler := importv1connect.NewImportServiceHandler(options.Imports, connect.WithReadMaxBytes(importMaxWireBytes), connect.WithSendMaxBytes(importMaxWireBytes), connect.WithCompression("gzip", nil, nil), connect.WithCodec(importCodec{name: "json"}), connect.WithCodec(importCodec{name: "proto"}))
+		path, handler := importv1connect.NewImportServiceHandler(options.Imports, connect.WithReadMaxBytes(importMaxWireBytes), connect.WithSendMaxBytes(importMaxWireBytes), connect.WithCompression("gzip", nil, nil), connect.WithCodec(importCodec{name: "json"}), connect.WithCodec(importCodec{name: "proto"}), connect.WithConditionalHandlerOptions(func(spec connect.Spec) []connect.HandlerOption {
+			if spec.Procedure == importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure {
+				return []connect.HandlerOption{connect.WithReadMaxBytes(importSnapshotMaxWireBytes)}
+			}
+			return nil
+		}))
 		server.Any(path+"*", echo.WrapHandler(options.Imports.Guard(handler)))
 	}
 	if options.Packs != nil && options.Store != nil {

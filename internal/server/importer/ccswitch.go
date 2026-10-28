@@ -36,43 +36,59 @@ type RepositoryPreview struct {
 }
 
 func PreviewCCSwitchRepos(ctx context.Context, path string) (RepositoryPreview, error) {
-	input := make([]Repository, 0)
+	var input []Repository
 	found, err := readCCSwitch(ctx, path, func(tx *sql.Tx) error {
-		var kind string
-		if err := tx.QueryRowContext(ctx, `SELECT type FROM sqlite_schema WHERE name = 'skill_repos'`).Scan(&kind); err != nil || kind != "table" {
-			return databaseError(ctx)
-		}
-		rows, err := tx.QueryContext(ctx, `SELECT substr(owner,1,257), substr(name,1,257), substr(branch,1,257), length(CAST(owner AS BLOB)), length(CAST(name AS BLOB)), length(CAST(branch AS BLOB)), enabled FROM skill_repos ORDER BY owner, name LIMIT 1001`)
-		if err != nil {
-			return databaseError(ctx)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			var item Repository
-			var ownerBytes, nameBytes, branchBytes, enabled int64
-			if err := rows.Scan(&item.Owner, &item.Name, &item.Branch, &ownerBytes, &nameBytes, &branchBytes, &enabled); err != nil {
-				return databaseError(ctx)
-			}
-			if len(input) >= maxRepositories || ownerBytes < 1 || ownerBytes > 256 || nameBytes < 1 || nameBytes > 256 || branchBytes < 0 || branchBytes > 256 || (enabled != 0 && enabled != 1) || !utf8.ValidString(item.Owner) || !utf8.ValidString(item.Name) || !utf8.ValidString(item.Branch) {
-				return fmt.Errorf("invalid cc-switch repository record")
-			}
-			if _, err := repository.GitHubURL(item.Owner + "/" + item.Name); err != nil {
-				return fmt.Errorf("invalid cc-switch repository record")
-			}
-			item.Enabled = enabled == 1
-			input = append(input, item)
-		}
-		if err := rows.Err(); err != nil {
-			return databaseError(ctx)
-		}
-		if err := rows.Close(); err != nil {
-			return databaseError(ctx)
-		}
-		return nil
+		var readError error
+		input, readError = readCCSwitchRepositoryRows(ctx, tx)
+		return readError
 	})
 	if err != nil || !found {
 		return RepositoryPreview{}, err
 	}
+	return transformCCSwitchRepositories(ctx, input)
+}
+
+type ccSwitchReader interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}
+
+func readCCSwitchRepositoryRows(ctx context.Context, database ccSwitchReader) ([]Repository, error) {
+	var kind string
+	if err := database.QueryRowContext(ctx, `SELECT type FROM sqlite_schema WHERE name = 'skill_repos'`).Scan(&kind); err != nil || kind != "table" {
+		return nil, databaseError(ctx)
+	}
+	rows, err := database.QueryContext(ctx, `SELECT substr(owner,1,257), substr(name,1,257), substr(branch,1,257), length(CAST(owner AS BLOB)), length(CAST(name AS BLOB)), length(CAST(branch AS BLOB)), enabled FROM skill_repos ORDER BY owner, name LIMIT 1001`)
+	if err != nil {
+		return nil, databaseError(ctx)
+	}
+	defer rows.Close()
+	input := make([]Repository, 0)
+	for rows.Next() {
+		var item Repository
+		var ownerBytes, nameBytes, branchBytes, enabled int64
+		if err := rows.Scan(&item.Owner, &item.Name, &item.Branch, &ownerBytes, &nameBytes, &branchBytes, &enabled); err != nil {
+			return nil, databaseError(ctx)
+		}
+		if len(input) >= maxRepositories || ownerBytes < 1 || ownerBytes > 256 || nameBytes < 1 || nameBytes > 256 || branchBytes < 0 || branchBytes > 256 || (enabled != 0 && enabled != 1) || !utf8.ValidString(item.Owner) || !utf8.ValidString(item.Name) || !utf8.ValidString(item.Branch) {
+			return nil, fmt.Errorf("invalid cc-switch repository record")
+		}
+		if _, err := repository.GitHubURL(item.Owner + "/" + item.Name); err != nil {
+			return nil, fmt.Errorf("invalid cc-switch repository record")
+		}
+		item.Enabled = enabled == 1
+		input = append(input, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, databaseError(ctx)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, databaseError(ctx)
+	}
+	return input, nil
+}
+
+func transformCCSwitchRepositories(ctx context.Context, input []Repository) (RepositoryPreview, error) {
 	encoded, err := json.Marshal(input)
 	if err != nil {
 		return RepositoryPreview{}, fmt.Errorf("encode cc-switch repositories")

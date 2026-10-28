@@ -11,13 +11,23 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/ca-x/skillhub/gen/skillhub/import/v1/importv1connect"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 const importMaxWireBytes = 2 << 20
+const importSnapshotMaxWireBytes = 24 << 20
+const importResponseGrace = time.Second
 
 type importOwnerKey struct{}
+
+func importLimits(procedure string) (int64, time.Duration) {
+	if procedure == importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure {
+		return importSnapshotMaxWireBytes, 15 * time.Second
+	}
+	return importMaxWireBytes, 5 * time.Second
+}
 
 func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 	errorWriter := connect.NewErrorWriter()
@@ -29,6 +39,7 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 				writer.Header().Set("Connection", "close")
 				_ = http.NewResponseController(writer).SetReadDeadline(time.Now())
 			}
+			_ = http.NewResponseController(writer).SetWriteDeadline(time.Now().Add(importResponseGrace))
 			_ = errorWriter.Write(writer, request, err)
 		}
 		handler.mutex.Lock()
@@ -38,7 +49,8 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 			reject(connect.NewError(connect.CodeUnavailable, errors.New("import preview is shutting down")))
 			return
 		}
-		ctx, cancel := context.WithTimeout(request.Context(), 5*time.Second)
+		maxBytes, timeout := importLimits(request.URL.Path)
+		ctx, cancel := context.WithTimeout(request.Context(), timeout)
 		defer cancel()
 		owner, err := handler.auth.authenticate(ctx, request.Header)
 		if err != nil {
@@ -72,7 +84,7 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 				return
 			}
 		}
-		if request.ContentLength > importMaxWireBytes {
+		if request.ContentLength > maxBytes {
 			reject(connect.NewError(connect.CodeResourceExhausted, errors.New("export size limit exceeded")))
 			return
 		}
@@ -82,9 +94,14 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 			reject(connect.NewError(connect.CodeUnavailable, errors.New("import preview transport unavailable")))
 			return
 		}
+		if err := controller.SetWriteDeadline(deadline.Add(importResponseGrace)); err != nil {
+			reject(connect.NewError(connect.CodeUnavailable, errors.New("import preview transport unavailable")))
+			return
+		}
 		interrupted := make(chan struct{})
 		stop := context.AfterFunc(ctx, func() {
 			_ = controller.SetReadDeadline(time.Now())
+			_ = controller.SetWriteDeadline(time.Now().Add(importResponseGrace))
 			close(interrupted)
 		})
 		defer func() {
@@ -97,7 +114,7 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 				_ = controller.SetReadDeadline(time.Time{})
 			}
 		}()
-		data, err := io.ReadAll(http.MaxBytesReader(writer, request.Body, importMaxWireBytes))
+		data, err := io.ReadAll(http.MaxBytesReader(writer, request.Body, maxBytes))
 		defer clear(data)
 		if err != nil || ctx.Err() != nil {
 			if canceled := contextError(ctx, ctx.Err()); canceled != nil {

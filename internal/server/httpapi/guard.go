@@ -75,6 +75,9 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 			if request.URL.Path == importv1connect.ImportServicePreviewLibraryExportProcedure {
 				maxBytes = importMaxWireBytes
 			}
+			if request.URL.Path == importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure {
+				maxBytes = importSnapshotMaxWireBytes
+			}
 			if request.URL.Path == packv1connect.PackServiceCreatePackProcedure || request.URL.Path == packv1connect.PackServiceUpdatePackProcedure {
 				maxBytes = 64 << 10
 			}

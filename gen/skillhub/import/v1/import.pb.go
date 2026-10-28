@@ -124,6 +124,7 @@ type RepositoryCandidate struct {
 	Repository           string                 `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
 	Branch               string                 `protobuf:"bytes,2,opt,name=branch,proto3" json:"branch,omitempty"`
 	ExistingRepositoryId string                 `protobuf:"bytes,3,opt,name=existing_repository_id,json=existingRepositoryId,proto3" json:"existing_repository_id,omitempty"`
+	SourceEnabled        *bool                  `protobuf:"varint,4,opt,name=source_enabled,json=sourceEnabled,proto3,oneof" json:"source_enabled,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -179,6 +180,13 @@ func (x *RepositoryCandidate) GetExistingRepositoryId() string {
 	return ""
 }
 
+func (x *RepositoryCandidate) GetSourceEnabled() bool {
+	if x != nil && x.SourceEnabled != nil {
+		return *x.SourceEnabled
+	}
+	return false
+}
+
 type PreviewLibraryExportResponse struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Repositories         []*RepositoryCandidate `protobuf:"bytes,1,rep,name=repositories,proto3" json:"repositories,omitempty"`
@@ -231,6 +239,94 @@ func (x *PreviewLibraryExportResponse) GetReferencedSkillCount() uint32 {
 	return 0
 }
 
+type PreviewCCSwitchSnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SnapshotData  []byte                 `protobuf:"bytes,1,opt,name=snapshot_data,json=snapshotData,proto3" json:"snapshot_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewCCSwitchSnapshotRequest) Reset() {
+	*x = PreviewCCSwitchSnapshotRequest{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewCCSwitchSnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewCCSwitchSnapshotRequest) ProtoMessage() {}
+
+func (x *PreviewCCSwitchSnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewCCSwitchSnapshotRequest.ProtoReflect.Descriptor instead.
+func (*PreviewCCSwitchSnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PreviewCCSwitchSnapshotRequest) GetSnapshotData() []byte {
+	if x != nil {
+		return x.SnapshotData
+	}
+	return nil
+}
+
+type PreviewCCSwitchSnapshotResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repositories  []*RepositoryCandidate `protobuf:"bytes,1,rep,name=repositories,proto3" json:"repositories,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewCCSwitchSnapshotResponse) Reset() {
+	*x = PreviewCCSwitchSnapshotResponse{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewCCSwitchSnapshotResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewCCSwitchSnapshotResponse) ProtoMessage() {}
+
+func (x *PreviewCCSwitchSnapshotResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewCCSwitchSnapshotResponse.ProtoReflect.Descriptor instead.
+func (*PreviewCCSwitchSnapshotResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PreviewCCSwitchSnapshotResponse) GetRepositories() []*RepositoryCandidate {
+	if x != nil {
+		return x.Repositories
+	}
+	return nil
+}
+
 var File_skillhub_import_v1_import_proto protoreflect.FileDescriptor
 
 const file_skillhub_import_v1_import_proto_rawDesc = "" +
@@ -239,21 +335,28 @@ const file_skillhub_import_v1_import_proto_rawDesc = "" +
 	"\x1bPreviewLibraryExportRequest\x128\n" +
 	"\x06format\x18\x01 \x01(\x0e2 .skillhub.import.v1.ExportFormatR\x06format\x12\x1f\n" +
 	"\vexport_data\x18\x02 \x01(\fR\n" +
-	"exportData\"\x83\x01\n" +
+	"exportData\"\xc2\x01\n" +
 	"\x13RepositoryCandidate\x12\x1e\n" +
 	"\n" +
 	"repository\x18\x01 \x01(\tR\n" +
 	"repository\x12\x16\n" +
 	"\x06branch\x18\x02 \x01(\tR\x06branch\x124\n" +
-	"\x16existing_repository_id\x18\x03 \x01(\tR\x14existingRepositoryId\"\xa1\x01\n" +
+	"\x16existing_repository_id\x18\x03 \x01(\tR\x14existingRepositoryId\x12*\n" +
+	"\x0esource_enabled\x18\x04 \x01(\bH\x00R\rsourceEnabled\x88\x01\x01B\x11\n" +
+	"\x0f_source_enabled\"\xa1\x01\n" +
 	"\x1cPreviewLibraryExportResponse\x12K\n" +
 	"\frepositories\x18\x01 \x03(\v2'.skillhub.import.v1.RepositoryCandidateR\frepositories\x124\n" +
-	"\x16referenced_skill_count\x18\x02 \x01(\rR\x14referencedSkillCount*T\n" +
+	"\x16referenced_skill_count\x18\x02 \x01(\rR\x14referencedSkillCount\"E\n" +
+	"\x1ePreviewCCSwitchSnapshotRequest\x12#\n" +
+	"\rsnapshot_data\x18\x01 \x01(\fR\fsnapshotData\"n\n" +
+	"\x1fPreviewCCSwitchSnapshotResponse\x12K\n" +
+	"\frepositories\x18\x01 \x03(\v2'.skillhub.import.v1.RepositoryCandidateR\frepositories*T\n" +
 	"\fExportFormat\x12\x1d\n" +
 	"\x19EXPORT_FORMAT_UNSPECIFIED\x10\x00\x12%\n" +
-	"!EXPORT_FORMAT_MAGPIE_LIBRARY_JSON\x10\x012\x8a\x01\n" +
+	"!EXPORT_FORMAT_MAGPIE_LIBRARY_JSON\x10\x012\x8f\x02\n" +
 	"\rImportService\x12y\n" +
-	"\x14PreviewLibraryExport\x12/.skillhub.import.v1.PreviewLibraryExportRequest\x1a0.skillhub.import.v1.PreviewLibraryExportResponseB:Z8github.com/ca-x/skillhub/gen/skillhub/import/v1;importv1b\x06proto3"
+	"\x14PreviewLibraryExport\x12/.skillhub.import.v1.PreviewLibraryExportRequest\x1a0.skillhub.import.v1.PreviewLibraryExportResponse\x12\x82\x01\n" +
+	"\x17PreviewCCSwitchSnapshot\x122.skillhub.import.v1.PreviewCCSwitchSnapshotRequest\x1a3.skillhub.import.v1.PreviewCCSwitchSnapshotResponseB:Z8github.com/ca-x/skillhub/gen/skillhub/import/v1;importv1b\x06proto3"
 
 var (
 	file_skillhub_import_v1_import_proto_rawDescOnce sync.Once
@@ -268,23 +371,28 @@ func file_skillhub_import_v1_import_proto_rawDescGZIP() []byte {
 }
 
 var file_skillhub_import_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skillhub_import_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_skillhub_import_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_skillhub_import_v1_import_proto_goTypes = []any{
-	(ExportFormat)(0),                    // 0: skillhub.import.v1.ExportFormat
-	(*PreviewLibraryExportRequest)(nil),  // 1: skillhub.import.v1.PreviewLibraryExportRequest
-	(*RepositoryCandidate)(nil),          // 2: skillhub.import.v1.RepositoryCandidate
-	(*PreviewLibraryExportResponse)(nil), // 3: skillhub.import.v1.PreviewLibraryExportResponse
+	(ExportFormat)(0),                       // 0: skillhub.import.v1.ExportFormat
+	(*PreviewLibraryExportRequest)(nil),     // 1: skillhub.import.v1.PreviewLibraryExportRequest
+	(*RepositoryCandidate)(nil),             // 2: skillhub.import.v1.RepositoryCandidate
+	(*PreviewLibraryExportResponse)(nil),    // 3: skillhub.import.v1.PreviewLibraryExportResponse
+	(*PreviewCCSwitchSnapshotRequest)(nil),  // 4: skillhub.import.v1.PreviewCCSwitchSnapshotRequest
+	(*PreviewCCSwitchSnapshotResponse)(nil), // 5: skillhub.import.v1.PreviewCCSwitchSnapshotResponse
 }
 var file_skillhub_import_v1_import_proto_depIdxs = []int32{
 	0, // 0: skillhub.import.v1.PreviewLibraryExportRequest.format:type_name -> skillhub.import.v1.ExportFormat
 	2, // 1: skillhub.import.v1.PreviewLibraryExportResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
-	1, // 2: skillhub.import.v1.ImportService.PreviewLibraryExport:input_type -> skillhub.import.v1.PreviewLibraryExportRequest
-	3, // 3: skillhub.import.v1.ImportService.PreviewLibraryExport:output_type -> skillhub.import.v1.PreviewLibraryExportResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 2: skillhub.import.v1.PreviewCCSwitchSnapshotResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
+	1, // 3: skillhub.import.v1.ImportService.PreviewLibraryExport:input_type -> skillhub.import.v1.PreviewLibraryExportRequest
+	4, // 4: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:input_type -> skillhub.import.v1.PreviewCCSwitchSnapshotRequest
+	3, // 5: skillhub.import.v1.ImportService.PreviewLibraryExport:output_type -> skillhub.import.v1.PreviewLibraryExportResponse
+	5, // 6: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:output_type -> skillhub.import.v1.PreviewCCSwitchSnapshotResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_import_v1_import_proto_init() }
@@ -292,13 +400,14 @@ func file_skillhub_import_v1_import_proto_init() {
 	if File_skillhub_import_v1_import_proto != nil {
 		return
 	}
+	file_skillhub_import_v1_import_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_import_v1_import_proto_rawDesc), len(file_skillhub_import_v1_import_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
