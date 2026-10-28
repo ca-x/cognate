@@ -2,6 +2,14 @@
 
 目标：完成需求文档全部功能并发布首个可用版本。首版尚未发布；M2–M7 不算完成。里程碑由独立用户代表验收，用户在首发后进行真人测试。
 
+## 2026-10-29 公开来源持续同步
+
+- `556f6dee` 接通 MyGo 原生后台同步，默认关闭、显式启停，复用共享 Watch、每轮 fresh Manager，idle 不持安装锁。停止、换地址、退出和关窗取消并实际排空；UI 线程不等待后台，迟到回填被拒，运行/排空期间方法层也拒绝手动本地写入。独立真实 MyGo 事件、双 origin/三 Pack HTTP/锁、实际原生 main-process 循环与八项行为负控通过；不把 Linux 运行和六目标构建称为其他平台安装通过。
+- `4f9b5292` 接通独立于 Lists 水位的公开源周期更新，覆盖手动、插件显式收录和当前所选 star 来源。opaque ticket 绑定 Store 与来源代次；Fetch 后、每次 SQLite retry 和 commit 前重核授权，star 失权不降级 manual。默认 15 分钟是有界批次节拍，不是全源更新 SLA；`--source-refresh-interval=0` 禁用。已公开变更仍需明确取消公开并重新确认，错误保全旧快照，未知结果不重放旧候选。
+- 独立实际周期测试走源变化→两个重叠 Pack 各升一次版本→Connect manifest/流式下载→客户端 Watch 自动更新，重合技能只下载一次；另有真实 BUSY/SNAPSHOT、到期/撤权、分页公平、双 worker 关闭及九项行为负控。两个阶段各自 Spec/Quality scoped PASS，源码分别 SSH 推送读回；精确 25 文件组合的完整 Go/Web/vet、MyGo vet、Buf、module verify 及三种二进制×六 OS/arch 共 18 次 CGO0 构建通过。
+- Build `40770284512`、`40772019577`，以及后续核完的 Web Build `40765110690` 均 completed/success。Native desktop `40770292372` 精确绑定 `556f6dee`、`publish=false`，三平台打包工作流 completed/success；另已真实下载三份 ZIP，独立核 API size/digest、CRC、六个 Go1.27.3/CGO0/正确 OS/arch/精确 revision/clean 主载荷及八个包装的静态元数据，四个 Linux 嵌套程序 hash 匹配。没有执行安装器或证明 DMG/NSIS 内部载荷、签名、公证或正式 Release，旧 dirty 证据保留。
+- 以下检查点按时间保留，其“后续/进行中”由本节限定新状态覆盖。私有来源、完整配置导入/原生应用、备份全 writer 切点与恢复、跨平台实际安装仍是首发未完成项；服务端非 Unix 数据目录安全层原本也明确 unsupported，交叉编译不代表当地运行通过。Task2C 与显式 managed Store 接线继续独立推进，不把默认兼容写成 Windows 已支持。
+
 ## 2026-10-29 已推送检查点
 
 - `02339276` 接入前台 `pack watch`：复用共享订阅内核，立即首轮、串行周期、有界退避，每轮释放安装锁后才输出或等待。独立验收关闭满管道取消问题；Linux pipe/TTY 使用独立非阻塞句柄，普通文件仍受不可中断内核 I/O 限制，未知 writer 启动前拒绝。非 Linux 原生 stdout watch 暂不支持，不能把交叉编译通过当作当地安装/持续同步通过。它不代表源仓库自动刷新或 MyGo 自动同步已接通。
