@@ -2,6 +2,8 @@ package desktop
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/egoist/mygo/ui"
 )
 
@@ -40,11 +42,14 @@ func (model *Model) View(context *ui.Context) {
 			model.accountView(context)
 		}
 		ui.Row(context).Gap(8).Children(func() {
-			if ui.Button(context.Key("cancel"), "取消任务").Disabled(!model.Busy).Clicked() {
+			if ui.Button(context.Key("cancel"), "取消任务").Disabled(!model.Busy && !model.WatchActive && !model.WatchStopping).Clicked() {
 				model.Cancel()
 			}
 			ui.Text(context, model.Status).Grow(1)
 		})
+		if model.Page != 1 && model.watchLocksLocal() {
+			ui.Text(context, model.WatchStatus)
+		}
 	})
 }
 
@@ -95,7 +100,7 @@ func (model *Model) catalogView(context *ui.Context) {
 		if ui.Button(context.Key("details"), "查看详情").Disabled(model.Busy || model.Selected < 0).Clicked() {
 			model.Details()
 		}
-		if ui.PrimaryButton(context.Key("install"), "安装已确认技能").Disabled(model.Busy || model.Detail == nil || !model.Confirm).Clicked() {
+		if ui.PrimaryButton(context.Key("install"), "安装已确认技能").Disabled(model.Busy || model.watchLocksLocal() || model.Detail == nil || !model.Confirm).Clicked() {
 			model.Install()
 		}
 	})
@@ -118,13 +123,27 @@ func (model *Model) packsView(context *ui.Context) {
 	ui.TextInput(context.Key("share-token"), &model.ShareToken).Label("分享令牌").Placeholder("分享令牌（安全输入）").Password().FillWidth()
 	ui.Row(context).Gap(8).Children(func() {
 		for _, action := range []struct{ key, title string }{{"list", "刷新订阅"}, {"subscribe", "保存订阅"}, {"sync", "同步并应用安装变更"}, {"remove", "移除所选订阅"}} {
-			disabled := model.Busy || action.key == "subscribe" && model.ShareToken == "" || action.key == "remove" && model.PackSelected < 0
+			disabled := model.Busy || model.watchLocksLocal() || action.key == "subscribe" && model.ShareToken == "" || action.key == "remove" && model.PackSelected < 0
 			if ui.Button(context.Key("pack-"+action.key), action.title).Disabled(disabled).Clicked() {
 				model.Packs(action.key)
 			}
 		}
 	})
-	ui.Text(context, "保存/移除只修改订阅；点击同步才会安装、更新或备份移除技能（全部订阅）。")
+	ui.Text(context, "保存/移除只改订阅；同步全部订阅会安装、更新或备份移除技能。")
+	ui.Text(context, "后台默认关闭；启用即首轮，每 5 分钟同步全部订阅（可跨服务），单轮 2 分钟。")
+	ui.Text(context, "后台自动更新/备份移除；本地修改或失权时保留。手动操作需先停止并排空。")
+	ui.Row(context).Gap(8).Children(func() {
+		if ui.Button(context.Key("watch-start"), "启用后台同步").Disabled(model.Busy || model.watchLocksLocal() || model.origin == "" || runtime.GOOS != "linux").Clicked() {
+			model.StartWatch()
+		}
+		if ui.Button(context.Key("watch-stop"), "停止后台同步").Disabled(!model.WatchActive).Clicked() {
+			model.StopWatch()
+		}
+	})
+	if runtime.GOOS != "linux" {
+		ui.Text(context, "后台同步/本地安装当前仅支持 Linux")
+	}
+	ui.Text(context, model.WatchStatus)
 	model.packList.Selected = &model.PackSelected
 	model.packList.Key = func(index int) any { return model.Subscriptions[index].ID }
 	model.packList.Label = func(index int) string { return model.Subscriptions[index].Name }

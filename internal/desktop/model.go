@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
 	"github.com/ca-x/cognate/internal/importclient"
 	"github.com/ca-x/cognate/internal/state"
+	"github.com/ca-x/cognate/internal/subscription"
 	"github.com/egoist/mygo/ui"
 )
 
@@ -22,6 +24,7 @@ type Backend interface {
 	Details(context.Context, string, string) (*catalogv1.PublicSkill, error)
 	Install(context.Context, string, *catalogv1.PublicSkill) error
 	Packs(context.Context, string, string, string, string) ([]state.Subscription, error)
+	WatchCycle(context.Context) (subscription.SyncResult, []state.Subscription, error)
 	Preview(context.Context, string, string, string) (*importclient.Client, *importclient.Preview, error)
 }
 
@@ -39,9 +42,14 @@ type Model struct {
 	stop                                                    context.CancelFunc
 	cancel                                                  context.CancelFunc
 	workers                                                 sync.WaitGroup
+	publication                                             sync.Mutex
 	slots                                                   chan struct{}
 	generation                                              uint64
 	closed                                                  bool
+	watch                                                   *watchRun
+	watchOptions                                            subscription.WatchOptions
+	WatchActive, WatchStopping                              bool
+	WatchStatus                                             string
 	origin, session                                         string
 	Origin, Username, Password, Query, ShareToken, FilePath string
 	Page                                                    int
@@ -71,9 +79,14 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 }
 
 func (model *Model) Cancel() {
+	model.StopWatch()
+	model.cancelJob()
+}
+
+func (model *Model) cancelJob() {
 	model.generation++
 	if model.cancel != nil {
-		model.cancel()
+		model.cut(model.cancel)
 		model.cancel = nil
 	}
 	model.Busy = false
@@ -81,6 +94,7 @@ func (model *Model) Cancel() {
 }
 
 func (model *Model) clearOwner() {
+	model.StopWatch()
 	model.session = ""
 	model.Password = ""
 	model.ShareToken = ""
@@ -118,9 +132,9 @@ func (model *Model) Close() {
 		return
 	}
 	model.closed = true
+	model.cut(model.stop)
 	model.Cancel()
 	model.clearOwner()
-	model.stop()
 }
 
 func (model *Model) Wait() { model.workers.Wait() }
@@ -129,7 +143,7 @@ func (model *Model) job(label string, work func(context.Context) (func(), error)
 	if model.closed {
 		return
 	}
-	model.Cancel()
+	model.cancelJob()
 	generation := model.generation
 	ctx, cancel := context.WithTimeout(model.life, 60*time.Second)
 	model.cancel = cancel
@@ -151,13 +165,20 @@ func (model *Model) job(label string, work func(context.Context) (func(), error)
 			err = ctx.Err()
 		}
 		contextErr := ctx.Err()
-		model.dispatch(func() {
+		if model.life.Err() != nil || errors.Is(contextErr, context.Canceled) {
+			return
+		}
+		delivery := ctx
+		if errors.Is(contextErr, context.DeadlineExceeded) {
+			delivery = model.life
+		}
+		model.publish(delivery, func() {
 			if model.closed || model.generation != generation {
 				return
 			}
 			model.Busy = false
 			if err != nil {
-				model.Status = err.Error()
+				model.Status = safeTaskError(err)
 				return
 			}
 			if contextErr != nil {
@@ -228,7 +249,7 @@ func (model *Model) Search(next bool) {
 }
 
 func (model *Model) Select(index int) {
-	model.Cancel()
+	model.cancelJob()
 	model.Selected = index
 	model.Detail = nil
 	model.Confirm = false
@@ -253,6 +274,10 @@ func (model *Model) Details() {
 }
 
 func (model *Model) Install() {
+	if model.watchLocksLocal() {
+		model.Status = "请先停止后台同步并等待排空，再手动安装"
+		return
+	}
 	if model.Detail == nil || !model.Confirm || !model.ready() {
 		model.Status = "请先获取详情并明确确认安装"
 		return
@@ -266,6 +291,10 @@ func (model *Model) Install() {
 }
 
 func (model *Model) Packs(action string) {
+	if model.watchLocksLocal() {
+		model.Status = "请先停止后台同步并等待排空，再操作 Pack"
+		return
+	}
 	if !model.ready() {
 		return
 	}

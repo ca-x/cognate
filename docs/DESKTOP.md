@@ -17,6 +17,7 @@ Only the desktop write set and Go module files belong to this implementation. No
 - 公开目录：匿名搜索、分页、列表键盘选择、经共用 `packclient` 核实详情。查看详情不会下载；必须勾选确认后再点击安装。改选和详情刷新都会清空旧详情/确认，刷新回填新版内容后必须重新确认。
 - 安装：下载、归档校验和快照清理由 `packclient` 完成；安装账本、去重、agent 投影及锁复用 `install` / `state`，没有另写安装内核。当前本地安装内核仅支持 Linux；Windows/macOS 会显示真实“不支持”错误，不能视为已安装。
 - Pack：刷新、保存订阅、显式同步、移除订阅，复用 `subscription.Manager`。保存/移除只改变订阅；同步按钮明确提示会应用**全部订阅**的安装、更新与备份移除变更。分享令牌使用安全输入并在提交后清空；持久化的是共用内核的加密凭据，不是明文。登录凭据不进入该存储。
+- Pack 后台同步：原生“启用后台同步 / 停止后台同步”控件，默认关闭且不跨进程记忆。只同步已明确保存的全部本地订阅（可能多个服务地址），不是仅当前文本框或登录账号对应的 Pack；不会执行 JS 或自动应用 AI 配置。
 - Magpie：文件路径、预览、逐仓库勾选、显式应用，直接复用 `importclient.PreviewFile` / `ApplyFile`。预览绑定文件 SHA256，文件变化拒绝旧预览；显示逐项结果。此操作收集服务端仓库，不直接在本地安装技能。
 - 品牌图标只有一份来源：`assets/branding/client.png`。`assets/branding/branding.go` 的 `clientlogoassets.ClientPNG` 嵌入原图，供原生 UI 解码显示；MyGo manifest 的打包图标也引用该原图，不复制 PNG。
 
@@ -29,6 +30,18 @@ Only the desktop write set and Go module files belong to this implementation. No
 关闭回调先 cancel 并清空会话，不在 UI 线程等待 worker。`App.Run` 返回后才 `Wait`；worker 不等待 UI 回调完成，避免退出时互相等待。取消不是跨网络/磁盘事务回滚：若写入已开始，状态提示要求刷新核实账本，不能承诺“取消后绝无落盘”。
 
 GUI 暂无安装恢复面板。出现 pending/needs_attention 时，先使用独立 CLI 的 `cognate install-status` 查看，按 `docs/INSTALL-RECOVERY.md` 保守处理；不要删除账本或猜测 stage 归属。桌面不会为了恢复调用 Cobra，也不承诺自动恢复。
+
+### 后台 Pack 策略与生命周期
+
+显式启用后立即执行首轮，随后每 **5 分钟**一轮，单轮 context 截止 **2 分钟**。复用已签收的 `subscription.Watch`：串行执行，失败从 **30 秒**开始退避，依次 60/120/240 秒、最长 5 分钟，成功后重置。不另建 ticker 或重试内核；截止依赖底层取消合作，不是强杀线程的硬实时保证。
+
+每轮在现有单 worker 槽内 fresh open `subscription.Manager`，Sync/List 完成或失败后同步 Close，再发布摘要并等待下轮；idle 不持安装锁或 Manager。后台期间及停止排空期间，手动安装与 Pack 操作在原生控件和方法层同时拒绝；浏览仍可继续，不因此偷偷停止后台。其他客户端进程仍可在 idle 期间取得内核锁；后续周期重新读取订阅，不缓存分享 token。
+
+原生停止按钮、取消任务、修改服务地址、退出/更换账号和窗口关闭均取消后台；停止中保留排空状态，实际后台调用返回并关闭 Manager 后才重新允许本地写入/重启。UI 线程不等待 worker，worker 不等待 UI 回调；关闭后由入口已有的 `Wait` 排空。取消/关闭与异步入队由短 publication mutex 串行化，不包围网络、磁盘或 worker 排空；dispatcher 必须像 `Window.Update` 一样只入队，不执行/等待 UI 回调。旧排队结果还会检查 run 身份、取消与关闭状态，不回填新 origin/owner。界面仅显示固定安全摘要、计数和下次间隔，不显示原始 error、响应体或 token。
+
+默认复用 Sync 的保守 preflight：本地修改、冲突或待恢复操作拒绝覆盖；远端撤权失败保留本地内容，不当作空清单卸载。正常清单移除/更新仍可能触发共用内核的备份与安装变更，启用说明明确提示。周期不是跨全部技能的单一回滚事务，取消/失败可能已有部分落盘，须核实账本。当前安装/后台内核仅 Linux，Windows/macOS 原生按钮标明不可用，不以交叉编译冒充安装支持。
+
+回归包括实际 MyGo `ui.NewTester` 按钮事件、停止中的延迟 worker 与旧回调、真实 Connect/SQLite 两 Pack 重合技能的首轮/周期更新去重、撤权保留、本地修改拒绝、五种生命周期动作的实际 HTTP 取消与安装锁释放。另用 `testing/synctest` 验证真正 worker 排空及完整默认退避；所有 HOME/keys/DB/skills 为合成 TempDir。具体候选 base/tree、源码清单、负控和 native smoke 以本切片报告为准，不把这些测试扩大为完整 M7 或跨 OS 产品验收。
 
 服务地址仅接受 HTTPS origin 或明确的 loopback HTTP；禁止 URL 用户凭据、路径、query/fragment、无效 host/port。HTTP 客户端禁用 cookie jar、拒绝重定向，并限制同 origin；Pack 多 origin 同步由共用客户端逐订阅限制。匿名请求不带登录会话。远端认证错误只展示安全摘要，不回显响应正文/凭据。Go 字符串不能保证从进程 RAM 中安全抹除；“仅内存”不等于可验证的内存零化。
 

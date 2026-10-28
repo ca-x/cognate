@@ -148,7 +148,7 @@ func (service *Service) Details(ctx context.Context, origin, id string) (*catalo
 
 func (service *Service) Install(ctx context.Context, origin string, selected *catalogv1.PublicSkill) (resultErr error) {
 	if runtime.GOOS != "linux" {
-		return errors.New("local installation is unsupported on this platform（当前安装内核仅 Linux）")
+		return errUnsupportedLocal
 	}
 	directory, err := prepareHome(service.Home)
 	if err != nil {
@@ -171,9 +171,9 @@ func (service *Service) Install(ctx context.Context, origin string, selected *ca
 	return errors.Join(err, session.Close())
 }
 
-func (service *Service) Packs(ctx context.Context, action, origin, token, id string) (records []state.Subscription, resultErr error) {
+func (service *Service) openPackManager(ctx context.Context) (*subscription.Manager, error) {
 	if runtime.GOOS != "linux" {
-		return nil, errors.New("Pack 本地状态/安装内核当前仅支持 Linux")
+		return nil, errUnsupportedLocal
 	}
 	directory, err := prepareHome(service.Home)
 	if err != nil {
@@ -192,7 +192,11 @@ func (service *Service) Packs(ctx context.Context, action, origin, token, id str
 		return nil, err
 	}
 	defer clear(key)
-	manager, err := subscription.Open(ctx, service.Home, directory, key, service.clientForPacks())
+	return subscription.Open(ctx, service.Home, directory, key, service.clientForPacks())
+}
+
+func (service *Service) Packs(ctx context.Context, action, origin, token, id string) (records []state.Subscription, resultErr error) {
+	manager, err := service.openPackManager(ctx)
 	if err != nil {
 		return nil, err
 	}
