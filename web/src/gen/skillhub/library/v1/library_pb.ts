@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/library/v1/library.proto.
  */
 export const file_skillhub_library_v1_library: GenFile = /*@__PURE__*/
-  fileDesc("CiFza2lsbGh1Yi9saWJyYXJ5L3YxL2xpYnJhcnkucHJvdG8SE3NraWxsaHViLmxpYnJhcnkudjEiPgoYQ29sbGVjdFJlcG9zaXRvcnlSZXF1ZXN0EhIKCnJlcG9zaXRvcnkYASABKAkSDgoGYnJhbmNoGAIgASgJIlAKGUNvbGxlY3RSZXBvc2l0b3J5UmVzcG9uc2USMwoKcmVwb3NpdG9yeRgBIAEoCzIfLnNraWxsaHViLmxpYnJhcnkudjEuUmVwb3NpdG9yeSIZChdMaXN0UmVwb3NpdG9yaWVzUmVxdWVzdCJRChhMaXN0UmVwb3NpdG9yaWVzUmVzcG9uc2USNQoMcmVwb3NpdG9yaWVzGAEgAygLMh8uc2tpbGxodWIubGlicmFyeS52MS5SZXBvc2l0b3J5Ii0KFEdldFJlcG9zaXRvcnlSZXF1ZXN0EhUKDXJlcG9zaXRvcnlfaWQYASABKAkieAoVR2V0UmVwb3NpdG9yeVJlc3BvbnNlEjMKCnJlcG9zaXRvcnkYASABKAsyHy5za2lsbGh1Yi5saWJyYXJ5LnYxLlJlcG9zaXRvcnkSKgoGc2tpbGxzGAIgAygLMhouc2tpbGxodWIubGlicmFyeS52MS5Ta2lsbCKXAQoKUmVwb3NpdG9yeRIKCgJpZBgBIAEoCRIXCg9uYW1lX3dpdGhfb3duZXIYAiABKAkSDgoGYnJhbmNoGAMgASgJEhQKDGFyY2hpdmVfaGFzaBgEIAEoCRITCgtza2lsbF9jb3VudBgFIAEoDRIOCgZtYW51YWwYBiABKAgSGQoRY29sbGVjdGVkX2F0X3VuaXgYByABKAMiWgoFU2tpbGwSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIMCgRwYXRoGAQgASgJEhQKDGNvbnRlbnRfaGFzaBgFIAEoCTLdAgoOTGlicmFyeVNlcnZpY2UScgoRQ29sbGVjdFJlcG9zaXRvcnkSLS5za2lsbGh1Yi5saWJyYXJ5LnYxLkNvbGxlY3RSZXBvc2l0b3J5UmVxdWVzdBouLnNraWxsaHViLmxpYnJhcnkudjEuQ29sbGVjdFJlcG9zaXRvcnlSZXNwb25zZRJvChBMaXN0UmVwb3NpdG9yaWVzEiwuc2tpbGxodWIubGlicmFyeS52MS5MaXN0UmVwb3NpdG9yaWVzUmVxdWVzdBotLnNraWxsaHViLmxpYnJhcnkudjEuTGlzdFJlcG9zaXRvcmllc1Jlc3BvbnNlEmYKDUdldFJlcG9zaXRvcnkSKS5za2lsbGh1Yi5saWJyYXJ5LnYxLkdldFJlcG9zaXRvcnlSZXF1ZXN0Giouc2tpbGxodWIubGlicmFyeS52MS5HZXRSZXBvc2l0b3J5UmVzcG9uc2VCO1o5Z2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL2xpYnJhcnkvdjE7bGlicmFyeXYxYgZwcm90bzM");
+  fileDesc("CiFza2lsbGh1Yi9saWJyYXJ5L3YxL2xpYnJhcnkucHJvdG8SE3NraWxsaHViLmxpYnJhcnkudjEiPgoYQ29sbGVjdFJlcG9zaXRvcnlSZXF1ZXN0EhIKCnJlcG9zaXRvcnkYASABKAkSDgoGYnJhbmNoGAIgASgJIlAKGUNvbGxlY3RSZXBvc2l0b3J5UmVzcG9uc2USMwoKcmVwb3NpdG9yeRgBIAEoCzIfLnNraWxsaHViLmxpYnJhcnkudjEuUmVwb3NpdG9yeSIZChdMaXN0UmVwb3NpdG9yaWVzUmVxdWVzdCJRChhMaXN0UmVwb3NpdG9yaWVzUmVzcG9uc2USNQoMcmVwb3NpdG9yaWVzGAEgAygLMh8uc2tpbGxodWIubGlicmFyeS52MS5SZXBvc2l0b3J5Ii0KFEdldFJlcG9zaXRvcnlSZXF1ZXN0EhUKDXJlcG9zaXRvcnlfaWQYASABKAkieAoVR2V0UmVwb3NpdG9yeVJlc3BvbnNlEjMKCnJlcG9zaXRvcnkYASABKAsyHy5za2lsbGh1Yi5saWJyYXJ5LnYxLlJlcG9zaXRvcnkSKgoGc2tpbGxzGAIgAygLMhouc2tpbGxodWIubGlicmFyeS52MS5Ta2lsbCJ3ChhSZWZyZXNoUmVwb3NpdG9yeVJlcXVlc3QSFQoNcmVwb3NpdG9yeV9pZBgBIAEoCRIdChVleHBlY3RlZF9hcmNoaXZlX2hhc2gYAiABKAkSJQodZXhwZWN0ZWRfcHVibGljYXRpb25fcmV2aXNpb24YAyABKAMixQEKGVJlZnJlc2hSZXBvc2l0b3J5UmVzcG9uc2USMwoKcmVwb3NpdG9yeRgBIAEoCzIfLnNraWxsaHViLmxpYnJhcnkudjEuUmVwb3NpdG9yeRIPCgdjaGFuZ2VkGAIgASgIEg0KBWFkZGVkGAMgASgNEg8KB3VwZGF0ZWQYBCABKA0SDwoHcmVtb3ZlZBgFIAEoDRIxCgVwYWNrcxgGIAMoCzIiLnNraWxsaHViLmxpYnJhcnkudjEuUmVmcmVzaGVkUGFjayIyCg1SZWZyZXNoZWRQYWNrEg8KB3BhY2tfaWQYASABKAkSEAoIcmV2aXNpb24YAiABKAMitQEKClJlcG9zaXRvcnkSCgoCaWQYASABKAkSFwoPbmFtZV93aXRoX293bmVyGAIgASgJEg4KBmJyYW5jaBgDIAEoCRIUCgxhcmNoaXZlX2hhc2gYBCABKAkSEwoLc2tpbGxfY291bnQYBSABKA0SDgoGbWFudWFsGAYgASgIEhkKEWNvbGxlY3RlZF9hdF91bml4GAcgASgDEhwKFHB1YmxpY2F0aW9uX3JldmlzaW9uGAggASgDIloKBVNraWxsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDAoEcGF0aBgEIAEoCRIUCgxjb250ZW50X2hhc2gYBSABKAky0QMKDkxpYnJhcnlTZXJ2aWNlEnIKEUNvbGxlY3RSZXBvc2l0b3J5Ei0uc2tpbGxodWIubGlicmFyeS52MS5Db2xsZWN0UmVwb3NpdG9yeVJlcXVlc3QaLi5za2lsbGh1Yi5saWJyYXJ5LnYxLkNvbGxlY3RSZXBvc2l0b3J5UmVzcG9uc2USbwoQTGlzdFJlcG9zaXRvcmllcxIsLnNraWxsaHViLmxpYnJhcnkudjEuTGlzdFJlcG9zaXRvcmllc1JlcXVlc3QaLS5za2lsbGh1Yi5saWJyYXJ5LnYxLkxpc3RSZXBvc2l0b3JpZXNSZXNwb25zZRJmCg1HZXRSZXBvc2l0b3J5Eikuc2tpbGxodWIubGlicmFyeS52MS5HZXRSZXBvc2l0b3J5UmVxdWVzdBoqLnNraWxsaHViLmxpYnJhcnkudjEuR2V0UmVwb3NpdG9yeVJlc3BvbnNlEnIKEVJlZnJlc2hSZXBvc2l0b3J5Ei0uc2tpbGxodWIubGlicmFyeS52MS5SZWZyZXNoUmVwb3NpdG9yeVJlcXVlc3QaLi5za2lsbGh1Yi5saWJyYXJ5LnYxLlJlZnJlc2hSZXBvc2l0b3J5UmVzcG9uc2VCO1o5Z2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL2xpYnJhcnkvdjE7bGlicmFyeXYxYgZwcm90bzM");
 
 /**
  * @generated from message skillhub.library.v1.CollectRepositoryRequest
@@ -121,6 +121,97 @@ export const GetRepositoryResponseSchema: GenMessage<GetRepositoryResponse> = /*
   messageDesc(file_skillhub_library_v1_library, 5);
 
 /**
+ * @generated from message skillhub.library.v1.RefreshRepositoryRequest
+ */
+export type RefreshRepositoryRequest = Message<"skillhub.library.v1.RefreshRepositoryRequest"> & {
+  /**
+   * @generated from field: string repository_id = 1;
+   */
+  repositoryId: string;
+
+  /**
+   * @generated from field: string expected_archive_hash = 2;
+   */
+  expectedArchiveHash: string;
+
+  /**
+   * @generated from field: int64 expected_publication_revision = 3;
+   */
+  expectedPublicationRevision: bigint;
+};
+
+/**
+ * Describes the message skillhub.library.v1.RefreshRepositoryRequest.
+ * Use `create(RefreshRepositoryRequestSchema)` to create a new message.
+ */
+export const RefreshRepositoryRequestSchema: GenMessage<RefreshRepositoryRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_library_v1_library, 6);
+
+/**
+ * @generated from message skillhub.library.v1.RefreshRepositoryResponse
+ */
+export type RefreshRepositoryResponse = Message<"skillhub.library.v1.RefreshRepositoryResponse"> & {
+  /**
+   * @generated from field: skillhub.library.v1.Repository repository = 1;
+   */
+  repository?: Repository | undefined;
+
+  /**
+   * @generated from field: bool changed = 2;
+   */
+  changed: boolean;
+
+  /**
+   * @generated from field: uint32 added = 3;
+   */
+  added: number;
+
+  /**
+   * @generated from field: uint32 updated = 4;
+   */
+  updated: number;
+
+  /**
+   * @generated from field: uint32 removed = 5;
+   */
+  removed: number;
+
+  /**
+   * @generated from field: repeated skillhub.library.v1.RefreshedPack packs = 6;
+   */
+  packs: RefreshedPack[];
+};
+
+/**
+ * Describes the message skillhub.library.v1.RefreshRepositoryResponse.
+ * Use `create(RefreshRepositoryResponseSchema)` to create a new message.
+ */
+export const RefreshRepositoryResponseSchema: GenMessage<RefreshRepositoryResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_library_v1_library, 7);
+
+/**
+ * @generated from message skillhub.library.v1.RefreshedPack
+ */
+export type RefreshedPack = Message<"skillhub.library.v1.RefreshedPack"> & {
+  /**
+   * @generated from field: string pack_id = 1;
+   */
+  packId: string;
+
+  /**
+   * @generated from field: int64 revision = 2;
+   */
+  revision: bigint;
+};
+
+/**
+ * Describes the message skillhub.library.v1.RefreshedPack.
+ * Use `create(RefreshedPackSchema)` to create a new message.
+ */
+export const RefreshedPackSchema: GenMessage<RefreshedPack> = /*@__PURE__*/
+  messageDesc(file_skillhub_library_v1_library, 8);
+
+/**
  * @generated from message skillhub.library.v1.Repository
  */
 export type Repository = Message<"skillhub.library.v1.Repository"> & {
@@ -158,6 +249,11 @@ export type Repository = Message<"skillhub.library.v1.Repository"> & {
    * @generated from field: int64 collected_at_unix = 7;
    */
   collectedAtUnix: bigint;
+
+  /**
+   * @generated from field: int64 publication_revision = 8;
+   */
+  publicationRevision: bigint;
 };
 
 /**
@@ -165,7 +261,7 @@ export type Repository = Message<"skillhub.library.v1.Repository"> & {
  * Use `create(RepositorySchema)` to create a new message.
  */
 export const RepositorySchema: GenMessage<Repository> = /*@__PURE__*/
-  messageDesc(file_skillhub_library_v1_library, 6);
+  messageDesc(file_skillhub_library_v1_library, 9);
 
 /**
  * @generated from message skillhub.library.v1.Skill
@@ -202,7 +298,7 @@ export type Skill = Message<"skillhub.library.v1.Skill"> & {
  * Use `create(SkillSchema)` to create a new message.
  */
 export const SkillSchema: GenMessage<Skill> = /*@__PURE__*/
-  messageDesc(file_skillhub_library_v1_library, 7);
+  messageDesc(file_skillhub_library_v1_library, 10);
 
 /**
  * @generated from service skillhub.library.v1.LibraryService
@@ -231,6 +327,14 @@ export const LibraryService: GenService<{
     methodKind: "unary";
     input: typeof GetRepositoryRequestSchema;
     output: typeof GetRepositoryResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.library.v1.LibraryService.RefreshRepository
+   */
+  refreshRepository: {
+    methodKind: "unary";
+    input: typeof RefreshRepositoryRequestSchema;
+    output: typeof RefreshRepositoryResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_skillhub_library_v1_library, 0);

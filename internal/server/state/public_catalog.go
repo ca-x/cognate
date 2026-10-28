@@ -220,12 +220,20 @@ func (store *Store) PublicSkill(ctx context.Context, id string) (PublicSkill, er
 }
 
 func (store *Store) AuthorizePublicSkill(ctx context.Context, id, contentHash string, revision int64) (PublicSkillArchive, error) {
-	entry, err := visiblePublicSkill(ctx, store.state.client, id)
+	tx, err := store.state.client.Tx(ctx)
+	if err != nil {
+		return PublicSkillArchive{}, err
+	}
+	defer tx.Rollback()
+	entry, err := visiblePublicSkill(ctx, tx.Client(), id)
 	if err != nil {
 		return PublicSkillArchive{}, err
 	}
 	if entry.ContentHash != contentHash || !validContentHash(contentHash) || entry.Edges.Repository.PublicationRevision != revision {
 		return PublicSkillArchive{}, ErrPublicationConflict
+	}
+	if err := tx.Commit(); err != nil {
+		return PublicSkillArchive{}, err
 	}
 	return PublicSkillArchive{ArchiveHash: entry.Edges.Repository.ArchiveHash, Path: entry.Path, ContentHash: entry.ContentHash}, nil
 }

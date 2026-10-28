@@ -61,7 +61,7 @@ func (handler *libraryHandler) GetRepository(ctx context.Context, request *conne
 }
 
 func libraryRepository(entry state.CollectedRepository) *libraryv1.Repository {
-	return &libraryv1.Repository{Id: entry.ID, NameWithOwner: entry.NameWithOwner, Branch: entry.Branch, ArchiveHash: entry.ArchiveHash, SkillCount: uint32(entry.SkillCount), Manual: entry.Manual, CollectedAtUnix: entry.CollectedAt.Unix()}
+	return &libraryv1.Repository{Id: entry.ID, NameWithOwner: entry.NameWithOwner, Branch: entry.Branch, ArchiveHash: entry.ArchiveHash, SkillCount: uint32(entry.SkillCount), Manual: entry.Manual, CollectedAtUnix: entry.CollectedAt.Unix(), PublicationRevision: entry.PublicationRevision}
 }
 
 func libraryError(ctx context.Context, err error) error {
@@ -69,6 +69,12 @@ func libraryError(ctx context.Context, err error) error {
 		return canceled
 	}
 	switch {
+	case errors.Is(err, state.ErrRepositoryRefreshConflict), errors.Is(err, state.ErrPackConflict):
+		return connect.NewError(connect.CodeAborted, errors.New("repository or pack version changed; reload before refreshing"))
+	case errors.Is(err, state.ErrRepositoryRefreshPublished):
+		return connect.NewError(connect.CodeFailedPrecondition, state.ErrRepositoryRefreshPublished)
+	case errors.Is(err, state.ErrReferencedSkillRemoved), errors.Is(err, state.ErrPackSlugConflict):
+		return connect.NewError(connect.CodeFailedPrecondition, errors.New("repository refresh conflicts with existing pack selections"))
 	case errors.Is(err, repository.ErrInvalidReference):
 		return connect.NewError(connect.CodeInvalidArgument, repository.ErrInvalidReference)
 	case errors.Is(err, state.ErrRepositoryNotFound), errors.Is(err, repository.ErrArchiveUnavailable):

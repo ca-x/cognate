@@ -8,6 +8,7 @@ service LibraryService {
   rpc CollectRepository(CollectRepositoryRequest) returns (CollectRepositoryResponse);
   rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse);
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+  rpc RefreshRepository(RefreshRepositoryRequest) returns (RefreshRepositoryResponse);
 }
 
 message CollectRepositoryRequest {
@@ -34,6 +35,26 @@ message GetRepositoryResponse {
   repeated Skill skills = 2;
 }
 
+message RefreshRepositoryRequest {
+  string repository_id = 1;
+  string expected_archive_hash = 2;
+  int64 expected_publication_revision = 3;
+}
+
+message RefreshRepositoryResponse {
+  Repository repository = 1;
+  bool changed = 2;
+  uint32 added = 3;
+  uint32 updated = 4;
+  uint32 removed = 5;
+  repeated RefreshedPack packs = 6;
+}
+
+message RefreshedPack {
+  string pack_id = 1;
+  int64 revision = 2;
+}
+
 message Repository {
   string id = 1;
   string name_with_owner = 2;
@@ -42,6 +63,7 @@ message Repository {
   uint32 skill_count = 5;
   bool manual = 6;
   int64 collected_at_unix = 7;
+  int64 publication_revision = 8;
 }
 
 message Skill {

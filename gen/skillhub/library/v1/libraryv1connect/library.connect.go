@@ -42,6 +42,9 @@ const (
 	// LibraryServiceGetRepositoryProcedure is the fully-qualified name of the LibraryService's
 	// GetRepository RPC.
 	LibraryServiceGetRepositoryProcedure = "/skillhub.library.v1.LibraryService/GetRepository"
+	// LibraryServiceRefreshRepositoryProcedure is the fully-qualified name of the LibraryService's
+	// RefreshRepository RPC.
+	LibraryServiceRefreshRepositoryProcedure = "/skillhub.library.v1.LibraryService/RefreshRepository"
 )
 
 // LibraryServiceClient is a client for the skillhub.library.v1.LibraryService service.
@@ -49,6 +52,7 @@ type LibraryServiceClient interface {
 	CollectRepository(context.Context, *connect.Request[v1.CollectRepositoryRequest]) (*connect.Response[v1.CollectRepositoryResponse], error)
 	ListRepositories(context.Context, *connect.Request[v1.ListRepositoriesRequest]) (*connect.Response[v1.ListRepositoriesResponse], error)
 	GetRepository(context.Context, *connect.Request[v1.GetRepositoryRequest]) (*connect.Response[v1.GetRepositoryResponse], error)
+	RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error)
 }
 
 // NewLibraryServiceClient constructs a client for the skillhub.library.v1.LibraryService service.
@@ -80,6 +84,12 @@ func NewLibraryServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(libraryServiceMethods.ByName("GetRepository")),
 			connect.WithClientOptions(opts...),
 		),
+		refreshRepository: connect.NewClient[v1.RefreshRepositoryRequest, v1.RefreshRepositoryResponse](
+			httpClient,
+			baseURL+LibraryServiceRefreshRepositoryProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("RefreshRepository")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -88,6 +98,7 @@ type libraryServiceClient struct {
 	collectRepository *connect.Client[v1.CollectRepositoryRequest, v1.CollectRepositoryResponse]
 	listRepositories  *connect.Client[v1.ListRepositoriesRequest, v1.ListRepositoriesResponse]
 	getRepository     *connect.Client[v1.GetRepositoryRequest, v1.GetRepositoryResponse]
+	refreshRepository *connect.Client[v1.RefreshRepositoryRequest, v1.RefreshRepositoryResponse]
 }
 
 // CollectRepository calls skillhub.library.v1.LibraryService.CollectRepository.
@@ -105,11 +116,17 @@ func (c *libraryServiceClient) GetRepository(ctx context.Context, req *connect.R
 	return c.getRepository.CallUnary(ctx, req)
 }
 
+// RefreshRepository calls skillhub.library.v1.LibraryService.RefreshRepository.
+func (c *libraryServiceClient) RefreshRepository(ctx context.Context, req *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error) {
+	return c.refreshRepository.CallUnary(ctx, req)
+}
+
 // LibraryServiceHandler is an implementation of the skillhub.library.v1.LibraryService service.
 type LibraryServiceHandler interface {
 	CollectRepository(context.Context, *connect.Request[v1.CollectRepositoryRequest]) (*connect.Response[v1.CollectRepositoryResponse], error)
 	ListRepositories(context.Context, *connect.Request[v1.ListRepositoriesRequest]) (*connect.Response[v1.ListRepositoriesResponse], error)
 	GetRepository(context.Context, *connect.Request[v1.GetRepositoryRequest]) (*connect.Response[v1.GetRepositoryResponse], error)
+	RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error)
 }
 
 // NewLibraryServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -137,6 +154,12 @@ func NewLibraryServiceHandler(svc LibraryServiceHandler, opts ...connect.Handler
 		connect.WithSchema(libraryServiceMethods.ByName("GetRepository")),
 		connect.WithHandlerOptions(opts...),
 	)
+	libraryServiceRefreshRepositoryHandler := connect.NewUnaryHandler(
+		LibraryServiceRefreshRepositoryProcedure,
+		svc.RefreshRepository,
+		connect.WithSchema(libraryServiceMethods.ByName("RefreshRepository")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.library.v1.LibraryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case LibraryServiceCollectRepositoryProcedure:
@@ -145,6 +168,8 @@ func NewLibraryServiceHandler(svc LibraryServiceHandler, opts ...connect.Handler
 			libraryServiceListRepositoriesHandler.ServeHTTP(w, r)
 		case LibraryServiceGetRepositoryProcedure:
 			libraryServiceGetRepositoryHandler.ServeHTTP(w, r)
+		case LibraryServiceRefreshRepositoryProcedure:
+			libraryServiceRefreshRepositoryHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -164,4 +189,8 @@ func (UnimplementedLibraryServiceHandler) ListRepositories(context.Context, *con
 
 func (UnimplementedLibraryServiceHandler) GetRepository(context.Context, *connect.Request[v1.GetRepositoryRequest]) (*connect.Response[v1.GetRepositoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.library.v1.LibraryService.GetRepository is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.library.v1.LibraryService.RefreshRepository is not implemented"))
 }

@@ -25,14 +25,16 @@ var (
 )
 
 type CollectedRepository struct {
-	ID            string
-	NameWithOwner string
-	Branch        string
-	ArchiveHash   string
-	SkillCount    int
-	Manual        bool
-	CollectedAt   time.Time
-	Skills        []CollectedSkill
+	ID                  string
+	NameWithOwner       string
+	Branch              string
+	ArchiveHash         string
+	SkillCount          int
+	Manual              bool
+	Published           bool
+	PublicationRevision int64
+	CollectedAt         time.Time
+	Skills              []CollectedSkill
 }
 
 type CollectedSkill struct {
@@ -196,7 +198,7 @@ func collectionIdentity(userID int, reference repository.Reference) []predicate.
 }
 
 func collectedRepository(entry *ent.CollectedRepository) CollectedRepository {
-	return CollectedRepository{ID: entry.PublicID, NameWithOwner: entry.NameWithOwner, Branch: entry.Branch, ArchiveHash: entry.ArchiveHash, SkillCount: entry.SkillCount, Manual: entry.Manual, CollectedAt: entry.CollectedAt}
+	return CollectedRepository{ID: entry.PublicID, NameWithOwner: entry.NameWithOwner, Branch: entry.Branch, ArchiveHash: entry.ArchiveHash, SkillCount: entry.SkillCount, Manual: entry.Manual, Published: entry.Published, PublicationRevision: entry.PublicationRevision, CollectedAt: entry.CollectedAt}
 }
 
 func validateCollection(reference repository.Reference, archiveHash string, skills []repository.ArchivedSkill) error {
