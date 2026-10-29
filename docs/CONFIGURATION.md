@@ -1,20 +1,30 @@
 # AI 配置资产
 
-> 2026-10-30：Claude 私有 provider 资产管理已有 Web 入口；Linux 手动 CLI 配置工作流已在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo 配置界面、其它 agent 的完整配置及非 Linux 应用仍未交付；完整证据与后续状态见 `VERIFICATION.md`。
+> 2026-10-30：Claude 与 Codex 私有 provider 资产管理已有 Web 入口；Codex typed API/Web 在 `4d0e6c0` 交付，但尚不能本机应用。Claude 的 Linux 手动 CLI 配置工作流已在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo 配置界面、其它 agent 的完整配置及非 Linux 应用仍未交付；完整证据与后续状态见 `VERIFICATION.md`。
 
-Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前实现先提供 **Claude Code provider 的私有资产管理**；保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
+Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code 与 Codex provider 的私有资产管理**；保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
 
 ## Web 使用流程
 
 登录后从“AI 配置”进入，或直接访问 `/configuration`。列表只读取当前账号的元数据；点击编辑后才读取脱敏草稿。当前不提供通用 raw JSON 编辑或原文凭据查看。
 
-1. 新建资产并设置名称，选择原生登录、API key 或 Auth token 模式。
-2. 按需勾选自定义端点和 default/Haiku/Sonnet/Opus 模型。未勾选是 absent，不等于提交空字符串；模型不自动修剪或改变大小写。端点只保存，不由服务端探测。
+1. 新建资产时先明确选择 Claude 或 Codex；选定后不能在同一草稿里切换目标。Claude 支持原生登录、API key 或 Auth token 模式；Codex 当前仅支持自定义 HTTPS Responses/provider-key，不支持官方 ChatGPT/OAuth 登录。
+2. Claude 可按需勾选自定义端点和 default/Haiku/Sonnet/Opus 模型。未勾选是 absent，不等于提交空字符串；模型不自动修剪或改变大小写。端点只保存，不由服务端探测。
 3. 每个凭据分别选择 keep、replace 或 clear。已有凭据只显示是否存在；clear 已存在的值需确认。切认证模式时必须显式清理不兼容的旧凭据，不自动删除或把占位符写回。
 4. 点击“仅保存配置资产”。缺少所需凭据可以保存为草稿；“凭据结构完整”不是可应用或已应用状态。
 5. 复制仅复制非秘密 typed 配置，不复制凭据、选择或设备状态。删除仅移除本账号服务端资产，不能撤销本机配置，也不删除 skill。
 
 列表中其它合法 agent/kind/schema 的资产可以查看元数据及按版本删除，但不能借此推断支持其编辑、复制或应用。
+
+### Codex provider 表单
+
+- 必填 HTTPS 端点与主模型 ID；顶层推理等级可不设置，显式 `none` 不等于 absent。主模型与目录字段使用专属控件，不提供任意 JSON/path/template 输入。
+- 模型目录可整体不设置；启用后可添加、移动和删除目录行。每行的显示名、context window、输入 modalities、base instructions 与 reasoning levels 分别保留 presence，支持并行调用为三态，显式 `false` 不会被省略。有序 modalities/推理等级和目录行按用户保存的顺序保留，base instructions 的空白不自动修剪。
+- 唯一凭据槽为 `codex.provider-key`。允许缺 key 的草稿；复制后的资产没有 key，须自行补充。clear 已存 key 仍须确认，不从本机登录、环境或旧配置补值。
+- 含未来未知字段的 Codex 资产只读展示已知内容，不能保存或复制；仍可由所有者按 revision 明确删除。CAS 冲突后的“放弃草稿并重新读取”需单独确认，不合并或重放旧写入。
+- 编辑及放弃确认弹窗内均可切换语言；切换清除新凭据并终止当前等待。关闭后焦点回到原操作按钮；若它因删除或语言刷新已不存在，则回到新建按钮。
+
+这些能力仅管理服务端资产。Codex 的本机 codec、登录保留策略解析、授权消费和设备应用仍需后续独立交付。
 
 ## 草稿、冲突与取消
 

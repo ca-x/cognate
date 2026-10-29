@@ -2,7 +2,7 @@
 
 原名 SkillHub；仓库已迁移至 `ca-x/cognate`。命名与已有数据/协议的兼容策略见 `docs/COGNATE-RENAME.md`。
 
-Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量、获授权的公开与私有 GitHub 仓库收录及来源更新，并提供 Web 面板与 Pack 分享/流式分发。Linux CLI 与 MyGo 客户端已有 Pack 订阅、跨组合去重、显式/持续同步与备份卸载；Claude 配置另有 Linux 手动 CLI 预览、批准应用和恢复。匿名公开目录/分类、免 token 安装、MCP token 管理及 Web 主题/中英文切换已通过各自限定范围的独立验收；整合验证方法与边界见 `docs/VERIFICATION.md`。完整配置导入、配置随 Pack 分发和自动应用、MyGo 配置界面及非 Linux 实际安装仍在开发，尚未发布首个正式版本。
+Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量、获授权的公开与私有 GitHub 仓库收录及来源更新，并提供 Web 面板与 Pack 分享/流式分发。Linux CLI 与 MyGo 客户端已有 Pack 订阅、跨组合去重、显式/持续同步与备份卸载；Web 支持 Claude 与 Codex 私有 provider 资产管理，Claude 另有 Linux 手动 CLI 预览、批准应用和恢复，Codex 尚不能本机应用。匿名公开目录/分类、免 token 安装、MCP token 管理及 Web 主题/中英文切换已通过各自限定范围的独立验收；整合验证方法与边界见 `docs/VERIFICATION.md`。完整配置导入、配置随 Pack 分发和自动应用、MyGo 配置界面及非 Linux 实际安装仍在开发，尚未发布首个正式版本。
 
 ## CLI
 

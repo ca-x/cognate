@@ -264,3 +264,17 @@ Claude/Linux 手动 CLI 配置工作流 C1 的独立候选 tree `feb621b2baf1a4f
 主线程在新鲜组合导出中执行 npm ci/build、全仓 Go tests/vet、模块校验、六平台乘 CLI/server/MyGo 共十八项 CGO0 构建，全部退出 0；另核 Buf 双模板生成一致、客户端依赖不含服务端或 moejs。非作者机械复核全部 931 项 tracked blob/mode 及十八个产物的 Go1.27.3/CGO0/平台元数据；这不是独立重跑主线程全量测试。交付的 Build `40888776765` 已实际观察 completed/success，九个 job 全部成功，包括双架构 OCI；交叉构建不证明非 Linux 实际运行。
 
 前述 Linux arm64 类型错误另以 `656c211d01a9d7d2632c5cee12b49f6fb3229ca9` 的显式 uint64 转换修复，Build `40869447717` completed/success；原失败 `40866724425` 保留，不能用新提交绿色改写旧结果。CLI 密钥入口另片、MyGo 原生配置 UI、完整十四 agent、导入/Pack 配置附件/自动应用、备份/S3/恢复及跨平台运行门禁仍需各自关闭；目前无正式 tag/Release。
+
+## Codex typed provider 资产（2026-10-30）
+
+提交 `4d0e6c0cac5399dc29f2fd36b7a28bc71f90c2fe`，tree `5d0905bf12b5277d53a4f7e26bc2675f64d3a4b4`，精确 23 路径，已 SSH 推送并远端读回。域、HTTP、Web 及最终组合分别经非作者 Spec/Quality 验收，范围内零未关闭 finding；该提交不包含仍未签收的 MyGo 配置界面。
+
+已支持 owner-scoped 加密 Codex provider-key 资产 CRUD、无凭据复制、revision CAS、严格 Connect JSON/protobuf 映射和 Web 专属表单。optional false/none、目录字段 presence、空白和有序列表保留；未来字段只读、不允许保存或复制。缺 key 可保存草稿，结构完整不等于本机可应用或真实端点已验证。
+
+主线程在不可变精确源码导出中执行 30 项门禁全部退出 0：npm 安装/构建、全仓 Go tests/vet、模块校验、Buf lint/breaking、Go/Web 正常生成与两次 parity、六平台乘三入口的十八项 CGO0 构建及客户端依赖隔离。独立最终审核核对 947 项 tracked blob/mode、组件来源和十八个产物元数据；不冒称由 reviewer 重跑全部门禁。
+
+真实 SQLite/HTTP/Chromium 验证覆盖创建/重开/keep/clear/复制补 key、CAS 显式重读、丢回执 Unknown 禁重放、目录及嵌套列表实际排序保存后恢复、成功响应与离开确认交错、提交后切语言清新凭据并保非秘密草稿、焦点恢复、owner/origin 隔离以及 375px 深色与更宽浅色界面。最终新鲜运行十项 PASS、八条存储收据对应五次预期写入/提交，服务和 browser 均正常停止。另有独立真实服务 Web 回归及旧版 BODY 焦点断言负控；原 domain 拒签、原焦点 RED 和失败自动化尝试均保留，不以新运行改写。
+
+Codex 官方 ChatGPT/OAuth、本机 provider 选择/文件写入/登录保留、原生授权消费及应用、其它 agent、来源导入/Pack 配置附件/自动应用、完整备份恢复及正式 Release 仍未由本次交付完成。六平台交叉构建不代表非 Linux 实际运行。
+
+原提交的远端 Build `40930852848` completed/failure：`TestRepresentativeTimeoutDoesNotStarveNextRepository` 的第二次成功工作在 200ms 测试预算内超时，二进制和 Docker job 被跳过。后继 test-only 提交 `43fa42e555b0f3453a2b820386b247b3e1d097fb` 已 SSH 推送读回，保留首轮 200ms 真实超时及重启后顺序/收录断言，仅将成功工作预算分离为 3s；可取消的 250ms 成功 fixture 确定性复现旧预算不足，移除 cursor 推进的负控仍编译成功后断言失败。非作者独立复验签收，精确 one-file 候选的完整 30 项门禁全部退出 0；不修改生产期限或以本地绿色抹去原 CI 失败，后继远端 CI 仍须另行读回。
