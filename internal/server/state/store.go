@@ -17,6 +17,7 @@ import (
 
 	"github.com/ca-x/cognate/internal/filelock"
 	"github.com/ca-x/cognate/internal/server/ent"
+	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 	"github.com/ca-x/cognate/internal/server/maintenance"
 	_ "github.com/lib-x/entsqlite"
@@ -172,8 +173,33 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		_ = client.Close()
 		return nil, err
 	}
+	if err := store.backfillPrivateRepositoryHistory(ctx); err != nil {
+		_ = client.Close()
+		return nil, fmt.Errorf("initialize private repository history: %w", err)
+	}
 	retained = true
 	return store, nil
+}
+
+func (store *Store) backfillPrivateRepositoryHistory(ctx context.Context) error {
+	return store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+		after := 0
+		for {
+			entries, err := tx.GitHubRepository.Query().Where(githubrepository.PrivateEQ(true), githubrepository.IDGT(after)).Order(ent.Asc(githubrepository.FieldID)).Limit(128).All(ctx)
+			if err != nil {
+				return err
+			}
+			for _, entry := range entries {
+				if err := rememberPrivateRepository(ctx, tx, entry.UserID, entry.NameWithOwner, true); err != nil {
+					return err
+				}
+				after = entry.ID
+			}
+			if len(entries) < 128 {
+				return nil
+			}
+		}
+	})
 }
 
 func prepareDatabaseFile(path string) error {

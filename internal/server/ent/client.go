@@ -34,6 +34,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
 	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -82,6 +83,8 @@ type Client struct {
 	PackItem *PackItemClient
 	// PackShare is the client for interacting with the PackShare builders.
 	PackShare *PackShareClient
+	// RepositoryPrivateHistory is the client for interacting with the RepositoryPrivateHistory builders.
+	RepositoryPrivateHistory *RepositoryPrivateHistoryClient
 	// ServerMetadata is the client for interacting with the ServerMetadata builders.
 	ServerMetadata *ServerMetadataClient
 	// Session is the client for interacting with the Session builders.
@@ -118,6 +121,7 @@ func (c *Client) init() {
 	c.Pack = NewPackClient(c.config)
 	c.PackItem = NewPackItemClient(c.config)
 	c.PackShare = NewPackShareClient(c.config)
+	c.RepositoryPrivateHistory = NewRepositoryPrivateHistoryClient(c.config)
 	c.ServerMetadata = NewServerMetadataClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -232,6 +236,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Pack:                       NewPackClient(cfg),
 		PackItem:                   NewPackItemClient(cfg),
 		PackShare:                  NewPackShareClient(cfg),
+		RepositoryPrivateHistory:   NewRepositoryPrivateHistoryClient(cfg),
 		ServerMetadata:             NewServerMetadataClient(cfg),
 		Session:                    NewSessionClient(cfg),
 		User:                       NewUserClient(cfg),
@@ -273,6 +278,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Pack:                       NewPackClient(cfg),
 		PackItem:                   NewPackItemClient(cfg),
 		PackShare:                  NewPackShareClient(cfg),
+		RepositoryPrivateHistory:   NewRepositoryPrivateHistoryClient(cfg),
 		ServerMetadata:             NewServerMetadataClient(cfg),
 		Session:                    NewSessionClient(cfg),
 		User:                       NewUserClient(cfg),
@@ -310,7 +316,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
 		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
-		c.ServerMetadata, c.Session, c.User,
+		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -325,7 +331,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
 		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
-		c.ServerMetadata, c.Session, c.User,
+		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -372,6 +378,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PackItem.mutate(ctx, m)
 	case *PackShareMutation:
 		return c.PackShare.mutate(ctx, m)
+	case *RepositoryPrivateHistoryMutation:
+		return c.RepositoryPrivateHistory.mutate(ctx, m)
 	case *ServerMetadataMutation:
 		return c.ServerMetadata.mutate(ctx, m)
 	case *SessionMutation:
@@ -3518,6 +3526,155 @@ func (c *PackShareClient) mutate(ctx context.Context, m *PackShareMutation) (Val
 	}
 }
 
+// RepositoryPrivateHistoryClient is a client for the RepositoryPrivateHistory schema.
+type RepositoryPrivateHistoryClient struct {
+	config
+}
+
+// NewRepositoryPrivateHistoryClient returns a client for the RepositoryPrivateHistory from the given config.
+func NewRepositoryPrivateHistoryClient(c config) *RepositoryPrivateHistoryClient {
+	return &RepositoryPrivateHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `repositoryprivatehistory.Hooks(f(g(h())))`.
+func (c *RepositoryPrivateHistoryClient) Use(hooks ...Hook) {
+	c.hooks.RepositoryPrivateHistory = append(c.hooks.RepositoryPrivateHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `repositoryprivatehistory.Intercept(f(g(h())))`.
+func (c *RepositoryPrivateHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RepositoryPrivateHistory = append(c.inters.RepositoryPrivateHistory, interceptors...)
+}
+
+// Create returns a builder for creating a RepositoryPrivateHistory entity.
+func (c *RepositoryPrivateHistoryClient) Create() *RepositoryPrivateHistoryCreate {
+	mutation := newRepositoryPrivateHistoryMutation(c.config, OpCreate)
+	return &RepositoryPrivateHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RepositoryPrivateHistory entities.
+func (c *RepositoryPrivateHistoryClient) CreateBulk(builders ...*RepositoryPrivateHistoryCreate) *RepositoryPrivateHistoryCreateBulk {
+	return &RepositoryPrivateHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RepositoryPrivateHistoryClient) MapCreateBulk(slice any, setFunc func(*RepositoryPrivateHistoryCreate, int)) *RepositoryPrivateHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RepositoryPrivateHistoryCreateBulk{err: fmt.Errorf("calling to RepositoryPrivateHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RepositoryPrivateHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RepositoryPrivateHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RepositoryPrivateHistory.
+func (c *RepositoryPrivateHistoryClient) Update() *RepositoryPrivateHistoryUpdate {
+	mutation := newRepositoryPrivateHistoryMutation(c.config, OpUpdate)
+	return &RepositoryPrivateHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RepositoryPrivateHistoryClient) UpdateOne(_m *RepositoryPrivateHistory) *RepositoryPrivateHistoryUpdateOne {
+	mutation := newRepositoryPrivateHistoryMutation(c.config, OpUpdateOne, withRepositoryPrivateHistory(_m))
+	return &RepositoryPrivateHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RepositoryPrivateHistoryClient) UpdateOneID(id int) *RepositoryPrivateHistoryUpdateOne {
+	mutation := newRepositoryPrivateHistoryMutation(c.config, OpUpdateOne, withRepositoryPrivateHistoryID(id))
+	return &RepositoryPrivateHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RepositoryPrivateHistory.
+func (c *RepositoryPrivateHistoryClient) Delete() *RepositoryPrivateHistoryDelete {
+	mutation := newRepositoryPrivateHistoryMutation(c.config, OpDelete)
+	return &RepositoryPrivateHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RepositoryPrivateHistoryClient) DeleteOne(_m *RepositoryPrivateHistory) *RepositoryPrivateHistoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RepositoryPrivateHistoryClient) DeleteOneID(id int) *RepositoryPrivateHistoryDeleteOne {
+	builder := c.Delete().Where(repositoryprivatehistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RepositoryPrivateHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for RepositoryPrivateHistory.
+func (c *RepositoryPrivateHistoryClient) Query() *RepositoryPrivateHistoryQuery {
+	return &RepositoryPrivateHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRepositoryPrivateHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RepositoryPrivateHistory entity by its id.
+func (c *RepositoryPrivateHistoryClient) Get(ctx context.Context, id int) (*RepositoryPrivateHistory, error) {
+	return c.Query().Where(repositoryprivatehistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RepositoryPrivateHistoryClient) GetX(ctx context.Context, id int) *RepositoryPrivateHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RepositoryPrivateHistory.
+func (c *RepositoryPrivateHistoryClient) QueryUser(_m *RepositoryPrivateHistory) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repositoryprivatehistory.Table, repositoryprivatehistory.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, repositoryprivatehistory.UserTable, repositoryprivatehistory.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RepositoryPrivateHistoryClient) Hooks() []Hook {
+	return c.hooks.RepositoryPrivateHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *RepositoryPrivateHistoryClient) Interceptors() []Interceptor {
+	return c.inters.RepositoryPrivateHistory
+}
+
+func (c *RepositoryPrivateHistoryClient) mutate(ctx context.Context, m *RepositoryPrivateHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RepositoryPrivateHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RepositoryPrivateHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RepositoryPrivateHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RepositoryPrivateHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RepositoryPrivateHistory mutation op: %q", m.Op())
+	}
+}
+
 // ServerMetadataClient is a client for the ServerMetadata schema.
 type ServerMetadataClient struct {
 	config
@@ -3988,6 +4145,22 @@ func (c *UserClient) QueryGithubRepositories(_m *User) *GitHubRepositoryQuery {
 	return query
 }
 
+// QueryRepositoryPrivateHistory queries the repository_private_history edge of a User.
+func (c *UserClient) QueryRepositoryPrivateHistory(_m *User) *RepositoryPrivateHistoryQuery {
+	query := (&RepositoryPrivateHistoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(repositoryprivatehistory.Table, repositoryprivatehistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RepositoryPrivateHistoryTable, user.RepositoryPrivateHistoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryLocalAccount queries the local_account edge of a User.
 func (c *UserClient) QueryLocalAccount(_m *User) *LocalAccountQuery {
 	query := (&LocalAccountClient{config: c.config}).Query()
@@ -4212,13 +4385,15 @@ type (
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
 		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
 		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
-		PackItem, PackShare, ServerMetadata, Session, User []ent.Hook
+		PackItem, PackShare, RepositoryPrivateHistory, ServerMetadata, Session,
+		User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
 		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
 		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
-		PackItem, PackShare, ServerMetadata, Session, User []ent.Interceptor
+		PackItem, PackShare, RepositoryPrivateHistory, ServerMetadata, Session,
+		User []ent.Interceptor
 	}
 )

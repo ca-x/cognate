@@ -695,6 +695,33 @@ var (
 			},
 		},
 	}
+	// RepositoryPrivateHistoriesColumns holds the columns for the "repository_private_histories" table.
+	RepositoryPrivateHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name_with_owner", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// RepositoryPrivateHistoriesTable holds the schema information for the "repository_private_histories" table.
+	RepositoryPrivateHistoriesTable = &schema.Table{
+		Name:       "repository_private_histories",
+		Columns:    RepositoryPrivateHistoriesColumns,
+		PrimaryKey: []*schema.Column{RepositoryPrivateHistoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "repository_private_histories_users_repository_private_history",
+				Columns:    []*schema.Column{RepositoryPrivateHistoriesColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "repositoryprivatehistory_user_id_name_with_owner",
+				Unique:  true,
+				Columns: []*schema.Column{RepositoryPrivateHistoriesColumns[2], RepositoryPrivateHistoriesColumns[1]},
+			},
+		},
+	}
 	// ServerMetadataColumns holds the columns for the "server_metadata" table.
 	ServerMetadataColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -787,6 +814,7 @@ var (
 		PacksTable,
 		PackItemsTable,
 		PackSharesTable,
+		RepositoryPrivateHistoriesTable,
 		ServerMetadataTable,
 		SessionsTable,
 		UsersTable,
@@ -821,6 +849,7 @@ func init() {
 	PackItemsTable.ForeignKeys[0].RefTable = CollectedSkillsTable
 	PackItemsTable.ForeignKeys[1].RefTable = PacksTable
 	PackSharesTable.ForeignKeys[0].RefTable = PacksTable
+	RepositoryPrivateHistoriesTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	CategorySkillsTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySkillsTable.ForeignKeys[1].RefTable = CollectedSkillsTable

@@ -192,6 +192,29 @@ func HasGithubRepositoriesWith(preds ...predicate.GitHubRepository) predicate.Us
 	})
 }
 
+// HasRepositoryPrivateHistory applies the HasEdge predicate on the "repository_private_history" edge.
+func HasRepositoryPrivateHistory() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RepositoryPrivateHistoryTable, RepositoryPrivateHistoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepositoryPrivateHistoryWith applies the HasEdge predicate on the "repository_private_history" edge with a given conditions (other predicates).
+func HasRepositoryPrivateHistoryWith(preds ...predicate.RepositoryPrivateHistory) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRepositoryPrivateHistoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasLocalAccount applies the HasEdge predicate on the "local_account" edge.
 func HasLocalAccount() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

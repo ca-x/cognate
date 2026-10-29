@@ -37,6 +37,7 @@ type SourceRefreshBatch struct {
 }
 type SourceRefreshTicket struct{ proof *sourceRefreshProof }
 type sourceRefreshProof struct {
+	access   sourceAccessCapability
 	issuer   *storeState
 	ownerID  int
 	owner    string
@@ -45,17 +46,35 @@ type sourceRefreshProof struct {
 }
 
 type sourceRefreshStar struct {
+	private                                           bool
 	credentialID, repositoryID                        int
 	viewer, generation, keyID, fetchID, repositoryKey string
 	sequence, applied                                 int64
 	expiresAt                                         time.Time
 }
 
+func sameSourceRefreshStar(first, second *sourceRefreshStar) bool {
+	left, right := *first, *second
+	sameExpiry := left.expiresAt.Equal(right.expiresAt)
+	left.expiresAt, right.expiresAt = time.Time{}, time.Time{}
+	return sameExpiry && left == right
+}
+
 func (ticket SourceRefreshTicket) Deadline() time.Time {
+	if ticket.proof != nil && ticket.proof.access.get() != nil && ticket.proof.access.get().credentialID != 0 {
+		return currentDeadline(ticket.proof.access.get())
+	}
 	if ticket.proof == nil || ticket.proof.star == nil {
 		return time.Time{}
 	}
 	return ticket.proof.star.expiresAt
+}
+
+func (ticket SourceRefreshTicket) Access() SourceAccessTicket {
+	if ticket.proof == nil {
+		return SourceAccessTicket{}
+	}
+	return SourceAccessTicket{proof: ticket.proof.access}
 }
 
 func (SourceRefreshTarget) Format(destination fmt.State, _ rune) {
@@ -121,29 +140,42 @@ func (store *Store) BeginSourceRefresh(ctx context.Context, target SourceRefresh
 	if target.target == nil || target.target.issuer != store.state {
 		return SourceRefreshTicket{}, ErrSourceRefreshUnavailable
 	}
+	ticket, err := store.BeginRepositorySourceRefresh(ctx, target.target.owner, target.target.repositoryID)
+	if err != nil {
+		return SourceRefreshTicket{}, err
+	}
+	if ticket.proof.ownerID != target.target.ownerID {
+		return SourceRefreshTicket{}, ErrSourceRefreshUnavailable
+	}
+	return ticket, nil
+}
+
+func (store *Store) BeginRepositorySourceRefresh(ctx context.Context, owner, id string) (SourceRefreshTicket, error) {
 	tx, err := store.state.client.Tx(ctx)
 	if err != nil {
 		return SourceRefreshTicket{}, err
 	}
 	defer tx.Rollback()
-	entry, err := ownerPublication(ctx, tx, target.target.owner, target.target.repositoryID)
+	entry, err := ownerPublication(ctx, tx, owner, id)
 	if err != nil {
 		return SourceRefreshTicket{}, err
-	}
-	if entry.UserID != target.target.ownerID {
-		return SourceRefreshTicket{}, ErrSourceRefreshUnavailable
 	}
 	detail, err := refreshRepositoryResult(ctx, tx, entry)
 	if err != nil {
 		return SourceRefreshTicket{}, err
 	}
-	proof := &sourceRefreshProof{issuer: store.state, ownerID: entry.UserID, owner: target.target.owner, snapshot: RepositoryRefreshSnapshot{Repository: detail, Published: entry.Published, Version: RepositoryVersion{ArchiveHash: entry.ArchiveHash, PublicationRevision: entry.PublicationRevision}}}
+	proof := &sourceRefreshProof{issuer: store.state, ownerID: entry.UserID, owner: owner, snapshot: RepositoryRefreshSnapshot{Repository: detail, Published: entry.Published, Version: RepositoryVersion{ArchiveHash: entry.ArchiveHash, PublicationRevision: entry.PublicationRevision}}}
 	if !entry.Manual {
 		proof.star, err = store.readSourceRefreshStar(ctx, tx, proof.owner, entry, 0, false)
 		if err != nil {
 			return SourceRefreshTicket{}, err
 		}
 	}
+	access, err := store.readSourceAccess(ctx, tx, owner, repository.Reference{NameWithOwner: entry.NameWithOwner, Branch: entry.Branch}, proof.star)
+	if err != nil {
+		return SourceRefreshTicket{}, err
+	}
+	proof.access = sourceAccessCapabilityFor(access)
 	if err := tx.Commit(); err != nil {
 		return SourceRefreshTicket{}, err
 	}
@@ -164,7 +196,16 @@ func (store *Store) ApplySourceRefresh(ctx context.Context, ticket SourceRefresh
 	if ticket.proof == nil || ticket.proof.issuer != store.state {
 		return RepositoryRefreshResult{}, ErrSourceRefreshUnavailable
 	}
-	ctx = context.WithValue(ctx, sourceRefreshContextKey{}, ticket.proof)
+	ctx = context.WithValue(ctx, sourceRefreshContextKey{}, ticket)
+	if ctx.Value(sourceAccessContextKey{}) == nil {
+		ctx = store.WithSourceAccess(ctx, ticket.Access())
+	} else {
+		accessTicket, valid := ctx.Value(sourceAccessContextKey{}).(SourceAccessTicket)
+		access := accessTicket.proof.get()
+		if !valid || access == nil || ticket.proof.access.get() == nil || access.origin != ticket.proof.access.get().origin {
+			return RepositoryRefreshResult{}, ErrSourceAccessUnavailable
+		}
+	}
 	return store.RefreshCollectedRepository(ctx, ticket.proof.owner, ticket.proof.snapshot.Repository.ID, ticket.proof.snapshot.Version, hash, skills)
 }
 
@@ -191,7 +232,7 @@ func (store *Store) checkSourceRefreshProof(ctx context.Context, tx *ent.Tx, pro
 		if proof.star != nil {
 			return ErrSourceRefreshUnavailable
 		}
-		return nil
+		return store.checkSourceAccess(ctx, tx, proof.access.get(), false)
 	}
 	if proof.star == nil {
 		return ErrSourceRefreshUnavailable
@@ -200,7 +241,7 @@ func (store *Store) checkSourceRefreshProof(ctx context.Context, tx *ent.Tx, pro
 	if err != nil {
 		return err
 	}
-	if current.credentialID != proof.star.credentialID || current.repositoryID != proof.star.repositoryID || current.viewer != proof.star.viewer || current.generation != proof.star.generation || current.keyID != proof.star.keyID || current.fetchID != proof.star.fetchID || current.repositoryKey != proof.star.repositoryKey || current.sequence != proof.star.sequence || current.applied != proof.star.applied || !current.expiresAt.Equal(proof.star.expiresAt) {
+	if !sameSourceRefreshStar(current, proof.star) {
 		return ErrSourceRefreshUnavailable
 	}
 	return nil
@@ -221,7 +262,7 @@ func (store *Store) readSourceRefreshStar(ctx context.Context, tx *ent.Tx, owner
 		return nil, ErrSourceRefreshUnavailable
 	}
 	memberships := store.collectionMemberships(ListSyncResult{ticket: ListSyncTicket{userID: owner.ID, userKey: ownerKey, viewerID: credential.ViewerID, generation: credential.Generation, sequence: credential.SyncSequence}})
-	query := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(owner.ID), githubrepository.ViewerIDEQ(credential.ViewerID), githubrepository.NameWithOwnerEqualFold(entry.NameWithOwner), githubrepository.PrivateEQ(false), githubrepository.HasMembershipsWith(memberships...)).WithMemberships(func(query *ent.GitHubMembershipQuery) { query.Where(memberships...).WithList() })
+	query := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(owner.ID), githubrepository.ViewerIDEQ(credential.ViewerID), githubrepository.NameWithOwnerEqualFold(entry.NameWithOwner), githubrepository.HasMembershipsWith(memberships...)).WithMemberships(func(query *ent.GitHubMembershipQuery) { query.Where(memberships...).WithList() })
 	if repositoryID != 0 {
 		query.Where(githubrepository.IDEQ(repositoryID))
 	}
@@ -240,19 +281,23 @@ func (store *Store) readSourceRefreshStar(ctx context.Context, tx *ent.Tx, owner
 		return nil, err
 	}
 	expiresAt, _ := token.ExpiresAt()
-	return &sourceRefreshStar{credentialID: credential.ID, repositoryID: remote.ID, viewer: credential.ViewerID, generation: credential.Generation, keyID: credential.KeyID, fetchID: credential.SyncFetchID, repositoryKey: remote.RepositoryKey, sequence: credential.SyncSequence, applied: credential.SyncAppliedSequence, expiresAt: expiresAt}, nil
+	return &sourceRefreshStar{private: remote.Private, credentialID: credential.ID, repositoryID: remote.ID, viewer: credential.ViewerID, generation: credential.Generation, keyID: credential.KeyID, fetchID: credential.SyncFetchID, repositoryKey: remote.RepositoryKey, sequence: credential.SyncSequence, applied: credential.SyncAppliedSequence, expiresAt: expiresAt}, nil
 }
 
 func (store *Store) guardSourceRefreshTransaction(ctx context.Context, tx *ent.Tx) error {
 	value := ctx.Value(sourceRefreshContextKey{})
 	if value == nil {
-		return nil
+		return store.guardSourceAccessTransaction(ctx, tx)
 	}
-	proof, valid := value.(*sourceRefreshProof)
+	ticket, valid := value.(SourceRefreshTicket)
+	proof := ticket.proof
 	if !valid {
 		return ErrSourceRefreshUnavailable
 	}
 	if err := store.checkSourceRefreshProof(ctx, tx, proof, true, true); err != nil {
+		return err
+	}
+	if err := store.guardSourceAccessTransaction(ctx, tx); err != nil {
 		return err
 	}
 	tx.OnCommit(func(next ent.Committer) ent.Committer {

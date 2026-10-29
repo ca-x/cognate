@@ -27,6 +27,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -41,6 +42,7 @@ type UserQuery struct {
 	withGithubCredential            *GitHubCredentialQuery
 	withGithubLists                 *GitHubListQuery
 	withGithubRepositories          *GitHubRepositoryQuery
+	withRepositoryPrivateHistory    *RepositoryPrivateHistoryQuery
 	withLocalAccount                *LocalAccountQuery
 	withSessions                    *SessionQuery
 	withOidcIdentities              *OIDCIdentityQuery
@@ -148,6 +150,28 @@ func (_q *UserQuery) QueryGithubRepositories() *GitHubRepositoryQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(githubrepository.Table, githubrepository.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.GithubRepositoriesTable, user.GithubRepositoriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRepositoryPrivateHistory chains the current query on the "repository_private_history" edge.
+func (_q *UserQuery) QueryRepositoryPrivateHistory() *RepositoryPrivateHistoryQuery {
+	query := (&RepositoryPrivateHistoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(repositoryprivatehistory.Table, repositoryprivatehistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RepositoryPrivateHistoryTable, user.RepositoryPrivateHistoryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -614,6 +638,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withGithubCredential:            _q.withGithubCredential.Clone(),
 		withGithubLists:                 _q.withGithubLists.Clone(),
 		withGithubRepositories:          _q.withGithubRepositories.Clone(),
+		withRepositoryPrivateHistory:    _q.withRepositoryPrivateHistory.Clone(),
 		withLocalAccount:                _q.withLocalAccount.Clone(),
 		withSessions:                    _q.withSessions.Clone(),
 		withOidcIdentities:              _q.withOidcIdentities.Clone(),
@@ -662,6 +687,17 @@ func (_q *UserQuery) WithGithubRepositories(opts ...func(*GitHubRepositoryQuery)
 		opt(query)
 	}
 	_q.withGithubRepositories = query
+	return _q
+}
+
+// WithRepositoryPrivateHistory tells the query-builder to eager-load the nodes that are connected to
+// the "repository_private_history" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRepositoryPrivateHistory(opts ...func(*RepositoryPrivateHistoryQuery)) *UserQuery {
+	query := (&RepositoryPrivateHistoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRepositoryPrivateHistory = query
 	return _q
 }
 
@@ -875,10 +911,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [15]bool{
+		loadedTypes = [16]bool{
 			_q.withGithubCredential != nil,
 			_q.withGithubLists != nil,
 			_q.withGithubRepositories != nil,
+			_q.withRepositoryPrivateHistory != nil,
 			_q.withLocalAccount != nil,
 			_q.withSessions != nil,
 			_q.withOidcIdentities != nil,
@@ -928,6 +965,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadGithubRepositories(ctx, query, nodes,
 			func(n *User) { n.Edges.GithubRepositories = []*GitHubRepository{} },
 			func(n *User, e *GitHubRepository) { n.Edges.GithubRepositories = append(n.Edges.GithubRepositories, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRepositoryPrivateHistory; query != nil {
+		if err := _q.loadRepositoryPrivateHistory(ctx, query, nodes,
+			func(n *User) { n.Edges.RepositoryPrivateHistory = []*RepositoryPrivateHistory{} },
+			func(n *User, e *RepositoryPrivateHistory) {
+				n.Edges.RepositoryPrivateHistory = append(n.Edges.RepositoryPrivateHistory, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1101,6 +1147,36 @@ func (_q *UserQuery) loadGithubRepositories(ctx context.Context, query *GitHubRe
 	}
 	query.Where(predicate.GitHubRepository(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.GithubRepositoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRepositoryPrivateHistory(ctx context.Context, query *RepositoryPrivateHistoryQuery, nodes []*User, init func(*User), assign func(*User, *RepositoryPrivateHistory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(repositoryprivatehistory.FieldUserID)
+	}
+	query.Where(predicate.RepositoryPrivateHistory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RepositoryPrivateHistoryColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

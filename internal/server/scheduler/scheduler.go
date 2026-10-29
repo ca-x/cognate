@@ -168,9 +168,20 @@ func (scheduler *Scheduler) collect(ctx context.Context, user string, result sta
 	if err != nil {
 		return err
 	}
+	access, err := scheduler.store.BeginListSourceAccess(ctx, result, entry.ID, reference)
+	if err != nil {
+		return err
+	}
 	existing, err := scheduler.store.LookupCollectedRepository(ctx, user, reference)
 	if err == nil {
-		return scheduler.cache.Verify(ctx, existing.ArchiveHash)
+		access, err = library.AuthorizeSource(ctx, scheduler.store, scheduler.fetcher, access)
+		if err != nil {
+			return err
+		}
+		if err := scheduler.cache.Verify(ctx, existing.ArchiveHash); err != nil {
+			return err
+		}
+		return scheduler.store.CheckSourceAccess(scheduler.store.WithSourceAccess(ctx, access), access)
 	}
 	if !errors.Is(err, state.ErrRepositoryNotFound) {
 		return err
@@ -178,7 +189,7 @@ func (scheduler *Scheduler) collect(ctx context.Context, user string, result sta
 	if err := scheduler.store.CheckRepositoryCapacity(ctx, user); err != nil {
 		return err
 	}
-	snapshot, err := scheduler.fetcher.Fetch(ctx, reference)
+	snapshot, access, err := library.FetchSource(ctx, scheduler.store, scheduler.fetcher, access)
 	if err != nil {
 		return err
 	}
@@ -188,6 +199,7 @@ func (scheduler *Scheduler) collect(ctx context.Context, user string, result sta
 	if err := scheduler.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
 		return err
 	}
+	ctx = scheduler.store.WithSourceAccess(ctx, access)
 	saved, err := scheduler.store.CollectListRepository(ctx, result, entry.ID, reference, snapshot.Hash, snapshot.Skills)
 	if err != nil {
 		return err

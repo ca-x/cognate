@@ -3,7 +3,6 @@ package library
 import (
 	"context"
 
-	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/state"
 )
 
@@ -26,19 +25,17 @@ func (service *Service) Refresh(ctx context.Context, owner, id string, expected 
 		return state.RepositoryRefreshResult{}, err
 	}
 	defer func() { <-service.slots }()
-	base, err := service.store.ReadRepositoryRefresh(ctx, owner, id)
+	ticket, err := service.store.BeginRepositorySourceRefresh(ctx, owner, id)
 	if err != nil {
 		return state.RepositoryRefreshResult{}, err
 	}
+	base := ticket.Snapshot()
 	if base.Version != expected {
 		return state.RepositoryRefreshResult{}, state.ErrRepositoryRefreshConflict
 	}
-	snapshot, err := service.fetcher.Fetch(ctx, repository.Reference{NameWithOwner: base.Repository.NameWithOwner, Branch: base.Repository.Branch})
+	snapshot, access, err := FetchSource(ctx, service.store, service.fetcher, ticket.Access())
 	if err != nil {
 		return state.RepositoryRefreshResult{}, err
-	}
-	if snapshot == nil || len(snapshot.Skills) == 0 {
-		return state.RepositoryRefreshResult{}, repository.ErrArchiveInvalid
 	}
 	if base.Published && snapshot.Hash != base.Version.ArchiveHash {
 		return state.RepositoryRefreshResult{}, state.ErrRepositoryRefreshPublished
@@ -46,5 +43,5 @@ func (service *Service) Refresh(ctx context.Context, owner, id string, expected 
 	if err := service.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
 		return state.RepositoryRefreshResult{}, err
 	}
-	return service.store.RefreshCollectedRepository(ctx, owner, id, expected, snapshot.Hash, snapshot.Skills)
+	return service.store.ApplySourceRefresh(service.store.WithSourceAccess(ctx, access), ticket, snapshot.Hash, snapshot.Skills)
 }

@@ -20,6 +20,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("github_credential", GitHubCredential.Type).Unique(),
 		edge.To("github_lists", GitHubList.Type),
 		edge.To("github_repositories", GitHubRepository.Type),
+		edge.To("repository_private_history", RepositoryPrivateHistory.Type),
 		edge.To("local_account", LocalAccount.Type).Unique(),
 		edge.To("sessions", Session.Type),
 		edge.To("oidc_identities", OIDCIdentity.Type),

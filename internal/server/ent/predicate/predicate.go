@@ -63,6 +63,9 @@ type PackItem func(*sql.Selector)
 // PackShare is the predicate function for packshare builders.
 type PackShare func(*sql.Selector)
 
+// RepositoryPrivateHistory is the predicate function for repositoryprivatehistory builders.
+type RepositoryPrivateHistory func(*sql.Selector)
+
 // ServerMetadata is the predicate function for servermetadata builders.
 type ServerMetadata func(*sql.Selector)
 

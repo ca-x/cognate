@@ -24,6 +24,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
+	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
 	"github.com/ca-x/cognate/internal/server/ent/schema"
 	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 	"github.com/ca-x/cognate/internal/server/ent/session"
@@ -960,6 +961,12 @@ func init() {
 	packshareDescCreatedAt := packshareFields[3].Descriptor()
 	// packshare.DefaultCreatedAt holds the default value on creation for the created_at field.
 	packshare.DefaultCreatedAt = packshareDescCreatedAt.Default.(func() time.Time)
+	repositoryprivatehistoryFields := schema.RepositoryPrivateHistory{}.Fields()
+	_ = repositoryprivatehistoryFields
+	// repositoryprivatehistoryDescNameWithOwner is the schema descriptor for name_with_owner field.
+	repositoryprivatehistoryDescNameWithOwner := repositoryprivatehistoryFields[1].Descriptor()
+	// repositoryprivatehistory.NameWithOwnerValidator is a validator for the "name_with_owner" field. It is called by the builders before save.
+	repositoryprivatehistory.NameWithOwnerValidator = repositoryprivatehistoryDescNameWithOwner.Validators[0].(func(string) error)
 	servermetadataFields := schema.ServerMetadata{}.Fields()
 	_ = servermetadataFields
 	// servermetadataDescName is the schema descriptor for name field.

@@ -86,7 +86,7 @@ func (store *Store) ListCollectionBatch(ctx context.Context, result ListSyncResu
 	}
 	var candidates []ListCollectionCandidate
 	err := store.withCurrentListSync(ctx, result, func(ctx context.Context, tx *ent.Tx, credential *ent.GitHubCredential, _ github.Token) error {
-		query := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(result.ticket.userID), githubrepository.ViewerIDEQ(result.ticket.viewerID), githubrepository.PrivateEQ(false), githubrepository.HasMembershipsWith(store.collectionMemberships(result)...)).Order(ent.Asc(githubrepository.FieldID)).Limit(limit)
+		query := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(result.ticket.userID), githubrepository.ViewerIDEQ(result.ticket.viewerID), githubrepository.HasMembershipsWith(store.collectionMemberships(result)...)).Order(ent.Asc(githubrepository.FieldID)).Limit(limit)
 		entries, err := query.Clone().Where(githubrepository.IDGT(credential.CollectionCursor)).All(ctx)
 		if err != nil {
 			return err

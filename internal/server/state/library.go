@@ -57,30 +57,20 @@ func (store *Store) CollectRepository(ctx context.Context, userKey string, refer
 	if err := validateCollection(reference, archiveHash, skills); err != nil {
 		return CollectedRepository{}, err
 	}
+	if err := store.sourceAccessTarget(ctx, userKey, reference); err != nil {
+		return CollectedRepository{}, err
+	}
 	owner, err := findUser(ctx, store.state.client, userKey)
 	if err != nil {
 		return CollectedRepository{}, err
 	}
-	tx, err := store.state.client.Tx(ctx)
-	if err != nil {
-		return CollectedRepository{}, err
-	}
-	defer tx.Rollback()
-	if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCatalogWrite); err != nil {
-		return CollectedRepository{}, err
-	}
-	entry, err := tx.CollectedRepository.Create().SetPublicID(rand.Text()).SetUserID(owner.ID).SetNameWithOwner(reference.NameWithOwner).SetBranch(reference.Branch).SetArchiveHash(archiveHash).SetSkillCount(len(skills)).SetManual(true).SetCollectedAt(store.state.now()).Save(ctx)
-	if ent.IsConstraintError(err) {
-		_ = tx.Rollback()
-		var result CollectedRepository
-		err := store.catalogTransaction(ctx, func(tx *ent.Tx) error {
-			if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCatalogWrite); err != nil {
-				return err
-			}
-			existing, err := tx.CollectedRepository.Query().Where(collectionIdentity(owner.ID, reference)...).Only(ctx)
-			if err != nil {
-				return err
-			}
+	var result CollectedRepository
+	err = store.catalogTransaction(ctx, func(tx *ent.Tx) error {
+		if err := store.guardMCPTransaction(ctx, tx, userKey, MCPCatalogWrite); err != nil {
+			return err
+		}
+		existing, err := tx.CollectedRepository.Query().Where(collectionIdentity(owner.ID, reference)...).Only(ctx)
+		if err == nil {
 			if !existing.Manual {
 				existing, err = tx.CollectedRepository.UpdateOne(existing).SetManual(true).Save(ctx)
 				if err != nil {
@@ -89,36 +79,38 @@ func (store *Store) CollectRepository(ctx context.Context, userKey string, refer
 			}
 			result = collectedRepository(existing)
 			return nil
-		})
-		if err != nil {
-			return CollectedRepository{}, err
 		}
-		return result, nil
-	}
+		if !ent.IsNotFound(err) {
+			return err
+		}
+		entry, err := tx.CollectedRepository.Create().SetPublicID(rand.Text()).SetUserID(owner.ID).SetNameWithOwner(reference.NameWithOwner).SetBranch(reference.Branch).SetArchiveHash(archiveHash).SetSkillCount(len(skills)).SetManual(true).SetCollectedAt(store.state.now()).Save(ctx)
+		if err != nil {
+			return err
+		}
+		count, err := tx.CollectedRepository.Query().Where(collectedrepository.UserIDEQ(owner.ID)).Count(ctx)
+		if err != nil {
+			return err
+		}
+		if count > 1000 {
+			return ErrLibraryLimit
+		}
+		builders := make([]*ent.CollectedSkillCreate, 0, len(skills))
+		for _, entrySkill := range skills {
+			builders = append(builders, tx.CollectedSkill.Create().SetPublicID(rand.Text()).SetRepositoryID(entry.ID).SetName(entrySkill.Name).SetDescription(entrySkill.Description).SetPath(entrySkill.Path).SetContentHash(entrySkill.ContentHash))
+		}
+		if err := tx.CollectedSkill.CreateBulk(builders...).Exec(ctx); err != nil {
+			return err
+		}
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		result = collectedRepository(entry)
+		return nil
+	})
 	if err != nil {
 		return CollectedRepository{}, err
 	}
-	count, err := tx.CollectedRepository.Query().Where(collectedrepository.UserIDEQ(owner.ID)).Count(ctx)
-	if err != nil {
-		return CollectedRepository{}, err
-	}
-	if count > 1000 {
-		return CollectedRepository{}, ErrLibraryLimit
-	}
-	builders := make([]*ent.CollectedSkillCreate, 0, len(skills))
-	for _, entrySkill := range skills {
-		builders = append(builders, tx.CollectedSkill.Create().SetPublicID(rand.Text()).SetRepositoryID(entry.ID).SetName(entrySkill.Name).SetDescription(entrySkill.Description).SetPath(entrySkill.Path).SetContentHash(entrySkill.ContentHash))
-	}
-	if err := tx.CollectedSkill.CreateBulk(builders...).Exec(ctx); err != nil {
-		return CollectedRepository{}, err
-	}
-	if err := ctx.Err(); err != nil {
-		return CollectedRepository{}, err
-	}
-	if err := tx.Commit(); err != nil {
-		return CollectedRepository{}, err
-	}
-	return collectedRepository(entry), nil
+	return result, nil
 }
 
 func (store *Store) ListCollectedRepositories(ctx context.Context, userKey string) ([]CollectedRepository, error) {

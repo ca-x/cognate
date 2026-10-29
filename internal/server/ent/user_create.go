@@ -23,6 +23,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -87,6 +88,21 @@ func (_c *UserCreate) AddGithubRepositories(v ...*GitHubRepository) *UserCreate 
 		ids[i] = v[i].ID
 	}
 	return _c.AddGithubRepositoryIDs(ids...)
+}
+
+// AddRepositoryPrivateHistoryIDs adds the "repository_private_history" edge to the RepositoryPrivateHistory entity by IDs.
+func (_c *UserCreate) AddRepositoryPrivateHistoryIDs(ids ...int) *UserCreate {
+	_c.mutation.AddRepositoryPrivateHistoryIDs(ids...)
+	return _c
+}
+
+// AddRepositoryPrivateHistory adds the "repository_private_history" edges to the RepositoryPrivateHistory entity.
+func (_c *UserCreate) AddRepositoryPrivateHistory(v ...*RepositoryPrivateHistory) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRepositoryPrivateHistoryIDs(ids...)
 }
 
 // SetLocalAccountID sets the "local_account" edge to the LocalAccount entity by ID.
@@ -386,6 +402,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(githubrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RepositoryPrivateHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

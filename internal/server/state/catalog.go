@@ -101,6 +101,14 @@ func (store *Store) applyListSnapshot(ctx context.Context, tx *ent.Tx, ticket Li
 			}
 			observed[repository.ID], names[name] = repository, repository.ID
 			record, exists := repositories[repository.ID]
+			if exists {
+				if err := rememberPrivateRepository(ctx, tx, ticket.userID, record.NameWithOwner, record.Private); err != nil {
+					return err
+				}
+			}
+			if err := rememberPrivateRepository(ctx, tx, ticket.userID, repository.NameWithOwner, repository.Private); err != nil {
+				return err
+			}
 			if !exists {
 				record, err = tx.GitHubRepository.Create().SetUserID(ticket.userID).SetViewerID(ticket.viewerID).SetRepositoryKey(repository.ID).SetNameWithOwner(repository.NameWithOwner).SetPrivate(repository.Private).SetNillableDatabaseID(repository.DatabaseID).Save(ctx)
 			} else {

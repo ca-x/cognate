@@ -37,14 +37,15 @@ func (fetch fetchFunc) Fetch(ctx context.Context, reference repository.Reference
 }
 
 type fixture struct {
-	store     *state.Store
-	cache     *library.ArchiveCache
-	client    *http.Client
-	mutex     sync.Mutex
-	itemCalls int
-	metaCalls int
-	updatedAt string
-	onItems   func(context.Context) error
+	store         *state.Store
+	cache         *library.ArchiveCache
+	client        *http.Client
+	mutex         sync.Mutex
+	itemCalls     int
+	metaCalls     int
+	updatedAt     string
+	onItems       func(context.Context) error
+	privateSource bool
 }
 
 func newFixture(t *testing.T) *fixture {
@@ -141,6 +142,9 @@ func (fixture *fixture) respond(request *http.Request) (*http.Response, error) {
 		}
 		nodes := []any{}
 		for index, private := range []bool{false, true, false} {
+			if private && !fixture.privateSource {
+				continue
+			}
 			nodes = append(nodes, map[string]any{"__typename": "Repository", "id": fmt.Sprintf("repo-%d", index), "databaseId": index + 1, "nameWithOwner": fmt.Sprintf("Org/Skill-%d", index), "isPrivate": private})
 		}
 		node := metadata("selected")
@@ -190,8 +194,9 @@ func newScheduler(t *testing.T, fixture *fixture, fetcher library.ArchiveFetcher
 	return scheduler
 }
 
-func TestSchedulerCollectsOnlyPublicSelectedAndSkipsImmutable(t *testing.T) {
+func TestSchedulerPrivateNeverUsesPublicFetcherAndPublicSelectionIsImmutable(t *testing.T) {
 	fixture := newFixture(t)
+	fixture.privateSource = true
 	snapshot := archiveFixture(t)
 	var fetches atomic.Int64
 	scheduler := newScheduler(t, fixture, fetchFunc(func(_ context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
@@ -202,11 +207,16 @@ func TestSchedulerCollectsOnlyPublicSelectedAndSkipsImmutable(t *testing.T) {
 		return snapshot, nil
 	}), Options{MaxCollections: 1})
 	for attempt := range 4 {
-		if err := scheduler.RunOnce(t.Context()); err != nil {
+		err := scheduler.RunOnce(t.Context())
+		if attempt == 1 {
+			if !errors.Is(err, state.ErrSourceAccessUnavailable) {
+				t.Fatalf("private capability absence did not fail closed: %v", err)
+			}
+		} else if err != nil {
 			t.Fatal(err)
 		}
 		entries, err := fixture.store.ListCollectedRepositories(t.Context(), "alice")
-		if err != nil || len(entries) != min(attempt+1, 2) {
+		if err != nil || len(entries) != []int{1, 1, 2, 2}[attempt] {
 			catalog, catalogErr := fixture.store.GitHubCatalog(t.Context(), "alice")
 			t.Fatalf("public collection after run %d: count=%d, error=%v, lists=%d, repositories=%d, catalog error=%v", attempt+1, len(entries), err, len(catalog.Lists), len(catalog.Repositories), catalogErr)
 		}

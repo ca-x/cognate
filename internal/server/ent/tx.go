@@ -50,6 +50,8 @@ type Tx struct {
 	PackItem *PackItemClient
 	// PackShare is the client for interacting with the PackShare builders.
 	PackShare *PackShareClient
+	// RepositoryPrivateHistory is the client for interacting with the RepositoryPrivateHistory builders.
+	RepositoryPrivateHistory *RepositoryPrivateHistoryClient
 	// ServerMetadata is the client for interacting with the ServerMetadata builders.
 	ServerMetadata *ServerMetadataClient
 	// Session is the client for interacting with the Session builders.
@@ -206,6 +208,7 @@ func (tx *Tx) init() {
 	tx.Pack = NewPackClient(tx.config)
 	tx.PackItem = NewPackItemClient(tx.config)
 	tx.PackShare = NewPackShareClient(tx.config)
+	tx.RepositoryPrivateHistory = NewRepositoryPrivateHistoryClient(tx.config)
 	tx.ServerMetadata = NewServerMetadataClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.User = NewUserClient(tx.config)

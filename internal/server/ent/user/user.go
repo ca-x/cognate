@@ -20,6 +20,8 @@ const (
 	EdgeGithubLists = "github_lists"
 	// EdgeGithubRepositories holds the string denoting the github_repositories edge name in mutations.
 	EdgeGithubRepositories = "github_repositories"
+	// EdgeRepositoryPrivateHistory holds the string denoting the repository_private_history edge name in mutations.
+	EdgeRepositoryPrivateHistory = "repository_private_history"
 	// EdgeLocalAccount holds the string denoting the local_account edge name in mutations.
 	EdgeLocalAccount = "local_account"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -67,6 +69,13 @@ const (
 	GithubRepositoriesInverseTable = "git_hub_repositories"
 	// GithubRepositoriesColumn is the table column denoting the github_repositories relation/edge.
 	GithubRepositoriesColumn = "user_id"
+	// RepositoryPrivateHistoryTable is the table that holds the repository_private_history relation/edge.
+	RepositoryPrivateHistoryTable = "repository_private_histories"
+	// RepositoryPrivateHistoryInverseTable is the table name for the RepositoryPrivateHistory entity.
+	// It exists in this package in order to avoid circular dependency with the "repositoryprivatehistory" package.
+	RepositoryPrivateHistoryInverseTable = "repository_private_histories"
+	// RepositoryPrivateHistoryColumn is the table column denoting the repository_private_history relation/edge.
+	RepositoryPrivateHistoryColumn = "user_id"
 	// LocalAccountTable is the table that holds the local_account relation/edge.
 	LocalAccountTable = "local_accounts"
 	// LocalAccountInverseTable is the table name for the LocalAccount entity.
@@ -219,6 +228,20 @@ func ByGithubRepositoriesCount(opts ...sql.OrderTermOption) OrderOption {
 func ByGithubRepositories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newGithubRepositoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRepositoryPrivateHistoryCount orders the results by repository_private_history count.
+func ByRepositoryPrivateHistoryCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRepositoryPrivateHistoryStep(), opts...)
+	}
+}
+
+// ByRepositoryPrivateHistory orders the results by repository_private_history terms.
+func ByRepositoryPrivateHistory(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepositoryPrivateHistoryStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -401,6 +424,13 @@ func newGithubRepositoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GithubRepositoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, GithubRepositoriesTable, GithubRepositoriesColumn),
+	)
+}
+func newRepositoryPrivateHistoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RepositoryPrivateHistoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RepositoryPrivateHistoryTable, RepositoryPrivateHistoryColumn),
 	)
 }
 func newLocalAccountStep() *sqlgraph.Step {

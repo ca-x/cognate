@@ -34,6 +34,8 @@ type UserEdges struct {
 	GithubLists []*GitHubList `json:"github_lists,omitempty"`
 	// GithubRepositories holds the value of the github_repositories edge.
 	GithubRepositories []*GitHubRepository `json:"github_repositories,omitempty"`
+	// RepositoryPrivateHistory holds the value of the repository_private_history edge.
+	RepositoryPrivateHistory []*RepositoryPrivateHistory `json:"repository_private_history,omitempty"`
 	// LocalAccount holds the value of the local_account edge.
 	LocalAccount *LocalAccount `json:"local_account,omitempty"`
 	// Sessions holds the value of the sessions edge.
@@ -60,7 +62,7 @@ type UserEdges struct {
 	NativeMaterializationGrants []*NativeMaterializationGrant `json:"native_materialization_grants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [16]bool
 }
 
 // GithubCredentialOrErr returns the GithubCredential value or an error if the edge
@@ -92,12 +94,21 @@ func (e UserEdges) GithubRepositoriesOrErr() ([]*GitHubRepository, error) {
 	return nil, &NotLoadedError{edge: "github_repositories"}
 }
 
+// RepositoryPrivateHistoryOrErr returns the RepositoryPrivateHistory value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RepositoryPrivateHistoryOrErr() ([]*RepositoryPrivateHistory, error) {
+	if e.loadedTypes[3] {
+		return e.RepositoryPrivateHistory, nil
+	}
+	return nil, &NotLoadedError{edge: "repository_private_history"}
+}
+
 // LocalAccountOrErr returns the LocalAccount value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) LocalAccountOrErr() (*LocalAccount, error) {
 	if e.LocalAccount != nil {
 		return e.LocalAccount, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: localaccount.Label}
 	}
 	return nil, &NotLoadedError{edge: "local_account"}
@@ -106,7 +117,7 @@ func (e UserEdges) LocalAccountOrErr() (*LocalAccount, error) {
 // SessionsOrErr returns the Sessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) SessionsOrErr() ([]*Session, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Sessions, nil
 	}
 	return nil, &NotLoadedError{edge: "sessions"}
@@ -115,7 +126,7 @@ func (e UserEdges) SessionsOrErr() ([]*Session, error) {
 // OidcIdentitiesOrErr returns the OidcIdentities value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OidcIdentitiesOrErr() ([]*OIDCIdentity, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.OidcIdentities, nil
 	}
 	return nil, &NotLoadedError{edge: "oidc_identities"}
@@ -124,7 +135,7 @@ func (e UserEdges) OidcIdentitiesOrErr() ([]*OIDCIdentity, error) {
 // CollectedRepositoriesOrErr returns the CollectedRepositories value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CollectedRepositoriesOrErr() ([]*CollectedRepository, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.CollectedRepositories, nil
 	}
 	return nil, &NotLoadedError{edge: "collected_repositories"}
@@ -133,7 +144,7 @@ func (e UserEdges) CollectedRepositoriesOrErr() ([]*CollectedRepository, error) 
 // PacksOrErr returns the Packs value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) PacksOrErr() ([]*Pack, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Packs, nil
 	}
 	return nil, &NotLoadedError{edge: "packs"}
@@ -142,7 +153,7 @@ func (e UserEdges) PacksOrErr() ([]*Pack, error) {
 // McpCredentialsOrErr returns the McpCredentials value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) McpCredentialsOrErr() ([]*MCPCredential, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.McpCredentials, nil
 	}
 	return nil, &NotLoadedError{edge: "mcp_credentials"}
@@ -151,7 +162,7 @@ func (e UserEdges) McpCredentialsOrErr() ([]*MCPCredential, error) {
 // CategoriesOrErr returns the Categories value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CategoriesOrErr() ([]*Category, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.Categories, nil
 	}
 	return nil, &NotLoadedError{edge: "categories"}
@@ -160,7 +171,7 @@ func (e UserEdges) CategoriesOrErr() ([]*Category, error) {
 // ConfigurationAssetsOrErr returns the ConfigurationAssets value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.ConfigurationAssets, nil
 	}
 	return nil, &NotLoadedError{edge: "configuration_assets"}
@@ -169,7 +180,7 @@ func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
 // NativeConsumerChallengesOrErr returns the NativeConsumerChallenges value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.NativeConsumerChallenges, nil
 	}
 	return nil, &NotLoadedError{edge: "native_consumer_challenges"}
@@ -178,7 +189,7 @@ func (e UserEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, 
 // NativeConsumerSessionsOrErr returns the NativeConsumerSessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.NativeConsumerSessions, nil
 	}
 	return nil, &NotLoadedError{edge: "native_consumer_sessions"}
@@ -187,7 +198,7 @@ func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, erro
 // NativeApplyPreparationsOrErr returns the NativeApplyPreparations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeApplyPreparationsOrErr() ([]*NativeApplyPreparation, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.NativeApplyPreparations, nil
 	}
 	return nil, &NotLoadedError{edge: "native_apply_preparations"}
@@ -196,7 +207,7 @@ func (e UserEdges) NativeApplyPreparationsOrErr() ([]*NativeApplyPreparation, er
 // NativeMaterializationGrantsOrErr returns the NativeMaterializationGrants value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeMaterializationGrantsOrErr() ([]*NativeMaterializationGrant, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.NativeMaterializationGrants, nil
 	}
 	return nil, &NotLoadedError{edge: "native_materialization_grants"}
@@ -264,6 +275,11 @@ func (_m *User) QueryGithubLists() *GitHubListQuery {
 // QueryGithubRepositories queries the "github_repositories" edge of the User entity.
 func (_m *User) QueryGithubRepositories() *GitHubRepositoryQuery {
 	return NewUserClient(_m.config).QueryGithubRepositories(_m)
+}
+
+// QueryRepositoryPrivateHistory queries the "repository_private_history" edge of the User entity.
+func (_m *User) QueryRepositoryPrivateHistory() *RepositoryPrivateHistoryQuery {
+	return NewUserClient(_m.config).QueryRepositoryPrivateHistory(_m)
 }
 
 // QueryLocalAccount queries the "local_account" edge of the User entity.

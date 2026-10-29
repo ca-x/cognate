@@ -69,6 +69,8 @@ func libraryError(ctx context.Context, err error) error {
 		return canceled
 	}
 	switch {
+	case errors.Is(err, state.ErrSourceAccessUnavailable), errors.Is(err, state.ErrSourceRefreshUnavailable), errors.Is(err, state.ErrCredentialNotFound), errors.Is(err, state.ErrCredentialUnavailable), errors.Is(err, state.ErrSyncSuperseded), errors.Is(err, state.ErrObservationExpired):
+		return connect.NewError(connect.CodeFailedPrecondition, errors.New("repository source authorization unavailable; reconnect or reload selection"))
 	case errors.Is(err, state.ErrRepositoryRefreshConflict), errors.Is(err, state.ErrPackConflict):
 		return connect.NewError(connect.CodeAborted, errors.New("repository or pack version changed; reload before refreshing"))
 	case errors.Is(err, state.ErrRepositoryRefreshPublished):
@@ -78,7 +80,7 @@ func libraryError(ctx context.Context, err error) error {
 	case errors.Is(err, repository.ErrInvalidReference):
 		return connect.NewError(connect.CodeInvalidArgument, repository.ErrInvalidReference)
 	case errors.Is(err, state.ErrRepositoryNotFound), errors.Is(err, repository.ErrArchiveUnavailable):
-		return connect.NewError(connect.CodeNotFound, errors.New("repository unavailable; verify public repository and branch"))
+		return connect.NewError(connect.CodeNotFound, errors.New("repository unavailable; verify access and branch"))
 	case errors.Is(err, repository.ErrArchiveInvalid):
 		return connect.NewError(connect.CodeFailedPrecondition, repository.ErrArchiveInvalid)
 	case errors.Is(err, library.ErrArchiveMissing):

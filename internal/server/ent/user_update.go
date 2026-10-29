@@ -25,6 +25,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
+	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -89,6 +90,21 @@ func (_u *UserUpdate) AddGithubRepositories(v ...*GitHubRepository) *UserUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.AddGithubRepositoryIDs(ids...)
+}
+
+// AddRepositoryPrivateHistoryIDs adds the "repository_private_history" edge to the RepositoryPrivateHistory entity by IDs.
+func (_u *UserUpdate) AddRepositoryPrivateHistoryIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddRepositoryPrivateHistoryIDs(ids...)
+	return _u
+}
+
+// AddRepositoryPrivateHistory adds the "repository_private_history" edges to the RepositoryPrivateHistory entity.
+func (_u *UserUpdate) AddRepositoryPrivateHistory(v ...*RepositoryPrivateHistory) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRepositoryPrivateHistoryIDs(ids...)
 }
 
 // SetLocalAccountID sets the "local_account" edge to the LocalAccount entity by ID.
@@ -326,6 +342,27 @@ func (_u *UserUpdate) RemoveGithubRepositories(v ...*GitHubRepository) *UserUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveGithubRepositoryIDs(ids...)
+}
+
+// ClearRepositoryPrivateHistory clears all "repository_private_history" edges to the RepositoryPrivateHistory entity.
+func (_u *UserUpdate) ClearRepositoryPrivateHistory() *UserUpdate {
+	_u.mutation.ClearRepositoryPrivateHistory()
+	return _u
+}
+
+// RemoveRepositoryPrivateHistoryIDs removes the "repository_private_history" edge to RepositoryPrivateHistory entities by IDs.
+func (_u *UserUpdate) RemoveRepositoryPrivateHistoryIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveRepositoryPrivateHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveRepositoryPrivateHistory removes "repository_private_history" edges to RepositoryPrivateHistory entities.
+func (_u *UserUpdate) RemoveRepositoryPrivateHistory(v ...*RepositoryPrivateHistory) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRepositoryPrivateHistoryIDs(ids...)
 }
 
 // ClearLocalAccount clears the "local_account" edge to the LocalAccount entity.
@@ -713,6 +750,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(githubrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RepositoryPrivateHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRepositoryPrivateHistoryIDs(); len(nodes) > 0 && !_u.mutation.RepositoryPrivateHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RepositoryPrivateHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1313,6 +1395,21 @@ func (_u *UserUpdateOne) AddGithubRepositories(v ...*GitHubRepository) *UserUpda
 	return _u.AddGithubRepositoryIDs(ids...)
 }
 
+// AddRepositoryPrivateHistoryIDs adds the "repository_private_history" edge to the RepositoryPrivateHistory entity by IDs.
+func (_u *UserUpdateOne) AddRepositoryPrivateHistoryIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddRepositoryPrivateHistoryIDs(ids...)
+	return _u
+}
+
+// AddRepositoryPrivateHistory adds the "repository_private_history" edges to the RepositoryPrivateHistory entity.
+func (_u *UserUpdateOne) AddRepositoryPrivateHistory(v ...*RepositoryPrivateHistory) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRepositoryPrivateHistoryIDs(ids...)
+}
+
 // SetLocalAccountID sets the "local_account" edge to the LocalAccount entity by ID.
 func (_u *UserUpdateOne) SetLocalAccountID(id int) *UserUpdateOne {
 	_u.mutation.SetLocalAccountID(id)
@@ -1548,6 +1645,27 @@ func (_u *UserUpdateOne) RemoveGithubRepositories(v ...*GitHubRepository) *UserU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveGithubRepositoryIDs(ids...)
+}
+
+// ClearRepositoryPrivateHistory clears all "repository_private_history" edges to the RepositoryPrivateHistory entity.
+func (_u *UserUpdateOne) ClearRepositoryPrivateHistory() *UserUpdateOne {
+	_u.mutation.ClearRepositoryPrivateHistory()
+	return _u
+}
+
+// RemoveRepositoryPrivateHistoryIDs removes the "repository_private_history" edge to RepositoryPrivateHistory entities by IDs.
+func (_u *UserUpdateOne) RemoveRepositoryPrivateHistoryIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveRepositoryPrivateHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveRepositoryPrivateHistory removes "repository_private_history" edges to RepositoryPrivateHistory entities.
+func (_u *UserUpdateOne) RemoveRepositoryPrivateHistory(v ...*RepositoryPrivateHistory) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRepositoryPrivateHistoryIDs(ids...)
 }
 
 // ClearLocalAccount clears the "local_account" edge to the LocalAccount entity.
@@ -1965,6 +2083,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(githubrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RepositoryPrivateHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRepositoryPrivateHistoryIDs(); len(nodes) > 0 && !_u.mutation.RepositoryPrivateHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RepositoryPrivateHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositoryPrivateHistoryTable,
+			Columns: []string{user.RepositoryPrivateHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositoryprivatehistory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

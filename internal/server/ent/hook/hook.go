@@ -237,6 +237,18 @@ func (f PackShareFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PackShareMutation", m)
 }
 
+// The RepositoryPrivateHistoryFunc type is an adapter to allow the use of ordinary
+// function as RepositoryPrivateHistory mutator.
+type RepositoryPrivateHistoryFunc func(context.Context, *ent.RepositoryPrivateHistoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RepositoryPrivateHistoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RepositoryPrivateHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RepositoryPrivateHistoryMutation", m)
+}
+
 // The ServerMetadataFunc type is an adapter to allow the use of ordinary
 // function as ServerMetadata mutator.
 type ServerMetadataFunc func(context.Context, *ent.ServerMetadataMutation) (ent.Value, error)

@@ -27,6 +27,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/importer"
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/packs"
+	"github.com/ca-x/cognate/internal/server/scheduler"
 	"github.com/ca-x/cognate/internal/server/sourcerefresh"
 	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/ca-x/cognate/internal/skill"
@@ -76,15 +77,37 @@ func publicSourceArchive(test *testing.T, version string) []byte {
 
 func selectedStarSource(test *testing.T, store *state.Store, snapshot *repository.ArchiveSnapshot) state.CollectedRepository {
 	test.Helper()
+	result, _ := selectedSourceSync(test, store, false)
+	collected, err := store.CollectListRepository(test.Context(), result, "remote", repository.Reference{NameWithOwner: "org/source"}, snapshot.Hash, snapshot.Skills)
+	if err != nil {
+		test.Fatal(err)
+	}
+	collected, err = store.CollectedRepository(test.Context(), "alice", collected.ID)
+	if err != nil || collected.Manual {
+		test.Fatal("star collection did not remain star-only")
+	}
+	return collected
+}
+
+func selectedSourceSync(test *testing.T, store *state.Store, private bool) (state.ListSyncResult, *http.Client) {
+	test.Helper()
 	token, err := github.NewToken("synthetic-worker-star-credential", nil)
 	if err != nil {
 		test.Fatal("synthetic credential creation failed")
 	}
-	generation, err := store.PutCredential(test.Context(), "alice", "viewer", "", token)
+	credential, credentialError := store.Credential(test.Context(), "alice")
+	generation := credential.Generation
+	if errors.Is(credentialError, state.ErrCredentialNotFound) {
+		generation, err = store.PutCredential(test.Context(), "alice", "viewer", "", token)
+	} else if credentialError != nil {
+		test.Fatal(credentialError)
+	} else {
+		token = credential.Token
+	}
 	if err != nil {
 		test.Fatal(err)
 	}
-	client, err := github.NewListsClient(token, &http.Client{Transport: refreshTransport(func(request *http.Request) (*http.Response, error) {
+	transport := &http.Client{Transport: refreshTransport(func(request *http.Request) (*http.Response, error) {
 		var query struct {
 			Variables struct {
 				ID string `json:"id"`
@@ -100,7 +123,7 @@ func selectedStarSource(test *testing.T, store *state.Store, snapshot *repositor
 			response = map[string]any{"data": map[string]any{"viewer": map[string]any{"id": "viewer", "lists": map[string]any{"pageInfo": page, "nodes": []any{metadata}}}}}
 		} else {
 			metadata["__typename"], metadata["user"] = "UserList", map[string]any{"id": "viewer"}
-			metadata["items"] = map[string]any{"totalCount": 1, "pageInfo": page, "nodes": []any{map[string]any{"__typename": "Repository", "id": "remote", "nameWithOwner": "org/source", "isPrivate": false, "databaseId": nil}}}
+			metadata["items"] = map[string]any{"totalCount": 1, "pageInfo": page, "nodes": []any{map[string]any{"__typename": "Repository", "id": "remote", "nameWithOwner": "org/source", "isPrivate": private, "databaseId": nil}}}
 			response = map[string]any{"data": map[string]any{"node": metadata}}
 		}
 		body, err := json.Marshal(response)
@@ -108,7 +131,8 @@ func selectedStarSource(test *testing.T, store *state.Store, snapshot *repositor
 			return nil, err
 		}
 		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(bytes.NewReader(body))}, nil
-	})})
+	})}
+	client, err := github.NewListsClient(token, transport)
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -130,23 +154,25 @@ func selectedStarSource(test *testing.T, store *state.Store, snapshot *repositor
 	if err := store.SetListSubscription(test.Context(), "alice", "selected", true); err != nil {
 		test.Fatal(err)
 	}
-	result := synchronize()
-	collected, err := store.CollectListRepository(test.Context(), result, "remote", repository.Reference{NameWithOwner: "org/source"}, snapshot.Hash, snapshot.Skills)
-	if err != nil {
-		test.Fatal(err)
-	}
-	collected, err = store.CollectedRepository(test.Context(), "alice", collected.ID)
-	if err != nil || collected.Manual {
-		test.Fatal("star collection did not remain star-only")
-	}
-	return collected
+	return synchronize(), transport
 }
 
 func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) {
 	if runtime.GOOS != "linux" {
 		test.Skip("Linux installer")
 	}
-	for _, mode := range []string{"manual", "plugin", "star"} {
+	testSourceRefreshTwoPacksConnectAndAutomaticWatch(test, []string{"manual", "plugin", "star"})
+}
+
+func TestPrivateSourceTwoPacksConnectAndAutomaticWatch(test *testing.T) {
+	if runtime.GOOS != "linux" {
+		test.Skip("Linux installer")
+	}
+	testSourceRefreshTwoPacksConnectAndAutomaticWatch(test, []string{"private-manual", "private-lists"})
+}
+
+func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []string) {
+	for _, mode := range modes {
 		test.Run(mode, func(test *testing.T) {
 			directory := test.TempDir()
 			if err := os.Chmod(directory, 0o700); err != nil {
@@ -158,23 +184,95 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 				test.Fatal(err)
 			}
 			defer store.Close()
+			peer, err := state.Open(test.Context(), filepath.Join(directory, "server.db"), key)
+			if err != nil {
+				test.Fatal(err)
+			}
+			defer peer.Close()
 			if err := store.CreateUser(test.Context(), "alice"); err != nil {
 				test.Fatal(err)
 			}
 			var source atomic.Value
 			source.Store(publicSourceArchive(test, "first"))
 			var fetches atomic.Int64
+			private := strings.HasPrefix(mode, "private-")
+			var metadataCalls, privateCalls atomic.Int64
+			var denied atomic.Int64
+			var rotateAt atomic.Value
+			var rotations atomic.Int64
+			rotateAt.Store("")
+			rotate := func(stage string) {
+				if rotateAt.Load().(string) != stage {
+					return
+				}
+				credential, err := peer.Credential(test.Context(), "alice")
+				if err != nil {
+					test.Error("credential rotation fixture unavailable")
+					return
+				}
+				if _, err := peer.PutCredential(test.Context(), "alice", credential.ViewerID, credential.Generation, credential.Token); err != nil {
+					test.Error("credential rotation fixture failed")
+				} else {
+					rotations.Add(1)
+				}
+			}
+			api := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				if !private || request.Header.Get("Authorization") != "Bearer synthetic-worker-star-credential" {
+					test.Error("API authority missing")
+					writer.WriteHeader(401)
+					return
+				}
+				if status := denied.Load(); status != 0 {
+					writer.WriteHeader(int(status))
+					_, _ = io.WriteString(writer, "synthetic-secret-body")
+					return
+				}
+				switch request.URL.Path {
+				case "/repos/org/source":
+					metadataCalls.Add(1)
+					_, _ = io.WriteString(writer, `{"node_id":"remote","full_name":"Org/Source","private":true}`)
+					rotate("metadata")
+				case "/repos/org/source/tarball":
+					privateCalls.Add(1)
+					if metadataCalls.Load() < privateCalls.Load() {
+						test.Error("archive preceded metadata")
+					}
+					writer.Header().Set("Location", "https://codeload.github.com/org/source/tar.gz/private-capability?signature=synthetic")
+					writer.WriteHeader(302)
+					rotate("redirect")
+				default:
+					test.Error("unexpected API path")
+					writer.WriteHeader(404)
+				}
+			}))
+			defer api.Close()
+			apiURL, _ := url.Parse(api.URL)
 			upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				fetches.Add(1)
-				if request.Header.Get("Authorization") != "" || request.Header.Get("Cookie") != "" || request.URL.RawQuery != "" {
+				expectedQuery := ""
+				if private {
+					expectedQuery = "signature=synthetic"
+				}
+				if request.Header.Get("Authorization") != "" || request.Header.Get("Cookie") != "" || request.Header.Get("Referer") != "" || request.URL.RawQuery != expectedQuery {
 					test.Error("source request carried private authority")
 				}
 				_, _ = writer.Write(source.Load().([]byte))
+				rotate("body")
 			}))
 			defer upstream.Close()
 			upstreamURL, _ := url.Parse(upstream.URL)
 			fetcher := repository.NewArchiveFetcher(&http.Client{Transport: refreshTransport(func(request *http.Request) (*http.Response, error) {
-				if request.URL.Host != "codeload.github.com" || request.URL.Path != "/org/source/tar.gz/HEAD" {
+				if private && request.URL.Host == "api.github.com" {
+					copy := request.Clone(request.Context())
+					copy.URL = request.URL.Clone()
+					copy.URL.Scheme, copy.URL.Host = apiURL.Scheme, apiURL.Host
+					return api.Client().Transport.RoundTrip(copy)
+				}
+				expectedPath := "/org/source/tar.gz/HEAD"
+				if private {
+					expectedPath = "/org/source/tar.gz/private-capability"
+				}
+				if request.URL.Host != "codeload.github.com" || request.URL.Path != expectedPath {
 					return nil, errors.New("unexpected source destination")
 				}
 				copy := request.Clone(request.Context())
@@ -192,7 +290,32 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 			}
 			defer collection.Close()
 			var collected state.CollectedRepository
-			if mode == "star" {
+			if mode == "private-lists" {
+				_, listsClient := selectedSourceSync(test, store, true)
+				worker, err := scheduler.New(store, cache, fetcher, listsClient, scheduler.Options{MaxCollections: 1})
+				if err != nil {
+					test.Fatal(err)
+				}
+				defer worker.Close()
+				for _, status := range []int64{401, 403, 404, 429} {
+					denied.Store(status)
+					if err := worker.RunOnce(test.Context()); err == nil {
+						test.Fatal("private Lists first-collection API rejection ignored")
+					}
+					if entries, err := store.ListCollectedRepositories(test.Context(), "alice"); err != nil || len(entries) != 0 || fetches.Load() != 0 {
+						test.Fatal("failed private Lists first collection persisted or fell back")
+					}
+				}
+				denied.Store(0)
+				if err := worker.RunOnce(test.Context()); err != nil {
+					test.Fatal(err)
+				}
+				entries, err := store.ListCollectedRepositories(test.Context(), "alice")
+				if err != nil || len(entries) != 1 || entries[0].Manual {
+					test.Fatalf("private Lists first collection missing: %v", err)
+				}
+				collected = entries[0]
+			} else if mode == "star" {
 				snapshot, err := fetcher.Fetch(test.Context(), repository.Reference{NameWithOwner: "org/source"})
 				if err != nil {
 					test.Fatal(err)
@@ -202,6 +325,22 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 				}
 				collected = selectedStarSource(test, store, snapshot)
 			} else {
+				if private {
+					token, _ := github.NewToken("synthetic-worker-star-credential", nil)
+					if _, err := store.PutCredential(test.Context(), "alice", "viewer", "", token); err != nil {
+						test.Fatal(err)
+					}
+					for _, status := range []int64{401, 403, 404, 429} {
+						denied.Store(status)
+						if _, err := collection.Collect(test.Context(), "alice", "org/source", ""); err == nil {
+							test.Fatal("private manual first-collection API rejection ignored")
+						}
+						if entries, err := store.ListCollectedRepositories(test.Context(), "alice"); err != nil || len(entries) != 0 || fetches.Load() != 0 {
+							test.Fatal("failed private manual first collection persisted or fell back")
+						}
+					}
+					denied.Store(0)
+				}
 				input, branch := "org/source", ""
 				if mode == "plugin" {
 					preview, err := importer.PreviewMagpie(test.Context(), []byte(`{"skills":[{"name":"Demo","source":{"kind":"github","repo":"org/source","ref":"HEAD"}}]}`))
@@ -241,6 +380,13 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 				handler.ServeHTTP(writer, request)
 			}))
 			defer endpoint.Close()
+			endpointURL, _ := url.Parse(endpoint.URL)
+			clientHTTP := &http.Client{Transport: refreshTransport(func(request *http.Request) (*http.Response, error) {
+				if request.URL.Host != endpointURL.Host || strings.Contains(request.URL.RawQuery, "signature=") || request.Header.Get("Authorization") == "Bearer synthetic-worker-star-credential" {
+					return nil, errors.New("subscription client escaped Cognate boundary")
+				}
+				return endpoint.Client().Transport.RoundTrip(request)
+			})}
 			home := test.TempDir()
 			for _, relative := range []string{".agents/skills", ".claude/skills"} {
 				if err := os.MkdirAll(filepath.Join(home, relative), 0o700); err != nil {
@@ -250,7 +396,7 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 			if err := os.Mkdir(filepath.Join(directory, "client"), 0o700); err != nil {
 				test.Fatal(err)
 			}
-			manager, err := subscription.Open(test.Context(), home, filepath.Join(directory, "client"), key, endpoint.Client())
+			manager, err := subscription.Open(test.Context(), home, filepath.Join(directory, "client"), key, clientHTTP)
 			if err != nil {
 				test.Fatal(err)
 			}
@@ -271,7 +417,7 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 				if _, err := manager.Subscribe(test.Context(), endpoint.URL, share.Token.Reveal()); err != nil {
 					test.Fatal("subscription failed")
 				}
-				client, err := packclient.New(endpoint.URL, share.Token.Reveal(), endpoint.Client())
+				client, err := packclient.New(endpoint.URL, share.Token.Reveal(), clientHTTP)
 				if err != nil {
 					test.Fatal("pack client creation failed")
 				}
@@ -357,6 +503,9 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 			if err != nil || actual != current.Skills[0].ContentHash || downloads.Load() != 2 || fetches.Load() < 2 {
 				test.Fatal("automatic installation hash or single-download invariant failed")
 			}
+			if private && (metadataCalls.Load() < 2 || privateCalls.Load() != fetches.Load()) {
+				test.Fatal("private source bypassed authenticated metadata/archive chain")
+			}
 			if data, err := os.ReadFile(filepath.Join(canonical, ".hidden", "payload.bin")); err != nil || !bytes.Equal(data, []byte("\x00\xffsecond")) {
 				test.Fatal("binary attachment did not update")
 			}
@@ -365,6 +514,72 @@ func TestPeriodicSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T) 
 			}
 			if info, err := os.Stat(filepath.Join(canonical, ".hidden", "empty")); err != nil || !info.IsDir() {
 				test.Fatal("empty directory did not survive")
+			}
+			if private {
+				if result, err := collection.Refresh(test.Context(), "alice", current.ID, state.RepositoryVersion{ArchiveHash: current.ArchiveHash, PublicationRevision: current.PublicationRevision}); err != nil || result.Changed {
+					test.Fatalf("private manual Refresh no-op failed: %v", err)
+				}
+				if target, err := os.Readlink(filepath.Join(home, ".claude", "skills", "demo")); err != nil || target != canonical {
+					test.Fatal("client projection did not target canonical skill")
+				}
+				source.Store(publicSourceArchive(test, "third-rejected"))
+				unchanged := func() {
+					actual, err := peer.CollectedRepository(test.Context(), "alice", current.ID)
+					if err != nil || actual.ArchiveHash != current.ArchiveHash || actual.PublicationRevision != current.PublicationRevision {
+						test.Fatal("denied update changed source")
+					}
+					for index, original := range originals {
+						manifest, err := clients[index].Manifest(test.Context())
+						if err != nil || manifest.Revision != original.Revision+1 {
+							test.Fatal("denied update changed Pack")
+						}
+					}
+					if hash, err := skill.ContentHash(afero.NewOsFs(), canonical); err != nil || hash != current.Skills[0].ContentHash || downloads.Load() != 2 {
+						test.Fatal("denied update changed installation")
+					}
+				}
+				for _, status := range []int64{401, 403, 404, 429} {
+					denied.Store(status)
+					ticket, err := store.BeginRepositorySourceRefresh(test.Context(), "alice", current.ID)
+					if err != nil {
+						test.Fatal(err)
+					}
+					before := fetches.Load()
+					if _, err := collection.RefreshAutomatic(test.Context(), ticket); err == nil || strings.Contains(err.Error(), "synthetic-secret-body") {
+						test.Fatal("API rejection succeeded or leaked body")
+					}
+					if fetches.Load() != before {
+						test.Fatal("API rejection fell back to codeload")
+					}
+					if _, err := collection.Collect(test.Context(), "alice", "org/source", ""); err == nil {
+						test.Fatal("cached duplicate bypassed authenticated metadata")
+					}
+					unchanged()
+				}
+				denied.Store(0)
+				for _, stage := range []string{"metadata", "redirect", "body"} {
+					rotateAt.Store(stage)
+					ticket, err := store.BeginRepositorySourceRefresh(test.Context(), "alice", current.ID)
+					if err != nil {
+						test.Fatal(err)
+					}
+					before := fetches.Load()
+					beforeRotations := rotations.Load()
+					if _, err := collection.RefreshAutomatic(test.Context(), ticket); err == nil {
+						test.Fatalf("credential rotation after %s committed", stage)
+					}
+					if stage != "body" && fetches.Load() != before {
+						test.Fatal("stale credential reached codeload")
+					}
+					if rotations.Load() != beforeRotations+1 {
+						test.Fatal("negative control did not rotate credentials")
+					}
+					unchanged()
+					if mode == "private-lists" {
+						selectedSourceSync(test, store, true)
+					}
+				}
+				rotateAt.Store("")
 			}
 		})
 	}

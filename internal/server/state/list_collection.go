@@ -17,14 +17,27 @@ func (store *Store) CollectListRepository(ctx context.Context, result ListSyncRe
 	if err := validateCollection(reference, archiveHash, skills); err != nil || reference.Branch != "" {
 		return CollectedRepository{}, ErrInvalidCollection
 	}
+	if err := store.sourceAccessTarget(ctx, result.ticket.userKey, reference); err != nil {
+		return CollectedRepository{}, err
+	}
 	var collected CollectedRepository
 	err := store.withCurrentListSync(ctx, result, func(ctx context.Context, tx *ent.Tx, _ *ent.GitHubCredential, token github.Token) error {
 		memberships := store.collectionMemberships(result)
-		entry, err := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(result.ticket.userID), githubrepository.ViewerIDEQ(result.ticket.viewerID), githubrepository.RepositoryKeyEQ(repositoryID), githubrepository.PrivateEQ(false), githubrepository.HasMembershipsWith(memberships...)).WithMemberships(func(query *ent.GitHubMembershipQuery) { query.Where(memberships...).WithList() }).Only(ctx)
+		entry, err := tx.GitHubRepository.Query().Where(githubrepository.UserIDEQ(result.ticket.userID), githubrepository.ViewerIDEQ(result.ticket.viewerID), githubrepository.RepositoryKeyEQ(repositoryID), githubrepository.HasMembershipsWith(memberships...)).WithMemberships(func(query *ent.GitHubMembershipQuery) { query.Where(memberships...).WithList() }).Only(ctx)
 		if ent.IsNotFound(err) {
 			return ErrSyncSuperseded
 		}
 		if err != nil {
+			return err
+		}
+		if entry.Private || ctx.Value(sourceAccessContextKey{}) != nil {
+			ticket, valid := ctx.Value(sourceAccessContextKey{}).(SourceAccessTicket)
+			proof := ticket.proof.get()
+			if !valid || proof == nil || proof.star == nil || proof.star.repositoryKey != repositoryID || proof.star.private != entry.Private {
+				return ErrSourceAccessUnavailable
+			}
+		}
+		if err := store.guardSourceAccessTransaction(ctx, tx); err != nil {
 			return err
 		}
 		if strings.ToLower(entry.NameWithOwner) != reference.NameWithOwner {
