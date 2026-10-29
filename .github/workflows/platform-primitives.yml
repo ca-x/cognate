@@ -7,6 +7,11 @@ on:
       - 'internal/install/**'
       - 'internal/skill/**'
       - 'internal/packclient/**'
+      - 'internal/clientkey/**'
+      - 'internal/cli/**'
+      - 'internal/desktop/**'
+      - 'internal/subscription/**'
+      - 'internal/filelock/**'
       - 'internal/server/maintenance/**'
       - 'internal/server/state/**'
       - 'go.mod'
@@ -27,6 +32,426 @@ defaults:
     shell: bash
 
 jobs:
+  darwin-baseline-observation:
+    name: Darwin baseline observation (NOT installation support)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Prepare isolated native evidence and source identity
+        shell: python {0}
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import platform
+          import subprocess
+          import tempfile
+
+          root = Path(tempfile.mkdtemp(prefix="cognate-darwin-baseline-", dir=os.environ["RUNNER_TEMP"]))
+          os.chmod(root, 0o700)
+          values = {"COGNATE_BASELINE_ROOT": str(root)}
+          for name, relative in {
+              "HOME": "home", "XDG_CONFIG_HOME": "config", "XDG_DATA_HOME": "data",
+              "XDG_CACHE_HOME": "cache", "TMPDIR": "tmp", "GOPATH": "gopath", "GOCACHE": "go-build",
+          }.items():
+              path = root / relative
+              path.mkdir(mode=0o700)
+              values[name] = str(path)
+          for relative in ["evidence", "bin", "sensitive", "insensitive"]:
+              (root / relative).mkdir(mode=0o700)
+          values["COGNATE_APFS_SENSITIVE"] = str(root / "sensitive")
+          values["COGNATE_APFS_INSENSITIVE"] = str(root / "insensitive")
+          values["COGNATE_DARWIN_BINARY"] = str(root / "bin" / "cognate")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as target:
+              for name, value in values.items():
+                  target.write(f"{name}={value}\n")
+          entries = []
+          for entry in subprocess.check_output(["git", "ls-tree", "-rz", "HEAD"], timeout=15).split(b"\0"):
+              if entry:
+                  identity, path = entry.split(b"\t", 1)
+                  mode, kind, blob = identity.decode().split()
+                  entries.append({"path": path.decode(), "mode": mode, "type": kind, "blob": blob})
+          manifest = {
+              "phase": "baseline-observation-not-product-green",
+              "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], timeout=15).decode().strip(),
+              "tree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], timeout=15).decode().strip(),
+              "product_baseline": "86969a3e6b849349ad04f3f1105d4ccb1af2d40d",
+              "actual_system": platform.system(), "actual_machine": platform.machine(), "tracked": entries,
+          }
+          (root / "evidence" / "source-identity.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          if platform.system() != "Darwin" or platform.machine() != "arm64":
+              raise SystemExit("BLOCKED: actual macOS arm64 required")
+      - name: Compile unchanged product and exact Darwin test oracles
+        run: |
+          set -euo pipefail
+          test "$(go env GOVERSION)" = go1.27.3
+          test "$(go env CGO_ENABLED)" = 0
+          test "$(go env GOOS)" = darwin
+          test "$(go env GOARCH)" = arm64
+          go env GOOS GOARCH GOVERSION CGO_ENABLED > "$COGNATE_BASELINE_ROOT/evidence/toolchain.txt"
+          for package in clientkey cli install desktop subscription; do
+            go test -mod=readonly -c -o "$COGNATE_BASELINE_ROOT/bin/$package.test" "./internal/$package"
+          done
+          go build -mod=readonly -o "$COGNATE_DARWIN_BINARY" ./cmd/cognate
+      - name: Create two disposable real APFS volumes (no fallback)
+        shell: python {0}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import plistlib
+          import subprocess
+
+          root = Path(os.environ["COGNATE_BASELINE_ROOT"])
+          receipts = {}
+          try:
+              for label, kind in [("sensitive", "APFSX"), ("insensitive", "APFS")]:
+                  receipt = receipts[label] = {}
+                  commands = [
+                      ("create", ["hdiutil", "create", "-size", "1g", "-type", "SPARSE", "-fs", kind,
+                                  "-volname", "CognateFixture", str(root / (label + ".sparseimage"))]),
+                      ("attach", ["hdiutil", "attach", "-nobrowse", "-mountpoint", str(root / label),
+                                  str(root / (label + ".sparseimage"))]),
+                  ]
+                  for stage, command in commands:
+                      receipt[stage + "_started"] = True
+                      result = subprocess.run(command, capture_output=True, timeout=45)
+                      receipt[stage + "_exit"] = result.returncode
+                      if result.returncode != 0 or len(result.stdout) + len(result.stderr) > 65536:
+                          raise RuntimeError("APFS fixture operation failed")
+                  receipt["mounted"] = os.path.ismount(root / label)
+                  info = subprocess.run(["diskutil", "info", "-plist", str(root / label)], capture_output=True, timeout=15)
+                  receipt["diskutil_exit"] = info.returncode
+                  if info.returncode != 0 or len(info.stdout) > 65536 or not receipt["mounted"]:
+                      raise RuntimeError("APFS identity receipt unavailable")
+                  parsed = plistlib.loads(info.stdout)
+                  receipt["apfs"] = parsed.get("FilesystemType") == "apfs"
+                  if not receipt["apfs"]:
+                      raise RuntimeError("APFS identity mismatch")
+          finally:
+              (root / "evidence" / "volume-capability.json").write_text(json.dumps(receipts, indent=2) + "\n")
+      - name: Native capability PASS then raw product baseline RED observation
+        shell: python {0}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import selectors
+          import subprocess
+          import time
+
+          root = Path(os.environ["COGNATE_BASELINE_ROOT"])
+          evidence = root / "evidence"
+          import re
+          import signal
+          environment = {name: os.environ[name] for name in [
+              "PATH", "HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "TMPDIR",
+              "GOPATH", "GOCACHE", "COGNATE_APFS_SENSITIVE", "COGNATE_APFS_INSENSITIVE", "COGNATE_DARWIN_BINARY",
+          ]}
+          environment.update(CGO_ENABLED="0", GOTOOLCHAIN="local", GOFLAGS="-mod=readonly")
+          cases = [
+              ("install", "TestDarwinAPFSExecutionPrerequisites", None),
+              ("cli", "TestDarwinPTYExecutionPrerequisites", None),
+              ("clientkey", "TestDarwinExecutionCoreExplicitInitialization", "core-unsupported"),
+              ("cli", "TestDarwinExecutionCLIAdmission", "cli-unsupported"),
+              ("cli", "TestDarwinExecutionCLIRealPTY", "pty-sink-unsupported"),
+              ("install", "TestDarwinExecutionLocalInstall", "install-unsupported"),
+              ("desktop", "TestDarwinExecutionDesktopServiceInstall", "desktop-unsupported"),
+              ("subscription", "TestDarwinExecutionPackLifecycle", "pack-core-unsupported"),
+          ]
+          receipts = []
+          assertions = {
+              "core-unsupported": "Darwin core must require explicit initialization",
+              "cli-unsupported": "Darwin CLI must admit through explicit-init core",
+              "pty-sink-unsupported": "Darwin actual terminal client-key init must succeed",
+              "install-unsupported": "Darwin local installation must succeed",
+              "desktop-unsupported": "Darwin native service must require explicit initialization",
+              "pack-core-unsupported": "Darwin real Pack CLI command must succeed",
+          }
+          def capture_native(command, path, environment):
+              process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                         env=environment, start_new_session=True)
+              selector = None
+              deadline = time.monotonic() + 100
+              try:
+                  selector = selectors.DefaultSelector()
+                  os.set_blocking(process.stdout.fileno(), False)
+                  selector.register(process.stdout, selectors.EVENT_READ)
+                  with path.open("xb") as output:
+                      size = 0
+                      while True:
+                          remaining = deadline - time.monotonic()
+                          if remaining <= 0:
+                              raise RuntimeError("native capture deadline")
+                          if not selector.select(min(remaining, 1)):
+                              continue
+                          data = os.read(process.stdout.fileno(), min(65536, (4 << 20) - size + 1))
+                          if not data:
+                              break
+                          available = (4 << 20) - size
+                          output.write(data[:available])
+                          size += min(len(data), available)
+                          if len(data) > available:
+                              raise RuntimeError("native capture byte limit")
+                  code = process.wait(timeout=max(0.001, deadline - time.monotonic()))
+              except BaseException:
+                  try:
+                      os.killpg(process.pid, signal.SIGKILL)
+                  except ProcessLookupError:
+                      pass
+                  process.wait(timeout=5)
+                  raise
+              finally:
+                  if selector is not None:
+                      selector.close()
+                  process.stdout.close()
+                  path.with_suffix(".exit").write_text(str(process.returncode) + "\n")
+              return code
+          def classify(package, name, expected, events, code):
+              capabilities = {
+                  "TestDarwinAPFSExecutionPrerequisites": "DARWIN_CAPABILITY apfs=true arm64=true case_sensitive=true case_insensitive=true unicode_alias=true distinct_devices=true no_replace=true cross_device_refused=true",
+                  "TestDarwinPTYExecutionPrerequisites": "DARWIN_CAPABILITY actual_control_tty=true child_exit=0 script_waited=true bounded_capture=true",
+              }
+              if expected is None:
+                  if name not in capabilities or code != 0:
+                      raise RuntimeError("native capability not proven")
+                  messages = [capabilities[name]]
+                  terminal = "pass"
+              else:
+                  if expected not in assertions or code != 1:
+                      raise RuntimeError("invalid baseline process result")
+                  marker = "DARWIN_BASELINE_REJECTION code=" + expected
+                  if expected == "pty-sink-unsupported":
+                      marker += " child_exit=1 business_state=false"
+                  messages = [marker, assertions[expected]]
+                  terminal = "fail"
+              roles = [("start", None), ("run", name), ("output", name)]
+              roles += [("output", name)] * len(messages)
+              roles += [("output", name), (terminal, name), ("output", None), (terminal, None)]
+              if len(events) != len(roles):
+                  raise RuntimeError("unexpected native events")
+              for event, (action, target) in zip(events, roles):
+                  if (not isinstance(event, dict) or set(event) - {"Time", "Action", "Package", "Test", "Elapsed", "Output", "OutputType"}
+                          or event.get("Action") != action or event.get("Test") != target
+                          or event.get("Package") != "github.com/ca-x/cognate/internal/" + package):
+                      raise RuntimeError("unexpected native event identity or terminal")
+                  if "Elapsed" in event and (type(event["Elapsed"]) not in (int, float) or not 0 <= event["Elapsed"] < 1000):
+                      raise RuntimeError("unexpected elapsed receipt")
+                  if "Time" in event and (not isinstance(event["Time"], str) or not re.fullmatch(
+                          r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})", event["Time"])):
+                      raise RuntimeError("unexpected timestamp receipt")
+                  if action != "output" and ("Output" in event or "OutputType" in event):
+                      raise RuntimeError("unexpected event output")
+              frames = [(2, "=== RUN   " + name + "\n"), (-2, terminal.upper() + "\n")]
+              for index, text in frames:
+                  if events[index].get("Output") != text or events[index].get("OutputType") != "frame":
+                      raise RuntimeError("unexpected native framework output")
+              end = events[3 + len(messages)]
+              if (end.get("OutputType") != "frame" or not re.fullmatch(
+                      r"--- " + terminal.upper() + ": " + re.escape(name) + r" \([0-9]+(?:\.[0-9]+)?s\)\n", end.get("Output", ""))):
+                  raise RuntimeError("unexpected native framework terminal")
+              for index, (event, message) in enumerate(zip(events[3:], messages)):
+                  valid_type = event.get("OutputType") == "error" if expected is not None and index == 1 else "OutputType" not in event
+                  if (not valid_type or not re.fullmatch(r"    [a-z_]+\.go:[1-9][0-9]*: " + re.escape(message) + r"\n", event.get("Output", ""))):
+                      raise RuntimeError("unknown native error or output")
+          def execute(package, name, expected):
+              path = evidence / (name + ".json")
+              code = capture_native([
+                  "go", "tool", "test2json", "-p", "github.com/ca-x/cognate/internal/" + package,
+                  str(root / "bin" / (package + ".test")), "-test.v=test2json", "-test.count=1",
+                  "-test.timeout=90s", "-test.run=^" + name + "$",
+              ], path, environment)
+              path.with_suffix(".exit").write_text(str(code) + "\n")
+              events = []
+              with path.open() as source:
+                  for line in source:
+                      if len(events) >= 16:
+                          raise RuntimeError("native event count limit")
+                      events.append(json.loads(line))
+              classify(package, name, expected, events, code)
+              receipts.append({"test": name, "raw_exit": code,
+                               "classification": "capability-pass" if expected is None else "baseline-unsupported-assertion-RED"})
+          try:
+              for case in cases:
+                  execute(*case)
+          finally:
+              (evidence / "observation.json").write_text(json.dumps(receipts, indent=2) + "\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Darwin baseline observation\nTwo native capability gates PASS; six raw product assertions RED. "
+                            "This is NOT installation support, not product-test PASS, and not a release gate. "
+                            "Future source GREEN must run these same assertions without this temporary RED classifier.\n")
+      - name: Always detach owned volumes and record cleanup
+        if: always()
+        shell: python {0}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+
+          value = os.environ.get("COGNATE_BASELINE_ROOT")
+          if value is None:
+              raise SystemExit("BLOCKED: no isolated root cleanup receipt")
+          root = Path(value)
+          receipts = {}
+          failed = False
+          capability_path = root / "evidence" / "volume-capability.json"
+          capabilities = json.loads(capability_path.read_text()) if capability_path.exists() else {}
+          for label in ["sensitive", "insensitive"]:
+              mount = root / label
+              receipt = receipts[label] = {"was_mounted": os.path.ismount(mount)}
+              prior = capabilities.get(label, {})
+              receipt["attachment_unknown"] = bool(prior.get("attach_started") and not prior.get("mounted"))
+              receipt["creation_unknown"] = bool(prior.get("create_started") and "create_exit" not in prior)
+              if receipt["was_mounted"]:
+                  try:
+                      result = subprocess.run(["hdiutil", "detach", str(mount)], capture_output=True, timeout=30)
+                      receipt["detach_exit"] = result.returncode
+                  except subprocess.TimeoutExpired:
+                      receipt["detach_timeout"] = True
+              receipt["still_mounted"] = os.path.ismount(mount)
+              if receipt["still_mounted"] or receipt["attachment_unknown"] or receipt["creation_unknown"]:
+                  failed = True
+              else:
+                  try:
+                      (root / (label + ".sparseimage")).unlink(missing_ok=True)
+                      shutil.rmtree(mount, ignore_errors=False)
+                  except OSError:
+                      receipt["remove_failed"] = True
+                      failed = True
+          for relative in ["home", "config", "data", "cache", "tmp", "gopath", "go-build", "bin"]:
+              try:
+                  shutil.rmtree(root / relative)
+              except OSError:
+                  failed = True
+          (root / "evidence" / "cleanup.json").write_text(json.dumps({"failed": failed, "volumes": receipts}, indent=2) + "\n")
+          if failed:
+              raise SystemExit("BLOCKED: owned fixture cleanup incomplete")
+      - name: Always seal finite baseline evidence
+        id: seal
+        if: always()
+        shell: python {0}
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import stat
+          import tempfile
+
+          os.umask(0o077)
+          value = os.environ.get("COGNATE_BASELINE_ROOT")
+          root = Path(value) if value else Path(tempfile.mkdtemp(prefix="cognate-refusal-", dir=os.environ["RUNNER_TEMP"]))
+          evidence = root / "evidence"
+          names = [
+              "TestDarwinAPFSExecutionPrerequisites", "TestDarwinPTYExecutionPrerequisites",
+              "TestDarwinExecutionCoreExplicitInitialization", "TestDarwinExecutionCLIAdmission",
+              "TestDarwinExecutionCLIRealPTY", "TestDarwinExecutionLocalInstall",
+              "TestDarwinExecutionDesktopServiceInstall", "TestDarwinExecutionPackLifecycle",
+          ]
+          allow = {"source-identity.json": 1 << 20, "toolchain.txt": 128,
+                   "volume-capability.json": 8192, "cleanup.json": 8192, "observation.json": 8192}
+          for name in names:
+              allow[name + ".json"] = 4 << 20
+              allow[name + ".exit"] = 16
+          directory = None
+          def read_file(name):
+              if directory is None:
+                  raise ValueError("unopened evidence directory")
+              descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+              with os.fdopen(descriptor, "rb") as source:
+                  before = os.fstat(source.fileno())
+                  if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > allow[name]:
+                      raise ValueError("invalid evidence object")
+                  data = source.read(allow[name] + 1)
+                  after = os.fstat(source.fileno())
+                  identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+                  if len(data) != before.st_size or identity(before) != identity(after):
+                      raise ValueError("changed evidence object")
+                  return data
+          def cleanup_receipt(data=None):
+              unknown = {"classification": "cleanup-unconfirmed"}
+              try:
+                  parsed = json.loads(read_file("cleanup.json") if data is None else data)
+                  if set(parsed) != {"failed", "volumes"} or type(parsed["failed"]) is not bool:
+                      return unknown
+                  if set(parsed["volumes"]) != {"sensitive", "insensitive"}:
+                      return unknown
+                  required = {"was_mounted", "still_mounted", "attachment_unknown", "creation_unknown"}
+                  optional = {"detach_exit", "detach_timeout", "remove_failed"}
+                  for receipt in parsed["volumes"].values():
+                      if not required <= set(receipt) or set(receipt) - required - optional:
+                          return unknown
+                      for key, value in receipt.items():
+                          if key == "detach_exit":
+                              if type(value) is not int or not -255 <= value <= 255:
+                                  return unknown
+                          elif type(value) is not bool:
+                              return unknown
+                  return parsed
+              except Exception:
+                  return unknown
+          rejected = False
+          try:
+              directory = os.open(evidence, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+              payloads = {}
+              total = 0
+              count = 0
+              with os.scandir(directory) as entries:
+                  for entry in entries:
+                      count += 1
+                      if count > len(allow) or entry.name not in allow or entry.name in payloads:
+                          raise ValueError("unknown evidence entry")
+                      data = read_file(entry.name)
+                      total += len(data)
+                      if total > 12 << 20:
+                          raise ValueError("total evidence limit")
+                      payloads[entry.name] = data
+              if set(payloads) != set(allow) or "classification" in cleanup_receipt(payloads["cleanup.json"]):
+                  raise ValueError("incomplete evidence")
+              expected = [{"test": name, "raw_exit": 0 if index < 2 else 1,
+                           "classification": "capability-pass" if index < 2 else "baseline-unsupported-assertion-RED"}
+                          for index, name in enumerate(names)]
+              if json.loads(payloads["observation.json"]) != expected:
+                  raise ValueError("unclassified evidence")
+              for receipt in expected:
+                  if payloads[receipt["test"] + ".exit"] != (str(receipt["raw_exit"]) + "\n").encode():
+                      raise ValueError("invalid raw exit receipt")
+          except Exception:
+              rejected = True
+              payloads = {
+                  "refusal.json": b'{"classification":"evidence-rejected","reason":"invalid-or-incomplete-evidence"}\n',
+                  "cleanup.json": (json.dumps(cleanup_receipt(), sort_keys=True) + "\n").encode(),
+              }
+          finally:
+              if directory is not None:
+                  os.close(directory)
+          target = Path(tempfile.mkdtemp(prefix="sealed-upload-", dir=root))
+          manifest = []
+          for name, data in sorted(payloads.items()):
+              (target / name).write_bytes(data)
+              manifest.append({"name": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+          (target / "evidence-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("path=" + str(target) + "\nready=true\n")
+          if rejected:
+              raise SystemExit("BLOCKED: evidence rejected; only fixed refusal and cleanup receipt sealed")
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.seal.outputs.ready == 'true'
+        with:
+          name: darwin-baseline-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.seal.outputs.path }}
+          if-no-files-found: error
+          retention-days: 7
   primitives:
     name: Primitives (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
