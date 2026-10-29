@@ -265,14 +265,18 @@ func TestManagedInitialListsProcess(test *testing.T) {
 	if directory == "" {
 		return
 	}
-	ctx, cancel := context.WithTimeout(test.Context(), 250*time.Millisecond)
+	budget := 3 * time.Second
+	if os.Getenv("COGNATE_INITIAL_LISTS_EXPECT") == "blocked" {
+		budget = 250 * time.Millisecond
+	}
+	ctx, cancel := context.WithTimeout(test.Context(), budget)
 	defer cancel()
 	store, err := state.OpenWithOptions(ctx, filepath.Join(directory, "server.db"), make([]byte, 32), state.Options{MaintenanceManaged: os.Getenv("COGNATE_INITIAL_LISTS_MODE") == "managed"})
 	if store != nil {
 		defer store.Close()
 	}
 	if os.Getenv("COGNATE_INITIAL_LISTS_EXPECT") == "blocked" {
-		if !errors.Is(err, context.DeadlineExceeded) {
+		if store != nil || !errors.Is(err, context.DeadlineExceeded) || !errors.Is(err, maintenance.ErrLock) {
 			test.Fatalf("managed process lock not retained: %v", err)
 		}
 	} else if err != nil {
