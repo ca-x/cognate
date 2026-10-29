@@ -40,6 +40,11 @@ func (store *Store) ListSyncUsers(ctx context.Context, after, limit int) ([]List
 }
 
 func (store *Store) withCurrentListSync(ctx context.Context, result ListSyncResult, apply func(context.Context, *ent.Tx, *ent.GitHubCredential, github.Token) error) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	ticket := result.ticket
 	if !validSyncTicket(ticket) || result.client == nil || result.fetchID == "" {
 		return ErrSyncSuperseded

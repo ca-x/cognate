@@ -155,6 +155,11 @@ func nativeCheckAsset(metadata ConfigurationAsset, request nativesessionauth.Pre
 }
 
 func (store *Store) PrepareNativeConfigurationApply(ctx context.Context, credential NativeConsumerCredential, origin string, request nativesessionauth.PrepareRequest, proof nativesessionauth.VerifiedApplyProof, validate NativePrepareValidator) (NativePrepared, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return NativePrepared{}, admissionError
+	}
+	defer releaseWriter()
 	if validate == nil || !credential.present() {
 		return NativePrepared{}, ErrNativeUnauthorized
 	}
@@ -300,6 +305,11 @@ func (store *Store) AuthorizeNativeConfigurationGrant(ctx context.Context, crede
 }
 
 func (store *Store) authorizeNativeConfigurationGrant(ctx context.Context, credential NativeConsumerCredential, origin string, request nativesessionauth.AuthorizeRequest, proof nativesessionauth.VerifiedApplyProof, token nativesessionauth.ParsedGrantToken, validate NativePrepareValidator, budget nativeBudget) (NativeAuthorization, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return NativeAuthorization{}, admissionError
+	}
+	defer releaseWriter()
 	if !credential.present() || validate == nil {
 		return NativeAuthorization{}, ErrNativeUnauthorized
 	}
@@ -467,6 +477,11 @@ type nativeConsumeOutcome struct {
 }
 
 func (store *Store) ConsumeNativeConfigurationGrant(ctx context.Context, credential NativeConsumerCredential, origin string, request nativesessionauth.ConsumeRequest, proof nativesessionauth.VerifiedApplyProof, materialize NativeMaterializer) (NativeMaterialization, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return NativeMaterialization{}, admissionError
+	}
+	defer releaseWriter()
 	if !credential.present() || materialize == nil {
 		return NativeMaterialization{}, ErrNativeUnauthorized
 	}

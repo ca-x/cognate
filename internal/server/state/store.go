@@ -18,6 +18,7 @@ import (
 	"github.com/ca-x/cognate/internal/filelock"
 	"github.com/ca-x/cognate/internal/server/ent"
 	"github.com/ca-x/cognate/internal/server/ent/user"
+	"github.com/ca-x/cognate/internal/server/maintenance"
 	_ "github.com/lib-x/entsqlite"
 )
 
@@ -30,10 +31,12 @@ type storeState struct {
 	keyID             string
 	observationMaxAge time.Duration
 	now               func() time.Time
+	maintenance       *storeMaintenance
 }
 
 type Options struct {
-	ObservationMaxAge time.Duration
+	ObservationMaxAge  time.Duration
+	MaintenanceManaged bool
 }
 
 func (Store) String() string   { return "[redacted server state]" }
@@ -79,6 +82,34 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path || filepath.Base(path) == "." || filepath.Dir(path) == path {
 		return nil, fmt.Errorf("server database path must be absolute and clean")
 	}
+	var managed *storeMaintenance
+	var managedParent string
+	var managedIdentity os.FileInfo
+	retained := false
+	if options.MaintenanceManaged {
+		if err := maintenance.CheckPlatform(ctx); err != nil {
+			return nil, err
+		}
+		canonicalParent, err := filepath.EvalSymlinks(filepath.Dir(path))
+		if err != nil {
+			return nil, fmt.Errorf("resolve server data directory: %w", err)
+		}
+		identity, err := os.Stat(canonicalParent)
+		if err != nil {
+			return nil, err
+		}
+		instance, err := maintenance.Join(ctx, canonicalParent)
+		if err != nil {
+			return nil, err
+		}
+		managed = &storeMaintenance{instance: instance, changed: make(chan struct{})}
+		managedParent, managedIdentity = canonicalParent, identity
+		defer func() {
+			if !retained {
+				_ = instance.Close()
+			}
+		}()
+	}
 	if err := validateServerDirectory(filepath.Dir(path)); err != nil {
 		return nil, err
 	}
@@ -90,6 +121,18 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		return nil, err
 	}
 	path = filepath.Join(parent, filepath.Base(path))
+	if managed != nil {
+		identity, err := os.Stat(parent)
+		if err != nil || parent != managedParent || !os.SameFile(identity, managedIdentity) {
+			return nil, maintenance.ErrDirectory
+		}
+		leased, release, err := managed.enter(ctx)
+		if err != nil {
+			return nil, err
+		}
+		ctx = leased
+		defer release()
+	}
 	lock, err := filelock.Acquire(ctx, path+".schema.lock")
 	if err != nil {
 		return nil, fmt.Errorf("lock server schema: %w", err)
@@ -116,7 +159,7 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		return nil, fmt.Errorf("initialize server database: %w", err)
 	}
 	fingerprint := sha256.Sum256(key)
-	store := &Store{state: &storeState{client: client, aead: aead, configurationAEAD: configurationAEAD, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now}}
+	store := &Store{state: &storeState{client: client, aead: aead, configurationAEAD: configurationAEAD, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now, maintenance: managed}}
 	if err := store.verifyDatabaseKey(ctx); err != nil {
 		_ = client.Close()
 		return nil, err
@@ -129,6 +172,7 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		_ = client.Close()
 		return nil, err
 	}
+	retained = true
 	return store, nil
 }
 
@@ -180,10 +224,18 @@ func (store *Store) Close() error {
 	if store == nil || store.state == nil {
 		return nil
 	}
+	if store.state.maintenance != nil {
+		return store.state.maintenance.close(store.state.client.Close)
+	}
 	return store.state.client.Close()
 }
 
 func (store *Store) CreateUser(ctx context.Context, userKey string) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if err := validateIdentifier(userKey); err != nil {
 		return err
 	}

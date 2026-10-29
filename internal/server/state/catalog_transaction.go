@@ -13,6 +13,11 @@ import (
 const catalogTransactionAttempts = 4
 
 func (store *Store) catalogTransaction(ctx context.Context, operation func(*ent.Tx) error) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	var err error
 	for attempt := range catalogTransactionAttempts {
 		if err := ctx.Err(); err != nil {

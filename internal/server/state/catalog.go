@@ -141,6 +141,11 @@ func sameRepository(first, second github.ListRepository) bool {
 }
 
 func (store *Store) SetListSubscription(ctx context.Context, userKey, listID string, subscribed bool) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if err := validateIdentifier(userKey); err != nil {
 		return err
 	}
@@ -207,6 +212,11 @@ func (store *Store) SubscribedRepositories(ctx context.Context, userKey string) 
 }
 
 func (store *Store) GitHubCatalog(ctx context.Context, userKey string) (CatalogSnapshot, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return CatalogSnapshot{}, admissionError
+	}
+	defer releaseWriter()
 	tx, err := store.state.client.Tx(ctx)
 	if err != nil {
 		return CatalogSnapshot{}, fmt.Errorf("start GitHub catalog read: %w", err)

@@ -28,6 +28,11 @@ func (Credential) String() string   { return "[redacted GitHub credential]" }
 func (Credential) GoString() string { return "[redacted GitHub credential]" }
 
 func (store *Store) PutCredential(ctx context.Context, userKey, viewerID, expectedGeneration string, token github.Token) (string, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return "", admissionError
+	}
+	defer releaseWriter()
 	if err := validateIdentifier(userKey); err != nil {
 		return "", err
 	}

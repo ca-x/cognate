@@ -34,6 +34,11 @@ func (ListSyncResult) String() string   { return "[redacted GitHub synchronizati
 func (ListSyncResult) GoString() string { return "[redacted GitHub synchronization result]" }
 
 func (store *Store) BeginListSync(ctx context.Context, userKey, generation string) (ListSyncTicket, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return ListSyncTicket{}, admissionError
+	}
+	defer releaseWriter()
 	if err := validateIdentifier(userKey); err != nil {
 		return ListSyncTicket{}, err
 	}
@@ -114,6 +119,11 @@ func validSyncTicket(ticket ListSyncTicket) bool {
 }
 
 func (store *Store) claimListRead(ctx context.Context, ticket ListSyncTicket, fetchID string, client *github.ListsClient) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	tx, err := store.state.client.Tx(ctx)
 	if err != nil {
 		return fmt.Errorf("start GitHub synchronization read claim: %w", err)
@@ -151,6 +161,11 @@ func (store *Store) claimListRead(ctx context.Context, ticket ListSyncTicket, fe
 }
 
 func (store *Store) CommitListSync(ctx context.Context, result ListSyncResult, apply func(context.Context, *ent.Tx, github.ListsSnapshot) error) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	ticket, client, snapshot := result.ticket, result.client, result.snapshot
 	if !validSyncTicket(ticket) || result.fetchID == "" || client == nil || apply == nil || snapshot.ViewerID != ticket.viewerID {
 		return ErrSyncSuperseded

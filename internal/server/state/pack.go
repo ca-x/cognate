@@ -76,6 +76,11 @@ func (store *Store) UpdatePack(ctx context.Context, userKey, id string, expected
 }
 
 func (store *Store) savePack(ctx context.Context, userKey, id string, expectedRevision int64, draft PackDraft) (Pack, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return Pack{}, admissionError
+	}
+	defer releaseWriter()
 	draft, err := normalizePackDraft(draft)
 	if err != nil {
 		return Pack{}, err
@@ -192,6 +197,11 @@ func (store *Store) Pack(ctx context.Context, userKey, id string) (Pack, error) 
 }
 
 func (store *Store) DeletePack(ctx context.Context, userKey, id string, expectedRevision int64) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if !validPackKey(id) || expectedRevision <= 0 || expectedRevision == math.MaxInt64 {
 		return ErrPackConflict
 	}

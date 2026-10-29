@@ -222,6 +222,11 @@ func (store *Store) BeginNativeConsumer(ctx context.Context, credential OwnerSes
 }
 
 func (store *Store) beginNativeConsumer(ctx context.Context, credential OwnerSessionCredential, input NativeConsumerStart, budget nativeBudget) (NativeConsumerChallenge, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return NativeConsumerChallenge{}, admissionError
+	}
+	defer releaseWriter()
 	if !credential.present() {
 		return NativeConsumerChallenge{}, ErrNativeUnauthorized
 	}
@@ -277,6 +282,11 @@ func (store *Store) BindNativeConsumer(ctx context.Context, parentCredential Own
 }
 
 func (store *Store) bindNativeConsumer(ctx context.Context, parentCredential OwnerSessionCredential, input NativeConsumerBind, budget nativeBudget) (NativeConsumerIdentity, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return NativeConsumerIdentity{}, admissionError
+	}
+	defer releaseWriter()
 	if !parentCredential.present() || !input.Proof.present() || !input.TokenHash.present() {
 		return NativeConsumerIdentity{}, ErrNativeUnauthorized
 	}
@@ -400,6 +410,11 @@ func nativeFailure(ctx context.Context, err error) error {
 
 func (store *Store) nativeTransaction[Value any](ctx context.Context, operation func(*ent.Tx) (Value, func(time.Time) error, error)) (Value, error) {
 	var zero Value
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return zero, admissionError
+	}
+	defer releaseWriter()
 	for attempt := range catalogTransactionAttempts {
 		if err := ctx.Err(); err != nil {
 			return zero, err

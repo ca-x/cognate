@@ -28,6 +28,11 @@ func (PasswordAccount) String() string   { return "[redacted local account]" }
 func (PasswordAccount) GoString() string { return "[redacted local account]" }
 
 func (store *Store) CreatePasswordAccount(ctx context.Context, username string, passwordHash []byte) (string, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return "", admissionError
+	}
+	defer releaseWriter()
 	if err := validateIdentifier(username); err != nil || len(passwordHash) < 32 || len(passwordHash) > 1024 {
 		return "", fmt.Errorf("invalid local account")
 	}
@@ -71,6 +76,11 @@ func (store *Store) PasswordAccount(ctx context.Context, username string) (Passw
 }
 
 func (store *Store) CreatePasswordSession(ctx context.Context, username string, expectedHash, tokenHash []byte, issuedAt, expiresAt time.Time) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if len(expectedHash) < 32 || len(tokenHash) != 32 || issuedAt.IsZero() || !expiresAt.After(issuedAt) {
 		return fmt.Errorf("invalid session material")
 	}
@@ -116,6 +126,11 @@ func (store *Store) SessionUser(ctx context.Context, tokenHash []byte, now time.
 }
 
 func (store *Store) RevokeSession(ctx context.Context, tokenHash []byte) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if len(tokenHash) != 32 {
 		return ErrSessionInvalid
 	}

@@ -83,6 +83,11 @@ func (store *Store) ListCategories(ctx context.Context, userKey string) ([]Categ
 }
 
 func (store *Store) CreateCategory(ctx context.Context, userKey, input string) (Category, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return Category{}, admissionError
+	}
+	defer releaseWriter()
 	name, normalized, err := categoryName(input)
 	if err != nil {
 		return Category{}, err
@@ -225,6 +230,11 @@ func (store *Store) SkillCategories(ctx context.Context, userKey, skillID string
 }
 
 func (store *Store) SetSkillCategories(ctx context.Context, userKey, skillID string, ids []string) ([]Category, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return nil, admissionError
+	}
+	defer releaseWriter()
 	if len(ids) > 8 {
 		return nil, ErrCategoryInvalid
 	}

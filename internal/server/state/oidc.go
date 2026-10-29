@@ -31,6 +31,11 @@ func (OIDCSessionPlan) String() string   { return "[redacted OpenID Connect sess
 func (OIDCSessionPlan) GoString() string { return "[redacted OpenID Connect session]" }
 
 func (store *Store) CreateOIDCSession(ctx context.Context, plan OIDCSessionPlan) (string, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return "", admissionError
+	}
+	defer releaseWriter()
 	issuer, err := url.Parse(plan.Issuer)
 	if err != nil || len(plan.Issuer) == 0 || len(plan.Issuer) > 2048 || !utf8.ValidString(plan.Issuer) || issuer.Host == "" || issuer.User != nil || issuer.RawQuery != "" || issuer.Fragment != "" || (issuer.Scheme != "https" && issuer.Scheme != "http") || len(plan.Subject) == 0 || len(plan.Subject) > 255 || !utf8.ValidString(plan.Subject) || strings.ContainsAny(plan.Subject, "\x00\r\n") || len(plan.TokenHash) != 32 || plan.IssuedAt.IsZero() || !plan.ExpiresAt.After(plan.IssuedAt) {
 		return "", fmt.Errorf("invalid OpenID Connect session")

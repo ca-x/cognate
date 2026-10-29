@@ -53,11 +53,15 @@
 
 ### 3.1 v1 保守方案：全写入屏障 + 私有 staging
 
-建议先做单实例、单 data directory 的完整维护屏障，不先引入复杂的在线 GC pin 表。以下均为**待新增机制**：
+v1 采用冷启动时显式加入的 managed-instance 模式，单 data directory 只允许一个合作写进程，同进程多个受管 Store 共享同一 B1 gate；不先引入复杂的在线 GC pin 表。默认 `state.Open` / 零值 options 保持原有多 Store、多进程行为，并不获得备份一致性保证。`state.Options.MaintenanceManaged=true` 由 Store 按已校验的 DB canonical parent 自行 Join，禁止热挂、任意目录 Instance 注入及 Join 失败后降级；非 Unix 明确 unsupported，但默认模式不受影响。
 
-1. 服务生命周期锁明确 data directory 只有一个写实例；备份 job 另有单 writer 排他控制。现有 schema/cache 局部锁不足以提供这个保证。多进程或绕过屏障写文件的部署先 fail closed。
+默认 `state.Open` 在既有非 Unix 实现中本来就因目录安全验证 unsupported 而失败；本片保留其原顺序和错误分类，不能把历史失败归因于新增 B1。仅 managed 分支在既有 ctx/key/绝对 clean path 基础参数检查通过后，先调用纯能力检查 `maintenance.CheckPlatform(ctx)`，在 EvalSymlinks/Stat 等任何文件系统访问前决定平台支持：Unix 仅返回 `ctx.Err()`；非 Unix 优先保留 ctx 错误，否则返回既有 B1 `ErrUnsupported`，即使绝对 path 的父目录不存在也不先返回 canonical/FS 失败、不创建任何条目。CheckPlatform 不碰目录、不 Join/持锁、不含平台名单或任意 Instance 注入；默认分支不调用。Unix 后续 canonical parent/inode → Join → 原目录/DB 验证和父目录身份复核顺序保持不变，失败释放 handle。B1b 后续可复用同一能力检查，不能复制平台知识。CGO0 跨编译通过不等于非 Unix 运行通过，真实 Windows 测试另由平台 CI 验收。
+
+B1 独立计数租约/实例锁原语已交付；B1a Store writers 与启动/Close 接线候选现包含正式 Task2C 串交后的 native 写者，待完整 exact tree 独立验收。`nativeTransaction` 自持独立 nested 租约覆盖 SQLite 全部 retry；Begin/Bind、Prepare/Authorize/Consume 另持最外层逻辑租约，覆盖 quota rollback → prune → run、纯 Store callback 捕获的 leased context 与 Consume 的事务后取消/结果发布清理；三类 Preflight、Snapshot、Status 和 GC 同样受 helper 保护，proof/四表配额/GC 业务不改。**受管 App、archive cache/内容跨资源提交和 coordinator 尚未完成接线，不存在可用的全写屏障或备份入口**。后续完整屏障必须满足下列验收约束，不能把本片测试等同于备份可用。此为合作协议，不防任意 raw SQLite、旧 binary、运维脚本或同 UID/root 直接写；受管备份启用前须停掉旁路写者并从专用 dataDir 冷启动。
+
+1. 服务生命周期锁明确 data directory 只有一个合作写进程；备份 job 另有单 writer 排他控制。所有 Store/cache 独立持有目录身份绑定的生命周期引用，不能用关闭一个 Store 放走另一个。现有 schema/cache 局部锁不足以提供这个保证；已知存在旁路写者的部署不启用受管备份。
 2. 触发时先预检 staging 空间、预算、目标/key 配置；进入维护态，停止接收新的领域写操作，暂停 scheduler、imports、账号/session、MCP/configuration、分享和所有后台持久化写入。读请求若有 last-seen 等副作用也算写。仅关闭 library 不成立。
-3. 等已登记 writer 退出，带有限 drain deadline；超时取消备份，释放维护态，不无限等网络任务。长网络准备可在屏障外，但其 DB/归档提交必须重新取得写租约。所有写入从入口到事务结束持有同一机制的租约。
+3. 等已登记 writer 退出，带有限 drain deadline；超时取消备份，释放维护态，不无限等网络任务。网络/KDF/JS 准备在屏障外，DB/归档提交重新取得写租约；顺序固定为 admission → token/Lists gate → SQLite。租约覆盖完整逻辑 retry、callback、OnCommit、commit/rollback，传播返回的 leased context；nested lease 独立计数，失效 parent 不能借用，异步 child 必须真实 drain。受管 Store 启动在 schema 锁/DB 创建/迁移/策略与完整性修复之前入租约；Close 先拒新写并 drain，再关闭 SQL client，仅成功后才释放 instance 引用，不能先释放最后目录锁。SQL Close 失败或结果未知时保留 instance/root ownership，原 Store 继续拒新写；`closeOnce` 缓存失败，并发或重复 Close 不重试、不清除失败、不静默释锁。恢复需进程退出，或后续另行设计并授权的显式恢复协议；本片没有恢复 API，不能把返回错误当成物理连接已关闭。
 4. 屏障内使用受控新文件名生成 SQLite snapshot，建议首先验证项目 driver 的 `VACUUM INTO`。在专用连接上执行，不包在外层事务中，不把用户路径拼成 SQL。若能力/取消/完整性测不过，**不启用自动备份**；只提供明确停服后的运维流程，不能静默退化为复制活动 DB。
 5. snapshot 成功后，以不会触发 schema/策略更新的只读连接枚举其内容引用闭包。不能调用会初始化数据的 `state.Open` 当作无副作用检查器。执行 integrity/foreign-key 检查；用分页/流式枚举，生成受限 inventory。
 6. 屏障继续覆盖归档修改/删除/GC，按快照引用复制并重新计算 archive hash 到独立私有 staging。不能只记录活文件路径、释放锁后再上传；不能把可被修改的硬链接当作不可变副本。缺失、hash 不符、skill path/content hash 不符均整次失败，不在线补拉上游。

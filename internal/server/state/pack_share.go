@@ -24,6 +24,11 @@ type PackShare struct {
 }
 
 func (store *Store) CreatePackShare(ctx context.Context, userKey, packID, shareID string, digest []byte, expiry *time.Time) (PackShare, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return PackShare{}, admissionError
+	}
+	defer releaseWriter()
 	if !validPackKey(packID) || !validPackKey(shareID) || len(digest) != 32 || expiry != nil && (!expiry.After(store.state.now()) || expiry.After(store.state.now().Add(366*24*time.Hour))) {
 		return PackShare{}, ErrPackInvalid
 	}
@@ -103,6 +108,11 @@ func (store *Store) ListPackShares(ctx context.Context, userKey, packID string) 
 }
 
 func (store *Store) RevokePackShare(ctx context.Context, userKey, packID, shareID string) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if !validPackKey(packID) || !validPackKey(shareID) {
 		return ErrPackNotFound
 	}

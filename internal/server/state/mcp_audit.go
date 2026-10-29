@@ -30,6 +30,11 @@ func validMCPAction(action string) bool {
 }
 
 func (store *Store) RecordMCPAudit(ctx context.Context, credentialID, action, resource, outcome string) error {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return admissionError
+	}
+	defer releaseWriter()
 	if !validPackKey(credentialID) || !validMCPAction(action) || resource != "" && !validPackKey(resource) || outcome != "success" && outcome != "denied" && outcome != "failure" {
 		return ErrMCPInvalid
 	}

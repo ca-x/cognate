@@ -88,6 +88,11 @@ func normalizeMCPMetadata(metadata MCPMetadata, now time.Time) (MCPMetadata, err
 }
 
 func (store *Store) CreateMCPCredential(ctx context.Context, owner string, hash []byte, metadata MCPMetadata) (MCPCredential, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return MCPCredential{}, admissionError
+	}
+	defer releaseWriter()
 	metadata, err := normalizeMCPMetadata(metadata, store.state.now())
 	if err != nil || len(hash) != 32 {
 		return MCPCredential{}, ErrMCPInvalid
@@ -166,6 +171,11 @@ func (store *Store) RevokeMCPCredential(ctx context.Context, owner, id string, r
 }
 
 func (store *Store) changeMCPCredential(ctx context.Context, owner, id string, revision int64, change func(*ent.MCPCredentialUpdate)) (MCPCredential, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return MCPCredential{}, admissionError
+	}
+	defer releaseWriter()
 	if !validPackKey(id) {
 		return MCPCredential{}, ErrMCPNotFound
 	}

@@ -36,6 +36,10 @@ var registry struct {
 	entries []*directoryEntry
 }
 
+func CheckPlatform(ctx context.Context) error {
+	return ctx.Err()
+}
+
 func Join(ctx context.Context, directory string) (*Instance, error) {
 	ctx, cancel := context.WithTimeout(ctx, joinTimeout)
 	defer cancel()

@@ -46,6 +46,11 @@ type CollectedSkill struct {
 }
 
 func (store *Store) CollectRepository(ctx context.Context, userKey string, reference repository.Reference, archiveHash string, skills []repository.ArchivedSkill) (CollectedRepository, error) {
+	ctx, releaseWriter, admissionError := store.enterWriter(ctx)
+	if admissionError != nil {
+		return CollectedRepository{}, admissionError
+	}
+	defer releaseWriter()
 	if err := ctx.Err(); err != nil {
 		return CollectedRepository{}, err
 	}
