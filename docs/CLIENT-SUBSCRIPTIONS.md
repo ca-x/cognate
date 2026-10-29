@@ -5,6 +5,7 @@
 ## CLI
 
 ```sh
+cognate client-key init
 cognate pack subscribe --server https://your-cognate.example --token-stdin
 cognate pack list
 cognate pack sync
@@ -14,6 +15,8 @@ cognate uninstall-local example
 ```
 
 分享凭据仅从标准输入读取，不能通过命令行参数传入；可将密码管理器输出经管道交给命令。不要将令牌写入 shell 命令或脚本。服务端必须是 HTTPS origin，开发环境仅显式 loopback 允许 HTTP；不跟随重定向，不将凭据发往 GitHub。
+
+`client-key init` 在执行命令前检查标准输出，限制也覆盖 `--help`：原生输出须为具备所需 deadline 能力、可独立重开的 Linux 终端或 pipe/FIFO；普通文件及 socket 型捕获不受支持。需保存提示时可使用 `set -o pipefail` 后运行 `cognate client-key init | tee init-status.txt`，检查 CLI 自身退出状态，不要只检查管道最后一个命令。该限制不改变下述 Watch 的普通文件输出合同；初始化后的输出失败也不代表密钥写入已撤销，应核实后显式重试。
 
 `subscribe` 先验证 manifest 并保存订阅，然后同步全部订阅；失败会明确提示订阅已经保存，不能误认为回滚。`remove` 先保存待移除状态，再统一清理；若其他订阅失权或本地内容变化，清理可能暂缓，原有状态仍在。`list` 只显示标识、名称、来源和版本，不显示凭据；尚无状态时不会创建目录。
 
@@ -36,9 +39,9 @@ watch 会获取服务端已经提供的新 Pack manifest，但**不负责让服�
 ## 数据与密钥
 
 - SQLite 位于 `~/.local/share/skillhub/client.db`，与已有安装 journal、安装映射和备份记录同库。
-- 独立 32 字节根密钥默认位于 `~/.config/skillhub/client.key`，首次订阅自动创建，仅当前用户可读写，不接受软/硬链接。它不写入 SQLite，也不输出到日志。
+- 独立 32 字节根密钥默认位于 `~/.config/skillhub/client.key`，只由显式 `cognate client-key init` 或 MyGo“账号 → 本机设置”的初始化动作创建，仅当前用户可读写，不接受软/硬链接。初始化不访问网络、不登录服务端，也不创建业务数据库。首次订阅不再自动创建密钥；订阅和同步每次重新加载已有密钥，且必须先通过准入才会打开业务数据库或请求服务端。密钥不写入 SQLite，也不输出到日志。
 - 分享原文经独立 HKDF 域派生的 AES-GCM 加密，AAD 绑定订阅 ID、服务器 origin 和 Pack ID；SQLite/WAL 不保存原文。公开状态 DTO 不包含密文或原文。
-- 已有订阅时密钥丢失不自动生成替代；必须恢复原密钥。密钥损坏、权限过宽、归属不符或解密不匹配会拒绝操作，不能假装空数据库继续。
+- 没有任何既有状态时，缺少密钥会提示先显式初始化；存在初始化标记或客户端数据而密钥丢失时须恢复原密钥，不会生成替代，即使没有保存订阅也是如此。密钥损坏、权限过宽、归属不符或解密不匹配会拒绝操作，不能假装空数据库继续。再次显式初始化会核实并保留同一密钥，不会轮换它。
 - 复制数据库用于续接时，需单独安全保管和恢复密钥；只备份数据库不能解密订阅。不要把根密钥放进公开仓库、分享内容或普通日志。
 
 ## 同步顺序

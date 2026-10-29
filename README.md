@@ -22,6 +22,10 @@ CGO_ENABLED=0 go build -o cognate ./cmd/cognate
 
 第三方导入插件仅在服务端执行；客户端插件入口已撤下。服务端已有 cc-switch 与源格式验证后的 Magpie 内部只读预览，完整授权上传/持久化/配置导入仍在开发，见 `docs/PLUGIN-IMPORT.md` 和 `docs/MAGPIE-IMPORTER.md`。
 
+首次使用本地安装、Pack 同步或配置应用前，先显式运行 `./cognate client-key init`；可用 `--timeout 30s` 设置初始化期限（大于零且不超过两分钟）。该命令只初始化或核实本机加密密钥，不登录服务端、不访问网络。MyGo 对应入口在“账号 → 本机设置”。已有密钥会原样保留；缺失且存在初始化标记或客户端数据时必须恢复原密钥，不会自动生成替代。密钥默认位于 `~/.config/skillhub/client.key`，请单独安全备份，勿上传或写入日志。`scan`、`browse`、`search` 不需要初始化；匿名安装虽然不需要服务端 token，仍需要本机密钥准入。当前本机初始化仅支持 Linux，不能以交叉构建成功代替其他平台支持。
+
+`client-key init`（含 `--help`）的输出仅支持具备所需 deadline 能力、可独立重开的 Linux 终端或 pipe/FIFO，不支持直接 `>普通文件` 或 socket 型捕获。需保存提示时可经受支持管道交给 `cat`/`tee`，并用 `pipefail` 检查 CLI 自身退出状态；这不同于 `pack watch` 的普通文件输出支持。
+
 Linux 开发环境可用 `./cognate install-local /path/to/skill --slug example` 实验性安装本地 skill。该命令只向已存在的 agent skills 目录创建链接，状态保存在 `~/.local/share/skillhub/`；重复安装时，只有已记录的内容和全部目标核验一致才会跳过。`./cognate uninstall-local example` 先完成备份再保守卸载已记录且未变化的目标。可用 `./cognate install-status` 查看未完成操作，或用 `./cognate install-status --reconcile` 取消未开始的操作并将已中断操作标记为需关注；该命令不会删除现场。自动恢复/续跑和人工处理界面仍未实现，请勿用于无法人工处理的环境。WSL 的 copy 安装及其他平台尚未完成。安全边界见 `docs/INSTALL-RECOVERY.md`。
 
 Pack 客户端命令为 `pack subscribe --server ORIGIN --token-stdin`、`pack list`、`pack sync`、`pack watch --interval 5m --attempt-timeout 2m` 和 `pack remove SUBSCRIPTION_ID`。watch 在前台串行同步，失败有界退避、空闲时释放安装锁，Ctrl-C 停止，不自动创建后台服务。分享原文仅从标准输入读取，使用独立私有密钥加密落库；同技能跨组合只安装一份，更新和最后一次取消订阅会先备份。完整顺序、密钥保管、Linux 限制及未完成恢复能力见 `docs/CLIENT-SUBSCRIPTIONS.md`。这不等于 F5 或 M2/M4 全部验收完成。
