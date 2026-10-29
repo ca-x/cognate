@@ -192,3 +192,20 @@ Native schema 的独立 review 核 23 messages、6 enums、6 RPC 的全部 token
 原 tree `69c6c4d8c4395ab6ee3ec501dee59a0f6b403759` 虽主全量通过，独立发现 auto-policy ID 错限任意 32 bytes：合法短 ASCII 被拒绝、32 个 NUL 被接受。该 P2 没有通过改协议豁免；最终复用已签 1–64 bytes ASCII opaque ID 规则，typed/raw 原反例 100 轮通过，独立字符边界通过，退回旧实现的 overlay 重新 red。原拒签、16 个独立 known-answer vectors、strict-wire/格式化隐私及四项有效 mutation 证据保留于 `native-proof-final-review.md`；作者六个 Python/OpenSSL fixture 的 parity 不替代独立 oracle。
 
 最终 clean export 的 Web build、Buf lint、完整 Go/Web 双模板 parity、全仓 Go tests/vet、proof 100 轮与模块校验通过，均 Go 1.27.3 / CGO0；没有运行需要 cgo 的 race detector。Build `40745938862` 已登记但本 checkpoint 未核完成，不声明远端 CI 通过。本片无 HTTP/磁盘/秘密消费，不证明 owner MAC、重放/授权、数据库时间与撤销、grant、客户端发布或完整配置应用；后续 native state/auth 及 watch WIP 不在本次签收内。
+
+## Selection Read And Initial Lists Publication Checkpoint
+
+2026-10-29 后续交付，以下两片已分别通过非作者独立 Spec/Quality 验收（开放 P1/P2 为 0）、提交、SSH 推送和远端 SHA 读回。本节补充后续证据，不追认早期 checkpoint 或其未核 CI 已经通过。
+
+| 切片 | 精确提交 / Build | 已证明范围 |
+| --- | --- | --- |
+| C0-S 当前选择读取 | `04ad076529b032082dfa3b8ef1d36d601fba67a1` / `40832542043` completed/success | 每次在真实安装锁内重新认证已有 root 与完整 inventory；返回三个 revision、AutoApply、DeviceID；验证后不存在才 absent，取消/释放/损坏错误返回全零；重启、Restore 后暂停与跨进程新鲜读取有行为验证 |
+| B1c 首次 Lists 内容发布 | `34c22a1070e3bdc907d177f89e1bdc426b342e58` / `40833359423` completed/success | 共享物理维护配对验证；首次 cache.Put 到 CollectListRepository 真实事务完成和清理的外层 writer scope，传播 leasedCtx；网络准备在外；真实子进程、Close/Quiesce、提交回执丢失与失权回归有证据 |
+
+C0-S 独立 reviewer 额外验证认证全局库存后才认 absent、root 移除/恢复、真实 pending、uint64 极值；五类独立编译后行为退化均产生断言 RED，恢复精确源码 GREEN。B1c 独立 reviewer 在真实归档发布/清理与 COMMIT 尾部设屏障，以第二 Store readback 验证真实提交、Close/Exclusive 等待及过期 leasedCtx；去外 scope、丢 leasedCtx、重置 helper context 的三项负控各三次真实断言 RED。编译失败、panic、整体超时与父进程空 helper 不算行为证明。
+
+组合 tree `b25f02bb46342d445179940201984ff2c37869d6` 恰为基线 `de2886e` 加 C0-S 两路径与 B1c 五路径，独立机械 ratify 逐项 blob/mode 及完整导出一致。主线程对该不可变 clean export 执行 npm ci/build、全仓 Go tests/vet、go mod verify、Buf lint、Go/Web 双模板生成逐字比较，以及 CLI/服务端/MyGo 的 Linux amd64、Windows amd64、Darwin arm64 九项 CGO0 编译，全部 exit0。交叉编译不代表这些平台的实际安装或恢复验收；主线程全量不冒称独立 reviewer 重跑全仓。
+
+这两片依赖已交付的 Linux/Claude 本地加密 journal、备份、确认/CAS 发布及恢复内核（`0839b62`），但仍不是 CLI/MyGo 配置应用的完整产品闭环。CurrentSelection 返回的快照不是授权、reservation 或防恶意历史回放证明；网络撤销与本地落盘不是跨机器原子事务。B1c 也不是 App 已启用 managed 模式、全局备份协调器或 S3 恢复完成。
+
+显式客户端密钥准入的 capability map、core spec 与 plan 已在 `d40503e2dde3c0874a3e417904c3cc302fbc78c4` 提交推送，Build `40834848617` completed/success；这是设计文档交付，不是 key 初始化实现验收。旧 CLI/native 自动创建入口关闭、真实人类逐槽批准与安全 TTY、MyGo 配置 UI、自动/Pack 附件、其它 agent/平台、完整 F12 和首个正式 Release 仍分别待完成；不能因以上 CI 全绿勾掉这些门禁。
