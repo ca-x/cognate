@@ -16,11 +16,59 @@ import (
 	"testing"
 
 	"github.com/ca-x/cognate/internal/repository"
+	"github.com/ca-x/cognate/internal/server/maintenance"
 	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/ca-x/cognate/internal/skill"
 )
 
 type fetchArchive func(context.Context, repository.Reference) (*repository.ArchiveSnapshot, error)
+
+func TestValidateMaintenancePairLifecycle(test *testing.T) {
+	if err := ValidateMaintenancePair(test.Context(), nil, nil); err == nil {
+		test.Fatal("nil components accepted")
+	}
+	for _, closed := range []string{"none", "store", "cache"} {
+		test.Run(closed, func(test *testing.T) {
+			service, store, cache, instance := contentService(test)
+			ctx, cancel := context.WithCancel(test.Context())
+			cancel()
+			if err := ValidateMaintenancePair(ctx, store, cache); !errors.Is(err, context.Canceled) {
+				test.Fatalf("pair ignored cancellation: %v", err)
+			}
+			if closed == "store" {
+				if err := store.Close(); err != nil {
+					test.Fatal(err)
+				}
+			}
+			if closed == "cache" {
+				if err := cache.Close(); err != nil {
+					test.Fatal(err)
+				}
+			}
+			if closed != "none" {
+				if err := ValidateMaintenancePair(test.Context(), store, cache); !errors.Is(err, maintenance.ErrClosed) {
+					test.Fatalf("pair accepted closed component: %v", err)
+				}
+				return
+			}
+			exclusive, err := instance.Quiesce(test.Context())
+			if err != nil {
+				test.Fatal(err)
+			}
+			if err := ValidateMaintenancePair(test.Context(), store, cache); !errors.Is(err, maintenance.ErrQuiescing) {
+				exclusive.Release()
+				test.Fatalf("pair ignored admission: %v", err)
+			}
+			exclusive.Release()
+			if err := ValidateMaintenancePair(test.Context(), store, cache); err != nil {
+				test.Fatal(err)
+			}
+			if _, err := service.Collect(test.Context(), "owner", "org/source", ""); err != nil {
+				test.Fatalf("validation retained a lease or closed resources: %v", err)
+			}
+		})
+	}
+}
 
 func (fetch fetchArchive) Fetch(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
 	return fetch(ctx, reference)

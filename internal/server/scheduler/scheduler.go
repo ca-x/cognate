@@ -62,6 +62,9 @@ func New(store *state.Store, cache *library.ArchiveCache, fetcher library.Archiv
 	if options.Interval < 0 || options.Interval > 24*time.Hour || options.Timeout < 0 || options.Timeout > 10*time.Minute || options.MaxUsers < 1 || options.MaxUsers > 1000 || options.MaxCollections < 1 || options.MaxCollections > 1000 {
 		return nil, errors.New("invalid GitHub list scheduler bounds")
 	}
+	if err := library.ValidateMaintenancePair(context.Background(), store, cache); err != nil {
+		return nil, err
+	}
 	lifetime, cancel := context.WithCancel(context.Background())
 	return &Scheduler{store: store, cache: cache, fetcher: fetcher, client: client, options: options, lifetime: lifetime, cancel: cancel}, nil
 }
@@ -196,11 +199,12 @@ func (scheduler *Scheduler) collect(ctx context.Context, user string, result sta
 	if snapshot == nil || len(snapshot.Skills) == 0 {
 		return repository.ErrArchiveInvalid
 	}
-	if err := scheduler.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
-		return err
-	}
-	ctx = scheduler.store.WithSourceAccess(ctx, access)
-	saved, err := scheduler.store.CollectListRepository(ctx, result, entry.ID, reference, snapshot.Hash, snapshot.Skills)
+	saved, err := scheduler.store.WithMaintenanceWriter(ctx, func(ctx context.Context) (state.CollectedRepository, error) {
+		if err := scheduler.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
+			return state.CollectedRepository{}, err
+		}
+		return scheduler.store.CollectListRepository(scheduler.store.WithSourceAccess(ctx, access), result, entry.ID, reference, snapshot.Hash, snapshot.Skills)
+	})
 	if err != nil {
 		return err
 	}

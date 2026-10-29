@@ -98,11 +98,25 @@ func NewService(store *state.Store, cache *ArchiveCache, fetcher ArchiveFetcher)
 	if store == nil || cache == nil || fetcher == nil {
 		return nil, errors.New("repository library requires storage, cache, and an archive fetcher")
 	}
+	if err := ValidateMaintenancePair(context.Background(), store, cache); err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Service{store: store, cache: cache, fetcher: fetcher, lifetime: ctx, cancel: cancel, slots: make(chan struct{}, 2)}, nil
+}
+
+func ValidateMaintenancePair(ctx context.Context, store *state.Store, cache *ArchiveCache) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if store == nil || cache == nil {
+		return errors.New("repository library requires storage and cache")
+	}
 	if store.MaintenanceManaged() != (cache.maintenance != nil) {
-		return nil, errors.New("repository library maintenance modes do not match")
+		return errors.New("repository library maintenance modes do not match")
 	}
 	if store.MaintenanceManaged() {
-		_, err := store.WithMaintenanceWriter(context.Background(), func(ctx context.Context) (struct{}, error) {
+		_, err := store.WithMaintenanceWriter(ctx, func(ctx context.Context) (struct{}, error) {
 			_, release, err := cache.enterWriter(ctx)
 			if err != nil {
 				return struct{}{}, err
@@ -110,12 +124,9 @@ func NewService(store *state.Store, cache *ArchiveCache, fetcher ArchiveFetcher)
 			defer release()
 			return struct{}{}, cache.verifyDirectory()
 		})
-		if err != nil {
-			return nil, err
-		}
+		return err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	return &Service{store: store, cache: cache, fetcher: fetcher, lifetime: ctx, cancel: cancel, slots: make(chan struct{}, 2)}, nil
+	return nil
 }
 
 func (service *Service) Collect(ctx context.Context, user, input, branch string) (state.CollectedRepository, error) {

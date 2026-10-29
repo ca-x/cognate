@@ -36,3 +36,13 @@
 ## 4. 验证与 freeze
 - [ ] Go1.27.3/CGO0：新测试统一 `TestManagedInitialLists` 前缀，运行 focused count1，再 shuffle count10 JSON；核 top/subtest 真 run/pass、零新 skip。跑 library/scheduler/state 回归与 vet；default 多进程、Task2 原测试保持。跨编译只记静态，不冒称平台 runtime。
 - [ ] 记录实际 RED/GREEN/receipt/负控及 invalid setup；冻结四 Go delta/base/tree/manifest 与报告，停止源码写入交非作者独立审。主线程负责组合全量与提交；未实际通过不勾验收项。
+
+## Scoped progress — 2026-10-29
+
+上述“当前仅授权计划”为文档冻结时状态；主线程已在前置 Task2 提交与测试根修 CI 关闭后，另授固定 `de2886ea21a6ad0cf3fbd2afb21cb71df3dfb9fd` 上四 Go 路径及本节。作者现已完成该实现，等待 Wegener 非作者独立 Spec/Quality 审与主线程组合验证，不把作者 GREEN 当独立验收。
+
+- 共享 ValidateMaintenancePair 提取 Task2 原 physical-peer/nested admission 检查；NewService 与 scheduler.New 共用。首次 Lists 发布用 Store 外 scope 覆盖 Put→真实 DB 事务结束/清理，传播 leasedCtx；网络、已收集分支和最终 Verify 保持原边界。
+- 原 constructor 四类配对行为 RED→GREEN；原首次发布在实际 cache stage 清理屏障后丢 nested admission 的编译后 RED→GREEN。原 Task2 测试不改。
+- Go1.27.3/CGO0：四个 scheduler 场景及 library helper 生命周期各 count10/shuffle PASS；真实文件 publication/cleanup/Close/凭据/撤选/MCP/并发 winner overlay 七场景各 count10，真实 SQLite COMMIT 拒绝/成功后丢回执各 count10，均零新 skip。真实 loopback HTTP 与合作子进程验证网络边界、默认多进程及 cache 独立持锁。临时 overlay 仅存证据目录，不增加生产 seam。
+- scope、leasedCtx、pair、网络持 lease 四项隔离负控均编译后有界行为 RED；原 private/凭据撤选/expiry 三项 scheduler 测试各 count20 PASS，相关六包回归及 vet PASS。详细命令、JSON 和 invalid 开发尝试见 ignored `initial-lists-report.md` 与其 evidence 路径。
+- 只补首次 publisher；无 App managed 开关、coordinator、备份 endpoint、S3 或平台扩权，不更新 backup spec，不宣称完整屏障/备份可用。尚未自行提交或独立签收。
