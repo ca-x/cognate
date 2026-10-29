@@ -1,0 +1,30 @@
+{
+  "qualification": "synthetic-only-not-native-profile-approval",
+  "config": "# root\nkeep = 'raw'\n# next section\n[other]\nvalue = 17\n",
+  "auth": "{ \"tokens\" : {\"access_token\":\"SYNTHETIC_LOCAL_ONLY\"}, \"big\":9007199254740993123456789 }",
+  "catalog": "{\"opaque\":{\"big\":9007199254740993123456789},\"models\":[]}",
+  "secret": "SYNTHETIC_NEW_KEY",
+  "expectedConfig": "# root\nkeep = 'raw'\nmodel_provider = 'cognate'\nmodel = 'Case/model:1'\nmodel_reasoning_effort = 'none'\nmodel_catalog_json = 'cognate-model-catalog.json'\n# next section\n[other]\nvalue = 17\n[model_providers.cognate]\nname = 'Cognate'\nbase_url = 'https://codec.invalid:443/v1'\nwire_api = 'responses'\nrequires_openai_auth = true\nexperimental_bearer_token = 'SYNTHETIC_NEW_KEY'\n",
+  "expectedPreview": [
+    {"Role":1,"Field":1,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":2,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":3,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":4,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":5,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":6,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":7,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":8,"Change":2,"SecretPlaceholder":false},
+    {"Role":1,"Field":9,"Change":2,"SecretPlaceholder":true},
+    {"Role":3,"Field":10,"Change":4,"SecretPlaceholder":false},
+    {"Role":3,"Field":11,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":12,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":13,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":14,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":15,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":16,"Change":3,"SecretPlaceholder":false},
+    {"Role":3,"Field":17,"Change":3,"SecretPlaceholder":false}
+  ],
+  "expectedBaselineDigests": ["31d9d57f6d1856f948d4d79320e74f0bbd4a7befb6459aa4fd386cf928e6f249","de66db1f10b3e86d2cc7198cb4c77a7ef4c377d1fe7202280050e955e4347d4f","e94f9a6c2b86b6ab9050434a935b675969916439397e063b2e216ee33e99ffd3"],
+  "configNewlineDigest": "5b20e1076b2b0b4c10e76cf0f7d45e157b1ea4ea2218e92e11081a49fa5c8418",
+  "expectedCatalog": "{\"opaque\":{\"big\":9007199254740993123456789},\"models\":[{\"description\":\"SYNTHETIC_ONLY\",\"slug\":\"Case/model:1\",\"display_name\":\"Case Model\",\"context_window\":2147483647,\"max_context_window\":2147483647,\"supports_parallel_tool_calls\":false,\"input_modalities\":[\"image\",\"text\"],\"base_instructions\":\"  exact\\r\\nline\\tend  \",\"supported_reasoning_levels\":[{\"effort\":\"high\",\"description\":\"synthetic high\"},{\"effort\":\"none\",\"description\":\"synthetic none\"},{\"effort\":\"max\",\"description\":\"synthetic max\"}],\"default_reasoning_level\":\"none\"}]}"
+}

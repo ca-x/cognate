@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "c7d8ab60c2f7ae6d2c4b18b1163b72fe65d59dc8",
+  "sourceBlob": "6004a34d6c5923725354cdd0e606614cf405b341",
+  "declaration": {
+    "apiVersion": 1,
+    "target": "codex.config",
+    "providerID": "cognate",
+    "wireAPI": "responses",
+    "endpoint": "https://codec.invalid:443/v1",
+    "model": "Case/model:1",
+    "reasoningEffort": "none",
+    "catalog": {
+      "models": [{
+        "model": "Case/model:1",
+        "displayName": "Case Model",
+        "contextWindow": 2147483647,
+        "supportsParallelToolCalls": false,
+        "inputModalities": ["image", "text"],
+        "baseInstructions": "  exact\r\nline\tend  ",
+        "reasoningLevels": ["high", "none", "max"],
+        "defaultReasoningLevel": "none"
+      }]
+    },
+    "credentialReference": "codex.provider-key",
+    "requiredSlots": ["codex.provider-key"],
+    "localAuthPolicy": "preserve-local-login-v1"
+  }
+}
