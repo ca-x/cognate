@@ -111,7 +111,7 @@ func nativeConfigurationRequests(service *nativeconsumer.Service, next http.Hand
 			if controller.SetReadDeadline(deadline) != nil || controller.SetWriteDeadline(deadline) != nil {
 				return state.ErrNativeUnavailable
 			}
-			body := request.Body
+			body := &nativeBodyProgress{ReadCloser: request.Body}
 			drained := make(chan struct{})
 			stop := context.AfterFunc(ctx, func() {
 				_ = controller.SetReadDeadline(time.Now())
@@ -124,7 +124,9 @@ func nativeConfigurationRequests(service *nativeconsumer.Service, next http.Hand
 				if !stop() {
 					<-drained
 				}
-				_ = controller.SetReadDeadline(time.Now())
+				if !body.eof {
+					_ = controller.SetReadDeadline(time.Now())
+				}
 				_ = body.Close()
 				_ = controller.SetReadDeadline(time.Time{})
 			}()
@@ -208,6 +210,19 @@ func nativeRequestAllowed(request *http.Request) error {
 type nativeRequestBody struct {
 	io.ReadCloser
 	ctx context.Context
+}
+
+type nativeBodyProgress struct {
+	io.ReadCloser
+	eof bool
+}
+
+func (body *nativeBodyProgress) Read(destination []byte) (int, error) {
+	count, err := body.ReadCloser.Read(destination)
+	if errors.Is(err, io.EOF) {
+		body.eof = true
+	}
+	return count, err
 }
 
 func (body nativeRequestBody) Read(destination []byte) (int, error) {

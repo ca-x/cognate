@@ -56,6 +56,10 @@ type nativeHTTPFixture struct {
 }
 
 func newNativeHTTPFixture(test *testing.T, filters ...func(http.Handler) http.Handler) *nativeHTTPFixture {
+	return newNativeHTTPFixtureWithListener(test, nil, filters...)
+}
+
+func newNativeHTTPFixtureWithListener(test *testing.T, decorate func(net.Listener) net.Listener, filters ...func(http.Handler) http.Handler) *nativeHTTPFixture {
 	test.Helper()
 	directory := test.TempDir()
 	if err := os.Chmod(directory, 0700); err != nil {
@@ -76,6 +80,9 @@ func newNativeHTTPFixture(test *testing.T, filters ...func(http.Handler) http.Ha
 		test.Fatal(err)
 	}
 	endpoint := httptest.NewUnstartedServer(nil)
+	if decorate != nil {
+		endpoint.Listener = decorate(endpoint.Listener)
+	}
 	origin := "https://" + endpoint.Listener.Addr().String()
 	service, err := nativeconsumer.New(store, owner, master, origin)
 	clear(master)
@@ -1316,4 +1323,170 @@ type nativeTraceTransport struct {
 
 func (transport nativeTraceTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	return transport.RoundTripper.RoundTrip(request.WithContext(httptrace.WithClientTrace(request.Context(), transport.trace)))
+}
+
+type nativeEOFProbe struct {
+	test        *testing.T
+	background  chan struct{}
+	finished    chan struct{}
+	started     sync.Once
+	armed       atomic.Bool
+	interrupted atomic.Bool
+	request     atomic.Pointer[context.Context]
+	accepts     atomic.Int32
+	calls       atomic.Int32
+}
+
+type nativeEOFListener struct {
+	net.Listener
+	probe *nativeEOFProbe
+}
+
+func (listener nativeEOFListener) Accept() (net.Conn, error) {
+	connection, err := listener.Listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+	listener.probe.accepts.Add(1)
+	return nativeEOFConn{Conn: connection, probe: listener.probe}, nil
+}
+
+type nativeEOFConn struct {
+	net.Conn
+	probe *nativeEOFProbe
+}
+
+func nativeEOFStackIncludes(name string) bool {
+	var callers [40]uintptr
+	count := runtime.Callers(2, callers[:])
+	frames := runtime.CallersFrames(callers[:count])
+	for {
+		frame, more := frames.Next()
+		if strings.Contains(frame.Function, name) {
+			return true
+		}
+		if !more {
+			return false
+		}
+	}
+}
+
+func (connection nativeEOFConn) Read(destination []byte) (int, error) {
+	if connection.probe.armed.Load() && nativeEOFStackIncludes("net/http.(*connReader).backgroundRead") {
+		connection.probe.started.Do(func() { close(connection.probe.background) })
+	}
+	return connection.Conn.Read(destination)
+}
+
+func (connection nativeEOFConn) SetReadDeadline(deadline time.Time) error {
+	probe := connection.probe
+	if probe.armed.Load() && !deadline.IsZero() && !deadline.After(time.Now()) && nativeEOFStackIncludes("httpapi.nativeConfigurationRequests") && probe.interrupted.CompareAndSwap(false, true) {
+		err := connection.Conn.SetReadDeadline(deadline)
+		select {
+		case <-(*probe.request.Load()).Done():
+			probe.test.Log("healthy EOF cleanup canceled the real H1 connection context")
+		case <-time.After(3 * time.Second):
+			probe.test.Error("expired-deadline regression probe did not observe its actual read interruption")
+		}
+		return err
+	}
+	return connection.Conn.SetReadDeadline(deadline)
+}
+
+type nativeEOFBody struct {
+	io.ReadCloser
+	probe *nativeEOFProbe
+}
+
+func (body nativeEOFBody) Read(destination []byte) (int, error) {
+	count, err := body.ReadCloser.Read(destination)
+	if errors.Is(err, io.EOF) {
+		select {
+		case <-body.probe.background:
+		case <-time.After(3 * time.Second):
+			body.probe.test.Error("real H1 EOF background reader did not enter")
+		}
+	}
+	return count, err
+}
+
+type nativeEOFTransport struct {
+	http.RoundTripper
+	probe   *nativeEOFProbe
+	chunked bool
+}
+
+func (transport nativeEOFTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	if transport.chunked {
+		request = request.Clone(request.Context())
+		request.ContentLength = -1
+		request.TransferEncoding = []string{"chunked"}
+	}
+	response, err := transport.RoundTripper.RoundTrip(request)
+	if err == nil && strings.HasSuffix(request.URL.Path, "/BindNativeConsumer") {
+		select {
+		case <-transport.probe.finished:
+		case <-time.After(4 * time.Second):
+			transport.probe.test.Error("real H1 Bind handler did not finish cleanup")
+		}
+	}
+	return response, err
+}
+
+func TestNativeHTTPHealthyEOFBackgroundReadKeepsConnection(test *testing.T) {
+	for _, chunked := range []bool{false, true} {
+		for _, mode := range []configuration.AuthMode{configuration.APIKey, configuration.AuthToken, configuration.NativeLogin} {
+			test.Run(fmt.Sprintf("chunked=%t/%s", chunked, mode), func(test *testing.T) {
+				probe := &nativeEOFProbe{test: test, background: make(chan struct{}), finished: make(chan struct{})}
+				fixture := newNativeHTTPFixtureWithListener(test, func(listener net.Listener) net.Listener {
+					return nativeEOFListener{Listener: listener, probe: probe}
+				}, func(next http.Handler) http.Handler {
+					return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+						if request.TLS == nil || request.ProtoMajor != 1 || request.Context().Err() != nil {
+							test.Error("healthy TLS H1 request arrived with canceled connection context")
+						}
+						probe.calls.Add(1)
+						if strings.HasSuffix(request.URL.Path, "/BindNativeConsumer") {
+							ctx := request.Context()
+							probe.request.Store(&ctx)
+							probe.armed.Store(true)
+							request.Body = nativeEOFBody{ReadCloser: request.Body, probe: probe}
+							defer close(probe.finished)
+						}
+						next.ServeHTTP(writer, request)
+					})
+				})
+				fixture.endpoint.Client().Transport = nativeEOFTransport{RoundTripper: fixture.endpoint.Client().Transport, probe: probe, chunked: chunked}
+				var mutations []configuration.SecretMutation
+				if mode != configuration.NativeLogin {
+					slot := configuration.APIKeySlot
+					if mode == configuration.AuthToken {
+						slot = configuration.AuthTokenSlot
+					}
+					mutations = []configuration.SecretMutation{{Slot: slot, Action: configuration.Replace, Replacement: configuration.NewSecret([]byte("synthetic-eof-selected-slot"))}}
+				}
+				asset, err := fixture.domain.Create(test.Context(), fixture.ownerID, configuration.Draft{Name: "healthy EOF", Provider: configuration.ClaudeProvider{AuthMode: mode}}, mutations)
+				if err != nil {
+					test.Fatal(err)
+				}
+				flow := fixture.bootstrap(test)
+				flow.prepare(test, asset.Metadata.ID, asset.Metadata.Revision)
+				flow.authorize(test)
+				calls, status := int32(5), nativev1.GrantState(1)
+				if mode != configuration.NativeLogin {
+					response, err := fixture.client.ConsumeNativeMaterialization(test.Context(), flow.consumeRequest(test))
+					if err != nil || len(response.Msg.SlotValues) != 1 || string(response.Msg.SlotValues[0].Plaintext) != "synthetic-eof-selected-slot" {
+						test.Fatal("healthy EOF connection did not deliver the real selected secret")
+					}
+					calls, status = 6, 3
+				} else if flow.grant.MaterializationRequired || len(flow.grant.GrantToken) != 0 {
+					test.Fatal("native-login minted a secret grant")
+				}
+				if flow.status(test).State != status || probe.calls.Load() != calls || probe.accepts.Load() != 1 {
+					test.Fatalf("healthy EOF lost actual connection reuse: accepts=%d calls=%d", probe.accepts.Load(), probe.calls.Load())
+				}
+				test.Logf("healthy TLS H1 EOF completed with accepts=%d calls=%d", probe.accepts.Load(), probe.calls.Load())
+			})
+		}
+	}
 }
