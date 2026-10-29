@@ -15,6 +15,39 @@ import (
 	"github.com/ca-x/cognate/internal/configapply"
 )
 
+func TestOwnedBuffersDestroyAllAliasesNotCallerCopies(test *testing.T) {
+	input := []byte("destroy-synthetic-secret")
+	secret, err := configapply.NewSecretMaterial(input)
+	if err != nil {
+		test.Fatal(err)
+	}
+	alias := secret
+	copy := secret.CopyBytes()
+	image, err := configapply.RewriteClaudeSettings([]byte(`{}`), selectedPatch(), map[agentconfig.ClaudeSecretSlot]configapply.SecretMaterial{agentconfig.ClaudeAPIKeySecret: secret})
+	if err != nil {
+		test.Fatal(err)
+	}
+	imageAlias := image
+	imageCopy := image.CopyBytes()
+	secret.Destroy()
+	secret.Destroy()
+	image.Destroy()
+	image.Destroy()
+	if len(alias.CopyBytes()) != 0 || len(imageAlias.CopyBytes()) != 0 {
+		test.Fatal("Destroy left owned aliases readable")
+	}
+	if !bytes.Equal(input, copy) || len(imageCopy) == 0 {
+		test.Fatal("Destroy modified caller-owned copies")
+	}
+	clear(input)
+	clear(copy)
+	clear(imageCopy)
+	var emptySecret configapply.SecretMaterial
+	var emptyImage configapply.SettingsImage
+	emptySecret.Destroy()
+	emptyImage.Destroy()
+}
+
 func nativePatch() agentconfig.ClaudeProviderPatchV1 {
 	return agentconfig.ClaudeProviderPatchV1{Target: agentconfig.ClaudeSettings, Operations: []agentconfig.ClaudeProviderPatchOperation{
 		{Slot: agentconfig.ClaudeEnvAPIKey, Action: agentconfig.ClaudeRemove},

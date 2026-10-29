@@ -46,10 +46,22 @@ func validSecret(data []byte) bool {
 
 func (secret SecretMaterial) CopyBytes() []byte { return bytes.Clone(secret.payload.bytes()) }
 func (image SettingsImage) CopyBytes() []byte   { return bytes.Clone(image.payload.bytes()) }
-func (SecretMaterial) String() string           { return "[redacted secret material]" }
-func (SecretMaterial) GoString() string         { return "[redacted secret material]" }
-func (SettingsImage) String() string            { return "[redacted settings image]" }
-func (SettingsImage) GoString() string          { return "[redacted settings image]" }
+func (secret SecretMaterial) Destroy() {
+	clear(secret.payload.bytes())
+	if secret.payload != nil {
+		secret.payload.data = nil
+	}
+}
+func (image SettingsImage) Destroy() {
+	clear(image.payload.bytes())
+	if image.payload != nil {
+		image.payload.data = nil
+	}
+}
+func (SecretMaterial) String() string   { return "[redacted secret material]" }
+func (SecretMaterial) GoString() string { return "[redacted secret material]" }
+func (SettingsImage) String() string    { return "[redacted settings image]" }
+func (SettingsImage) GoString() string  { return "[redacted settings image]" }
 func (SecretMaterial) Format(state fmt.State, _ rune) {
 	_, _ = io.WriteString(state, "[redacted secret material]")
 }
