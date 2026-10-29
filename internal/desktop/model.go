@@ -30,50 +30,82 @@ type Backend interface {
 	Preview(context.Context, string, string, string) (*importclient.Client, *importclient.Preview, error)
 }
 
-func (*Model) String() string       { return "[redacted desktop model]" }
-func (*Model) GoString() string     { return "[redacted desktop model]" }
-func (*Model) LogValue() slog.Value { return slog.StringValue("[redacted desktop model]") }
+func (*Model) String() string               { return "[redacted desktop model]" }
+func (*Model) GoString() string             { return "[redacted desktop model]" }
+func (*Model) LogValue() slog.Value         { return slog.StringValue("[redacted desktop model]") }
+func (*Model) MarshalJSON() ([]byte, error) { return []byte(`"[redacted desktop model]"`), nil }
 func (*Model) Format(destination fmt.State, _ rune) {
 	_, _ = io.WriteString(destination, "[redacted desktop model]")
 }
 
+type modelCredential struct {
+	access func() *string
+}
+
+func (credential *modelCredential) input() *string {
+	if credential.access == nil {
+		value := new(string)
+		credential.access = func() *string { return value }
+	}
+	return credential.access()
+}
+
+func (credential modelCredential) value() string {
+	if credential.access == nil {
+		return ""
+	}
+	return *credential.access()
+}
+
+func (credential *modelCredential) set(value string) {
+	*credential.input() = value
+}
+
+func (credential *modelCredential) clear() {
+	if credential.access != nil {
+		*credential.access() = ""
+	}
+}
+
 type Model struct {
-	backend                                                 Backend
-	dispatch                                                func(func())
-	life                                                    context.Context
-	stop                                                    context.CancelFunc
-	cancel                                                  context.CancelFunc
-	workers                                                 sync.WaitGroup
-	pendingJobs                                             atomic.Int32
-	publication                                             sync.Mutex
-	slots                                                   chan struct{}
-	generation                                              uint64
-	closed                                                  bool
-	watch                                                   *watchRun
-	watchOptions                                            subscription.WatchOptions
-	WatchActive, WatchStopping                              bool
-	WatchStatus                                             string
-	origin, session                                         string
-	Origin, Username, Password, Query, ShareToken, FilePath string
-	Page                                                    int
-	Status                                                  string
-	Busy                                                    bool
-	Skills                                                  []*catalogv1.PublicSkill
-	Cursor                                                  string
-	Selected                                                int
-	Detail                                                  *catalogv1.PublicSkill
-	Confirm                                                 bool
-	Subscriptions                                           []state.Subscription
-	PackSelected                                            int
-	Candidates                                              []importclient.Candidate
-	ImportSelected                                          []bool
-	ImportResults                                           []string
-	preview                                                 *importclient.Preview
-	importer                                                *importclient.Client
-	previewPath                                             string
-	skillList, packList                                     ui.ListState
-	originInput                                             string
-	Logo                                                    *ui.Bitmap
+	backend                           Backend
+	dispatch                          func(func())
+	life                              context.Context
+	stop                              context.CancelFunc
+	cancel                            context.CancelFunc
+	workers                           sync.WaitGroup
+	pendingJobs                       atomic.Int32
+	publication                       sync.Mutex
+	slots                             chan struct{}
+	generation                        uint64
+	closed                            bool
+	watch                             *watchRun
+	watchOptions                      subscription.WatchOptions
+	WatchActive, WatchStopping        bool
+	WatchStatus                       string
+	origin                            string
+	password, shareToken, session     modelCredential
+	Origin, Username, Query, FilePath string
+	Page                              int
+	Status                            string
+	Busy                              bool
+	Skills                            []*catalogv1.PublicSkill
+	Cursor                            string
+	Selected                          int
+	Detail                            *catalogv1.PublicSkill
+	Confirm                           bool
+	Subscriptions                     []state.Subscription
+	PackSelected                      int
+	Candidates                        []importclient.Candidate
+	ImportSelected                    []bool
+	ImportResults                     []string
+	preview                           *importclient.Preview
+	importer                          *importclient.Client
+	previewPath                       string
+	skillList, packList               ui.ListState
+	originInput                       string
+	Logo                              *ui.Bitmap
+	configuration                     func() *configurationState
 }
 
 func NewModel(backend Backend, dispatch func(func())) *Model {
@@ -82,12 +114,19 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 }
 
 func (model *Model) Cancel() {
+	model.configurationCancel(false)
+	if model.configuration != nil {
+		model.configuration().Identity.clear()
+	}
 	model.StopWatch()
 	model.cancelJob()
-	model.Password, model.ShareToken, model.session = "", "", ""
+	model.password.clear()
+	model.shareToken.clear()
+	model.session.clear()
 }
 
 func (model *Model) cancelJob() {
+	model.configurationCancel(false)
 	model.generation++
 	if model.cancel != nil {
 		model.cut(model.cancel)
@@ -98,10 +137,11 @@ func (model *Model) cancelJob() {
 }
 
 func (model *Model) clearOwner() {
+	model.configurationCancel(true)
 	model.StopWatch()
-	model.session = ""
-	model.Password = ""
-	model.ShareToken = ""
+	model.session.clear()
+	model.password.clear()
+	model.shareToken.clear()
 	model.Skills = nil
 	model.Selected = -1
 	model.Detail = nil
@@ -166,7 +206,7 @@ func (model *Model) InitializeClientKey() {
 	})
 }
 
-func (model *Model) jobWithTimeout(label string, limit time.Duration, work func(context.Context) (func(), error)) {
+func (model *Model) jobWithTimeout(label string, limit time.Duration, work func(context.Context) (func(), error), cleanup ...func()) {
 	if model.closed {
 		return
 	}
@@ -192,6 +232,9 @@ func (model *Model) jobWithTimeout(label string, limit time.Duration, work func(
 		case <-ctx.Done():
 			err = ctx.Err()
 		}
+		for _, release := range cleanup {
+			release()
+		}
 		model.pendingJobs.Add(-1)
 		contextErr := ctx.Err()
 		if model.life.Err() != nil || errors.Is(contextErr, context.Canceled) {
@@ -207,6 +250,10 @@ func (model *Model) jobWithTimeout(label string, limit time.Duration, work func(
 				return
 			}
 			model.Busy = false
+			if deadline, ok := ctx.Deadline(); contextErr == nil && ok && !time.Now().Before(deadline) {
+				model.Status = "操作已取消或超时"
+				return
+			}
 			if err != nil {
 				model.Status = safeTaskError(err)
 				return
@@ -235,16 +282,16 @@ func (model *Model) Login() {
 	if !model.ready() {
 		return
 	}
-	origin, username, password := model.origin, model.Username, model.Password
+	origin, username, password := model.origin, model.Username, model.password.value()
 	model.clearOwner()
 	model.job("登录", func(ctx context.Context) (func(), error) {
 		token, err := model.backend.Login(ctx, origin, username, password)
-		return func() { model.session = token; model.Status = "已登录（会话仅保存在内存）" }, err
+		return func() { model.session.set(token); model.Status = "已登录（会话仅保存在内存）" }, err
 	})
 }
 
 func (model *Model) Logout() {
-	origin, token := model.origin, model.session
+	origin, token := model.origin, model.session.value()
 	model.Cancel()
 	model.clearOwner()
 	if token == "" {
@@ -328,8 +375,8 @@ func (model *Model) Packs(action string) {
 	if !model.ready() {
 		return
 	}
-	origin, token, id := model.origin, model.ShareToken, ""
-	model.ShareToken = ""
+	origin, token, id := model.origin, model.shareToken.value(), ""
+	model.shareToken.clear()
 	if action == "remove" {
 		if model.PackSelected < 0 || model.PackSelected >= len(model.Subscriptions) {
 			return
@@ -351,11 +398,11 @@ func (model *Model) Preview() {
 	if !model.ready() {
 		return
 	}
-	if model.session == "" {
+	if model.session.value() == "" {
 		model.Status = "导入需要先登录本地账号"
 		return
 	}
-	origin, session, path := model.origin, model.session, model.FilePath
+	origin, session, path := model.origin, model.session.value(), model.FilePath
 	model.preview = nil
 	model.Candidates = nil
 	model.ImportSelected = nil

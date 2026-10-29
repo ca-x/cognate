@@ -72,7 +72,7 @@ func TestNativeAccountChangeRejectsOldLogin(test *testing.T) {
 	model.SetOrigin("https://example.org")
 	model.Page = 3
 	model.Username = "old-owner"
-	model.Password = "not-persisted"
+	model.password.set("not-persisted")
 	tester := ui.NewTester(model.View, 920, 760)
 	click(test, tester, "登录")
 	<-backend.started
@@ -81,12 +81,12 @@ func TestNativeAccountChangeRejectsOldLogin(test *testing.T) {
 	close(backend.release)
 	pump()
 	tester.Frame()
-	if model.session != "" || model.Busy {
+	if model.session.value() != "" || model.Busy {
 		test.Fatal("old owner login repopulated session")
 	}
-	model.session = "secret-session"
-	model.Password = "secret-password"
-	model.ShareToken = "secret-share"
+	model.session.set("secret-session")
+	model.password.set("secret-password")
+	model.shareToken.set("secret-share")
 	if text := fmt.Sprintf("%v %+v %#v", model, model, model); strings.Contains(text, "secret-") {
 		test.Fatal("model debug formatting disclosed credentials")
 	}

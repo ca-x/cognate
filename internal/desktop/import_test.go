@@ -3,6 +3,7 @@ package desktop
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -56,7 +57,7 @@ func TestNativeMagpiePreviewExplicitSelectionAndApply(test *testing.T) {
 	}
 	model, pump := modelFixture(test, &Service{Home: test.TempDir(), HTTP: server.Client()})
 	model.SetOrigin(server.URL)
-	model.session = fixture.session
+	model.session.set(fixture.session)
 	model.FilePath = path
 	tester := ui.NewTester(model.View, 920, 760)
 	click(test, tester, "Magpie 导入")
@@ -65,6 +66,13 @@ func TestNativeMagpiePreviewExplicitSelectionAndApply(test *testing.T) {
 	tester.Frame()
 	if len(model.Candidates) != 2 {
 		test.Fatalf("preview failed: %s", model.Status)
+	}
+	for _, value := range []any{model, struct{ private *Model }{model}} {
+		for _, verb := range []string{"%v", "%+v", "%#v", "%s", "%q", "%t", "%x", "%w"} {
+			if strings.Contains(fmt.Sprintf(verb, value), fixture.session) {
+				test.Fatal("real import preview cached a format-visible session in the model graph")
+			}
+		}
 	}
 	model.Apply()
 	pump()

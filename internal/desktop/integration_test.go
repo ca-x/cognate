@@ -221,7 +221,7 @@ func TestNativeLoginAnonymousSelectionConfirmationAndInstall(test *testing.T) {
 	click(test, tester, "登录")
 	pump()
 	tester.Frame()
-	if model.session == "" || model.Password != "" {
+	if model.session.value() == "" || model.password.value() != "" {
 		test.Fatalf("login did not establish memory-only session: %s", model.Status)
 	}
 	click(test, tester, "公开目录")
@@ -279,11 +279,11 @@ func TestNativeLoginAnonymousSelectionConfirmationAndInstall(test *testing.T) {
 	if fixture.anonymousViolation.Load() {
 		test.Fatal("authenticated session leaked into anonymous catalogue")
 	}
-	token := model.session
+	token := model.session.value()
 	click(test, tester, "账号")
 	click(test, tester, "退出登录")
 	pump()
-	if model.session != "" {
+	if model.session.value() != "" {
 		test.Fatal("logout retained session")
 	}
 	if err := service.Logout(test.Context(), fixture.server.URL, token); err == nil {
@@ -310,7 +310,7 @@ func TestNativePackOperationsUseSharedPersistentCore(test *testing.T) {
 	click(test, tester, "保存订阅")
 	pump()
 	tester.Frame()
-	if model.ShareToken != "" || len(model.Subscriptions) != 1 {
+	if model.shareToken.value() != "" || len(model.Subscriptions) != 1 {
 		test.Fatalf("subscribe: %s", model.Status)
 	}
 	if fixture.source.downloads.Load() != 0 {

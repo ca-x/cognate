@@ -25,9 +25,9 @@ func (model *Model) View(context *ui.Context) {
 			model.SetOrigin(model.Origin)
 		}
 		ui.Row(context).Gap(8).Children(func() {
-			for index, title := range []string{"公开目录", "Pack 订阅", "Magpie 导入", "账号"} {
+			for index, title := range []string{"公开目录", "Pack 订阅", "Magpie 导入", "账号", "AI 配置"} {
 				if ui.Button(context.Key(fmt.Sprintf("page-%d", index)), title).Clicked() {
-					model.Page = index
+					model.configurationNavigate(index)
 				}
 			}
 		})
@@ -40,6 +40,8 @@ func (model *Model) View(context *ui.Context) {
 			model.importView(context)
 		case 3:
 			model.accountView(context)
+		case 4:
+			model.configurationView(context)
 		}
 		ui.Row(context).Gap(8).Children(func() {
 			if ui.Button(context.Key("cancel"), "取消任务").Disabled(!model.Busy && !model.WatchActive && !model.WatchStopping).Clicked() {
@@ -61,6 +63,9 @@ func (model *Model) accountView(context *ui.Context) {
 			if ui.Button(context.Key("client-key-init"), "初始化本机客户端密钥").Disabled(runtime.GOOS != "linux" || model.Busy || model.localWorkBlocked()).Clicked() {
 				model.InitializeClientKey()
 			}
+			if ui.Button(context.Key("account-configuration-status"), "本机配置状态 / 离线恢复").Clicked() {
+				model.configurationNavigate(4)
+			}
 			if runtime.GOOS != "linux" {
 				ui.Text(context, "本机客户端密钥初始化与本地安装当前仅支持 Linux")
 			}
@@ -73,12 +78,12 @@ func (model *Model) accountView(context *ui.Context) {
 				model.clearOwner()
 				model.Status = "账号已更改，请重新登录"
 			}
-			if ui.TextInput(context.Key("password"), &model.Password).Label("密码").Placeholder("密码").Password().FillWidth().Changed() && model.Busy {
+			if ui.TextInput(context.Key("password"), model.password.input()).Label("密码").Placeholder("密码").Password().FillWidth().Changed() && model.Busy {
 				model.Cancel()
 			}
 			ui.Text(context, "密码与登录会话仅保存在进程内存，不写磁盘。切换服务地址会清除会话。")
 			ui.Row(context).Gap(8).Children(func() {
-				if ui.PrimaryButton(context.Key("login"), "登录").Disabled(model.Busy || model.Username == "" || model.Password == "").Clicked() {
+				if ui.PrimaryButton(context.Key("login"), "登录").Disabled(model.Busy || model.Username == "" || model.password.value() == "").Clicked() {
 					model.Login()
 				}
 				if ui.Button(context.Key("logout"), "退出登录").Clicked() {
@@ -133,10 +138,10 @@ func (model *Model) catalogView(context *ui.Context) {
 
 func (model *Model) packsView(context *ui.Context) {
 	ui.Text(context, "分享令牌以加密形式由共用订阅内核保存；界面和日志不会显示令牌。")
-	ui.TextInput(context.Key("share-token"), &model.ShareToken).Label("分享令牌").Placeholder("分享令牌（安全输入）").Password().FillWidth()
+	ui.TextInput(context.Key("share-token"), model.shareToken.input()).Label("分享令牌").Placeholder("分享令牌（安全输入）").Password().FillWidth()
 	ui.Row(context).Gap(8).Children(func() {
 		for _, action := range []struct{ key, title string }{{"list", "刷新订阅"}, {"subscribe", "保存订阅"}, {"sync", "同步并应用安装变更"}, {"remove", "移除所选订阅"}} {
-			disabled := model.Busy || model.localWorkBlocked() || action.key == "subscribe" && model.ShareToken == "" || action.key == "remove" && model.PackSelected < 0
+			disabled := model.Busy || model.localWorkBlocked() || action.key == "subscribe" && model.shareToken.value() == "" || action.key == "remove" && model.PackSelected < 0
 			if ui.Button(context.Key("pack-"+action.key), action.title).Disabled(disabled).Clicked() {
 				model.Packs(action.key)
 			}

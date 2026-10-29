@@ -271,7 +271,7 @@ func TestClientKeyEntrypointsNativeEvents(test *testing.T) {
 			tester.Frame()
 			key, err := clientkey.LoadExisting(test.Context(), home)
 			defer clear(key)
-			if err != nil || len(key) != 32 || !tester.HasText("本机客户端密钥已就绪（未初始化服务端会话）") || model.session != "" {
+			if err != nil || len(key) != 32 || !tester.HasText("本机客户端密钥已就绪（未初始化服务端会话）") || model.session.value() != "" {
 				test.Fatal("explicit native action did not initialize the shared core while offline")
 			}
 			if _, err := os.Stat(filepath.Join(home, ".agents")); !os.IsNotExist(err) {

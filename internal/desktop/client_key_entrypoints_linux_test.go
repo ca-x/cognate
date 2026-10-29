@@ -154,7 +154,9 @@ func TestClientKeyEntrypointsNativeGeneration(test *testing.T) {
 			model, pump := modelFixture(test, backend)
 			model.SetOrigin("https://offline.invalid")
 			model.Page = 3
-			model.Username, model.Password, model.ShareToken = "synthetic-owner", "synthetic-password", "synthetic-share"
+			model.Username = "synthetic-owner"
+			model.password.set("synthetic-password")
+			model.shareToken.set("synthetic-share")
 			tester := ui.NewTester(model.View, 920, 760)
 			click(test, tester, initializeClientKeyLabel)
 			<-durable
@@ -178,7 +180,7 @@ func TestClientKeyEntrypointsNativeGeneration(test *testing.T) {
 			case "close":
 				model.Close()
 			}
-			if model.Password != "" || model.ShareToken != "" || model.session != "" {
+			if model.password.value() != "" || model.shareToken.value() != "" || model.session.value() != "" {
 				test.Error("cancellation or identity change retained sensitive owner state")
 			}
 			status := model.Status
