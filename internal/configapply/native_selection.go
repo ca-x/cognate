@@ -2,6 +2,7 @@ package configapply
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -68,6 +69,51 @@ type SelectionInput struct {
 
 type Selection struct{ private func() *selectionData }
 type selectionData struct{ SelectionInput }
+
+type SelectionState struct {
+	Exists               bool
+	SelectionRevision    uint64
+	ConfirmationRevision uint64
+	PolicyRevision       uint64
+	AutoApply            bool
+	DeviceID             string
+}
+
+func (engine *Engine) CurrentSelection(ctx context.Context, origin, owner, profile string) (SelectionState, error) {
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.Opaque != "" || parsed.String() != origin || !nativeIdentifier(owner) || !nativeIdentifier(profile) {
+		return SelectionState{}, ErrSelection
+	}
+	var result SelectionState
+	err = engine.run(ctx, func(inventory *nativeInventory) error {
+		const rootName = "native-configuration-root.v1"
+		image, data, err := engine.private().state.read(rootName, nativeJournalLimit)
+		defer clear(data)
+		if err != nil {
+			return err
+		}
+		if !image.Present || image.Identity.Mode&0o077 != 0 {
+			return ErrStateInvalid
+		}
+		root, err := engine.openRecord(rootName, data)
+		if err != nil || root.Type != "root" || root.ID != "v1" || root.Backup != nil || root.Operation != nil {
+			clearBackup(root)
+			return ErrStateInvalid
+		}
+		query := selectionData{SelectionInput{Origin: origin, Owner: owner, Profile: profile, Scope: "user"}}
+		if current, exists := inventory.selections[selectionKey(query)]; exists {
+			result = SelectionState{Exists: true, SelectionRevision: current.SelectionRevision, ConfirmationRevision: current.ConfirmationRevision, PolicyRevision: current.PolicyRevision, AutoApply: current.AutoApply, DeviceID: current.DeviceID}
+		}
+		return ctx.Err()
+	})
+	if err != nil {
+		return SelectionState{}, err
+	}
+	if err := ctx.Err(); err != nil {
+		return SelectionState{}, err
+	}
+	return result, nil
+}
 
 func NewSelection(input SelectionInput) (Selection, error) {
 	if !input.Selected {
