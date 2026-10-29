@@ -39,6 +39,9 @@ func (service *Service) Edit(ctx context.Context, owner, id string) (EditView, e
 	if err != nil {
 		return EditView{}, err
 	}
+	if metadata.AgentID == "gemini" {
+		return geminiEdit(ctx, metadata, payload)
+	}
 	if metadata.AgentID == "codex" {
 		return codexEdit(metadata, payload)
 	}
@@ -61,10 +64,13 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if metadata.Revision != expectedRevision {
 		return EditView{}, ErrConflict
 	}
+	if metadata.AgentID == "gemini" {
+		return service.updateGemini(ctx, owner, metadata, payload, input, mutations)
+	}
 	if metadata.AgentID == "codex" {
 		return service.updateCodex(ctx, owner, metadata, payload, input, mutations)
 	}
-	if input.CodexProvider != nil {
+	if input.CodexProvider != nil || input.GeminiProvider != nil {
 		return EditView{}, ErrInvalid
 	}
 	_, current, err := decodeEnvelope(payload)
@@ -108,6 +114,16 @@ func (service *Service) Copy(ctx context.Context, owner, id string, expectedSour
 	}
 	if metadata.Revision != expectedSourceRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "gemini" {
+		view, err := geminiEdit(ctx, metadata, payload)
+		if err != nil {
+			return EditView{}, err
+		}
+		if view.HasPreservedExtras {
+			return EditView{}, ErrUnsupported
+		}
+		return service.Create(ctx, owner, Draft{Name: name, GeminiProvider: view.GeminiProvider}, nil)
 	}
 	if metadata.AgentID == "codex" {
 		view, err := codexEdit(metadata, payload)
@@ -222,6 +238,16 @@ func normalizeDraft(input Draft) (Draft, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	if !validText(input.Name, 128) {
 		return Draft{}, ErrInvalid
+	}
+	if input.GeminiProvider != nil {
+		if input.CodexProvider != nil || input.Provider != (ClaudeProvider{}) {
+			return Draft{}, ErrInvalid
+		}
+		if err := validateGeminiProvider(*input.GeminiProvider); err != nil {
+			return Draft{}, err
+		}
+		input.GeminiProvider = cloneGeminiProvider(*input.GeminiProvider)
+		return input, nil
 	}
 	if input.CodexProvider != nil {
 		if input.Provider != (ClaudeProvider{}) {
@@ -396,6 +422,13 @@ func (service *Service) Create(ctx context.Context, owner string, input Draft, m
 	input, err := normalizeDraft(input)
 	if err != nil {
 		return EditView{}, err
+	}
+	if input.GeminiProvider != nil {
+		secret, err := mergeGeminiSecret(Secret{}, mutations, true)
+		if err != nil {
+			return EditView{}, err
+		}
+		return service.createGemini(ctx, owner, input, secret)
 	}
 	if input.CodexProvider != nil {
 		secret, err := mergeCodexSecret(Secret{}, mutations, true)

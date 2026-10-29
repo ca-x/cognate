@@ -35,7 +35,7 @@ func editableMetadata(metadata state.ConfigurationAsset) error {
 	if err := validateMetadata(metadata); err != nil {
 		return err
 	}
-	if (metadata.AgentID != "claude" && metadata.AgentID != "codex") || metadata.Kind != state.ConfigurationKindProvider || metadata.SchemaVersion != 1 {
+	if (metadata.AgentID != "claude" && metadata.AgentID != "codex" && metadata.AgentID != "gemini") || metadata.Kind != state.ConfigurationKindProvider || metadata.SchemaVersion != 1 {
 		return ErrUnsupported
 	}
 	return nil

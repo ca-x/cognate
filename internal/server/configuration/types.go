@@ -39,9 +39,18 @@ type ClaudeProvider struct {
 }
 
 type Draft struct {
-	Name          string         `json:"name"`
-	Provider      ClaudeProvider `json:"provider,omitzero"`
-	CodexProvider *CodexProvider `json:"codex_provider,omitzero"`
+	Name           string          `json:"name"`
+	Provider       ClaudeProvider  `json:"provider,omitzero"`
+	CodexProvider  *CodexProvider  `json:"codex_provider,omitzero"`
+	GeminiProvider *GeminiProvider `json:"gemini_provider,omitzero"`
+}
+
+type GeminiProvider struct {
+	AuthMode      agentconfig.GeminiAuthMode      `json:"authMode"`
+	Endpoint      *string                         `json:"endpoint,omitzero"`
+	KeyTransport  *agentconfig.GeminiKeyTransport `json:"keyTransport,omitzero"`
+	EnvModel      *string                         `json:"envModel,omitzero"`
+	SettingsModel *string                         `json:"settingsModel,omitzero"`
 }
 
 type CodexProvider struct {
@@ -58,6 +67,7 @@ const (
 	APIKeySlot           Slot = "claude.api-key"
 	AuthTokenSlot        Slot = "claude.auth-token"
 	CodexProviderKeySlot Slot = "codex.provider-key"
+	GeminiAPIKeySlot     Slot = "gemini.api-key"
 )
 
 type SecretAction string
@@ -92,6 +102,7 @@ type EditView struct {
 	Secrets            []SecretStatus           `json:"secrets"`
 	Readiness          Readiness                `json:"readiness"`
 	CodexProvider      *CodexProvider           `json:"codex_provider,omitzero"`
+	GeminiProvider     *GeminiProvider          `json:"gemini_provider,omitzero"`
 	HasPreservedExtras bool                     `json:"has_preserved_extras"`
 }
 
