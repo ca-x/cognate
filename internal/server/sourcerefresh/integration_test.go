@@ -13,12 +13,16 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
+	packv1 "github.com/ca-x/cognate/gen/skillhub/pack/v1"
 	"github.com/ca-x/cognate/internal/github"
 	"github.com/ca-x/cognate/internal/packclient"
 	"github.com/ca-x/cognate/internal/repository"
@@ -31,14 +35,47 @@ import (
 	"github.com/ca-x/cognate/internal/server/sourcerefresh"
 	"github.com/ca-x/cognate/internal/server/state"
 	"github.com/ca-x/cognate/internal/skill"
+	clientstate "github.com/ca-x/cognate/internal/state"
 	"github.com/ca-x/cognate/internal/subscription"
 	"github.com/spf13/afero"
+	"google.golang.org/protobuf/proto"
 )
 
 type refreshTransport func(*http.Request) (*http.Response, error)
 
 func (transport refreshTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	return transport(request)
+}
+
+func readWatchManifest(response *http.Response) (*packv1.GetManifestResponse, error) {
+	body, readErr := io.ReadAll(io.LimitReader(response.Body, (8<<20)+1))
+	closeErr := response.Body.Close()
+	if readErr != nil || closeErr != nil || response.StatusCode != http.StatusOK || len(body) > 8<<20 {
+		return nil, errors.New("watch fixture manifest response unavailable")
+	}
+	response.Body = io.NopCloser(bytes.NewReader(body))
+	payload := body
+	switch response.Header.Get("Content-Encoding") {
+	case "":
+	case "gzip":
+		compressed, err := gzip.NewReader(bytes.NewReader(body))
+		if err != nil {
+			return nil, errors.New("watch fixture manifest compression invalid")
+		}
+		decoded, readErr := io.ReadAll(io.LimitReader(compressed, (8<<20)+1))
+		closeErr := compressed.Close()
+		if readErr != nil || closeErr != nil || len(decoded) > 8<<20 {
+			return nil, errors.New("watch fixture manifest compression incomplete")
+		}
+		payload = decoded
+	default:
+		return nil, errors.New("watch fixture manifest compression unsupported")
+	}
+	manifest := new(packv1.GetManifestResponse)
+	if err := proto.Unmarshal(payload, manifest); err != nil {
+		return nil, errors.New("watch fixture manifest response invalid")
+	}
+	return manifest, nil
 }
 
 func publicSourceArchive(test *testing.T, version string) []byte {
@@ -195,6 +232,9 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 			var source atomic.Value
 			source.Store(publicSourceArchive(test, "first"))
 			var fetches atomic.Int64
+			var publicationArmed atomic.Bool
+			publicationRelease := make(chan struct{})
+			releasePublication := sync.OnceFunc(func() { close(publicationRelease) })
 			private := strings.HasPrefix(mode, "private-")
 			var metadataCalls, privateCalls atomic.Int64
 			var denied atomic.Int64
@@ -249,6 +289,13 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 			apiURL, _ := url.Parse(api.URL)
 			upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				fetches.Add(1)
+				if publicationArmed.Load() {
+					select {
+					case <-publicationRelease:
+					case <-request.Context().Done():
+						return
+					}
+				}
 				expectedQuery := ""
 				if private {
 					expectedQuery = "signature=synthetic"
@@ -381,11 +428,64 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 			}))
 			defer endpoint.Close()
 			endpointURL, _ := url.Parse(endpoint.URL)
+			var originals []state.Pack
+			var manifestRequests atomic.Int64
+			var oldResponseObserved, newResponseObserved atomic.Bool
+			var firstManifestPack string
 			clientHTTP := &http.Client{Transport: refreshTransport(func(request *http.Request) (*http.Response, error) {
 				if request.URL.Host != endpointURL.Host || strings.Contains(request.URL.RawQuery, "signature=") || request.Header.Get("Authorization") == "Bearer synthetic-worker-star-credential" {
 					return nil, errors.New("subscription client escaped Cognate boundary")
 				}
-				return endpoint.Client().Transport.RoundTrip(request)
+				response, err := endpoint.Client().Transport.RoundTrip(request)
+				if err != nil || !publicationArmed.Load() || !strings.HasSuffix(request.URL.Path, "/GetManifest") {
+					return response, err
+				}
+				ordinal := manifestRequests.Add(1)
+				if ordinal > 2 {
+					return response, nil
+				}
+				manifest, err := readWatchManifest(response)
+				if err != nil {
+					return nil, err
+				}
+				var original *state.Pack
+				for index := range originals {
+					if originals[index].ID == manifest.PackId {
+						original = &originals[index]
+						break
+					}
+				}
+				if original == nil || len(manifest.Skills) != 1 || manifest.Skills[0].Slug != "demo" {
+					return nil, errors.New("watch fixture manifest selection invalid")
+				}
+				if ordinal == 1 {
+					if manifest.Revision != original.Revision || manifest.Skills[0].ContentHash != collected.Skills[0].ContentHash {
+						return nil, errors.New("watch fixture first manifest was not old")
+					}
+					firstManifestPack = manifest.PackId
+					oldResponseObserved.Store(true)
+					releasePublication()
+					for {
+						if err := request.Context().Err(); err != nil {
+							return nil, err
+						}
+						current, err := peer.CollectedRepository(request.Context(), "alice", collected.ID)
+						if err != nil {
+							return nil, err
+						}
+						if current.PublicationRevision == collected.PublicationRevision+1 {
+							break
+						}
+						runtime.Gosched()
+					}
+				} else {
+					current, err := peer.CollectedRepository(request.Context(), "alice", collected.ID)
+					if err != nil || manifest.PackId == firstManifestPack || manifest.Revision != original.Revision+1 || current.PublicationRevision != collected.PublicationRevision+1 || len(current.Skills) != 1 || manifest.Skills[0].ContentHash != current.Skills[0].ContentHash || manifest.Skills[0].ContentHash == collected.Skills[0].ContentHash {
+						return nil, errors.New("watch fixture second manifest was not committed new content")
+					}
+					newResponseObserved.Store(true)
+				}
+				return response, nil
 			})}
 			home := test.TempDir()
 			for _, relative := range []string{".agents/skills", ".claude/skills"} {
@@ -401,7 +501,6 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 				test.Fatal(err)
 			}
 			defer manager.Close()
-			var originals []state.Pack
 			var clients []*packclient.Client
 			var hashes []string
 			for _, name := range []string{"First", "Second"} {
@@ -434,53 +533,113 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 			}
 			ctx, cancel := context.WithTimeout(test.Context(), 8*time.Second)
 			defer cancel()
-			reports := make(chan subscription.WatchReport, 16)
+			canonical := filepath.Join(home, ".agents", "skills", "demo")
+			type watchCycle struct {
+				report        subscription.WatchReport
+				err           error
+				unchanged     bool
+				manifestCount int64
+				oldResponse   bool
+				newResponse   bool
+			}
+			reports := make(chan watchCycle, 16)
 			finished := make(chan error, 1)
 			go func() {
-				finished <- subscription.Watch(ctx, subscription.WatchOptions{Interval: time.Second, AttemptTimeout: 3 * time.Second}, manager.Sync, func(ctx context.Context, report subscription.WatchReport) error {
+				var cycleErr error
+				var unchanged bool
+				finished <- subscription.Watch(ctx, subscription.WatchOptions{Interval: time.Second, AttemptTimeout: 3 * time.Second}, func(attempt context.Context) (subscription.SyncResult, error) {
+					unchanged = false
+					before, err := manager.List(attempt)
+					if err != nil {
+						cycleErr = err
+						return subscription.SyncResult{}, err
+					}
+					beforeInfo, err := os.Stat(canonical)
+					if err != nil {
+						cycleErr = err
+						return subscription.SyncResult{}, err
+					}
+					result, err := manager.Sync(attempt)
+					cycleErr = err
+					if errors.Is(err, clientstate.ErrSubscriptionConflict) {
+						after, afterErr := manager.List(attempt)
+						afterInfo, statErr := os.Stat(canonical)
+						actual, hashErr := skill.ContentHash(afero.NewOsFs(), canonical)
+						unchanged = afterErr == nil && statErr == nil && hashErr == nil && attempt.Err() == nil && ctx.Err() == nil && len(before) == 2 && reflect.DeepEqual(before, after) && os.SameFile(beforeInfo, afterInfo) && beforeInfo.ModTime() == afterInfo.ModTime() && actual == collected.Skills[0].ContentHash && downloads.Load() == 1
+					}
+					return result, err
+				}, func(ctx context.Context, report subscription.WatchReport) error {
+					cycle := watchCycle{
+						report:        report,
+						err:           cycleErr,
+						unchanged:     unchanged,
+						manifestCount: manifestRequests.Load(),
+						oldResponse:   oldResponseObserved.Load(),
+						newResponse:   newResponseObserved.Load(),
+					}
 					select {
-					case reports <- report:
+					case reports <- cycle:
 						return nil
 					case <-ctx.Done():
 						return ctx.Err()
 					}
 				})
 			}()
-			defer func() {
+			stopWatch := sync.OnceFunc(func() {
 				cancel()
+				releasePublication()
 				if err := <-finished; !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
 					test.Error("watch failed to stop")
 				}
-			}()
+			})
+			defer stopWatch()
 			select {
-			case report := <-reports:
-				if !report.Succeeded || report.Result.Reused != 1 {
+			case cycle := <-reports:
+				if cycle.err != nil || !cycle.report.Succeeded || cycle.report.Result.Reused != 1 || cycle.report.ConsecutiveFailures != 0 {
 					test.Fatal("initial watch did not reuse installation")
 				}
 			case <-ctx.Done():
 				test.Fatal("watch did not start")
 			}
+			publicationArmed.Store(true)
 			source.Store(publicSourceArchive(test, "second"))
 			worker, err := sourcerefresh.New(store, collection, sourcerefresh.Options{Interval: time.Second, DataDirectory: directory})
 			if err != nil {
 				test.Fatal(err)
 			}
-			defer worker.Close()
+			defer func() {
+				cancel()
+				releasePublication()
+				if err := worker.Close(); err != nil {
+					test.Error("source worker failed to stop")
+				}
+			}()
 			if err := worker.Start(ctx); err != nil {
 				test.Fatal(err)
 			}
-			updated := false
-			for !updated {
+			for cycleIndex := range 2 {
 				select {
-				case report := <-reports:
-					if !report.Succeeded {
-						test.Fatal("automatic watch cycle failed")
+				case cycle := <-reports:
+					report := cycle.report
+					if cycleIndex == 0 {
+						_, connectError := errors.AsType[*connect.Error](cycle.err)
+						if !errors.Is(cycle.err, clientstate.ErrSubscriptionConflict) || connectError || errors.Is(cycle.err, context.Canceled) || errors.Is(cycle.err, context.DeadlineExceeded) || ctx.Err() != nil || report.Succeeded || !cycle.unchanged || !cycle.oldResponse || !cycle.newResponse || cycle.manifestCount != 2 || !reflect.DeepEqual(report.Result, subscription.SyncResult{}) || report.ConsecutiveFailures != 1 || report.NextAttemptIn != time.Second {
+							test.Fatalf("unexpected publication-conflict cycle: type=%T code=%s canceled=%t deadline=%t unchanged=%t", cycle.err, connect.CodeOf(cycle.err), errors.Is(cycle.err, context.Canceled), errors.Is(cycle.err, context.DeadlineExceeded), cycle.unchanged)
+						}
+						if err := worker.Close(); err != nil {
+							test.Fatal("source worker failed to drain after publication")
+						}
+						test.Log("publication conflict verified: old_then_committed_new=true local_and_subscriptions_unchanged=true downloads_initial=true failure_result_zero=true failures_one=true next_one_second=true")
+					} else if cycle.err != nil || !report.Succeeded || report.Result.Updated != 1 || report.ConsecutiveFailures != 0 || report.NextAttemptIn != time.Second {
+						test.Fatalf("automatic watch did not naturally recover: type=%T code=%s canceled=%t deadline=%t", cycle.err, connect.CodeOf(cycle.err), errors.Is(cycle.err, context.Canceled), errors.Is(cycle.err, context.DeadlineExceeded))
+					} else {
+						test.Log("same Watch next cycle recovered: updated_one=true failures_zero=true next_one_second=true")
 					}
-					updated = report.Result.Updated == 1
 				case <-ctx.Done():
 					test.Fatal("periodic source refresh did not reach automatic Watch")
 				}
 			}
+			stopWatch()
 			if err := worker.Close(); err != nil {
 				test.Fatal(err)
 			}
@@ -498,7 +657,6 @@ func testSourceRefreshTwoPacksConnectAndAutomaticWatch(test *testing.T, modes []
 					test.Fatal("Connect manifest hash/revision did not advance")
 				}
 			}
-			canonical := filepath.Join(home, ".agents", "skills", "demo")
 			actual, err := skill.ContentHash(afero.NewOsFs(), canonical)
 			if err != nil || actual != current.Skills[0].ContentHash || downloads.Load() != 2 || fetches.Load() < 2 {
 				test.Fatal("automatic installation hash or single-download invariant failed")
