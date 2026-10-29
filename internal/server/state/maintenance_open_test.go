@@ -309,14 +309,18 @@ func TestManagedStoreProcessProbe(test *testing.T) {
 		test.Skip("subprocess helper")
 	}
 	mode := os.Getenv("COGNATE_MANAGED_PROBE_MODE")
-	ctx, cancel := context.WithTimeout(test.Context(), 350*time.Millisecond)
+	budget := 3 * time.Second
+	if mode == "blocked" {
+		budget = 350 * time.Millisecond
+	}
+	ctx, cancel := context.WithTimeout(test.Context(), budget)
 	defer cancel()
 	store, err := OpenWithOptions(ctx, filepath.Join(directory, "server.db"), make([]byte, 32), Options{MaintenanceManaged: mode != "default"})
 	if mode == "blocked" {
 		if store != nil {
 			store.Close()
 		}
-		if store != nil || err == nil || !errors.Is(err, maintenance.ErrLock) {
+		if store != nil || err == nil || !errors.Is(err, maintenance.ErrLock) || !errors.Is(err, context.DeadlineExceeded) || !errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			test.Fatal("participating second process was not rejected")
 		}
 		return
