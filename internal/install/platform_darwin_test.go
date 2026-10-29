@@ -96,7 +96,10 @@ func TestDarwinIdentityPrimitives(test *testing.T) {
 
 func TestDarwinTrustPrimitives(test *testing.T) {
 	test.Run("private-owner-and-mode", func(test *testing.T) {
-		parent := test.TempDir()
+		parent := filepath.Join(test.TempDir(), "private")
+		if err := os.Mkdir(parent, 0o700); err != nil {
+			test.Fatal(err)
+		}
 		info, err := os.Stat(parent)
 		if err != nil {
 			test.Fatal(err)

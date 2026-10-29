@@ -31,3 +31,11 @@ Linux 行为及身份字节不变；Darwin 使用 `darwin-dev-ino-v1:<uint32 dev
 - [x] 冻结：ignored `.superpowers/sdd/2026-10-28-release/darwin-primitives-report.md`（≤1 页）记录 base、逐文件 SHA256 manifest、只含写集的候选 tree、验证日志及原生 CI 待验状态；用无 index 的 Git tree plumbing 排除其他 WIP，不 stage。并行提交导致共享 HEAD 前移时，核对本片路径无交叉修改，仍固定上述 base。
 
 Darwin 测试先于实现编写；Linux 不能运行 Darwin RED/GREEN，交叉编译只证明构建。真实 OS 正确性和原生测试结果必须等后续推送 CI，不能宣称 Mac 绿或完整 Darwin 安装支持。若 API 不支持或安全实现超写集，带精确证据停止。
+
+## 真实 CI RED 的窄修
+
+修复基线 `5b3f80bca245706ef8804bd5c61c8a71a531145a`；保留真实 run `40785264971`（completed/failure），Mac job `123156749045` step 7 的 RED：13 run / 11 pass / 2 fail / 0 test skip。Trust fixture 把 TempDir 当作 0700；Projection 使用的 Root.OpenFile 强制加入 O_NOFOLLOW，Darwin 对最终 symlink 返回 ELOOP，Root 随后解析链接产生 escapes/ENOENT/ELOOP。
+
+- [x] 仅修改本计划、`internal/install/platform_darwin_test.go` 的私密目录 fixture 初始化、`internal/install/projection_handle_darwin.go`；静态 gate 确认全部原测试名称、用例及断言逐字保留，trust/身份/入口 guard 不改。
+- [x] 从 `root.Open(".")` 固定父目录句柄，对已限制为单组件的名称调用 Darwin `unix.Openat`，主实现使用 `O_SYMLINK|O_NONBLOCK|O_CLOEXEC`。O_SYMLINK 本身打开链接而不跟随目标；不再附加会拒绝 symlink 的 O_NOFOLLOW，不走按路径重开或 unsupported fallback。保留 fstat 类型、Lstat 身份及既有父目录/链接文本核验。
+- [x] 旧 CI 日志及实际错误已保存于 `/tmp/cognate-darwin-fix.lsRFPG/`；Linux objectid/skill/packclient 全 tests、5 个原语 tests、Linux/Darwin 静态 vet、静态边界检查和 Darwin 两架构 test 交叉编译均通过；ignored 报告及修复 manifest 同处交接。仅主线程后续提交推送后的真实 CI 可证明原生修复通过，不 watch 或用交叉编译代替原生 PASS。
