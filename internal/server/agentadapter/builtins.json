@@ -1,5 +1,5 @@
 [
   {"apiVersion":1,"pluginID":"builtin.claude","pluginVersion":"1.1.0","agentID":"claude","target":"claude.settings","format":"json","capabilities":["claude.provider-env.v1","claude.provider-switch.v1"]},
-  {"apiVersion":1,"pluginID":"builtin.codex","pluginVersion":"1.0.0","agentID":"codex","target":"codex.config","format":"toml","capabilities":[]},
+  {"apiVersion":1,"pluginID":"builtin.codex","pluginVersion":"1.1.0","agentID":"codex","target":"codex.config","format":"toml","capabilities":["codex.provider-plan.v1"]},
   {"apiVersion":1,"pluginID":"builtin.gemini","pluginVersion":"1.0.0","agentID":"gemini","target":"gemini.settings","format":"json","capabilities":[]}
 ]

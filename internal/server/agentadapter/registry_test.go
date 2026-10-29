@@ -1,6 +1,7 @@
 package agentadapter_test
 
 import (
+	"context"
 	"encoding/json/v2"
 	"errors"
 	"strings"
@@ -9,6 +10,119 @@ import (
 	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/server/agentadapter"
 )
+
+func TestCodexProviderBuiltinsIdentity(test *testing.T) {
+	registry, err := agentadapter.Builtins()
+	if err != nil {
+		test.Fatal("builtin registration failed")
+	}
+	var descriptor agentconfig.Descriptor
+	for _, candidate := range registry.List() {
+		if candidate.Manifest.PluginID == "builtin.codex" {
+			descriptor = candidate
+		}
+	}
+	manifest := descriptor.Manifest
+	if manifest.PluginVersion != "1.1.0" || manifest.AgentID != "codex" || manifest.Target != agentconfig.CodexConfig || manifest.Format != agentconfig.TOML || len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.CodexProviderPlanV1 || len(descriptor.DefinitionDigest) != 64 {
+		test.Fatal("Codex planner identity missing")
+	}
+	request := agentconfig.CodexProviderPlanRequest{APIVersion: 1, PluginID: manifest.PluginID, PluginVersion: manifest.PluginVersion, DefinitionDigest: descriptor.DefinitionDigest, Target: manifest.Target, Capabilities: []agentconfig.Capability{agentconfig.CodexProviderPlanV1}, Desired: agentconfig.CodexProviderDesired{AuthMode: "provider-key", Endpoint: "https://provider.example/v1", Model: "model-main", KeyPresent: true}}
+	for name, change := range map[string]func(*agentconfig.CodexProviderPlanRequest){
+		"api":         func(request *agentconfig.CodexProviderPlanRequest) { request.APIVersion = 2 },
+		"version":     func(request *agentconfig.CodexProviderPlanRequest) { request.PluginVersion = "1.0.0" },
+		"digest":      func(request *agentconfig.CodexProviderPlanRequest) { request.DefinitionDigest = "untrusted" },
+		"target":      func(request *agentconfig.CodexProviderPlanRequest) { request.Target = "claude.settings" },
+		"missing-cap": func(request *agentconfig.CodexProviderPlanRequest) { request.Capabilities = nil },
+		"extra-cap": func(request *agentconfig.CodexProviderPlanRequest) {
+			request.Capabilities = []agentconfig.Capability{agentconfig.CodexProviderPlanV1, "extra"}
+		},
+		"duplicate-cap": func(request *agentconfig.CodexProviderPlanRequest) {
+			request.Capabilities = []agentconfig.Capability{agentconfig.CodexProviderPlanV1, agentconfig.CodexProviderPlanV1}
+		},
+	} {
+		test.Run(name, func(test *testing.T) {
+			mutated := request
+			change(&mutated)
+			result, err := registry.PlanCodexProvider(test.Context(), mutated)
+			if !errors.Is(err, agentadapter.ErrIncompatible) || result.APIVersion != 0 {
+				test.Fatal("incompatible identity accepted")
+			}
+		})
+	}
+	request.PluginID = "unknown.plugin"
+	if _, err := registry.PlanCodexProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("unknown plugin accepted")
+	}
+	if _, err := (*agentadapter.Registry)(nil).PlanCodexProvider(context.Background(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("nil registry accepted")
+	}
+}
+
+func TestCodexProviderRenderStillUnsupported(test *testing.T) {
+	registry, err := agentadapter.Builtins()
+	if err != nil {
+		test.Fatal("builtin registration failed")
+	}
+	for _, descriptor := range registry.List() {
+		if descriptor.Manifest.AgentID == "codex" {
+			manifest := descriptor.Manifest
+			request := agentconfig.RenderRequest{APIVersion: 1, PluginID: manifest.PluginID, PluginVersion: manifest.PluginVersion, DefinitionDigest: descriptor.DefinitionDigest, Target: manifest.Target, Capabilities: manifest.Capabilities}
+			if _, err := registry.Render(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+				test.Fatal("planner opened generic renderer")
+			}
+		}
+	}
+}
+
+func TestCodexProviderDefinitionFence(test *testing.T) {
+	definition := agentadapter.Definition{Manifest: agentconfig.Manifest{APIVersion: 1, PluginID: "builtin.codex", PluginVersion: "1.1.0", AgentID: "codex", Target: agentconfig.CodexConfig, Format: agentconfig.TOML, Capabilities: []agentconfig.Capability{agentconfig.CodexProviderPlanV1}}, Module: "export function planCodexProvider() { return {}; }"}
+	registry, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil {
+		test.Fatal("valid Codex definition rejected")
+	}
+	for name, mutate := range map[string]func(*agentadapter.Definition){
+		"wrong-agent":  func(definition *agentadapter.Definition) { definition.Manifest.AgentID = "gemini" },
+		"wrong-format": func(definition *agentadapter.Definition) { definition.Manifest.Format = agentconfig.JSON },
+		"foreign-cap": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{agentconfig.ClaudeProviderEnvV1}
+		},
+		"unknown-cap": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{"codex.future"}
+		},
+		"duplicate-cap": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{agentconfig.CodexProviderPlanV1, agentconfig.CodexProviderPlanV1}
+		},
+		"no-module":     func(definition *agentadapter.Definition) { definition.Module = "" },
+		"metadata-code": func(definition *agentadapter.Definition) { definition.Manifest.Capabilities = nil },
+	} {
+		test.Run(name, func(test *testing.T) {
+			changed := definition
+			mutate(&changed)
+			if _, err := agentadapter.NewRegistry([]agentadapter.Definition{changed}); !errors.Is(err, agentadapter.ErrInvalidDefinition) {
+				test.Fatal("definition capability fence failed")
+			}
+		})
+	}
+	oldDigest := registry.List()[0].DefinitionDigest
+	definition.Module += "\n"
+	changed, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil || changed.List()[0].DefinitionDigest == oldDigest {
+		test.Fatal("module bytes not bound")
+	}
+	request := agentconfig.CodexProviderPlanRequest{APIVersion: 1, PluginID: "builtin.codex", PluginVersion: "1.1.0", DefinitionDigest: oldDigest, Target: agentconfig.CodexConfig, Capabilities: []agentconfig.Capability{agentconfig.CodexProviderPlanV1}}
+	if _, err := changed.PlanCodexProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrIncompatible) {
+		test.Fatal("same-version replaced module accepted old digest")
+	}
+	definition.Module, definition.Manifest.PluginVersion, definition.Manifest.Capabilities = "", "1.0.0", nil
+	metadata, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil {
+		test.Fatal("legacy metadata definition rejected")
+	}
+	request.PluginVersion, request.DefinitionDigest = "1.0.0", metadata.List()[0].DefinitionDigest
+	if _, err := metadata.PlanCodexProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("legacy metadata gained execution")
+	}
+}
 
 func thirdPartyDefinition() agentadapter.Definition {
 	return agentadapter.Definition{Manifest: agentconfig.Manifest{APIVersion: 1, PluginID: "third.claude", PluginVersion: "1.2.3", AgentID: "claude", Target: agentconfig.ClaudeSettings, Format: agentconfig.JSON, Capabilities: []agentconfig.Capability{agentconfig.ClaudeProviderEnvV1}}, Module: `export function render(input) { return {target: "claude.settings", env: {...input.providerEnv}}; }`}
@@ -27,7 +141,7 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
 		expectedVersion := "1.0.0"
-		if manifest.AgentID == "claude" {
+		if manifest.AgentID == "claude" || manifest.AgentID == "codex" {
 			expectedVersion = "1.1.0"
 		}
 		if manifest.APIVersion != 1 || manifest.PluginVersion != expectedVersion || len(descriptor.DefinitionDigest) != 64 || expected[manifest.AgentID] != manifest.Target {
@@ -37,7 +151,10 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		if manifest.AgentID == "claude" && (len(manifest.Capabilities) != 2 || manifest.Capabilities[0] != agentconfig.ClaudeProviderEnvV1 || manifest.Capabilities[1] != "claude.provider-switch.v1") {
 			test.Fatal("Claude must declare additive and complete provider capabilities")
 		}
-		if manifest.AgentID != "claude" && len(manifest.Capabilities) != 0 {
+		if manifest.AgentID == "codex" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.CodexProviderPlanV1) {
+			test.Fatal("Codex must declare only its planner capability")
+		}
+		if manifest.AgentID == "gemini" && len(manifest.Capabilities) != 0 {
 			test.Fatal("metadata-only adapter advertises unsupported rendering")
 		}
 	}

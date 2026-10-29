@@ -84,6 +84,9 @@ func validDefinition(definition Definition) bool {
 	if len(manifest.Capabilities) == 0 {
 		return definition.Module == ""
 	}
+	if manifest.Target == agentconfig.CodexConfig {
+		return len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.CodexProviderPlanV1 && len(definition.Module) > 0
+	}
 	if len(manifest.Capabilities) > 2 || manifest.Target != agentconfig.ClaudeSettings || len(definition.Module) == 0 {
 		return false
 	}
