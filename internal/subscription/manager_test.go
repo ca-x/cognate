@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"time"
 
 	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/packclient"
 	"github.com/ca-x/cognate/internal/repository"
@@ -516,6 +518,7 @@ func TestCLISubscribeListSyncAndRemoveRealServerFlow(test *testing.T) {
 		}
 		return output.String()
 	}
+	run("", "client-key", "init")
 	if output := run(token+"\n", "pack", "subscribe", "--server", setup.server.URL, "--token-stdin"); !strings.Contains(output, "新增 1") {
 		test.Fatal("CLI did not install a subscribed pack")
 	}
@@ -531,8 +534,8 @@ func TestCLISubscribeListSyncAndRemoveRealServerFlow(test *testing.T) {
 	}
 	missingKey := cli.New()
 	missingKey.SetArgs([]string{"pack", "list"})
-	if err := missingKey.ExecuteContext(test.Context()); err == nil {
-		test.Fatal("existing subscriptions accepted a lost key")
+	if err := missingKey.ExecuteContext(test.Context()); !errors.Is(err, clientkey.ErrRecoveryRequired) {
+		test.Fatal("existing subscriptions did not require recovery for a lost key")
 	}
 	if _, err := os.Lstat(keyPath); !os.IsNotExist(err) {
 		test.Fatal("lost client key was silently regenerated for existing subscriptions")

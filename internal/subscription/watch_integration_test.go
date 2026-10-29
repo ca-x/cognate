@@ -47,6 +47,13 @@ func TestCLIWatchUpdatesOverlappingPacksAndReleasesIdleLock(test *testing.T) {
 	firstPack, firstToken := setup.newPack(test, "Watch first", first.ID)
 	secondPack, secondToken := setup.newPack(test, "Watch second", first.ID)
 	test.Setenv("HOME", setup.home)
+	initialize := cli.New()
+	initialize.SetArgs([]string{"client-key", "init"})
+	initialize.SetOut(new(bytes.Buffer))
+	initialize.SetErr(new(bytes.Buffer))
+	if err := initialize.ExecuteContext(test.Context()); err != nil {
+		test.Fatal("could not explicitly initialize the isolated CLI client key")
+	}
 	for _, token := range []string{firstToken, secondToken} {
 		command := cli.New()
 		command.SetArgs([]string{"pack", "subscribe", "--server", setup.server.URL, "--token-stdin"})

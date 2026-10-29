@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ func newBackupLocalCommand() *cobra.Command {
 				return err
 			}
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local backup is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			if err := install.ValidateSlug(args[0]); err != nil {
 				return err
@@ -40,6 +41,9 @@ func newBackupLocalCommand() *cobra.Command {
 			}
 			if !exists {
 				return fmt.Errorf("no local installation database")
+			}
+			if _, err := admitClientHome(command.Context()); err != nil {
+				return err
 			}
 			session, err := install.OpenSession(command.Context(), directory)
 			if err != nil {
@@ -96,7 +100,7 @@ func newBackupListCommand() *cobra.Command {
 				return err
 			}
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local backup is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			home, err := localHome()
 			if err != nil {
@@ -118,6 +122,9 @@ func newBackupListCommand() *cobra.Command {
 			}
 			if !exists {
 				_, err = fmt.Fprintln(command.OutOrStdout(), "没有本地备份记录")
+				return err
+			}
+			if _, err := admitClientHome(command.Context()); err != nil {
 				return err
 			}
 			session, err := install.OpenSession(command.Context(), directory)

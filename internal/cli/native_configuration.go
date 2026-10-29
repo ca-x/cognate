@@ -105,6 +105,9 @@ func readNativeSession(ctx context.Context, input io.Reader) (string, error) {
 }
 
 func nativeErrorMessage(err error) string {
+	if clientKeyFailure(err) {
+		return clientKeyErrorMessage(err)
+	}
 	switch {
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 		return "配置操作已取消或超时；已发生的消费或写入不会因此回滚。"
@@ -180,9 +183,9 @@ func newNativeConfigurationCommand() *cobra.Command {
 			if err != nil {
 				return nativeconfig.ErrInvalid
 			}
-			key, err := loadClientKey(home, false)
+			key, err := loadClientKey(ctx, home)
 			if err != nil {
-				return nativeconfig.ErrInvalid
+				return err
 			}
 			defer clear(key)
 			directory := filepath.Join(home, ".local", "share", "skillhub")
@@ -203,6 +206,7 @@ func newNativeConfigurationCommand() *cobra.Command {
 				defer native.Close()
 			}
 			client, err := nativeconfig.New(home, directory, server, key, native)
+			clear(key)
 			if err != nil {
 				return err
 			}

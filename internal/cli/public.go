@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/packclient"
 	"github.com/spf13/cobra"
@@ -19,9 +20,13 @@ func newInstallPublicCommand() *cobra.Command {
 				return err
 			}
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local installation is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			client, err := packclient.NewPublic(origin, nil)
+			if err != nil {
+				return err
+			}
+			home, err := admitClientHome(command.Context())
 			if err != nil {
 				return err
 			}
@@ -34,7 +39,7 @@ func newInstallPublicCommand() *cobra.Command {
 				return err
 			}
 			defer func() { resultErr = errors.Join(resultErr, snapshot.Close()) }()
-			home, directory, err := prepareClientHome(command.Context())
+			directory, err := prepareAdmittedClientHome(command.Context(), home)
 			if err != nil {
 				return err
 			}

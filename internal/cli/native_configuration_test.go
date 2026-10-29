@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/httpapi"
@@ -69,6 +70,7 @@ func TestNativeConfigurationCLI(test *testing.T) {
 		test.Fatal(err)
 	}
 	before := fixture.authorize.Load()
+	beforeRequests := fixture.requests.Load()
 	command := exec.CommandContext(test.Context(), binary, fixture.arguments()...)
 	command.Env = fixture.environment()
 	command.Stdin = strings.NewReader(fixture.bearer)
@@ -76,6 +78,9 @@ func TestNativeConfigurationCLI(test *testing.T) {
 	command.Stdout, command.Stderr = &output, &output
 	if err := command.Run(); err == nil || fixture.authorize.Load() != before {
 		test.Fatal("missing key silently initialized")
+	}
+	if fixture.requests.Load() != beforeRequests || output.String() != clientKeyErrorMessage(clientkey.ErrRecoveryRequired)+"\n" {
+		test.Fatal("missing native key performed network work or lost recovery classification")
 	}
 	if _, err := os.Stat(filepath.Join(fixture.home, ".config", "skillhub", "client.key")); !os.IsNotExist(err) {
 		test.Fatal("missing key was recreated")
@@ -195,6 +200,9 @@ func nativeCLIBackend(test *testing.T, mode configuration.AuthMode) *nativeCLIFi
 		}
 	}
 	if err := os.WriteFile(filepath.Join(fixture.home, ".config", "skillhub", "client.key"), bytes.Repeat([]byte{39}, 32), 0600); err != nil {
+		test.Fatal(err)
+	}
+	if err := clientkey.Initialize(test.Context(), fixture.home); err != nil {
 		test.Fatal(err)
 	}
 	fixture.certificate = filepath.Join(directory, "test-ca.pem")

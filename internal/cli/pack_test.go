@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -9,7 +10,25 @@ import (
 	"testing"
 
 	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/clientkey"
 )
+
+func TestClientKeyEntrypointsPackNoImplicitInitialization(test *testing.T) {
+	if runtime.GOOS != "linux" {
+		test.Skip("Linux client state")
+	}
+	home := test.TempDir()
+	test.Setenv("HOME", home)
+	command := cli.New()
+	command.SetOut(new(bytes.Buffer))
+	command.SetArgs([]string{"pack", "sync"})
+	if !errors.Is(command.ExecuteContext(test.Context()), clientkey.ErrInitializationRequired) {
+		test.Fatal("pack did not require explicit initialization")
+	}
+	if _, err := os.Lstat(filepath.Join(home, ".config", "skillhub", "client.key")); !errors.Is(err, os.ErrNotExist) {
+		test.Fatal("pack created client key")
+	}
+}
 
 func TestPackSubscribeRejectsCredentialBeforeCreatingLocalState(test *testing.T) {
 	if runtime.GOOS != "linux" {

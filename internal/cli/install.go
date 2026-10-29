@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/state"
 	"github.com/spf13/afero"
@@ -24,12 +25,12 @@ func newInstallLocalCommand() *cobra.Command {
 				return err
 			}
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local installation is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			if err := install.ValidateSlug(slug); err != nil {
 				return err
 			}
-			home, err := localHome()
+			home, err := admitClientHome(command.Context())
 			if err != nil {
 				return err
 			}
@@ -131,7 +132,7 @@ func newInstallStatusCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(command *cobra.Command, _ []string) error {
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local installation is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			home, err := localHome()
 			if err != nil {
@@ -153,6 +154,9 @@ func newInstallStatusCommand() *cobra.Command {
 			}
 			if !exists {
 				_, err = fmt.Fprintln(command.OutOrStdout(), "没有本地安装状态")
+				return err
+			}
+			if _, err := admitClientHome(command.Context()); err != nil {
 				return err
 			}
 			session, err := install.OpenSession(command.Context(), directory)

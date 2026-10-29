@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"golang.org/x/sys/unix"
 )
 
@@ -167,6 +168,9 @@ func TestNativeWatchRegularFilePreservesOffsetAndOwnership(test *testing.T) {
 func TestNativeWatchCLIUnwrappedFullPipeCancellation(test *testing.T) {
 	home := test.TempDir()
 	test.Setenv("HOME", home)
+	if err := clientkey.Initialize(test.Context(), home); err != nil {
+		test.Fatal(err)
+	}
 	reader, writer, _ := fullWatchPipe(test)
 	ctx, cancel := context.WithCancel(test.Context())
 	defer cancel()

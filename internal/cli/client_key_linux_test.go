@@ -12,17 +12,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"golang.org/x/sys/unix"
 )
 
 func TestClientCredentialKeyPrivatePersistentAndNotRecreated(test *testing.T) {
 	home := test.TempDir()
-	first, err := loadClientKey(home, true)
+	if err := clientkey.Initialize(test.Context(), home); err != nil {
+		test.Fatal(err)
+	}
+	first, err := loadClientKey(test.Context(), home)
 	if err != nil {
 		test.Fatal(err)
 	}
 	defer clear(first)
-	second, err := loadClientKey(home, true)
+	second, err := loadClientKey(test.Context(), home)
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -34,7 +38,7 @@ func TestClientCredentialKeyPrivatePersistentAndNotRecreated(test *testing.T) {
 	if err := os.Chmod(path, 0o644); err != nil {
 		test.Fatal(err)
 	}
-	if _, err := loadClientKey(home, true); err == nil {
+	if _, err := loadClientKey(test.Context(), home); err == nil {
 		test.Fatal("readable key accepted")
 	}
 	if err := os.Chmod(path, 0o600); err != nil {
@@ -43,7 +47,7 @@ func TestClientCredentialKeyPrivatePersistentAndNotRecreated(test *testing.T) {
 	if err := os.WriteFile(path, []byte("truncated"), 0o600); err != nil {
 		test.Fatal(err)
 	}
-	if _, err := loadClientKey(home, true); err == nil {
+	if _, err := loadClientKey(test.Context(), home); err == nil {
 		test.Fatal("truncated key silently recreated")
 	}
 	data, err := os.ReadFile(path)
@@ -71,7 +75,7 @@ func TestClientCredentialKeyRejectsLinks(test *testing.T) {
 			if err := link(outside, filepath.Join(directory, "client.key")); err != nil {
 				test.Fatal(err)
 			}
-			if _, err := loadClientKey(home, true); err == nil {
+			if _, err := loadClientKey(test.Context(), home); err == nil {
 				test.Fatal("linked key accepted")
 			}
 		})
@@ -155,7 +159,7 @@ func TestClientCredentialKeyReplacementHelper(test *testing.T) {
 		}
 	}()
 	for range 1000 {
-		key, err := loadClientKey(home, false)
+		key, err := loadClientKey(test.Context(), home)
 		if err == nil && !bytes.Equal(key, bytes.Repeat([]byte{37}, 32)) {
 			test.Error("replacement returned a different client key")
 		}

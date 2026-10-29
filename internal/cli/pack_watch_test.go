@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/subscription"
 )
@@ -68,6 +69,9 @@ func TestPackWatchOutputFailureStopsAndReleasesInstallationLock(test *testing.T)
 	}
 	home := test.TempDir()
 	test.Setenv("HOME", home)
+	if err := clientkey.Initialize(test.Context(), home); err != nil {
+		test.Fatal(err)
+	}
 	writeFailure := errors.New("synthetic output unavailable")
 	command := cli.New()
 	command.SetArgs([]string{"pack", "watch"})

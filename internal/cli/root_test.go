@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/state"
 )
 
@@ -56,6 +57,9 @@ func TestInstallStatusReconcilesInterruptedOperations(t *testing.T) {
 	}
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	directory := filepath.Join(home, ".local", "share", "skillhub")
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		t.Fatal(err)
@@ -103,6 +107,9 @@ func TestInstallStatusCancelsOnlyUnstartedPlans(t *testing.T) {
 	}
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	directory := filepath.Join(home, ".local", "share", "skillhub")
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		t.Fatal(err)
@@ -146,6 +153,9 @@ func TestInstallLocalCommand(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.MkdirAll(filepath.Join(home, ".claude", "skills"), 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -182,6 +192,9 @@ func TestBackupLocalCommand(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(source, "SKILL.md"), []byte("skill"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -335,6 +348,9 @@ func TestBackupLocalRejectsUntrustedSourceParent(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(source, "SKILL.md"), []byte("skill"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -364,6 +380,9 @@ func TestBackupLocalReportsCommittedBackupWhenOutputFails(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(source, "SKILL.md"), []byte("skill"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -426,6 +445,9 @@ func TestInstallLocalRejectsUntrustedStateDirectory(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	directory := filepath.Join(home, ".local", "share", "skillhub")
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		t.Fatal(err)
@@ -554,6 +576,9 @@ func TestInstallLocalRejectsWritableTargetDirectories(t *testing.T) {
 		t.Run(kind, func(t *testing.T) {
 			home, source := t.TempDir(), t.TempDir()
 			t.Setenv("HOME", home)
+			if err := clientkey.Initialize(t.Context(), home); err != nil {
+				t.Fatal(err)
+			}
 			canonical, agent := filepath.Join(home, ".agents", "skills"), filepath.Join(home, ".claude", "skills")
 			for _, path := range []string{canonical, agent} {
 				if err := os.MkdirAll(path, 0o700); err != nil {
@@ -588,6 +613,9 @@ func TestInstallLocalAcceptsTrustedDirectoryAliases(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	canonical := filepath.Join(home, "canonical")
 	for _, path := range []string{canonical, filepath.Join(home, ".agents"), filepath.Join(home, ".claude"), filepath.Join(home, ".codex", "skills")} {
 		if err := os.MkdirAll(path, 0o700); err != nil {
@@ -625,6 +653,9 @@ func TestInstallLocalRejectsUntrustedIntermediateSymlink(t *testing.T) {
 	}
 	home, source := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.Chmod(home, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -661,6 +692,9 @@ func TestInstallLocalRejectsUntrustedInputDotDot(t *testing.T) {
 	}
 	home, root := t.TempDir(), t.TempDir()
 	t.Setenv("HOME", home)
+	if err := clientkey.Initialize(t.Context(), home); err != nil {
+		t.Fatal(err)
+	}
 	for _, path := range []string{"base/data", "unsafe/sub", "unsafe/data"} {
 		if err := os.MkdirAll(filepath.Join(root, path), 0o700); err != nil {
 			t.Fatal(err)
@@ -696,6 +730,9 @@ func TestInstallLocalRejectsWritableSourceContent(t *testing.T) {
 		t.Run(kind, func(t *testing.T) {
 			home, source := t.TempDir(), t.TempDir()
 			t.Setenv("HOME", home)
+			if err := clientkey.Initialize(t.Context(), home); err != nil {
+				t.Fatal(err)
+			}
 			if err := os.Mkdir(filepath.Join(source, "assets"), 0o700); err != nil {
 				t.Fatal(err)
 			}

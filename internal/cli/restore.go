@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +21,7 @@ func newRestoreLocalCommand() *cobra.Command {
 				return err
 			}
 			if runtime.GOOS != "linux" {
-				return fmt.Errorf("local restore is unsupported on this platform")
+				return clientkey.ErrUnsupported
 			}
 			home, err := localHome()
 			if err != nil {
@@ -40,6 +41,9 @@ func newRestoreLocalCommand() *cobra.Command {
 			parent, err := resolveTrustedDirectory(args[1])
 			if err != nil {
 				return fmt.Errorf("untrusted restore parent: %w", err)
+			}
+			if _, err := admitClientHome(command.Context()); err != nil {
+				return err
 			}
 			if _, err := fmt.Fprintln(command.ErrOrStderr(), "恢复目录使用备份的原始权限，可能允许其他用户读取或写入。"); err != nil {
 				return err

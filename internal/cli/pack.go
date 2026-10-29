@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"text/tabwriter"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/packclient"
-	"github.com/ca-x/cognate/internal/state"
 	"github.com/ca-x/cognate/internal/subscription"
 	"github.com/spf13/cobra"
 )
@@ -155,47 +155,51 @@ func prepareClientHome(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 	if runtime.GOOS != "linux" {
-		return "", "", fmt.Errorf("local installation is unsupported on this platform")
+		return "", "", clientkey.ErrUnsupported
 	}
-	home, err := localHome()
+	home, err := admitClientHome(ctx)
 	if err != nil {
 		return "", "", err
+	}
+	directory, err := prepareAdmittedClientHome(ctx, home)
+	return home, directory, err
+}
+
+func prepareAdmittedClientHome(ctx context.Context, home string) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
 	directory := filepath.Join(home, ".local", "share", "skillhub")
 	if err := prepareStateDirectory(directory); err != nil {
-		return "", "", err
+		return "", err
 	}
 	if _, err := validateDatabasePath(directory); err != nil {
-		return "", "", err
+		return "", err
 	}
 	canonical := filepath.Join(home, ".agents", "skills")
 	if err := createTrustedDirectory(canonical, false); err != nil {
-		return "", "", err
+		return "", err
 	}
 	if _, err := validateLocalDirectories(home, canonical); err != nil {
-		return "", "", err
+		return "", err
 	}
-	return home, directory, nil
+	return directory, nil
 }
 
 func openSubscriptionManager(ctx context.Context) (*subscription.Manager, error) {
-	home, directory, err := prepareClientHome(ctx)
+	home, err := localHome()
 	if err != nil {
 		return nil, err
 	}
-	store, err := state.Open(ctx, filepath.Join(directory, "client.db"))
-	if err != nil {
-		return nil, err
-	}
-	records, readErr := store.Subscriptions(ctx)
-	if err := errors.Join(readErr, store.Close()); err != nil {
-		return nil, err
-	}
-	key, err := loadClientKey(home, len(records) == 0)
+	key, err := loadClientKey(ctx, home)
 	if err != nil {
 		return nil, err
 	}
 	defer clear(key)
+	directory, err := prepareAdmittedClientHome(ctx, home)
+	if err != nil {
+		return nil, err
+	}
 	return subscription.Open(ctx, home, directory, key, nil)
 }
 

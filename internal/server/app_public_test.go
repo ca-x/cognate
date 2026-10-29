@@ -7,12 +7,14 @@ import (
 	"crypto/rand"
 	"errors"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -21,6 +23,7 @@ import (
 	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
 	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
 	"github.com/ca-x/cognate/internal/cli"
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/packclient"
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/library"
@@ -117,7 +120,14 @@ func TestAppPublicCatalogAndCLIInstallWithoutCredentials(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = app.Close() })
-	endpoint := httptest.NewServer(app.handler)
+	var requests, credentialedRequests atomic.Int64
+	endpoint := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requests.Add(1)
+		if request.Header.Get("Authorization") != "" || request.Header.Get("Proxy-Authorization") != "" || request.Header.Get("Cookie") != "" {
+			credentialedRequests.Add(1)
+		}
+		app.handler.ServeHTTP(writer, request)
+	}))
 	t.Cleanup(endpoint.Close)
 	accounts := authv1connect.NewAuthServiceClient(endpoint.Client(), endpoint.URL)
 	password := rand.Text()
@@ -146,12 +156,97 @@ func TestAppPublicCatalogAndCLIInstallWithoutCredentials(t *testing.T) {
 		command.SetArgs([]string{"install-public", "--server", endpoint.URL, "--skill", selected.ID})
 		return command.ExecuteContext(t.Context())
 	}
-	if err := invokeCLI(); connect.CodeOf(err) != connect.CodeNotFound {
-		t.Fatal("anonymous CLI did not reject unpublished skill")
+	beforeAdmission := requests.Load()
+	if err := invokeCLI(); !errors.Is(err, clientkey.ErrInitializationRequired) {
+		t.Fatal("anonymous CLI did not require explicit client key initialization")
 	}
-	for _, path := range []string{".agents", ".local", ".config"} {
+	if requests.Load() != beforeAdmission {
+		t.Fatal("uninitialized anonymous CLI made a server request")
+	}
+	for _, path := range []string{".agents", ".local/share/skillhub/client.db", ".config/skillhub/client.key", ".config/skillhub/client-key-use.v1"} {
 		if _, err := os.Stat(filepath.Join(home, path)); !errors.Is(err, os.ErrNotExist) {
-			t.Fatal("unpublished install initialized client state")
+			t.Fatal("uninitialized anonymous install created business state or key material")
+		}
+	}
+	var initOutput bytes.Buffer
+	initialize := cli.New()
+	initialize.SetArgs([]string{"client-key", "init"})
+	initialize.SetOut(&initOutput)
+	initialize.SetErr(&initOutput)
+	if err := initialize.ExecuteContext(t.Context()); err != nil {
+		t.Fatal("explicit client key initialization failed")
+	}
+	if requests.Load() != beforeAdmission {
+		t.Fatal("client key initialization made a server request")
+	}
+	snapshotConfig := func() map[string][]byte {
+		t.Helper()
+		root := filepath.Join(home, ".config")
+		snapshot := make(map[string][]byte)
+		if err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, failure error) error {
+			if failure != nil {
+				return failure
+			}
+			relative, err := filepath.Rel(root, path)
+			if err != nil {
+				return err
+			}
+			if entry.IsDir() {
+				snapshot[relative+"/"] = nil
+				return nil
+			}
+			if !entry.Type().IsRegular() {
+				return errors.New("unexpected client configuration entry")
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			snapshot[relative] = data
+			return nil
+		}); err != nil {
+			t.Fatal("could not inspect isolated client configuration")
+		}
+		return snapshot
+	}
+	configBaseline := snapshotConfig()
+	defer func() {
+		for _, data := range configBaseline {
+			clear(data)
+		}
+	}()
+	if len(configBaseline) != 5 || len(configBaseline["skillhub/client.key"]) != 32 || len(configBaseline["skillhub/client-key-use.v1"]) == 0 {
+		t.Fatal("explicit initialization did not establish only the core configuration baseline")
+	}
+	assertAnonymousConfig := func() {
+		t.Helper()
+		current := snapshotConfig()
+		defer func() {
+			for _, data := range current {
+				clear(data)
+			}
+		}()
+		if len(current) != len(configBaseline) {
+			t.Fatal("anonymous CLI created additional credential storage")
+		}
+		for path, expected := range configBaseline {
+			actual, found := current[path]
+			if !found || !bytes.Equal(actual, expected) {
+				t.Fatal("anonymous CLI changed the initialized configuration baseline")
+			}
+		}
+	}
+	beforeAnonymous := credentialedRequests.Load()
+	if err := invokeCLI(); connect.CodeOf(err) != connect.CodeNotFound {
+		t.Fatal("initialized anonymous CLI did not reject unpublished skill")
+	}
+	if requests.Load() != beforeAdmission+1 || credentialedRequests.Load() != beforeAnonymous {
+		t.Fatal("unpublished rejection did not come from an anonymous server request")
+	}
+	assertAnonymousConfig()
+	for _, path := range []string{".agents", ".local/share/skillhub/client.db"} {
+		if _, err := os.Stat(filepath.Join(home, path)); !errors.Is(err, os.ErrNotExist) {
+			t.Fatal("unpublished install initialized client business state")
 		}
 	}
 	publication := catalogv1connect.NewPublicationServiceClient(endpoint.Client(), endpoint.URL)
@@ -186,10 +281,14 @@ func TestAppPublicCatalogAndCLIInstallWithoutCredentials(t *testing.T) {
 	if err != nil || len(filtered.Msg.Skills) != 1 || filtered.Msg.Skills[0].Id != selected.ID {
 		t.Fatal("anonymous category/search filters failed through App")
 	}
+	beforeAnonymous = credentialedRequests.Load()
 	for range 2 {
 		if err := invokeCLI(); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if credentialedRequests.Load() != beforeAnonymous {
+		t.Fatal("public CLI installation sent server credentials")
 	}
 	canonical := filepath.Join(home, ".agents", "skills", metadata.Slug)
 	contents, err := os.ReadFile(filepath.Join(canonical, ".hidden"))
@@ -210,9 +309,7 @@ func TestAppPublicCatalogAndCLIInstallWithoutCredentials(t *testing.T) {
 	if err := errors.Join(lookupErr, local.Close()); err != nil || record.ContentHash != metadata.ContentHash || record.SubscriptionManaged {
 		t.Fatal("standalone public install hash/ownership was not retained")
 	}
-	if _, err := os.Stat(filepath.Join(home, ".config")); !errors.Is(err, os.ErrNotExist) {
-		t.Fatal("anonymous installation created credential storage")
-	}
+	assertAnonymousConfig()
 	deleteCategory := connect.NewRequest(&catalogv1.DeleteCategoryRequest{CategoryId: category.Msg.Category.Id, ExpectedRevision: category.Msg.Category.Revision})
 	deleteCategory.Header().Set("Authorization", "Bearer "+login.Msg.SessionToken)
 	if _, err := categories.DeleteCategory(t.Context(), deleteCategory); err != nil {
@@ -230,9 +327,14 @@ func TestAppPublicCatalogAndCLIInstallWithoutCredentials(t *testing.T) {
 	if _, err := public.Download(t.Context(), metadata); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Fatal("stale anonymous metadata retained download authority")
 	}
+	beforeAnonymous = credentialedRequests.Load()
 	if err := invokeCLI(); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Fatal("unpublished CLI install did not fail")
 	}
+	if credentialedRequests.Load() != beforeAnonymous {
+		t.Fatal("withdrawn-publication CLI request sent server credentials")
+	}
+	assertAnonymousConfig()
 	if _, err := os.Stat(filepath.Join(canonical, "SKILL.md")); err != nil {
 		t.Fatal("unpublish deleted an existing independent local installation")
 	}

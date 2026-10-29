@@ -22,6 +22,12 @@ func Execute() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	command := New()
+	if clientKeyInvocation(os.Args[1:]) {
+		if executeClientKey(ctx, command) != 0 {
+			os.Exit(1)
+		}
+		return
+	}
 	if nativeInvocation(os.Args[1:]) {
 		output, err := prepareNativeOutput(ctx, os.Stdout)
 		if err != nil {
@@ -42,6 +48,10 @@ func Execute() {
 		return
 	}
 	if err := command.ExecuteContext(ctx); err != nil {
+		if clientKeyFailure(err) {
+			clientKeyExitDiagnostic(err, 4<<10)
+			os.Exit(1)
+		}
 		fmt.Fprintln(os.Stderr, terminalText(err.Error()))
 		os.Exit(1)
 	}
@@ -53,6 +63,7 @@ func New() *cobra.Command {
 	root.AddCommand(newInstallPublicCommand())
 	root.AddCommand(newUninstallLocalCommand())
 	root.AddCommand(newPackCommand())
+	root.AddCommand(newClientKeyCommand())
 	root.AddCommand(newNativeConfigurationCommand())
 	root.AddCommand(newImportCommand())
 	root.AddCommand(newInstallStatusCommand())

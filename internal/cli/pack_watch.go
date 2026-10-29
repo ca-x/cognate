@@ -28,14 +28,22 @@ func newPackWatchCommand() *cobra.Command {
 				return err
 			}
 			defer func() { resultErr = errors.Join(resultErr, closeOutput()) }()
+			var admissionError error
 			err = subscription.Watch(command.Context(), options, func(ctx context.Context) (subscription.SyncResult, error) {
+				admissionError = nil
 				manager, err := openSubscriptionManager(ctx)
 				if err != nil {
+					if clientKeyFailure(err) {
+						admissionError = err
+					}
 					return subscription.SyncResult{}, err
 				}
 				result, operationErr := manager.Sync(ctx)
 				return result, errors.Join(operationErr, manager.Close())
 			}, func(_ context.Context, report subscription.WatchReport) error {
+				if admissionError != nil {
+					return admissionError
+				}
 				if report.Succeeded {
 					if err := showSyncResult(output, report.Result); err != nil {
 						return err
@@ -46,6 +54,9 @@ func newPackWatchCommand() *cobra.Command {
 				_, err := fmt.Fprintf(output, "同步未完成（连续失败 %d 次）；%s 后重试；可用 pack sync 和 install-status 检查\n", report.ConsecutiveFailures, report.NextAttemptIn)
 				return err
 			})
+			if admissionError != nil {
+				return admissionError
+			}
 			if errors.Is(err, context.Canceled) && command.Context().Err() != nil {
 				return nil
 			}
