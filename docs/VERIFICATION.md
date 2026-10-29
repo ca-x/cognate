@@ -228,3 +228,17 @@ C0-S 独立 reviewer 额外验证认证全局库存后才认 absent、root 移�
 主线程对六个代码路径的组合 tree `3b2ea6c4bf506d0f493940a9bbdcc9a909bc5c78` 做不可变 clean export，npm ci/build、全仓 Go tests/vet、模块校验、Buf lint/Go+Web 双模板 parity 和 CLI/服务端/MyGo 三目标平台九项 CGO0 编译均 exit0。最终 `ef004f2` tree `3a2f40063353c4716308e6fa3d5503f5645100d0` 相对该已测试树只增加上述独立设计验收的三个 Codex 文档，六代码路径 blob/mode 不变；密钥实际交付树还单独 fresh 跑过 key 包测试与 vet。完整主线程验证不冒称由独立 reviewer 重跑。
 
 CLI 真实逐槽确认/应用/恢复、旧入口安全准入与原生初始化 UI、MyGo 配置编辑、Codex 及其他 agent 的完整适配、导入/Pack 配置附件、自动应用、完整备份/S3 与正式 Release 仍分别待完成。本节不关闭这些首发门禁。
+
+## Codex Provider Planning Checkpoint
+
+2026-10-29，服务端 Codex 声明式 provider planner 已以 `c7d8ab60c2f7ae6d2c4b18b1163b72fe65d59dc8` 提交、SSH 推送并读回；对应 Build `40853241980` completed/success。此前的客户端密钥入口与本地快照两份规格以 `3c1348a5e0af77d12c296f8b374619680c9d53a4` 提交，对应 Build `40849671013` completed/success；规格交付不等于这些功能已经实现。
+
+Codex 实现的精确八路径候选 tree 为 `25fb32052ce748b34e6468029743f407d02430db`，经非作者完整 Spec/Quality 验收，未关闭 finding 为 0。独立验证包含真实 moejs、provider/catalog presence 组合与隐藏成员、恶意输出、取消与 clone 隔离；恢复回归 716 个含子用例、shuffle 4600 个含子用例通过，三项先编译成功的行为负控分别断言失败，恢复后通过。实际交付 tree 为 `5d97c8c6a85534fdc97b05c6759ab4882728152a`。
+
+该能力只生成单一 `codex.provider-key` 槽位、固定 provider/Responses 协议及尚未解析的 `preserve-local-login-v1` 策略声明。宿主基于独立输入快照重算完整 JSON 树，并返回自身持有的副本；整个 DTO 仍敏感，不得整体日志。真实运行时会省略 JavaScript `undefined` 成员，因此验证边界是归一化后的 JSON 树，不是 JavaScript own-key 反射；真正 JSON 中的未知成员、null 或错误值仍被拒绝。此交付不包含 Codex 本地 codec、登录解析、客户端应用或完整 F12。
+
+主线程从不可变 A-only tree `d8227ddcc5b5369dc007e8de5f71371a07a80bb2` 导出，完成 npm、全仓 Go tests/vet、模块校验、Buf Go/Web 双模板生成比对、客户端无服务端/moejs 依赖检查，以及 CLI/服务端/MyGo 九项 CGO0 交叉构建，均退出 0。最终交付相对该验证树只增加上述两份已接受的规格文档，不冒称独立 reviewer 重跑了主线程全量验证，也不以交叉编译证明非 Linux 原生运行。
+
+Claude/Linux 手动 CLI 配置工作流 C1 的独立候选 tree `feb621b2baf1a4fc5f2b1a6ddc3772df2e03651e` 尚未签收或交付。非作者完整验收发现两个 P2：未知子命令打印帮助后 exit0；满 stdout/stderr 时，1s 命令 deadline 未传到底层嵌套写入，约 10.06s 才退出。已有 focused 52/52 通过不能覆盖这两个真实进程反例；原候选与失败证据保留，须修复并复验。主线程曾验证的 A+C1 组合 tree `1ddbe8f66dc0ecf3db315206cbc222a09f33f38b` 全量通过，也不能替代此独立验收或为后续修订源码提供通过证明。
+
+显式密钥入口迁移、MyGo 配置 UI、完整十四 agent、配置导入/Pack 附件/自动应用、加密备份/S3/恢复、跨平台实际运行及首个正式 Release 仍分别未完成。
