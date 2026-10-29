@@ -1,6 +1,6 @@
 # 开发预览验证
 
-本记录对应 2026-10-28 开发预览阶段，不是首版发布或 M2–M7 全部完成的声明。权威功能范围见 `REQUIREMENTS.md`；持续进度见 `DEVELOPMENT.md`。
+本记录自 2026-10-28 开发预览阶段起按提交保留验收与失败历史，各节描述对应时间点，不是首版发布或 M2 至 M7 全部完成的声明。最新 MyGo Claude 原生配置交付见末节。权威功能范围见 `REQUIREMENTS.md`；持续进度见 `DEVELOPMENT.md`。
 
 ## 独立验收范围
 
@@ -278,3 +278,32 @@ Claude/Linux 手动 CLI 配置工作流 C1 的独立候选 tree `feb621b2baf1a4f
 Codex 官方 ChatGPT/OAuth、本机 provider 选择/文件写入/登录保留、原生授权消费及应用、其它 agent、来源导入/Pack 配置附件/自动应用、完整备份恢复及正式 Release 仍未由本次交付完成。六平台交叉构建不代表非 Linux 实际运行。
 
 原提交的远端 Build `40930852848` completed/failure：`TestRepresentativeTimeoutDoesNotStarveNextRepository` 的第二次成功工作在 200ms 测试预算内超时，二进制和 Docker job 被跳过。后继 test-only 提交 `43fa42e555b0f3453a2b820386b247b3e1d097fb` 已 SSH 推送读回，保留首轮 200ms 真实超时及重启后顺序/收录断言，仅将成功工作预算分离为 3s；可取消的 250ms 成功 fixture 确定性复现旧预算不足，移除 cursor 推进的负控仍编译成功后断言失败。非作者独立复验签收，精确 one-file 候选的完整 30 项门禁全部退出 0；不修改生产期限或以本地绿色抹去原 CI 失败，后继远端 CI 仍须另行读回。
+
+## MyGo Claude 原生配置交付（2026-10-30）
+
+提交 **`bd00bc03411f3d1979e237da8e03abc5f0ca16fb`** 已精确交付十三个 desktop 路径、SSH 推送及读回，tree **`7fbfb9a537c426fcd638593802ba106a37f319c5`**。基线 `e373db83edd411950c5cb31db2dd8ae306b50e13` 的 tree 为 `3afc079373b9f8ed3de43b997363bc9ddc8b1f8a`；其 Darwin8 与已签计划保持不变。MyGo 支持 Claude provider/schema1 原生资产编辑、服务端保存与本机应用分离、无秘密复制、预览、逐 secret slot 加最终批准的应用，以及本机 Status/Restore；本机操作仅限 Linux。Codex 等其它资产在 MyGo 仅 metadata，不代表支持本机应用，详细操作与缺口见 `CONFIGURATION.md`。
+
+非作者完整实施审及 safe-focus successor 复验接受 tree `55a09520db96790ccaf2d856fcb9e284a0536789`。原四个独立 probe 文件未改：六项独立测试三轮共 18 PASS，包含 Apply/Restore/Delete/dirty-discard 初次 Enter、opaque 隐私、真实 TLS/SQLite 七槽转换和零网络离线恢复。只回退旧 view 的 overlay 先编译成功，再由四个原行为断言全部 RED，恢复后四项 GREEN；deliberate Tab/Enter、slot 与最终批准门禁、焦点包含/返回及身份失效测试二十轮共 340 个含子用例 PASS，隐私原 oracle 一百轮 PASS。独立 fresh desktop 为 186 个含子用例 PASS、一个既有 fault-overlay 条件 skip，真实请求 deadline 用例运行 20.12s，vet/build 通过；不把该 skip 说成已测故障分支。
+
+`NATIVE-UI-01` 在新候选关闭：三个 Modal 的安全控件优先，拒绝位于凭据 checkbox 与最终批准之前，零槽也不能默认 Enter 应用/恢复。没有禁用正常键盘确认或自造 focus trap。密码、session、分享 token 与新凭据保持 opaque，无 raw 兼容影子；非常规 fmt、私有容器、可逆 hex、JSON/stdlog/slog 检查通过，不承诺主动取出秘密后的日志安全或物理擦除。组件独立报告 `native-configuration-ui-focus-fix1-independent-review.md` SHA256 为 `00a8673821a098d81c72f42c2fd6aa7511851670ef61d9cff4d473fc2b3f68d9`；旧隐私/焦点 REJECT、四个原 RED 与旧基线并行 state deadline RED 全部保留，不用主线程绿色抹除。
+
+主线程对上述精确最终 tree 的隔离导出执行 **40 项门禁，全部实际 exit0，终态 FINAL_EXIT=0**：
+
+| 主线程实际门禁 | 项数 / 结果 |
+| --- | --- |
+| npm ci/build | 2 / exit0 |
+| 默认包并行全仓 Go tests、vet、模块校验 | 3 / exit0；未使用 `-p=1`，包输出没有 cached 行 |
+| Buf lint/breaking、Go/TS 正常生成及双 parity | 6 / exit0 |
+| 六 OS/architecture 组合 × CLI/server/MyGo | 18 / Go1.27.3、CGO0 build exit0 |
+| CLI/MyGo 生产依赖边界 | 1 / 无 server/moejs |
+| Darwin amd64/arm64 × cli/clientkey/desktop/install/subscription | 10 / test-compile exit0，不是执行 |
+
+对应导出 `/tmp/cognate-native-focus-final.AQe6mf/source`，主线程 `verification.log` SHA256 为 `37135c038434f363cfd773ee0a0e83635408fa914ffe454fb0cac5072acd3cc9`。非作者 whole 机械 ratify 核对 961 项 tracked bytes/mode、精确十三路径的 base/new blob 与完整 binary diff、基线文档/module 保全，以及 28 个产物实际 Go1.27.3/CGO0/目标平台与包路径；两份生成目录另逐项比对。新 Darwin desktop 测试与 opaque Model 的兼容性由两个架构实际 test-compile 验证，不是只读推断。独立最终报告 `native-configuration-ui-focus-final-combined-review.md` SHA256 为 `4ed4810b9ca9c1dd1b1c949529c8eca526b141773030c2f882d0524ddf6589aa`。这部分核验实际主日志和产物，**没有冒称 reviewer 重跑 40 门**。
+
+没有为本次 safe-focus 修复重新打开原生窗口。既有 Linux Xvfb/llvmpipe 截图、鼠标/键盘与真实服务闭环保留原 `5cf14557` 候选归属；新焦点证明来自 MyGo headless 真事件及真实 HTTP/SQLite/文件，不将旧截图记作新窗口焦点 PASS，更不证明 Darwin/Windows 配置应用或 accessibility。
+
+另保留基线 `e373db83` 的 platform Actions **`40936595059` actual completed/failure**：三 OS primitives jobs 成功；Darwin baseline 编译成功，但 APFS fixture 创建/挂载失败，在 capability 与六项 ordinary 行为 probes 之前停止，随后 cleanup/sealer fail-closed，只封存拒绝收据。原日志 SHA256 为 `e24e299e708b7a17c90565ba777b289c1281676faff8863db24b52fba281e0c4`。**这不是六项 native 普通行为 RED 已取得，也不是安装能力 PASS**；不能将基础设施失败当作预期产品 RED，根因与后继修复须单独验证。
+
+本次 native 交付 checkpoint 起初仅观察到后继 CI pending/in_progress；随后主线程实际等待并 fresh 核对 Build **`40937407082`** 为 completed/success，精确 head 为 `bd00bc03411f3d1979e237da8e03abc5f0ca16fb`，九个 jobs 全部成功。platform **`40937406971`** 则实际 completed/failure，同样在 APFS fixture RuntimeError 处、capability 与六项 ordinary probes 之前停止，cleanup/sealer 也未取得完整能力收据；原失败日志 SHA256 为 `4374e2be86896a46023ab658c74c541a5da0e74dd95b9cea372652fec1999006`。本次没有该 run 其它三 OS primitives 的完整 fresh 核验，不借用 e373 的成绩称新 run 全部成功。Build 绿色不覆盖 platform 失败，更不等于六项 native 普通行为 RED、Darwin 安装/配置应用或新窗口 PASS。
+
+完整历史、值级/文件 diff、其它 agent 本机支持、来源配置导入、Pack 配置附件、自动应用、非 Linux 配置应用和完整 F12/M7/正式 Release 仍未由该十三路径交付。
