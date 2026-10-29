@@ -46,6 +46,7 @@ func (service *Service) Edit(ctx context.Context, owner, id string) (EditView, e
 	if err != nil {
 		return EditView{}, err
 	}
+	defer secrets.clear()
 	return editView(metadata, provider, secrets), nil
 }
 
@@ -70,6 +71,7 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if err != nil {
 		return EditView{}, err
 	}
+	defer current.clear()
 	input, err = normalizeDraft(input)
 	if err != nil {
 		return EditView{}, err
@@ -78,6 +80,7 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if err != nil {
 		return EditView{}, err
 	}
+	defer secrets.clear()
 	if err := checkCredentials(input.Provider, secrets); err != nil {
 		return EditView{}, err
 	}
@@ -116,10 +119,11 @@ func (service *Service) Copy(ctx context.Context, owner, id string, expectedSour
 		}
 		return service.Create(ctx, owner, Draft{Name: name, CodexProvider: view.CodexProvider}, nil)
 	}
-	provider, _, err := decodeEnvelope(payload)
+	provider, secrets, err := decodeEnvelope(payload)
 	if err != nil {
 		return EditView{}, err
 	}
+	defer secrets.clear()
 	input, err := normalizeDraft(Draft{Name: name, Provider: provider})
 	if err != nil {
 		return EditView{}, err
@@ -273,7 +277,13 @@ func cloneProvider(provider ClaudeProvider) ClaudeProvider {
 	return provider
 }
 
-func mergeSecrets(current credentials, mutations []SecretMutation, creating bool) (credentials, error) {
+func mergeSecrets(current credentials, mutations []SecretMutation, creating bool) (_ credentials, finalErr error) {
+	current = credentials{apiKey: cloneSecret(current.apiKey), authToken: cloneSecret(current.authToken)}
+	defer func() {
+		if finalErr != nil {
+			current.clear()
+		}
+	}()
 	seen := make(map[Slot]bool, 2)
 	for _, mutation := range mutations {
 		if seen[mutation.Slot] {
@@ -289,7 +299,7 @@ func mergeSecrets(current credentials, mutations []SecretMutation, creating bool
 		default:
 			return credentials{}, ErrInvalid
 		}
-		if mutation.Action != Replace && len(mutation.Replacement.data) != 0 {
+		if mutation.Action != Replace && len(secretBytes(mutation.Replacement)) != 0 {
 			return credentials{}, ErrInvalid
 		}
 		switch mutation.Action {
@@ -298,12 +308,13 @@ func mergeSecrets(current credentials, mutations []SecretMutation, creating bool
 				return credentials{}, ErrInvalid
 			}
 		case Clear:
-			*target = Secret{}
+			target.Clear()
 		case Replace:
 			if !validSecret(mutation.Replacement) {
 				return credentials{}, ErrInvalid
 			}
-			*target = NewSecret(mutation.Replacement.data)
+			target.Clear()
+			*target = cloneSecret(mutation.Replacement)
 		default:
 			return credentials{}, ErrInvalid
 		}
@@ -312,21 +323,21 @@ func mergeSecrets(current credentials, mutations []SecretMutation, creating bool
 }
 
 func validSecret(secret Secret) bool {
-	return len(secret.data) > 0 && len(secret.data) <= 8192 && utf8.Valid(secret.data) && !strings.ContainsAny(string(secret.data), "\x00\r\n")
+	return len(secretBytes(secret)) > 0 && len(secretBytes(secret)) <= 8192 && utf8.Valid(secretBytes(secret)) && !strings.ContainsAny(string(secretBytes(secret)), "\x00\r\n")
 }
 
 func checkCredentials(provider ClaudeProvider, secrets credentials) error {
 	switch provider.AuthMode {
 	case NativeLogin:
-		if len(secrets.apiKey.data) != 0 || len(secrets.authToken.data) != 0 {
+		if len(secretBytes(secrets.apiKey)) != 0 || len(secretBytes(secrets.authToken)) != 0 {
 			return ErrInvalid
 		}
 	case APIKey:
-		if len(secrets.authToken.data) != 0 {
+		if len(secretBytes(secrets.authToken)) != 0 {
 			return ErrInvalid
 		}
 	case AuthToken:
-		if len(secrets.apiKey.data) != 0 {
+		if len(secretBytes(secrets.apiKey)) != 0 {
 			return ErrInvalid
 		}
 	default:
@@ -336,7 +347,7 @@ func checkCredentials(provider ClaudeProvider, secrets credentials) error {
 }
 
 func editView(metadata state.ConfigurationAsset, provider ClaudeProvider, secrets credentials) EditView {
-	view := EditView{Metadata: metadata, Provider: cloneProvider(provider), Secrets: []SecretStatus{{Slot: APIKeySlot, Present: len(secrets.apiKey.data) > 0}, {Slot: AuthTokenSlot, Present: len(secrets.authToken.data) > 0}}, Readiness: CredentialComplete}
+	view := EditView{Metadata: metadata, Provider: cloneProvider(provider), Secrets: []SecretStatus{{Slot: APIKeySlot, Present: len(secretBytes(secrets.apiKey)) > 0}, {Slot: AuthTokenSlot, Present: len(secretBytes(secrets.authToken)) > 0}}, Readiness: CredentialComplete}
 	if provider.AuthMode == APIKey && !view.Secrets[0].Present || provider.AuthMode == AuthToken && !view.Secrets[1].Present {
 		view.Readiness = NeedsCredential
 	}
@@ -401,6 +412,7 @@ func (service *Service) Create(ctx context.Context, owner string, input Draft, m
 }
 
 func (service *Service) create(ctx context.Context, owner string, input Draft, secrets credentials) (EditView, error) {
+	defer secrets.clear()
 	if err := checkCredentials(input.Provider, secrets); err != nil {
 		return EditView{}, err
 	}

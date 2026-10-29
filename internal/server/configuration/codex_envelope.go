@@ -22,15 +22,15 @@ type codexEnvelope struct {
 }
 
 func encodeCodexEnvelope(provider CodexProvider, secret Secret) (state.ConfigurationPayload, error) {
-	if err := validateCodexProvider(provider, len(secret.data) > 0); err != nil {
+	if err := validateCodexProvider(provider, len(secretBytes(secret)) > 0); err != nil {
 		return state.ConfigurationPayload{}, err
 	}
 	stored := &codexStoredSecrets{}
-	if len(secret.data) > 0 {
+	if len(secretBytes(secret)) > 0 {
 		if !validSecret(secret) {
 			return state.ConfigurationPayload{}, ErrInvalid
 		}
-		stored.ProviderKey = new(string(secret.data))
+		stored.ProviderKey = new(string(secretBytes(secret)))
 	}
 	encoded, err := json.Marshal(codexEnvelope{Version: new(1), Variant: new("codex-provider"), Provider: &provider, Secrets: stored})
 	defer clear(encoded)
@@ -67,12 +67,12 @@ func decodeCodexEnvelope(payload state.ConfigurationPayload) (CodexProvider, Sec
 	if decoded.Secrets.ProviderKey != nil {
 		secret = NewSecret([]byte(*decoded.Secrets.ProviderKey))
 		if !validSecret(secret) {
-			clear(secret.data)
+			secret.Clear()
 			return CodexProvider{}, Secret{}, false, ErrInvalid
 		}
 	}
-	if err := validateCodexProvider(*decoded.Provider, len(secret.data) > 0); err != nil {
-		clear(secret.data)
+	if err := validateCodexProvider(*decoded.Provider, len(secretBytes(secret)) > 0); err != nil {
+		secret.Clear()
 		return CodexProvider{}, Secret{}, false, err
 	}
 	return *cloneCodexProvider(*decoded.Provider), secret, extras, nil

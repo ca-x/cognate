@@ -58,16 +58,19 @@ func decodeEnvelope(payload state.ConfigurationPayload) (ClaudeProvider, credent
 	if decoded.Secrets.APIKey != nil {
 		secrets.apiKey = NewSecret([]byte(*decoded.Secrets.APIKey))
 		if !validSecret(secrets.apiKey) {
+			secrets.clear()
 			return ClaudeProvider{}, credentials{}, ErrInvalid
 		}
 	}
 	if decoded.Secrets.AuthToken != nil {
 		secrets.authToken = NewSecret([]byte(*decoded.Secrets.AuthToken))
 		if !validSecret(secrets.authToken) {
+			secrets.clear()
 			return ClaudeProvider{}, credentials{}, ErrInvalid
 		}
 	}
 	if err := checkCredentials(provider, secrets); err != nil {
+		secrets.clear()
 		return ClaudeProvider{}, credentials{}, err
 	}
 	return provider, secrets, nil
@@ -82,11 +85,11 @@ type envelope struct {
 
 func encodeEnvelope(provider ClaudeProvider, secrets credentials) (state.ConfigurationPayload, error) {
 	stored := storedSecrets{}
-	if len(secrets.apiKey.data) > 0 {
-		stored.APIKey = new(string(secrets.apiKey.data))
+	if len(secretBytes(secrets.apiKey)) > 0 {
+		stored.APIKey = new(string(secretBytes(secrets.apiKey)))
 	}
-	if len(secrets.authToken.data) > 0 {
-		stored.AuthToken = new(string(secrets.authToken.data))
+	if len(secretBytes(secrets.authToken)) > 0 {
+		stored.AuthToken = new(string(secretBytes(secrets.authToken)))
 	}
 	encoded, err := json.Marshal(envelope{Version: 1, Variant: "claude-provider", Provider: provider, Secrets: stored})
 	if err != nil || len(encoded) > state.MaxConfigurationPayloadBytes {

@@ -33,17 +33,17 @@ func nativeDesired(payload state.ConfigurationPayload) (agentconfig.ClaudeProvid
 	if err != nil {
 		return agentconfig.ClaudeProviderDesired{}, 0, state.ErrNativePrecondition
 	}
-	defer clear(secrets.apiKey.data)
-	defer clear(secrets.authToken.data)
+	defer secrets.apiKey.Clear()
+	defer secrets.authToken.Clear()
 	var slot uint32
 	switch provider.AuthMode {
 	case APIKey:
-		if len(secrets.apiKey.data) == 0 {
+		if len(secretBytes(secrets.apiKey)) == 0 {
 			return agentconfig.ClaudeProviderDesired{}, 0, state.ErrNativePrecondition
 		}
 		slot = 1
 	case AuthToken:
-		if len(secrets.authToken.data) == 0 {
+		if len(secretBytes(secrets.authToken)) == 0 {
 			return agentconfig.ClaudeProviderDesired{}, 0, state.ErrNativePrecondition
 		}
 		slot = 2
@@ -182,14 +182,14 @@ func (service *NativeService) Consume(ctx context.Context, bearer string, reques
 		if err != nil {
 			return state.NativeMaterialization{}, state.ErrNativePrecondition
 		}
-		defer clear(secrets.apiKey.data)
-		defer clear(secrets.authToken.data)
+		defer secrets.apiKey.Clear()
+		defer secrets.authToken.Clear()
 		var selected []byte
 		switch binding.Preparation.RequiredSlot {
 		case 1:
-			selected = secrets.apiKey.data
+			selected = secretBytes(secrets.apiKey)
 		case 2:
-			selected = secrets.authToken.data
+			selected = secretBytes(secrets.authToken)
 		default:
 			return state.NativeMaterialization{}, state.ErrNativePrecondition
 		}

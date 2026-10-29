@@ -3,8 +3,6 @@ package configuration
 import (
 	"context"
 	"errors"
-	"log/slog"
-	"slices"
 
 	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/server/state"
@@ -53,15 +51,6 @@ type CodexProvider struct {
 	ReasoningEffort *agentconfig.CodexReasoningEffort `json:"reasoningEffort,omitzero"`
 	Catalog         *agentconfig.CodexCatalogDesired  `json:"catalog,omitzero"`
 }
-
-type Secret struct{ data []byte }
-
-func NewSecret(value []byte) Secret         { return Secret{data: slices.Clone(value)} }
-func (Secret) String() string               { return "[redacted configuration secret]" }
-func (Secret) GoString() string             { return "[redacted configuration secret]" }
-func (Secret) MarshalJSON() ([]byte, error) { return []byte(`"[redacted configuration secret]"`), nil }
-func (Secret) MarshalText() ([]byte, error) { return []byte("[redacted configuration secret]"), nil }
-func (Secret) LogValue() slog.Value         { return slog.StringValue("[redacted configuration secret]") }
 
 type Slot string
 

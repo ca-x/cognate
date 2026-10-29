@@ -46,12 +46,12 @@ func codexEdit(metadata state.ConfigurationAsset, payload state.ConfigurationPay
 	if err != nil {
 		return EditView{}, err
 	}
-	defer clear(secret.data)
+	defer secret.Clear()
 	return codexView(metadata, provider, secret, extras), nil
 }
 
 func codexView(metadata state.ConfigurationAsset, provider CodexProvider, secret Secret, extras bool) EditView {
-	present := len(secret.data) != 0
+	present := len(secretBytes(secret)) != 0
 	view := EditView{Metadata: metadata, CodexProvider: cloneCodexProvider(provider), Secrets: []SecretStatus{{Slot: CodexProviderKeySlot, Present: present}}, Readiness: NeedsCredential, HasPreservedExtras: extras}
 	if present {
 		view.Readiness = CredentialComplete
@@ -60,7 +60,7 @@ func codexView(metadata state.ConfigurationAsset, provider CodexProvider, secret
 }
 
 func (service *Service) createCodex(ctx context.Context, owner string, input Draft, secret Secret) (EditView, error) {
-	defer clear(secret.data)
+	defer secret.Clear()
 	payload, err := encodeCodexEnvelope(*input.CodexProvider, secret)
 	if err != nil {
 		return EditView{}, err
@@ -80,7 +80,7 @@ func (service *Service) updateCodex(ctx context.Context, owner string, metadata 
 	if err != nil {
 		return EditView{}, err
 	}
-	defer clear(secret.data)
+	defer secret.Clear()
 	if extras {
 		return EditView{}, ErrUnsupported
 	}
@@ -95,7 +95,7 @@ func (service *Service) updateCodex(ctx context.Context, owner string, metadata 
 	if err != nil {
 		return EditView{}, err
 	}
-	defer clear(merged.data)
+	defer merged.Clear()
 	encoded, err := encodeCodexEnvelope(*input.CodexProvider, merged)
 	if err != nil {
 		return EditView{}, err
@@ -112,13 +112,13 @@ func (service *Service) updateCodex(ctx context.Context, owner string, metadata 
 
 func mergeCodexSecret(current Secret, mutations []SecretMutation, creating bool) (Secret, error) {
 	if len(mutations) == 0 {
-		return NewSecret(current.data), nil
+		return cloneSecret(current), nil
 	}
 	if len(mutations) != 1 || mutations[0].Slot != CodexProviderKeySlot {
 		return Secret{}, ErrInvalid
 	}
 	mutation := mutations[0]
-	if mutation.Action != Replace && len(mutation.Replacement.data) != 0 {
+	if mutation.Action != Replace && len(secretBytes(mutation.Replacement)) != 0 {
 		return Secret{}, ErrInvalid
 	}
 	switch mutation.Action {
@@ -126,12 +126,12 @@ func mergeCodexSecret(current Secret, mutations []SecretMutation, creating bool)
 		if creating {
 			return Secret{}, ErrInvalid
 		}
-		return NewSecret(current.data), nil
+		return cloneSecret(current), nil
 	case Clear:
 		return Secret{}, nil
 	case Replace:
 		if validSecret(mutation.Replacement) {
-			return NewSecret(mutation.Replacement.data), nil
+			return cloneSecret(mutation.Replacement), nil
 		}
 	}
 	return Secret{}, ErrInvalid
