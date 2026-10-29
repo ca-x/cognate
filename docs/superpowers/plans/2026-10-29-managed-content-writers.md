@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-28-server-backup.md` §3.1; current `library/{service,refresh,automatic_refresh,cache}.go`. This is B1b, not an App switch, snapshot/export, restore, S3 or backup-availability claim.
 
-**Execution checkpoint (2026-10-29):** complete B1a is independently accepted and committed at `0c542727`. Only Task1's five source paths are currently assigned; main owns this plan/spec. Task2's three library commit paths remain reserved for the complete private-source integration first, then receive the cross-resource writer scope. Parallel tasks must not overwrite these paths or claim the full barrier before Task2 is accepted.
+**Execution checkpoint (2026-10-29):** complete B1a is independently accepted at `0c542727`; Task1's five source paths are independently accepted and committed at `68d13325`. Complete private-source S1 is independently accepted and committed at `107f2610`, releasing Task2's three library paths. Lovelace now owns only Task2's four library source/test paths plus scoped progress in this plan and backup spec; Poincare reviews that delta independently. Default unmanaged behavior and all S1 authority/unknown-commit guards must remain unchanged. Parallel tasks must not overwrite these paths or claim a complete backup before the remaining milestones.
 
 ## Global Constraints
 
@@ -40,7 +40,7 @@
 
 ### Task 2: Three Library Commit Paths
 
-**Files:** Modify `internal/server/library/service.go`, `refresh.go`, `automatic_refresh.go`; create `maintenance_integration_test.go` there. Add only a scoped progress update to backup spec §3.1 and this plan. Total authorized write set: eleven paths including the five from Task1, these four library paths and two documents; implementation owner must report the exact counted manifest before touching any additional path.
+**Files:** Modify `internal/server/library/service.go`, `refresh.go`, `automatic_refresh.go`; create `maintenance_integration_test.go` there. Add only a scoped progress update to backup spec §3.1 and this plan. The original cumulative eleven-path cap includes Task1's five already-committed paths; this Task2 slice is exactly six paths against `107f2610`, not permission to rewrite Task1. Report the exact counted manifest before touching any additional path.
 
 **Interfaces:** Consume Task1's typed Store scope and cache-private mode/root checks. `NewService` keeps its existing signature; require matching modes and validate physical peer identity by nesting cache admission inside a Store scope, without adding another directory-equality API or trusting path strings. Existing default constructors remain unmanaged.
 
@@ -49,6 +49,12 @@
 - [ ] Wrap only cache Put → database collect/refresh/apply in `WithMaintenanceWriter`, propagating its callback context. Fetch/scan, prechecks and ordinary verification reads remain outside. Pairing checks perform no schema/policy mutation; failures leave cleanup with existing owners.
 - [ ] Run `CGO_ENABLED=0 go test -mod=readonly -count=10 -run TestManaged ./internal/server/state ./internal/server/library`, then maintenance/state/library/scheduler/sourcerefresh/mcpserver package tests and vet; expected PASS. Remove each of the three outer commit scopes in separate temporary overlays; all must behavior-fail, with no compile/panic/whole-test-timeout pseudo RED.
 - [ ] Freeze precise base/eleven-path manifest/tree and at most one-page handoff with actual logs. Main performs clean full tests/build integration and independent acceptance, then exact-path commit/SSH push. No backup endpoint or automatic cleanup is enabled by this task.
+
+**Task2 implementation checkpoint (2026-10-29, awaiting independent review):** all three library commit routes now consume the existing typed Store scope only around cache Put → database commit/rollback/cleanup, propagating its context; fetch/scan, prechecks and ordinary verification reads stay outside. NewService checks matching managed modes, nests cache admission under a Store scope to validate physical peer identity and rechecks the opened cache directory without creating policy/schema/stages or taking ownership on failure. No path-string comparison, new maintenance API, platform list or global permission registry is introduced.
+
+Tests cover each route's actual RED→GREEN, pending quiescence across publication-to-commit, both Pack revisions/content closure, the MCP/plugin Collect boundary and selected-Lists independent automatic refresh, real loopback network outside the scope, mixed/replaced roots, source/MCP/CAS rejection with bounded immutable orphans, stage-error cleanup, component Close/cancellation and subprocess lifetime locks. A temporary external state_test overlay uses the existing test-only publication hook for actual COMMIT-then-receipt-error and rejected-COMMIT cases on all three routes; it adds no tracked hook or production API. Exact commands, valid three-scope removal controls, invalid early fixture attempts, freeze identity and logs are handed off in this plan's ignored `task-2-report.md`; author results are not independent acceptance.
+
+This is still not the full content/global barrier: scheduler selected-Lists **initial** collection has its own cache Put → CollectListRepository route outside this six-path slice. Its independent RefreshAutomatic library route is covered here, not that separate initial publisher. Managed App activation/coordinator, other content publishers, snapshot/export/restore, automatic cleanup and S3/backup endpoints remain unimplemented by this task. No real HOME/account/configuration is used; non-Unix runtime support is not inferred from cross-compilation.
 
 ## Preflight And Rulings
 

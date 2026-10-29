@@ -40,8 +40,10 @@ func (service *Service) Refresh(ctx context.Context, owner, id string, expected 
 	if base.Published && snapshot.Hash != base.Version.ArchiveHash {
 		return state.RepositoryRefreshResult{}, state.ErrRepositoryRefreshPublished
 	}
-	if err := service.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
-		return state.RepositoryRefreshResult{}, err
-	}
-	return service.store.ApplySourceRefresh(service.store.WithSourceAccess(ctx, access), ticket, snapshot.Hash, snapshot.Skills)
+	return service.store.WithMaintenanceWriter(ctx, func(ctx context.Context) (state.RepositoryRefreshResult, error) {
+		if err := service.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
+			return state.RepositoryRefreshResult{}, err
+		}
+		return service.store.ApplySourceRefresh(service.store.WithSourceAccess(ctx, access), ticket, snapshot.Hash, snapshot.Skills)
+	})
 }

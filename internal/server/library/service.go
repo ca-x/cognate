@@ -98,6 +98,22 @@ func NewService(store *state.Store, cache *ArchiveCache, fetcher ArchiveFetcher)
 	if store == nil || cache == nil || fetcher == nil {
 		return nil, errors.New("repository library requires storage, cache, and an archive fetcher")
 	}
+	if store.MaintenanceManaged() != (cache.maintenance != nil) {
+		return nil, errors.New("repository library maintenance modes do not match")
+	}
+	if store.MaintenanceManaged() {
+		_, err := store.WithMaintenanceWriter(context.Background(), func(ctx context.Context) (struct{}, error) {
+			_, release, err := cache.enterWriter(ctx)
+			if err != nil {
+				return struct{}{}, err
+			}
+			defer release()
+			return struct{}{}, cache.verifyDirectory()
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Service{store: store, cache: cache, fetcher: fetcher, lifetime: ctx, cancel: cancel, slots: make(chan struct{}, 2)}, nil
 }
@@ -148,11 +164,12 @@ func (service *Service) Collect(ctx context.Context, user, input, branch string)
 	if snapshot == nil || len(snapshot.Skills) == 0 {
 		return state.CollectedRepository{}, repository.ErrArchiveInvalid
 	}
-	if err := service.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
-		return state.CollectedRepository{}, err
-	}
-	ctx = service.store.WithSourceAccess(ctx, ticket)
-	entry, err := service.store.CollectRepository(ctx, user, reference, snapshot.Hash, snapshot.Skills)
+	entry, err := service.store.WithMaintenanceWriter(ctx, func(ctx context.Context) (state.CollectedRepository, error) {
+		if err := service.cache.Put(ctx, snapshot.Hash, snapshot.Data); err != nil {
+			return state.CollectedRepository{}, err
+		}
+		return service.store.CollectRepository(service.store.WithSourceAccess(ctx, ticket), user, reference, snapshot.Hash, snapshot.Skills)
+	})
 	if err != nil {
 		return state.CollectedRepository{}, err
 	}
