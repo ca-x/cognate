@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"errors"
-	"math"
 
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -46,6 +45,9 @@ func (codec configurationCodec) Unmarshal(data []byte, value any) error {
 	}
 	var err error
 	if codec.name == "json" {
+		if !configurationCodexJSONValid(data, message.ProtoReflect().Descriptor(), false, 0) {
+			return invalid()
+		}
 		err = (protojson.UnmarshalOptions{RecursionLimit: 16}).Unmarshal(data, message)
 	} else {
 		if !configurationWireValid(data, message.ProtoReflect().Descriptor(), 0) {
@@ -119,11 +121,7 @@ func configurationWireValid(data []byte, descriptor protoreflect.MessageDescript
 				return false
 			}
 		} else if field.Enum() != nil {
-			if wireType != protowire.VarintType {
-				return false
-			}
-			value, consumed := protowire.ConsumeVarint(data)
-			if consumed < 0 || value > math.MaxInt32 || field.Enum().Values().ByNumber(protoreflect.EnumNumber(value)) == nil {
+			if !configurationEnumWireValid(data[:valueBytes], wireType, field) {
 				return false
 			}
 		}

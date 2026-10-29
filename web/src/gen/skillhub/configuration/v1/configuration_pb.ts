@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/configuration/v1/configuration.proto.
  */
 export const file_skillhub_configuration_v1_configuration: GenFile = /*@__PURE__*/
-  fileDesc("Ci1za2lsbGh1Yi9jb25maWd1cmF0aW9uL3YxL2NvbmZpZ3VyYXRpb24ucHJvdG8SGXNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEiwwEKBUFzc2V0EgoKAmlkGAEgASgJEhAKCGFnZW50X2lkGAIgASgJEjIKBGtpbmQYAyABKA4yJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0S2luZBIMCgRuYW1lGAQgASgJEhYKDnNjaGVtYV92ZXJzaW9uGAUgASgNEhAKCHJldmlzaW9uGAYgASgDEhcKD2NyZWF0ZWRfYXRfdW5peBgHIAEoAxIXCg91cGRhdGVkX2F0X3VuaXgYCCABKAMilgEKDENsYXVkZU1vZGVscxIaCg1kZWZhdWx0X21vZGVsGAEgASgJSACIAQESEgoFaGFpa3UYAiABKAlIAYgBARITCgZzb25uZXQYAyABKAlIAogBARIRCgRvcHVzGAQgASgJSAOIAQFCEAoOX2RlZmF1bHRfbW9kZWxCCAoGX2hhaWt1QgkKB19zb25uZXRCBwoFX29wdXMiqwEKDkNsYXVkZVByb3ZpZGVyEhUKCGVuZHBvaW50GAEgASgJSACIAQESPAoJYXV0aF9tb2RlGAIgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DbGF1ZGVBdXRoTW9kZRI3CgZtb2RlbHMYAyABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZU1vZGVsc0ILCglfZW5kcG9pbnQiZgoFRHJhZnQSDAoEbmFtZRgBIAEoCRJECg9jbGF1ZGVfcHJvdmlkZXIYAiABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZVByb3ZpZGVySABCCQoHcGF5bG9hZCIwCgxTZWNyZXRTdGF0dXMSDwoHc2xvdF9pZBgBIAEoCRIPCgdwcmVzZW50GAIgASgIIgwKCktlZXBTZWNyZXQiDQoLQ2xlYXJTZWNyZXQiswEKDlNlY3JldE11dGF0aW9uEg8KB3Nsb3RfaWQYASABKAkSNQoEa2VlcBgCIAEoCzIlLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuS2VlcFNlY3JldEgAEhYKB3JlcGxhY2UYAyABKAlCA4ABAUgAEjcKBWNsZWFyGAQgASgLMiYuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DbGVhclNlY3JldEgAQggKBmFjdGlvbiKTAgoJRHJhZnRWaWV3Ei8KBWFzc2V0GAEgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Bc3NldBIvCgVkcmFmdBgCIAEoCzIgLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnQSOAoHc2VjcmV0cxgDIAMoCzInLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuU2VjcmV0U3RhdHVzEkwKFGNyZWRlbnRpYWxfcmVhZGluZXNzGAQgASgOMi4uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DcmVkZW50aWFsUmVhZGluZXNzEhwKFGhhc19wcmVzZXJ2ZWRfZXh0cmFzGAUgASgIIhMKEUxpc3RBc3NldHNSZXF1ZXN0IkYKEkxpc3RBc3NldHNSZXNwb25zZRIwCgZhc3NldHMYASADKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ih0KD0dldEFzc2V0UmVxdWVzdBIKCgJpZBgBIAEoCSJDChBHZXRBc3NldFJlc3BvbnNlEi8KBWFzc2V0GAEgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Bc3NldCIeChBSZWFkRHJhZnRSZXF1ZXN0EgoKAmlkGAEgASgJIkcKEVJlYWREcmFmdFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyKBAQoSQ3JlYXRlQXNzZXRSZXF1ZXN0Ei8KBWRyYWZ0GAEgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI6CgdzZWNyZXRzGAIgAygLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRNdXRhdGlvbiJJChNDcmVhdGVBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyKoAQoSVXBkYXRlQXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAIgASgDEi8KBWRyYWZ0GAMgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI6CgdzZWNyZXRzGAQgAygLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRNdXRhdGlvbiJJChNVcGRhdGVBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyJVChBDb3B5QXNzZXRSZXF1ZXN0EhEKCXNvdXJjZV9pZBgBIAEoCRIgChhleHBlY3RlZF9zb3VyY2VfcmV2aXNpb24YAiABKAMSDAoEbmFtZRgDIAEoCSJHChFDb3B5QXNzZXRSZXNwb25zZRIyCgR2aWV3GAEgASgLMiQuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdFZpZXciOwoSRGVsZXRlQXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAIgASgDIhUKE0RlbGV0ZUFzc2V0UmVzcG9uc2UqpAEKCUFzc2V0S2luZBIaChZBU1NFVF9LSU5EX1VOU1BFQ0lGSUVEEAASFwoTQVNTRVRfS0lORF9QUk9WSURFUhABEhIKDkFTU0VUX0tJTkRfTUNQEAISFQoRQVNTRVRfS0lORF9QUk9NUFQQAxIdChlBU1NFVF9LSU5EX0FHRU5UX1NFVFRJTkdTEAQSGAoUQVNTRVRfS0lORF9XT1JLU1BBQ0UQBSqUAQoOQ2xhdWRlQXV0aE1vZGUSIAocQ0xBVURFX0FVVEhfTU9ERV9VTlNQRUNJRklFRBAAEiEKHUNMQVVERV9BVVRIX01PREVfTkFUSVZFX0xPR0lOEAESHAoYQ0xBVURFX0FVVEhfTU9ERV9BUElfS0VZEAISHwobQ0xBVURFX0FVVEhfTU9ERV9BVVRIX1RPS0VOEAMqiQEKE0NyZWRlbnRpYWxSZWFkaW5lc3MSJAogQ1JFREVOVElBTF9SRUFESU5FU1NfVU5TUEVDSUZJRUQQABIhCh1DUkVERU5USUFMX1JFQURJTkVTU19DT01QTEVURRABEikKJUNSRURFTlRJQUxfUkVBRElORVNTX05FRURTX0NSRURFTlRJQUwQAjKABgoUQ29uZmlndXJhdGlvblNlcnZpY2USaQoKTGlzdEFzc2V0cxIsLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuTGlzdEFzc2V0c1JlcXVlc3QaLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkxpc3RBc3NldHNSZXNwb25zZRJjCghHZXRBc3NldBIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2V0QXNzZXRSZXF1ZXN0Gisuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5HZXRBc3NldFJlc3BvbnNlEmYKCVJlYWREcmFmdBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVzcG9uc2USbAoLQ3JlYXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWF0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ3JlYXRlQXNzZXRSZXNwb25zZRJsCgtVcGRhdGVBc3NldBItLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuVXBkYXRlQXNzZXRSZXF1ZXN0Gi4uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5VcGRhdGVBc3NldFJlc3BvbnNlEmYKCUNvcHlBc3NldBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVzcG9uc2USbAoLRGVsZXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRlbGV0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRGVsZXRlQXNzZXRSZXNwb25zZUJHWkVnaXRodWIuY29tL2NhLXgvY29nbmF0ZS9nZW4vc2tpbGxodWIvY29uZmlndXJhdGlvbi92MTtjb25maWd1cmF0aW9udjFiBnByb3RvMw");
+  fileDesc("Ci1za2lsbGh1Yi9jb25maWd1cmF0aW9uL3YxL2NvbmZpZ3VyYXRpb24ucHJvdG8SGXNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEiwwEKBUFzc2V0EgoKAmlkGAEgASgJEhAKCGFnZW50X2lkGAIgASgJEjIKBGtpbmQYAyABKA4yJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0S2luZBIMCgRuYW1lGAQgASgJEhYKDnNjaGVtYV92ZXJzaW9uGAUgASgNEhAKCHJldmlzaW9uGAYgASgDEhcKD2NyZWF0ZWRfYXRfdW5peBgHIAEoAxIXCg91cGRhdGVkX2F0X3VuaXgYCCABKAMilgEKDENsYXVkZU1vZGVscxIaCg1kZWZhdWx0X21vZGVsGAEgASgJSACIAQESEgoFaGFpa3UYAiABKAlIAYgBARITCgZzb25uZXQYAyABKAlIAogBARIRCgRvcHVzGAQgASgJSAOIAQFCEAoOX2RlZmF1bHRfbW9kZWxCCAoGX2hhaWt1QgkKB19zb25uZXRCBwoFX29wdXMiqwEKDkNsYXVkZVByb3ZpZGVyEhUKCGVuZHBvaW50GAEgASgJSACIAQESPAoJYXV0aF9tb2RlGAIgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DbGF1ZGVBdXRoTW9kZRI3CgZtb2RlbHMYAyABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZU1vZGVsc0ILCglfZW5kcG9pbnQiSwoPQ29kZXhNb2RhbGl0aWVzEjgKBnZhbHVlcxgBIAMoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhNb2RhbGl0eSJXChRDb2RleFJlYXNvbmluZ0xldmVscxI/CgZ2YWx1ZXMYASADKA4yLy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4UmVhc29uaW5nRWZmb3J0IoQEChFDb2RleENhdGFsb2dNb2RlbBINCgVtb2RlbBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIbCg5jb250ZXh0X3dpbmRvdxgDIAEoBEgBiAEBEikKHHN1cHBvcnRzX3BhcmFsbGVsX3Rvb2xfY2FsbHMYBCABKAhIAogBARJEChBpbnB1dF9tb2RhbGl0aWVzGAUgASgLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleE1vZGFsaXRpZXMSHgoRYmFzZV9pbnN0cnVjdGlvbnMYBiABKAlIA4gBARJJChByZWFzb25pbmdfbGV2ZWxzGAcgASgLMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0xldmVscxJVChdkZWZhdWx0X3JlYXNvbmluZ19sZXZlbBgIIAEoDjIvLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhSZWFzb25pbmdFZmZvcnRIBIgBAUIPCg1fZGlzcGxheV9uYW1lQhEKD19jb250ZXh0X3dpbmRvd0IfCh1fc3VwcG9ydHNfcGFyYWxsZWxfdG9vbF9jYWxsc0IUChJfYmFzZV9pbnN0cnVjdGlvbnNCGgoYX2RlZmF1bHRfcmVhc29uaW5nX2xldmVsIkwKDENvZGV4Q2F0YWxvZxI8CgZtb2RlbHMYASADKAsyLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ01vZGVsIowCCg1Db2RleFByb3ZpZGVyEjsKCWF1dGhfbW9kZRgBIAEoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhBdXRoTW9kZRIQCghlbmRwb2ludBgCIAEoCRINCgVtb2RlbBgDIAEoCRJOChByZWFzb25pbmdfZWZmb3J0GAQgASgOMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0VmZm9ydEgAiAEBEjgKB2NhdGFsb2cYBSABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ0ITChFfcmVhc29uaW5nX2VmZm9ydCKqAQoFRHJhZnQSDAoEbmFtZRgBIAEoCRJECg9jbGF1ZGVfcHJvdmlkZXIYAiABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZVByb3ZpZGVySAASQgoOY29kZXhfcHJvdmlkZXIYAyABKAsyKC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4UHJvdmlkZXJIAEIJCgdwYXlsb2FkIjAKDFNlY3JldFN0YXR1cxIPCgdzbG90X2lkGAEgASgJEg8KB3ByZXNlbnQYAiABKAgiDAoKS2VlcFNlY3JldCINCgtDbGVhclNlY3JldCKzAQoOU2VjcmV0TXV0YXRpb24SDwoHc2xvdF9pZBgBIAEoCRI1CgRrZWVwGAIgASgLMiUuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5LZWVwU2VjcmV0SAASFgoHcmVwbGFjZRgDIAEoCUIDgAEBSAASNwoFY2xlYXIYBCABKAsyJi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsZWFyU2VjcmV0SABCCAoGYWN0aW9uIpMCCglEcmFmdFZpZXcSLwoFYXNzZXQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ei8KBWRyYWZ0GAIgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI4CgdzZWNyZXRzGAMgAygLMicuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRTdGF0dXMSTAoUY3JlZGVudGlhbF9yZWFkaW5lc3MYBCABKA4yLi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWRlbnRpYWxSZWFkaW5lc3MSHAoUaGFzX3ByZXNlcnZlZF9leHRyYXMYBSABKAgiEwoRTGlzdEFzc2V0c1JlcXVlc3QiRgoSTGlzdEFzc2V0c1Jlc3BvbnNlEjAKBmFzc2V0cxgBIAMoCzIgLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQXNzZXQiHQoPR2V0QXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJIkMKEEdldEFzc2V0UmVzcG9uc2USLwoFYXNzZXQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ih4KEFJlYWREcmFmdFJlcXVlc3QSCgoCaWQYASABKAkiRwoRUmVhZERyYWZ0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IoEBChJDcmVhdGVBc3NldFJlcXVlc3QSLwoFZHJhZnQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjoKB3NlY3JldHMYAiADKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlNlY3JldE11dGF0aW9uIkkKE0NyZWF0ZUFzc2V0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IqgBChJVcGRhdGVBc3NldFJlcXVlc3QSCgoCaWQYASABKAkSGQoRZXhwZWN0ZWRfcmV2aXNpb24YAiABKAMSLwoFZHJhZnQYAyABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjoKB3NlY3JldHMYBCADKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlNlY3JldE11dGF0aW9uIkkKE1VwZGF0ZUFzc2V0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IlUKEENvcHlBc3NldFJlcXVlc3QSEQoJc291cmNlX2lkGAEgASgJEiAKGGV4cGVjdGVkX3NvdXJjZV9yZXZpc2lvbhgCIAEoAxIMCgRuYW1lGAMgASgJIkcKEUNvcHlBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyI7ChJEZWxldGVBc3NldFJlcXVlc3QSCgoCaWQYASABKAkSGQoRZXhwZWN0ZWRfcmV2aXNpb24YAiABKAMiFQoTRGVsZXRlQXNzZXRSZXNwb25zZSqkAQoJQXNzZXRLaW5kEhoKFkFTU0VUX0tJTkRfVU5TUEVDSUZJRUQQABIXChNBU1NFVF9LSU5EX1BST1ZJREVSEAESEgoOQVNTRVRfS0lORF9NQ1AQAhIVChFBU1NFVF9LSU5EX1BST01QVBADEh0KGUFTU0VUX0tJTkRfQUdFTlRfU0VUVElOR1MQBBIYChRBU1NFVF9LSU5EX1dPUktTUEFDRRAFKpQBCg5DbGF1ZGVBdXRoTW9kZRIgChxDTEFVREVfQVVUSF9NT0RFX1VOU1BFQ0lGSUVEEAASIQodQ0xBVURFX0FVVEhfTU9ERV9OQVRJVkVfTE9HSU4QARIcChhDTEFVREVfQVVUSF9NT0RFX0FQSV9LRVkQAhIfChtDTEFVREVfQVVUSF9NT0RFX0FVVEhfVE9LRU4QAypSCg1Db2RleEF1dGhNb2RlEh8KG0NPREVYX0FVVEhfTU9ERV9VTlNQRUNJRklFRBAAEiAKHENPREVYX0FVVEhfTU9ERV9QUk9WSURFUl9LRVkQASqpAgoUQ29kZXhSZWFzb25pbmdFZmZvcnQSJgoiQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9VTlNQRUNJRklFRBAAEh8KG0NPREVYX1JFQVNPTklOR19FRkZPUlRfTk9ORRABEiIKHkNPREVYX1JFQVNPTklOR19FRkZPUlRfTUlOSU1BTBACEh4KGkNPREVYX1JFQVNPTklOR19FRkZPUlRfTE9XEAMSIQodQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9NRURJVU0QBBIfChtDT0RFWF9SRUFTT05JTkdfRUZGT1JUX0hJR0gQBRIgChxDT0RFWF9SRUFTT05JTkdfRUZGT1JUX1hISUdIEAYSHgoaQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9NQVgQBypiCg1Db2RleE1vZGFsaXR5Eh4KGkNPREVYX01PREFMSVRZX1VOU1BFQ0lGSUVEEAASFwoTQ09ERVhfTU9EQUxJVFlfVEVYVBABEhgKFENPREVYX01PREFMSVRZX0lNQUdFEAIqiQEKE0NyZWRlbnRpYWxSZWFkaW5lc3MSJAogQ1JFREVOVElBTF9SRUFESU5FU1NfVU5TUEVDSUZJRUQQABIhCh1DUkVERU5USUFMX1JFQURJTkVTU19DT01QTEVURRABEikKJUNSRURFTlRJQUxfUkVBRElORVNTX05FRURTX0NSRURFTlRJQUwQAjKABgoUQ29uZmlndXJhdGlvblNlcnZpY2USaQoKTGlzdEFzc2V0cxIsLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuTGlzdEFzc2V0c1JlcXVlc3QaLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkxpc3RBc3NldHNSZXNwb25zZRJjCghHZXRBc3NldBIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2V0QXNzZXRSZXF1ZXN0Gisuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5HZXRBc3NldFJlc3BvbnNlEmYKCVJlYWREcmFmdBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVzcG9uc2USbAoLQ3JlYXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWF0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ3JlYXRlQXNzZXRSZXNwb25zZRJsCgtVcGRhdGVBc3NldBItLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuVXBkYXRlQXNzZXRSZXF1ZXN0Gi4uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5VcGRhdGVBc3NldFJlc3BvbnNlEmYKCUNvcHlBc3NldBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVzcG9uc2USbAoLRGVsZXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRlbGV0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRGVsZXRlQXNzZXRSZXNwb25zZUJHWkVnaXRodWIuY29tL2NhLXgvY29nbmF0ZS9nZW4vc2tpbGxodWIvY29uZmlndXJhdGlvbi92MTtjb25maWd1cmF0aW9udjFiBnByb3RvMw");
 
 /**
  * @generated from message skillhub.configuration.v1.Asset
@@ -124,6 +124,146 @@ export const ClaudeProviderSchema: GenMessage<ClaudeProvider> = /*@__PURE__*/
   messageDesc(file_skillhub_configuration_v1_configuration, 2);
 
 /**
+ * @generated from message skillhub.configuration.v1.CodexModalities
+ */
+export type CodexModalities = Message<"skillhub.configuration.v1.CodexModalities"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.CodexModality values = 1;
+   */
+  values: CodexModality[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.CodexModalities.
+ * Use `create(CodexModalitiesSchema)` to create a new message.
+ */
+export const CodexModalitiesSchema: GenMessage<CodexModalities> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 3);
+
+/**
+ * @generated from message skillhub.configuration.v1.CodexReasoningLevels
+ */
+export type CodexReasoningLevels = Message<"skillhub.configuration.v1.CodexReasoningLevels"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.CodexReasoningEffort values = 1;
+   */
+  values: CodexReasoningEffort[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.CodexReasoningLevels.
+ * Use `create(CodexReasoningLevelsSchema)` to create a new message.
+ */
+export const CodexReasoningLevelsSchema: GenMessage<CodexReasoningLevels> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 4);
+
+/**
+ * @generated from message skillhub.configuration.v1.CodexCatalogModel
+ */
+export type CodexCatalogModel = Message<"skillhub.configuration.v1.CodexCatalogModel"> & {
+  /**
+   * @generated from field: string model = 1;
+   */
+  model: string;
+
+  /**
+   * @generated from field: optional string display_name = 2;
+   */
+  displayName?: string | undefined;
+
+  /**
+   * @generated from field: optional uint64 context_window = 3;
+   */
+  contextWindow?: bigint | undefined;
+
+  /**
+   * @generated from field: optional bool supports_parallel_tool_calls = 4;
+   */
+  supportsParallelToolCalls?: boolean | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.CodexModalities input_modalities = 5;
+   */
+  inputModalities?: CodexModalities | undefined;
+
+  /**
+   * @generated from field: optional string base_instructions = 6;
+   */
+  baseInstructions?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.CodexReasoningLevels reasoning_levels = 7;
+   */
+  reasoningLevels?: CodexReasoningLevels | undefined;
+
+  /**
+   * @generated from field: optional skillhub.configuration.v1.CodexReasoningEffort default_reasoning_level = 8;
+   */
+  defaultReasoningLevel?: CodexReasoningEffort | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.CodexCatalogModel.
+ * Use `create(CodexCatalogModelSchema)` to create a new message.
+ */
+export const CodexCatalogModelSchema: GenMessage<CodexCatalogModel> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 5);
+
+/**
+ * @generated from message skillhub.configuration.v1.CodexCatalog
+ */
+export type CodexCatalog = Message<"skillhub.configuration.v1.CodexCatalog"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.CodexCatalogModel models = 1;
+   */
+  models: CodexCatalogModel[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.CodexCatalog.
+ * Use `create(CodexCatalogSchema)` to create a new message.
+ */
+export const CodexCatalogSchema: GenMessage<CodexCatalog> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 6);
+
+/**
+ * @generated from message skillhub.configuration.v1.CodexProvider
+ */
+export type CodexProvider = Message<"skillhub.configuration.v1.CodexProvider"> & {
+  /**
+   * @generated from field: skillhub.configuration.v1.CodexAuthMode auth_mode = 1;
+   */
+  authMode: CodexAuthMode;
+
+  /**
+   * @generated from field: string endpoint = 2;
+   */
+  endpoint: string;
+
+  /**
+   * @generated from field: string model = 3;
+   */
+  model: string;
+
+  /**
+   * @generated from field: optional skillhub.configuration.v1.CodexReasoningEffort reasoning_effort = 4;
+   */
+  reasoningEffort?: CodexReasoningEffort | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.CodexCatalog catalog = 5;
+   */
+  catalog?: CodexCatalog | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.CodexProvider.
+ * Use `create(CodexProviderSchema)` to create a new message.
+ */
+export const CodexProviderSchema: GenMessage<CodexProvider> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 7);
+
+/**
  * @generated from message skillhub.configuration.v1.Draft
  */
 export type Draft = Message<"skillhub.configuration.v1.Draft"> & {
@@ -141,6 +281,12 @@ export type Draft = Message<"skillhub.configuration.v1.Draft"> & {
      */
     value: ClaudeProvider;
     case: "claudeProvider";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.CodexProvider codex_provider = 3;
+     */
+    value: CodexProvider;
+    case: "codexProvider";
   } | { case: undefined; value?: undefined };
 };
 
@@ -149,7 +295,7 @@ export type Draft = Message<"skillhub.configuration.v1.Draft"> & {
  * Use `create(DraftSchema)` to create a new message.
  */
 export const DraftSchema: GenMessage<Draft> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 3);
+  messageDesc(file_skillhub_configuration_v1_configuration, 8);
 
 /**
  * @generated from message skillhub.configuration.v1.SecretStatus
@@ -171,7 +317,7 @@ export type SecretStatus = Message<"skillhub.configuration.v1.SecretStatus"> & {
  * Use `create(SecretStatusSchema)` to create a new message.
  */
 export const SecretStatusSchema: GenMessage<SecretStatus> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 4);
+  messageDesc(file_skillhub_configuration_v1_configuration, 9);
 
 /**
  * @generated from message skillhub.configuration.v1.KeepSecret
@@ -184,7 +330,7 @@ export type KeepSecret = Message<"skillhub.configuration.v1.KeepSecret"> & {
  * Use `create(KeepSecretSchema)` to create a new message.
  */
 export const KeepSecretSchema: GenMessage<KeepSecret> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 5);
+  messageDesc(file_skillhub_configuration_v1_configuration, 10);
 
 /**
  * @generated from message skillhub.configuration.v1.ClearSecret
@@ -197,7 +343,7 @@ export type ClearSecret = Message<"skillhub.configuration.v1.ClearSecret"> & {
  * Use `create(ClearSecretSchema)` to create a new message.
  */
 export const ClearSecretSchema: GenMessage<ClearSecret> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 6);
+  messageDesc(file_skillhub_configuration_v1_configuration, 11);
 
 /**
  * @generated from message skillhub.configuration.v1.SecretMutation
@@ -237,7 +383,7 @@ export type SecretMutation = Message<"skillhub.configuration.v1.SecretMutation">
  * Use `create(SecretMutationSchema)` to create a new message.
  */
 export const SecretMutationSchema: GenMessage<SecretMutation> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 7);
+  messageDesc(file_skillhub_configuration_v1_configuration, 12);
 
 /**
  * @generated from message skillhub.configuration.v1.DraftView
@@ -274,7 +420,7 @@ export type DraftView = Message<"skillhub.configuration.v1.DraftView"> & {
  * Use `create(DraftViewSchema)` to create a new message.
  */
 export const DraftViewSchema: GenMessage<DraftView> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 8);
+  messageDesc(file_skillhub_configuration_v1_configuration, 13);
 
 /**
  * @generated from message skillhub.configuration.v1.ListAssetsRequest
@@ -287,7 +433,7 @@ export type ListAssetsRequest = Message<"skillhub.configuration.v1.ListAssetsReq
  * Use `create(ListAssetsRequestSchema)` to create a new message.
  */
 export const ListAssetsRequestSchema: GenMessage<ListAssetsRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 9);
+  messageDesc(file_skillhub_configuration_v1_configuration, 14);
 
 /**
  * @generated from message skillhub.configuration.v1.ListAssetsResponse
@@ -304,7 +450,7 @@ export type ListAssetsResponse = Message<"skillhub.configuration.v1.ListAssetsRe
  * Use `create(ListAssetsResponseSchema)` to create a new message.
  */
 export const ListAssetsResponseSchema: GenMessage<ListAssetsResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 10);
+  messageDesc(file_skillhub_configuration_v1_configuration, 15);
 
 /**
  * @generated from message skillhub.configuration.v1.GetAssetRequest
@@ -321,7 +467,7 @@ export type GetAssetRequest = Message<"skillhub.configuration.v1.GetAssetRequest
  * Use `create(GetAssetRequestSchema)` to create a new message.
  */
 export const GetAssetRequestSchema: GenMessage<GetAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 11);
+  messageDesc(file_skillhub_configuration_v1_configuration, 16);
 
 /**
  * @generated from message skillhub.configuration.v1.GetAssetResponse
@@ -338,7 +484,7 @@ export type GetAssetResponse = Message<"skillhub.configuration.v1.GetAssetRespon
  * Use `create(GetAssetResponseSchema)` to create a new message.
  */
 export const GetAssetResponseSchema: GenMessage<GetAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 12);
+  messageDesc(file_skillhub_configuration_v1_configuration, 17);
 
 /**
  * @generated from message skillhub.configuration.v1.ReadDraftRequest
@@ -355,7 +501,7 @@ export type ReadDraftRequest = Message<"skillhub.configuration.v1.ReadDraftReque
  * Use `create(ReadDraftRequestSchema)` to create a new message.
  */
 export const ReadDraftRequestSchema: GenMessage<ReadDraftRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 13);
+  messageDesc(file_skillhub_configuration_v1_configuration, 18);
 
 /**
  * @generated from message skillhub.configuration.v1.ReadDraftResponse
@@ -372,7 +518,7 @@ export type ReadDraftResponse = Message<"skillhub.configuration.v1.ReadDraftResp
  * Use `create(ReadDraftResponseSchema)` to create a new message.
  */
 export const ReadDraftResponseSchema: GenMessage<ReadDraftResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 14);
+  messageDesc(file_skillhub_configuration_v1_configuration, 19);
 
 /**
  * @generated from message skillhub.configuration.v1.CreateAssetRequest
@@ -394,7 +540,7 @@ export type CreateAssetRequest = Message<"skillhub.configuration.v1.CreateAssetR
  * Use `create(CreateAssetRequestSchema)` to create a new message.
  */
 export const CreateAssetRequestSchema: GenMessage<CreateAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 15);
+  messageDesc(file_skillhub_configuration_v1_configuration, 20);
 
 /**
  * @generated from message skillhub.configuration.v1.CreateAssetResponse
@@ -411,7 +557,7 @@ export type CreateAssetResponse = Message<"skillhub.configuration.v1.CreateAsset
  * Use `create(CreateAssetResponseSchema)` to create a new message.
  */
 export const CreateAssetResponseSchema: GenMessage<CreateAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 16);
+  messageDesc(file_skillhub_configuration_v1_configuration, 21);
 
 /**
  * @generated from message skillhub.configuration.v1.UpdateAssetRequest
@@ -443,7 +589,7 @@ export type UpdateAssetRequest = Message<"skillhub.configuration.v1.UpdateAssetR
  * Use `create(UpdateAssetRequestSchema)` to create a new message.
  */
 export const UpdateAssetRequestSchema: GenMessage<UpdateAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 17);
+  messageDesc(file_skillhub_configuration_v1_configuration, 22);
 
 /**
  * @generated from message skillhub.configuration.v1.UpdateAssetResponse
@@ -460,7 +606,7 @@ export type UpdateAssetResponse = Message<"skillhub.configuration.v1.UpdateAsset
  * Use `create(UpdateAssetResponseSchema)` to create a new message.
  */
 export const UpdateAssetResponseSchema: GenMessage<UpdateAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 18);
+  messageDesc(file_skillhub_configuration_v1_configuration, 23);
 
 /**
  * @generated from message skillhub.configuration.v1.CopyAssetRequest
@@ -487,7 +633,7 @@ export type CopyAssetRequest = Message<"skillhub.configuration.v1.CopyAssetReque
  * Use `create(CopyAssetRequestSchema)` to create a new message.
  */
 export const CopyAssetRequestSchema: GenMessage<CopyAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 19);
+  messageDesc(file_skillhub_configuration_v1_configuration, 24);
 
 /**
  * @generated from message skillhub.configuration.v1.CopyAssetResponse
@@ -504,7 +650,7 @@ export type CopyAssetResponse = Message<"skillhub.configuration.v1.CopyAssetResp
  * Use `create(CopyAssetResponseSchema)` to create a new message.
  */
 export const CopyAssetResponseSchema: GenMessage<CopyAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 20);
+  messageDesc(file_skillhub_configuration_v1_configuration, 25);
 
 /**
  * @generated from message skillhub.configuration.v1.DeleteAssetRequest
@@ -526,7 +672,7 @@ export type DeleteAssetRequest = Message<"skillhub.configuration.v1.DeleteAssetR
  * Use `create(DeleteAssetRequestSchema)` to create a new message.
  */
 export const DeleteAssetRequestSchema: GenMessage<DeleteAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 21);
+  messageDesc(file_skillhub_configuration_v1_configuration, 26);
 
 /**
  * @generated from message skillhub.configuration.v1.DeleteAssetResponse
@@ -539,7 +685,7 @@ export type DeleteAssetResponse = Message<"skillhub.configuration.v1.DeleteAsset
  * Use `create(DeleteAssetResponseSchema)` to create a new message.
  */
 export const DeleteAssetResponseSchema: GenMessage<DeleteAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 22);
+  messageDesc(file_skillhub_configuration_v1_configuration, 27);
 
 /**
  * @generated from enum skillhub.configuration.v1.AssetKind
@@ -614,6 +760,104 @@ export const ClaudeAuthModeSchema: GenEnum<ClaudeAuthMode> = /*@__PURE__*/
   enumDesc(file_skillhub_configuration_v1_configuration, 1);
 
 /**
+ * @generated from enum skillhub.configuration.v1.CodexAuthMode
+ */
+export enum CodexAuthMode {
+  /**
+   * @generated from enum value: CODEX_AUTH_MODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CODEX_AUTH_MODE_PROVIDER_KEY = 1;
+   */
+  PROVIDER_KEY = 1,
+}
+
+/**
+ * Describes the enum skillhub.configuration.v1.CodexAuthMode.
+ */
+export const CodexAuthModeSchema: GenEnum<CodexAuthMode> = /*@__PURE__*/
+  enumDesc(file_skillhub_configuration_v1_configuration, 2);
+
+/**
+ * @generated from enum skillhub.configuration.v1.CodexReasoningEffort
+ */
+export enum CodexReasoningEffort {
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_NONE = 1;
+   */
+  NONE = 1,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_MINIMAL = 2;
+   */
+  MINIMAL = 2,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_LOW = 3;
+   */
+  LOW = 3,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_MEDIUM = 4;
+   */
+  MEDIUM = 4,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_HIGH = 5;
+   */
+  HIGH = 5,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_XHIGH = 6;
+   */
+  XHIGH = 6,
+
+  /**
+   * @generated from enum value: CODEX_REASONING_EFFORT_MAX = 7;
+   */
+  MAX = 7,
+}
+
+/**
+ * Describes the enum skillhub.configuration.v1.CodexReasoningEffort.
+ */
+export const CodexReasoningEffortSchema: GenEnum<CodexReasoningEffort> = /*@__PURE__*/
+  enumDesc(file_skillhub_configuration_v1_configuration, 3);
+
+/**
+ * @generated from enum skillhub.configuration.v1.CodexModality
+ */
+export enum CodexModality {
+  /**
+   * @generated from enum value: CODEX_MODALITY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CODEX_MODALITY_TEXT = 1;
+   */
+  TEXT = 1,
+
+  /**
+   * @generated from enum value: CODEX_MODALITY_IMAGE = 2;
+   */
+  IMAGE = 2,
+}
+
+/**
+ * Describes the enum skillhub.configuration.v1.CodexModality.
+ */
+export const CodexModalitySchema: GenEnum<CodexModality> = /*@__PURE__*/
+  enumDesc(file_skillhub_configuration_v1_configuration, 4);
+
+/**
  * @generated from enum skillhub.configuration.v1.CredentialReadiness
  */
 export enum CredentialReadiness {
@@ -637,7 +881,7 @@ export enum CredentialReadiness {
  * Describes the enum skillhub.configuration.v1.CredentialReadiness.
  */
 export const CredentialReadinessSchema: GenEnum<CredentialReadiness> = /*@__PURE__*/
-  enumDesc(file_skillhub_configuration_v1_configuration, 2);
+  enumDesc(file_skillhub_configuration_v1_configuration, 5);
 
 /**
  * @generated from service skillhub.configuration.v1.ConfigurationService

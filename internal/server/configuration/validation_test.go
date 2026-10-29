@@ -58,7 +58,7 @@ func TestEnvelopeFailsClosed(test *testing.T) {
 
 func TestUnknownAssetIsExplicitlyUnsupported(test *testing.T) {
 	store, _, _ := fixture(test)
-	metadata, err := store.CreateConfigurationAsset(test.Context(), "alice", state.ConfigurationAssetDraft{AgentID: "codex", Kind: state.ConfigurationKindProvider, Name: "Other agent", SchemaVersion: 1, Payload: state.NewConfigurationPayload([]byte(`{}`))})
+	metadata, err := store.CreateConfigurationAsset(test.Context(), "alice", state.ConfigurationAssetDraft{AgentID: "future-agent", Kind: state.ConfigurationKindProvider, Name: "Other agent", SchemaVersion: 1, Payload: state.NewConfigurationPayload([]byte(`{}`))})
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestUnknownAssetIsExplicitlyUnsupported(test *testing.T) {
 		test.Fatalf("metadata mixed list: %v", err)
 	}
 	got, err := service.Get(test.Context(), "alice", metadata.ID)
-	if err != nil || got.AgentID != "codex" {
+	if err != nil || got.AgentID != "future-agent" {
 		test.Fatalf("metadata other agent: %v", err)
 	}
 	if err := service.Delete(test.Context(), "alice", metadata.ID, 2); !errors.Is(err, configuration.ErrConflict) {

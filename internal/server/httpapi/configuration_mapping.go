@@ -9,6 +9,9 @@ import (
 )
 
 func configurationInput(draft *configurationv1.Draft, mutations []*configurationv1.SecretMutation) (configuration.Draft, []configuration.SecretMutation, error) {
+	if draft != nil && draft.GetCodexProvider() != nil {
+		return configurationCodexInput(draft, mutations)
+	}
 	if draft == nil || draft.GetClaudeProvider() == nil {
 		return configuration.Draft{}, nil, configuration.ErrInvalid
 	}
@@ -28,31 +31,39 @@ func configurationInput(draft *configurationv1.Draft, mutations []*configuration
 	if models := provider.Models; models != nil {
 		input.Provider.Models = configuration.ClaudeModels{Default: models.DefaultModel, Haiku: models.Haiku, Sonnet: models.Sonnet, Opus: models.Opus}
 	}
+	secrets, err := configurationSecretInput(mutations)
+	if err != nil {
+		return configuration.Draft{}, nil, err
+	}
+	return input, secrets, err
+}
+
+func configurationSecretInput(mutations []*configurationv1.SecretMutation) ([]configuration.SecretMutation, error) {
 	secrets := make([]configuration.SecretMutation, 0, len(mutations))
 	for _, mutation := range mutations {
 		if mutation == nil {
-			return configuration.Draft{}, nil, configuration.ErrInvalid
+			return nil, configuration.ErrInvalid
 		}
 		secret := configuration.SecretMutation{Slot: configuration.Slot(mutation.SlotId)}
 		switch action := mutation.Action.(type) {
 		case *configurationv1.SecretMutation_Keep:
 			if action.Keep == nil {
-				return configuration.Draft{}, nil, configuration.ErrInvalid
+				return nil, configuration.ErrInvalid
 			}
 			secret.Action = configuration.Keep
 		case *configurationv1.SecretMutation_Clear:
 			if action.Clear == nil {
-				return configuration.Draft{}, nil, configuration.ErrInvalid
+				return nil, configuration.ErrInvalid
 			}
 			secret.Action = configuration.Clear
 		case *configurationv1.SecretMutation_Replace:
 			secret.Action, secret.Replacement = configuration.Replace, configuration.NewSecret([]byte(action.Replace))
 		default:
-			return configuration.Draft{}, nil, configuration.ErrInvalid
+			return nil, configuration.ErrInvalid
 		}
 		secrets = append(secrets, secret)
 	}
-	return input, secrets, nil
+	return secrets, nil
 }
 
 func configurationAsset(entry state.ConfigurationAsset) (*configurationv1.Asset, error) {
@@ -78,6 +89,9 @@ func configurationAsset(entry state.ConfigurationAsset) (*configurationv1.Asset,
 }
 
 func configurationView(entry configuration.EditView) (*configurationv1.DraftView, error) {
+	if entry.CodexProvider != nil || entry.Metadata.AgentID == "codex" {
+		return configurationCodexView(entry)
+	}
 	asset, err := configurationAsset(entry.Metadata)
 	if err != nil {
 		return nil, err

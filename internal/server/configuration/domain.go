@@ -35,9 +35,12 @@ func (service *Service) load(ctx context.Context, owner, id string) (state.Confi
 }
 
 func (service *Service) Edit(ctx context.Context, owner, id string) (EditView, error) {
-	metadata, payload, err := service.load(ctx, owner, id)
+	metadata, payload, err := service.loadEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
+	}
+	if metadata.AgentID == "codex" {
+		return codexEdit(metadata, payload)
 	}
 	provider, secrets, err := decodeEnvelope(payload)
 	if err != nil {
@@ -50,12 +53,18 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if expectedRevision < 1 || expectedRevision == math.MaxInt64 {
 		return EditView{}, ErrInvalid
 	}
-	metadata, payload, err := service.load(ctx, owner, id)
+	metadata, payload, err := service.loadEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
 	}
 	if metadata.Revision != expectedRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "codex" {
+		return service.updateCodex(ctx, owner, metadata, payload, input, mutations)
+	}
+	if input.CodexProvider != nil {
+		return EditView{}, ErrInvalid
 	}
 	_, current, err := decodeEnvelope(payload)
 	if err != nil {
@@ -90,12 +99,22 @@ func (service *Service) Copy(ctx context.Context, owner, id string, expectedSour
 	if expectedSourceRevision < 1 {
 		return EditView{}, ErrInvalid
 	}
-	metadata, payload, err := service.load(ctx, owner, id)
+	metadata, payload, err := service.loadEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
 	}
 	if metadata.Revision != expectedSourceRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "codex" {
+		view, err := codexEdit(metadata, payload)
+		if err != nil {
+			return EditView{}, err
+		}
+		if view.HasPreservedExtras {
+			return EditView{}, ErrUnsupported
+		}
+		return service.Create(ctx, owner, Draft{Name: name, CodexProvider: view.CodexProvider}, nil)
 	}
 	provider, _, err := decodeEnvelope(payload)
 	if err != nil {
@@ -199,6 +218,16 @@ func normalizeDraft(input Draft) (Draft, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	if !validText(input.Name, 128) {
 		return Draft{}, ErrInvalid
+	}
+	if input.CodexProvider != nil {
+		if input.Provider != (ClaudeProvider{}) {
+			return Draft{}, ErrInvalid
+		}
+		if err := validateCodexProvider(*input.CodexProvider, false); err != nil {
+			return Draft{}, err
+		}
+		input.CodexProvider = cloneCodexProvider(*input.CodexProvider)
+		return input, nil
 	}
 	if err := validateProvider(input.Provider); err != nil {
 		return Draft{}, err
@@ -307,7 +336,7 @@ func checkCredentials(provider ClaudeProvider, secrets credentials) error {
 }
 
 func editView(metadata state.ConfigurationAsset, provider ClaudeProvider, secrets credentials) EditView {
-	view := EditView{Metadata: metadata, Provider: cloneProvider(provider), Secrets: [2]SecretStatus{{Slot: APIKeySlot, Present: len(secrets.apiKey.data) > 0}, {Slot: AuthTokenSlot, Present: len(secrets.authToken.data) > 0}}, Readiness: CredentialComplete}
+	view := EditView{Metadata: metadata, Provider: cloneProvider(provider), Secrets: []SecretStatus{{Slot: APIKeySlot, Present: len(secrets.apiKey.data) > 0}, {Slot: AuthTokenSlot, Present: len(secrets.authToken.data) > 0}}, Readiness: CredentialComplete}
 	if provider.AuthMode == APIKey && !view.Secrets[0].Present || provider.AuthMode == AuthToken && !view.Secrets[1].Present {
 		view.Readiness = NeedsCredential
 	}
@@ -356,6 +385,13 @@ func (service *Service) Create(ctx context.Context, owner string, input Draft, m
 	input, err := normalizeDraft(input)
 	if err != nil {
 		return EditView{}, err
+	}
+	if input.CodexProvider != nil {
+		secret, err := mergeCodexSecret(Secret{}, mutations, true)
+		if err != nil {
+			return EditView{}, err
+		}
+		return service.createCodex(ctx, owner, input, secret)
 	}
 	secrets, err := mergeSecrets(credentials{}, mutations, true)
 	if err != nil {

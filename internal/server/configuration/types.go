@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/server/state"
 )
 
@@ -40,8 +41,17 @@ type ClaudeProvider struct {
 }
 
 type Draft struct {
-	Name     string         `json:"name"`
-	Provider ClaudeProvider `json:"provider"`
+	Name          string         `json:"name"`
+	Provider      ClaudeProvider `json:"provider,omitzero"`
+	CodexProvider *CodexProvider `json:"codex_provider,omitzero"`
+}
+
+type CodexProvider struct {
+	AuthMode        agentconfig.CodexAuthMode         `json:"authMode"`
+	Endpoint        string                            `json:"endpoint"`
+	Model           string                            `json:"model"`
+	ReasoningEffort *agentconfig.CodexReasoningEffort `json:"reasoningEffort,omitzero"`
+	Catalog         *agentconfig.CodexCatalogDesired  `json:"catalog,omitzero"`
 }
 
 type Secret struct{ data []byte }
@@ -56,8 +66,9 @@ func (Secret) LogValue() slog.Value         { return slog.StringValue("[redacted
 type Slot string
 
 const (
-	APIKeySlot    Slot = "claude.api-key"
-	AuthTokenSlot Slot = "claude.auth-token"
+	APIKeySlot           Slot = "claude.api-key"
+	AuthTokenSlot        Slot = "claude.auth-token"
+	CodexProviderKeySlot Slot = "codex.provider-key"
 )
 
 type SecretAction string
@@ -87,10 +98,12 @@ const (
 )
 
 type EditView struct {
-	Metadata  state.ConfigurationAsset `json:"metadata"`
-	Provider  ClaudeProvider           `json:"provider"`
-	Secrets   [2]SecretStatus          `json:"secrets"`
-	Readiness Readiness                `json:"readiness"`
+	Metadata           state.ConfigurationAsset `json:"metadata"`
+	Provider           ClaudeProvider           `json:"provider,omitzero"`
+	Secrets            []SecretStatus           `json:"secrets"`
+	Readiness          Readiness                `json:"readiness"`
+	CodexProvider      *CodexProvider           `json:"codex_provider,omitzero"`
+	HasPreservedExtras bool                     `json:"has_preserved_extras"`
 }
 
 type Store interface {

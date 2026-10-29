@@ -131,6 +131,165 @@ func (ClaudeAuthMode) EnumDescriptor() ([]byte, []int) {
 	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{1}
 }
 
+type CodexAuthMode int32
+
+const (
+	CodexAuthMode_CODEX_AUTH_MODE_UNSPECIFIED  CodexAuthMode = 0
+	CodexAuthMode_CODEX_AUTH_MODE_PROVIDER_KEY CodexAuthMode = 1
+)
+
+// Enum value maps for CodexAuthMode.
+var (
+	CodexAuthMode_name = map[int32]string{
+		0: "CODEX_AUTH_MODE_UNSPECIFIED",
+		1: "CODEX_AUTH_MODE_PROVIDER_KEY",
+	}
+	CodexAuthMode_value = map[string]int32{
+		"CODEX_AUTH_MODE_UNSPECIFIED":  0,
+		"CODEX_AUTH_MODE_PROVIDER_KEY": 1,
+	}
+)
+
+func (x CodexAuthMode) Enum() *CodexAuthMode {
+	p := new(CodexAuthMode)
+	*p = x
+	return p
+}
+
+func (x CodexAuthMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CodexAuthMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_v1_configuration_proto_enumTypes[2].Descriptor()
+}
+
+func (CodexAuthMode) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_v1_configuration_proto_enumTypes[2]
+}
+
+func (x CodexAuthMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CodexAuthMode.Descriptor instead.
+func (CodexAuthMode) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{2}
+}
+
+type CodexReasoningEffort int32
+
+const (
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_UNSPECIFIED CodexReasoningEffort = 0
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_NONE        CodexReasoningEffort = 1
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_MINIMAL     CodexReasoningEffort = 2
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_LOW         CodexReasoningEffort = 3
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_MEDIUM      CodexReasoningEffort = 4
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_HIGH        CodexReasoningEffort = 5
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_XHIGH       CodexReasoningEffort = 6
+	CodexReasoningEffort_CODEX_REASONING_EFFORT_MAX         CodexReasoningEffort = 7
+)
+
+// Enum value maps for CodexReasoningEffort.
+var (
+	CodexReasoningEffort_name = map[int32]string{
+		0: "CODEX_REASONING_EFFORT_UNSPECIFIED",
+		1: "CODEX_REASONING_EFFORT_NONE",
+		2: "CODEX_REASONING_EFFORT_MINIMAL",
+		3: "CODEX_REASONING_EFFORT_LOW",
+		4: "CODEX_REASONING_EFFORT_MEDIUM",
+		5: "CODEX_REASONING_EFFORT_HIGH",
+		6: "CODEX_REASONING_EFFORT_XHIGH",
+		7: "CODEX_REASONING_EFFORT_MAX",
+	}
+	CodexReasoningEffort_value = map[string]int32{
+		"CODEX_REASONING_EFFORT_UNSPECIFIED": 0,
+		"CODEX_REASONING_EFFORT_NONE":        1,
+		"CODEX_REASONING_EFFORT_MINIMAL":     2,
+		"CODEX_REASONING_EFFORT_LOW":         3,
+		"CODEX_REASONING_EFFORT_MEDIUM":      4,
+		"CODEX_REASONING_EFFORT_HIGH":        5,
+		"CODEX_REASONING_EFFORT_XHIGH":       6,
+		"CODEX_REASONING_EFFORT_MAX":         7,
+	}
+)
+
+func (x CodexReasoningEffort) Enum() *CodexReasoningEffort {
+	p := new(CodexReasoningEffort)
+	*p = x
+	return p
+}
+
+func (x CodexReasoningEffort) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CodexReasoningEffort) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_v1_configuration_proto_enumTypes[3].Descriptor()
+}
+
+func (CodexReasoningEffort) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_v1_configuration_proto_enumTypes[3]
+}
+
+func (x CodexReasoningEffort) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CodexReasoningEffort.Descriptor instead.
+func (CodexReasoningEffort) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{3}
+}
+
+type CodexModality int32
+
+const (
+	CodexModality_CODEX_MODALITY_UNSPECIFIED CodexModality = 0
+	CodexModality_CODEX_MODALITY_TEXT        CodexModality = 1
+	CodexModality_CODEX_MODALITY_IMAGE       CodexModality = 2
+)
+
+// Enum value maps for CodexModality.
+var (
+	CodexModality_name = map[int32]string{
+		0: "CODEX_MODALITY_UNSPECIFIED",
+		1: "CODEX_MODALITY_TEXT",
+		2: "CODEX_MODALITY_IMAGE",
+	}
+	CodexModality_value = map[string]int32{
+		"CODEX_MODALITY_UNSPECIFIED": 0,
+		"CODEX_MODALITY_TEXT":        1,
+		"CODEX_MODALITY_IMAGE":       2,
+	}
+)
+
+func (x CodexModality) Enum() *CodexModality {
+	p := new(CodexModality)
+	*p = x
+	return p
+}
+
+func (x CodexModality) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CodexModality) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_v1_configuration_proto_enumTypes[4].Descriptor()
+}
+
+func (CodexModality) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_v1_configuration_proto_enumTypes[4]
+}
+
+func (x CodexModality) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CodexModality.Descriptor instead.
+func (CodexModality) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{4}
+}
+
 type CredentialReadiness int32
 
 const (
@@ -164,11 +323,11 @@ func (x CredentialReadiness) String() string {
 }
 
 func (CredentialReadiness) Descriptor() protoreflect.EnumDescriptor {
-	return file_skillhub_configuration_v1_configuration_proto_enumTypes[2].Descriptor()
+	return file_skillhub_configuration_v1_configuration_proto_enumTypes[5].Descriptor()
 }
 
 func (CredentialReadiness) Type() protoreflect.EnumType {
-	return &file_skillhub_configuration_v1_configuration_proto_enumTypes[2]
+	return &file_skillhub_configuration_v1_configuration_proto_enumTypes[5]
 }
 
 func (x CredentialReadiness) Number() protoreflect.EnumNumber {
@@ -177,7 +336,7 @@ func (x CredentialReadiness) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CredentialReadiness.Descriptor instead.
 func (CredentialReadiness) EnumDescriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{2}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{5}
 }
 
 type Asset struct {
@@ -408,12 +567,321 @@ func (x *ClaudeProvider) GetModels() *ClaudeModels {
 	return nil
 }
 
+type CodexModalities struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Values        []CodexModality        `protobuf:"varint,1,rep,packed,name=values,proto3,enum=skillhub.configuration.v1.CodexModality" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CodexModalities) Reset() {
+	*x = CodexModalities{}
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CodexModalities) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodexModalities) ProtoMessage() {}
+
+func (x *CodexModalities) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodexModalities.ProtoReflect.Descriptor instead.
+func (*CodexModalities) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CodexModalities) GetValues() []CodexModality {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type CodexReasoningLevels struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Values        []CodexReasoningEffort `protobuf:"varint,1,rep,packed,name=values,proto3,enum=skillhub.configuration.v1.CodexReasoningEffort" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CodexReasoningLevels) Reset() {
+	*x = CodexReasoningLevels{}
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CodexReasoningLevels) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodexReasoningLevels) ProtoMessage() {}
+
+func (x *CodexReasoningLevels) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodexReasoningLevels.ProtoReflect.Descriptor instead.
+func (*CodexReasoningLevels) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CodexReasoningLevels) GetValues() []CodexReasoningEffort {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type CodexCatalogModel struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	Model                     string                 `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	DisplayName               *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	ContextWindow             *uint64                `protobuf:"varint,3,opt,name=context_window,json=contextWindow,proto3,oneof" json:"context_window,omitempty"`
+	SupportsParallelToolCalls *bool                  `protobuf:"varint,4,opt,name=supports_parallel_tool_calls,json=supportsParallelToolCalls,proto3,oneof" json:"supports_parallel_tool_calls,omitempty"`
+	InputModalities           *CodexModalities       `protobuf:"bytes,5,opt,name=input_modalities,json=inputModalities,proto3" json:"input_modalities,omitempty"`
+	BaseInstructions          *string                `protobuf:"bytes,6,opt,name=base_instructions,json=baseInstructions,proto3,oneof" json:"base_instructions,omitempty"`
+	ReasoningLevels           *CodexReasoningLevels  `protobuf:"bytes,7,opt,name=reasoning_levels,json=reasoningLevels,proto3" json:"reasoning_levels,omitempty"`
+	DefaultReasoningLevel     *CodexReasoningEffort  `protobuf:"varint,8,opt,name=default_reasoning_level,json=defaultReasoningLevel,proto3,enum=skillhub.configuration.v1.CodexReasoningEffort,oneof" json:"default_reasoning_level,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *CodexCatalogModel) Reset() {
+	*x = CodexCatalogModel{}
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CodexCatalogModel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodexCatalogModel) ProtoMessage() {}
+
+func (x *CodexCatalogModel) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodexCatalogModel.ProtoReflect.Descriptor instead.
+func (*CodexCatalogModel) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CodexCatalogModel) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *CodexCatalogModel) GetDisplayName() string {
+	if x != nil && x.DisplayName != nil {
+		return *x.DisplayName
+	}
+	return ""
+}
+
+func (x *CodexCatalogModel) GetContextWindow() uint64 {
+	if x != nil && x.ContextWindow != nil {
+		return *x.ContextWindow
+	}
+	return 0
+}
+
+func (x *CodexCatalogModel) GetSupportsParallelToolCalls() bool {
+	if x != nil && x.SupportsParallelToolCalls != nil {
+		return *x.SupportsParallelToolCalls
+	}
+	return false
+}
+
+func (x *CodexCatalogModel) GetInputModalities() *CodexModalities {
+	if x != nil {
+		return x.InputModalities
+	}
+	return nil
+}
+
+func (x *CodexCatalogModel) GetBaseInstructions() string {
+	if x != nil && x.BaseInstructions != nil {
+		return *x.BaseInstructions
+	}
+	return ""
+}
+
+func (x *CodexCatalogModel) GetReasoningLevels() *CodexReasoningLevels {
+	if x != nil {
+		return x.ReasoningLevels
+	}
+	return nil
+}
+
+func (x *CodexCatalogModel) GetDefaultReasoningLevel() CodexReasoningEffort {
+	if x != nil && x.DefaultReasoningLevel != nil {
+		return *x.DefaultReasoningLevel
+	}
+	return CodexReasoningEffort_CODEX_REASONING_EFFORT_UNSPECIFIED
+}
+
+type CodexCatalog struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Models        []*CodexCatalogModel   `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CodexCatalog) Reset() {
+	*x = CodexCatalog{}
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CodexCatalog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodexCatalog) ProtoMessage() {}
+
+func (x *CodexCatalog) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodexCatalog.ProtoReflect.Descriptor instead.
+func (*CodexCatalog) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CodexCatalog) GetModels() []*CodexCatalogModel {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
+type CodexProvider struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	AuthMode        CodexAuthMode          `protobuf:"varint,1,opt,name=auth_mode,json=authMode,proto3,enum=skillhub.configuration.v1.CodexAuthMode" json:"auth_mode,omitempty"`
+	Endpoint        string                 `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Model           string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	ReasoningEffort *CodexReasoningEffort  `protobuf:"varint,4,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=skillhub.configuration.v1.CodexReasoningEffort,oneof" json:"reasoning_effort,omitempty"`
+	Catalog         *CodexCatalog          `protobuf:"bytes,5,opt,name=catalog,proto3" json:"catalog,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CodexProvider) Reset() {
+	*x = CodexProvider{}
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CodexProvider) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodexProvider) ProtoMessage() {}
+
+func (x *CodexProvider) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodexProvider.ProtoReflect.Descriptor instead.
+func (*CodexProvider) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CodexProvider) GetAuthMode() CodexAuthMode {
+	if x != nil {
+		return x.AuthMode
+	}
+	return CodexAuthMode_CODEX_AUTH_MODE_UNSPECIFIED
+}
+
+func (x *CodexProvider) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *CodexProvider) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *CodexProvider) GetReasoningEffort() CodexReasoningEffort {
+	if x != nil && x.ReasoningEffort != nil {
+		return *x.ReasoningEffort
+	}
+	return CodexReasoningEffort_CODEX_REASONING_EFFORT_UNSPECIFIED
+}
+
+func (x *CodexProvider) GetCatalog() *CodexCatalog {
+	if x != nil {
+		return x.Catalog
+	}
+	return nil
+}
+
 type Draft struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Types that are valid to be assigned to Payload:
 	//
 	//	*Draft_ClaudeProvider
+	//	*Draft_CodexProvider
 	Payload       isDraft_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -421,7 +889,7 @@ type Draft struct {
 
 func (x *Draft) Reset() {
 	*x = Draft{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[3]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -433,7 +901,7 @@ func (x *Draft) String() string {
 func (*Draft) ProtoMessage() {}
 
 func (x *Draft) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[3]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -446,7 +914,7 @@ func (x *Draft) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Draft.ProtoReflect.Descriptor instead.
 func (*Draft) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{3}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Draft) GetName() string {
@@ -472,6 +940,15 @@ func (x *Draft) GetClaudeProvider() *ClaudeProvider {
 	return nil
 }
 
+func (x *Draft) GetCodexProvider() *CodexProvider {
+	if x != nil {
+		if x, ok := x.Payload.(*Draft_CodexProvider); ok {
+			return x.CodexProvider
+		}
+	}
+	return nil
+}
+
 type isDraft_Payload interface {
 	isDraft_Payload()
 }
@@ -480,7 +957,13 @@ type Draft_ClaudeProvider struct {
 	ClaudeProvider *ClaudeProvider `protobuf:"bytes,2,opt,name=claude_provider,json=claudeProvider,proto3,oneof"`
 }
 
+type Draft_CodexProvider struct {
+	CodexProvider *CodexProvider `protobuf:"bytes,3,opt,name=codex_provider,json=codexProvider,proto3,oneof"`
+}
+
 func (*Draft_ClaudeProvider) isDraft_Payload() {}
+
+func (*Draft_CodexProvider) isDraft_Payload() {}
 
 type SecretStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -492,7 +975,7 @@ type SecretStatus struct {
 
 func (x *SecretStatus) Reset() {
 	*x = SecretStatus{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[4]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -504,7 +987,7 @@ func (x *SecretStatus) String() string {
 func (*SecretStatus) ProtoMessage() {}
 
 func (x *SecretStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[4]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -517,7 +1000,7 @@ func (x *SecretStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecretStatus.ProtoReflect.Descriptor instead.
 func (*SecretStatus) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{4}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SecretStatus) GetSlotId() string {
@@ -542,7 +1025,7 @@ type KeepSecret struct {
 
 func (x *KeepSecret) Reset() {
 	*x = KeepSecret{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[5]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +1037,7 @@ func (x *KeepSecret) String() string {
 func (*KeepSecret) ProtoMessage() {}
 
 func (x *KeepSecret) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[5]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +1050,7 @@ func (x *KeepSecret) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeepSecret.ProtoReflect.Descriptor instead.
 func (*KeepSecret) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{5}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{10}
 }
 
 type ClearSecret struct {
@@ -578,7 +1061,7 @@ type ClearSecret struct {
 
 func (x *ClearSecret) Reset() {
 	*x = ClearSecret{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[6]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -590,7 +1073,7 @@ func (x *ClearSecret) String() string {
 func (*ClearSecret) ProtoMessage() {}
 
 func (x *ClearSecret) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[6]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -603,7 +1086,7 @@ func (x *ClearSecret) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearSecret.ProtoReflect.Descriptor instead.
 func (*ClearSecret) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{6}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{11}
 }
 
 type SecretMutation struct {
@@ -621,7 +1104,7 @@ type SecretMutation struct {
 
 func (x *SecretMutation) Reset() {
 	*x = SecretMutation{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[7]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -633,7 +1116,7 @@ func (x *SecretMutation) String() string {
 func (*SecretMutation) ProtoMessage() {}
 
 func (x *SecretMutation) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[7]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +1129,7 @@ func (x *SecretMutation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecretMutation.ProtoReflect.Descriptor instead.
 func (*SecretMutation) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{7}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SecretMutation) GetSlotId() string {
@@ -725,7 +1208,7 @@ type DraftView struct {
 
 func (x *DraftView) Reset() {
 	*x = DraftView{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[8]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -737,7 +1220,7 @@ func (x *DraftView) String() string {
 func (*DraftView) ProtoMessage() {}
 
 func (x *DraftView) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[8]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -750,7 +1233,7 @@ func (x *DraftView) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DraftView.ProtoReflect.Descriptor instead.
 func (*DraftView) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{8}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DraftView) GetAsset() *Asset {
@@ -796,7 +1279,7 @@ type ListAssetsRequest struct {
 
 func (x *ListAssetsRequest) Reset() {
 	*x = ListAssetsRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[9]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -808,7 +1291,7 @@ func (x *ListAssetsRequest) String() string {
 func (*ListAssetsRequest) ProtoMessage() {}
 
 func (x *ListAssetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[9]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,7 +1304,7 @@ func (x *ListAssetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssetsRequest.ProtoReflect.Descriptor instead.
 func (*ListAssetsRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{9}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{14}
 }
 
 type ListAssetsResponse struct {
@@ -833,7 +1316,7 @@ type ListAssetsResponse struct {
 
 func (x *ListAssetsResponse) Reset() {
 	*x = ListAssetsResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[10]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +1328,7 @@ func (x *ListAssetsResponse) String() string {
 func (*ListAssetsResponse) ProtoMessage() {}
 
 func (x *ListAssetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[10]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1341,7 @@ func (x *ListAssetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAssetsResponse.ProtoReflect.Descriptor instead.
 func (*ListAssetsResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{10}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListAssetsResponse) GetAssets() []*Asset {
@@ -877,7 +1360,7 @@ type GetAssetRequest struct {
 
 func (x *GetAssetRequest) Reset() {
 	*x = GetAssetRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[11]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -889,7 +1372,7 @@ func (x *GetAssetRequest) String() string {
 func (*GetAssetRequest) ProtoMessage() {}
 
 func (x *GetAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[11]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -902,7 +1385,7 @@ func (x *GetAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAssetRequest.ProtoReflect.Descriptor instead.
 func (*GetAssetRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{11}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetAssetRequest) GetId() string {
@@ -921,7 +1404,7 @@ type GetAssetResponse struct {
 
 func (x *GetAssetResponse) Reset() {
 	*x = GetAssetResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[12]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1416,7 @@ func (x *GetAssetResponse) String() string {
 func (*GetAssetResponse) ProtoMessage() {}
 
 func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[12]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1429,7 @@ func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAssetResponse.ProtoReflect.Descriptor instead.
 func (*GetAssetResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{12}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetAssetResponse) GetAsset() *Asset {
@@ -965,7 +1448,7 @@ type ReadDraftRequest struct {
 
 func (x *ReadDraftRequest) Reset() {
 	*x = ReadDraftRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[13]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -977,7 +1460,7 @@ func (x *ReadDraftRequest) String() string {
 func (*ReadDraftRequest) ProtoMessage() {}
 
 func (x *ReadDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[13]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +1473,7 @@ func (x *ReadDraftRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadDraftRequest.ProtoReflect.Descriptor instead.
 func (*ReadDraftRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{13}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ReadDraftRequest) GetId() string {
@@ -1009,7 +1492,7 @@ type ReadDraftResponse struct {
 
 func (x *ReadDraftResponse) Reset() {
 	*x = ReadDraftResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[14]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +1504,7 @@ func (x *ReadDraftResponse) String() string {
 func (*ReadDraftResponse) ProtoMessage() {}
 
 func (x *ReadDraftResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[14]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +1517,7 @@ func (x *ReadDraftResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadDraftResponse.ProtoReflect.Descriptor instead.
 func (*ReadDraftResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{14}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ReadDraftResponse) GetView() *DraftView {
@@ -1054,7 +1537,7 @@ type CreateAssetRequest struct {
 
 func (x *CreateAssetRequest) Reset() {
 	*x = CreateAssetRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[15]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1549,7 @@ func (x *CreateAssetRequest) String() string {
 func (*CreateAssetRequest) ProtoMessage() {}
 
 func (x *CreateAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[15]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1562,7 @@ func (x *CreateAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAssetRequest.ProtoReflect.Descriptor instead.
 func (*CreateAssetRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{15}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateAssetRequest) GetDraft() *Draft {
@@ -1105,7 +1588,7 @@ type CreateAssetResponse struct {
 
 func (x *CreateAssetResponse) Reset() {
 	*x = CreateAssetResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[16]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1117,7 +1600,7 @@ func (x *CreateAssetResponse) String() string {
 func (*CreateAssetResponse) ProtoMessage() {}
 
 func (x *CreateAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[16]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1130,7 +1613,7 @@ func (x *CreateAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAssetResponse.ProtoReflect.Descriptor instead.
 func (*CreateAssetResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{16}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateAssetResponse) GetView() *DraftView {
@@ -1152,7 +1635,7 @@ type UpdateAssetRequest struct {
 
 func (x *UpdateAssetRequest) Reset() {
 	*x = UpdateAssetRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[17]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1164,7 +1647,7 @@ func (x *UpdateAssetRequest) String() string {
 func (*UpdateAssetRequest) ProtoMessage() {}
 
 func (x *UpdateAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[17]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1660,7 @@ func (x *UpdateAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAssetRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAssetRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{17}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateAssetRequest) GetId() string {
@@ -1217,7 +1700,7 @@ type UpdateAssetResponse struct {
 
 func (x *UpdateAssetResponse) Reset() {
 	*x = UpdateAssetResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[18]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1229,7 +1712,7 @@ func (x *UpdateAssetResponse) String() string {
 func (*UpdateAssetResponse) ProtoMessage() {}
 
 func (x *UpdateAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[18]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1242,7 +1725,7 @@ func (x *UpdateAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAssetResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAssetResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{18}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateAssetResponse) GetView() *DraftView {
@@ -1263,7 +1746,7 @@ type CopyAssetRequest struct {
 
 func (x *CopyAssetRequest) Reset() {
 	*x = CopyAssetRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[19]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1275,7 +1758,7 @@ func (x *CopyAssetRequest) String() string {
 func (*CopyAssetRequest) ProtoMessage() {}
 
 func (x *CopyAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[19]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1288,7 +1771,7 @@ func (x *CopyAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyAssetRequest.ProtoReflect.Descriptor instead.
 func (*CopyAssetRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{19}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CopyAssetRequest) GetSourceId() string {
@@ -1321,7 +1804,7 @@ type CopyAssetResponse struct {
 
 func (x *CopyAssetResponse) Reset() {
 	*x = CopyAssetResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[20]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1333,7 +1816,7 @@ func (x *CopyAssetResponse) String() string {
 func (*CopyAssetResponse) ProtoMessage() {}
 
 func (x *CopyAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[20]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1346,7 +1829,7 @@ func (x *CopyAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyAssetResponse.ProtoReflect.Descriptor instead.
 func (*CopyAssetResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{20}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CopyAssetResponse) GetView() *DraftView {
@@ -1366,7 +1849,7 @@ type DeleteAssetRequest struct {
 
 func (x *DeleteAssetRequest) Reset() {
 	*x = DeleteAssetRequest{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[21]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1378,7 +1861,7 @@ func (x *DeleteAssetRequest) String() string {
 func (*DeleteAssetRequest) ProtoMessage() {}
 
 func (x *DeleteAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[21]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1391,7 +1874,7 @@ func (x *DeleteAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAssetRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAssetRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{21}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteAssetRequest) GetId() string {
@@ -1416,7 +1899,7 @@ type DeleteAssetResponse struct {
 
 func (x *DeleteAssetResponse) Reset() {
 	*x = DeleteAssetResponse{}
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[22]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1428,7 +1911,7 @@ func (x *DeleteAssetResponse) String() string {
 func (*DeleteAssetResponse) ProtoMessage() {}
 
 func (x *DeleteAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[22]
+	mi := &file_skillhub_configuration_v1_configuration_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1441,7 +1924,7 @@ func (x *DeleteAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAssetResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAssetResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{22}
+	return file_skillhub_configuration_v1_configuration_proto_rawDescGZIP(), []int{27}
 }
 
 var File_skillhub_configuration_v1_configuration_proto protoreflect.FileDescriptor
@@ -1471,10 +1954,38 @@ const file_skillhub_configuration_v1_configuration_proto_rawDesc = "" +
 	"\bendpoint\x18\x01 \x01(\tH\x00R\bendpoint\x88\x01\x01\x12F\n" +
 	"\tauth_mode\x18\x02 \x01(\x0e2).skillhub.configuration.v1.ClaudeAuthModeR\bauthMode\x12?\n" +
 	"\x06models\x18\x03 \x01(\v2'.skillhub.configuration.v1.ClaudeModelsR\x06modelsB\v\n" +
-	"\t_endpoint\"|\n" +
+	"\t_endpoint\"S\n" +
+	"\x0fCodexModalities\x12@\n" +
+	"\x06values\x18\x01 \x03(\x0e2(.skillhub.configuration.v1.CodexModalityR\x06values\"_\n" +
+	"\x14CodexReasoningLevels\x12G\n" +
+	"\x06values\x18\x01 \x03(\x0e2/.skillhub.configuration.v1.CodexReasoningEffortR\x06values\"\x8d\x05\n" +
+	"\x11CodexCatalogModel\x12\x14\n" +
+	"\x05model\x18\x01 \x01(\tR\x05model\x12&\n" +
+	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12*\n" +
+	"\x0econtext_window\x18\x03 \x01(\x04H\x01R\rcontextWindow\x88\x01\x01\x12D\n" +
+	"\x1csupports_parallel_tool_calls\x18\x04 \x01(\bH\x02R\x19supportsParallelToolCalls\x88\x01\x01\x12U\n" +
+	"\x10input_modalities\x18\x05 \x01(\v2*.skillhub.configuration.v1.CodexModalitiesR\x0finputModalities\x120\n" +
+	"\x11base_instructions\x18\x06 \x01(\tH\x03R\x10baseInstructions\x88\x01\x01\x12Z\n" +
+	"\x10reasoning_levels\x18\a \x01(\v2/.skillhub.configuration.v1.CodexReasoningLevelsR\x0freasoningLevels\x12l\n" +
+	"\x17default_reasoning_level\x18\b \x01(\x0e2/.skillhub.configuration.v1.CodexReasoningEffortH\x04R\x15defaultReasoningLevel\x88\x01\x01B\x0f\n" +
+	"\r_display_nameB\x11\n" +
+	"\x0f_context_windowB\x1f\n" +
+	"\x1d_supports_parallel_tool_callsB\x14\n" +
+	"\x12_base_instructionsB\x1a\n" +
+	"\x18_default_reasoning_level\"T\n" +
+	"\fCodexCatalog\x12D\n" +
+	"\x06models\x18\x01 \x03(\v2,.skillhub.configuration.v1.CodexCatalogModelR\x06models\"\xc1\x02\n" +
+	"\rCodexProvider\x12E\n" +
+	"\tauth_mode\x18\x01 \x01(\x0e2(.skillhub.configuration.v1.CodexAuthModeR\bauthMode\x12\x1a\n" +
+	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12\x14\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\x12_\n" +
+	"\x10reasoning_effort\x18\x04 \x01(\x0e2/.skillhub.configuration.v1.CodexReasoningEffortH\x00R\x0freasoningEffort\x88\x01\x01\x12A\n" +
+	"\acatalog\x18\x05 \x01(\v2'.skillhub.configuration.v1.CodexCatalogR\acatalogB\x13\n" +
+	"\x11_reasoning_effort\"\xcf\x01\n" +
 	"\x05Draft\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12T\n" +
-	"\x0fclaude_provider\x18\x02 \x01(\v2).skillhub.configuration.v1.ClaudeProviderH\x00R\x0eclaudeProviderB\t\n" +
+	"\x0fclaude_provider\x18\x02 \x01(\v2).skillhub.configuration.v1.ClaudeProviderH\x00R\x0eclaudeProvider\x12Q\n" +
+	"\x0ecodex_provider\x18\x03 \x01(\v2(.skillhub.configuration.v1.CodexProviderH\x00R\rcodexProviderB\t\n" +
 	"\apayload\"A\n" +
 	"\fSecretStatus\x12\x17\n" +
 	"\aslot_id\x18\x01 \x01(\tR\x06slotId\x12\x18\n" +
@@ -1538,7 +2049,23 @@ const file_skillhub_configuration_v1_configuration_proto_rawDesc = "" +
 	"\x1cCLAUDE_AUTH_MODE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dCLAUDE_AUTH_MODE_NATIVE_LOGIN\x10\x01\x12\x1c\n" +
 	"\x18CLAUDE_AUTH_MODE_API_KEY\x10\x02\x12\x1f\n" +
-	"\x1bCLAUDE_AUTH_MODE_AUTH_TOKEN\x10\x03*\x89\x01\n" +
+	"\x1bCLAUDE_AUTH_MODE_AUTH_TOKEN\x10\x03*R\n" +
+	"\rCodexAuthMode\x12\x1f\n" +
+	"\x1bCODEX_AUTH_MODE_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cCODEX_AUTH_MODE_PROVIDER_KEY\x10\x01*\xa9\x02\n" +
+	"\x14CodexReasoningEffort\x12&\n" +
+	"\"CODEX_REASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bCODEX_REASONING_EFFORT_NONE\x10\x01\x12\"\n" +
+	"\x1eCODEX_REASONING_EFFORT_MINIMAL\x10\x02\x12\x1e\n" +
+	"\x1aCODEX_REASONING_EFFORT_LOW\x10\x03\x12!\n" +
+	"\x1dCODEX_REASONING_EFFORT_MEDIUM\x10\x04\x12\x1f\n" +
+	"\x1bCODEX_REASONING_EFFORT_HIGH\x10\x05\x12 \n" +
+	"\x1cCODEX_REASONING_EFFORT_XHIGH\x10\x06\x12\x1e\n" +
+	"\x1aCODEX_REASONING_EFFORT_MAX\x10\a*b\n" +
+	"\rCodexModality\x12\x1e\n" +
+	"\x1aCODEX_MODALITY_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13CODEX_MODALITY_TEXT\x10\x01\x12\x18\n" +
+	"\x14CODEX_MODALITY_IMAGE\x10\x02*\x89\x01\n" +
 	"\x13CredentialReadiness\x12$\n" +
 	" CREDENTIAL_READINESS_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dCREDENTIAL_READINESS_COMPLETE\x10\x01\x12)\n" +
@@ -1565,76 +2092,94 @@ func file_skillhub_configuration_v1_configuration_proto_rawDescGZIP() []byte {
 	return file_skillhub_configuration_v1_configuration_proto_rawDescData
 }
 
-var file_skillhub_configuration_v1_configuration_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_skillhub_configuration_v1_configuration_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_skillhub_configuration_v1_configuration_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_skillhub_configuration_v1_configuration_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_skillhub_configuration_v1_configuration_proto_goTypes = []any{
-	(AssetKind)(0),              // 0: skillhub.configuration.v1.AssetKind
-	(ClaudeAuthMode)(0),         // 1: skillhub.configuration.v1.ClaudeAuthMode
-	(CredentialReadiness)(0),    // 2: skillhub.configuration.v1.CredentialReadiness
-	(*Asset)(nil),               // 3: skillhub.configuration.v1.Asset
-	(*ClaudeModels)(nil),        // 4: skillhub.configuration.v1.ClaudeModels
-	(*ClaudeProvider)(nil),      // 5: skillhub.configuration.v1.ClaudeProvider
-	(*Draft)(nil),               // 6: skillhub.configuration.v1.Draft
-	(*SecretStatus)(nil),        // 7: skillhub.configuration.v1.SecretStatus
-	(*KeepSecret)(nil),          // 8: skillhub.configuration.v1.KeepSecret
-	(*ClearSecret)(nil),         // 9: skillhub.configuration.v1.ClearSecret
-	(*SecretMutation)(nil),      // 10: skillhub.configuration.v1.SecretMutation
-	(*DraftView)(nil),           // 11: skillhub.configuration.v1.DraftView
-	(*ListAssetsRequest)(nil),   // 12: skillhub.configuration.v1.ListAssetsRequest
-	(*ListAssetsResponse)(nil),  // 13: skillhub.configuration.v1.ListAssetsResponse
-	(*GetAssetRequest)(nil),     // 14: skillhub.configuration.v1.GetAssetRequest
-	(*GetAssetResponse)(nil),    // 15: skillhub.configuration.v1.GetAssetResponse
-	(*ReadDraftRequest)(nil),    // 16: skillhub.configuration.v1.ReadDraftRequest
-	(*ReadDraftResponse)(nil),   // 17: skillhub.configuration.v1.ReadDraftResponse
-	(*CreateAssetRequest)(nil),  // 18: skillhub.configuration.v1.CreateAssetRequest
-	(*CreateAssetResponse)(nil), // 19: skillhub.configuration.v1.CreateAssetResponse
-	(*UpdateAssetRequest)(nil),  // 20: skillhub.configuration.v1.UpdateAssetRequest
-	(*UpdateAssetResponse)(nil), // 21: skillhub.configuration.v1.UpdateAssetResponse
-	(*CopyAssetRequest)(nil),    // 22: skillhub.configuration.v1.CopyAssetRequest
-	(*CopyAssetResponse)(nil),   // 23: skillhub.configuration.v1.CopyAssetResponse
-	(*DeleteAssetRequest)(nil),  // 24: skillhub.configuration.v1.DeleteAssetRequest
-	(*DeleteAssetResponse)(nil), // 25: skillhub.configuration.v1.DeleteAssetResponse
+	(AssetKind)(0),               // 0: skillhub.configuration.v1.AssetKind
+	(ClaudeAuthMode)(0),          // 1: skillhub.configuration.v1.ClaudeAuthMode
+	(CodexAuthMode)(0),           // 2: skillhub.configuration.v1.CodexAuthMode
+	(CodexReasoningEffort)(0),    // 3: skillhub.configuration.v1.CodexReasoningEffort
+	(CodexModality)(0),           // 4: skillhub.configuration.v1.CodexModality
+	(CredentialReadiness)(0),     // 5: skillhub.configuration.v1.CredentialReadiness
+	(*Asset)(nil),                // 6: skillhub.configuration.v1.Asset
+	(*ClaudeModels)(nil),         // 7: skillhub.configuration.v1.ClaudeModels
+	(*ClaudeProvider)(nil),       // 8: skillhub.configuration.v1.ClaudeProvider
+	(*CodexModalities)(nil),      // 9: skillhub.configuration.v1.CodexModalities
+	(*CodexReasoningLevels)(nil), // 10: skillhub.configuration.v1.CodexReasoningLevels
+	(*CodexCatalogModel)(nil),    // 11: skillhub.configuration.v1.CodexCatalogModel
+	(*CodexCatalog)(nil),         // 12: skillhub.configuration.v1.CodexCatalog
+	(*CodexProvider)(nil),        // 13: skillhub.configuration.v1.CodexProvider
+	(*Draft)(nil),                // 14: skillhub.configuration.v1.Draft
+	(*SecretStatus)(nil),         // 15: skillhub.configuration.v1.SecretStatus
+	(*KeepSecret)(nil),           // 16: skillhub.configuration.v1.KeepSecret
+	(*ClearSecret)(nil),          // 17: skillhub.configuration.v1.ClearSecret
+	(*SecretMutation)(nil),       // 18: skillhub.configuration.v1.SecretMutation
+	(*DraftView)(nil),            // 19: skillhub.configuration.v1.DraftView
+	(*ListAssetsRequest)(nil),    // 20: skillhub.configuration.v1.ListAssetsRequest
+	(*ListAssetsResponse)(nil),   // 21: skillhub.configuration.v1.ListAssetsResponse
+	(*GetAssetRequest)(nil),      // 22: skillhub.configuration.v1.GetAssetRequest
+	(*GetAssetResponse)(nil),     // 23: skillhub.configuration.v1.GetAssetResponse
+	(*ReadDraftRequest)(nil),     // 24: skillhub.configuration.v1.ReadDraftRequest
+	(*ReadDraftResponse)(nil),    // 25: skillhub.configuration.v1.ReadDraftResponse
+	(*CreateAssetRequest)(nil),   // 26: skillhub.configuration.v1.CreateAssetRequest
+	(*CreateAssetResponse)(nil),  // 27: skillhub.configuration.v1.CreateAssetResponse
+	(*UpdateAssetRequest)(nil),   // 28: skillhub.configuration.v1.UpdateAssetRequest
+	(*UpdateAssetResponse)(nil),  // 29: skillhub.configuration.v1.UpdateAssetResponse
+	(*CopyAssetRequest)(nil),     // 30: skillhub.configuration.v1.CopyAssetRequest
+	(*CopyAssetResponse)(nil),    // 31: skillhub.configuration.v1.CopyAssetResponse
+	(*DeleteAssetRequest)(nil),   // 32: skillhub.configuration.v1.DeleteAssetRequest
+	(*DeleteAssetResponse)(nil),  // 33: skillhub.configuration.v1.DeleteAssetResponse
 }
 var file_skillhub_configuration_v1_configuration_proto_depIdxs = []int32{
 	0,  // 0: skillhub.configuration.v1.Asset.kind:type_name -> skillhub.configuration.v1.AssetKind
 	1,  // 1: skillhub.configuration.v1.ClaudeProvider.auth_mode:type_name -> skillhub.configuration.v1.ClaudeAuthMode
-	4,  // 2: skillhub.configuration.v1.ClaudeProvider.models:type_name -> skillhub.configuration.v1.ClaudeModels
-	5,  // 3: skillhub.configuration.v1.Draft.claude_provider:type_name -> skillhub.configuration.v1.ClaudeProvider
-	8,  // 4: skillhub.configuration.v1.SecretMutation.keep:type_name -> skillhub.configuration.v1.KeepSecret
-	9,  // 5: skillhub.configuration.v1.SecretMutation.clear:type_name -> skillhub.configuration.v1.ClearSecret
-	3,  // 6: skillhub.configuration.v1.DraftView.asset:type_name -> skillhub.configuration.v1.Asset
-	6,  // 7: skillhub.configuration.v1.DraftView.draft:type_name -> skillhub.configuration.v1.Draft
-	7,  // 8: skillhub.configuration.v1.DraftView.secrets:type_name -> skillhub.configuration.v1.SecretStatus
-	2,  // 9: skillhub.configuration.v1.DraftView.credential_readiness:type_name -> skillhub.configuration.v1.CredentialReadiness
-	3,  // 10: skillhub.configuration.v1.ListAssetsResponse.assets:type_name -> skillhub.configuration.v1.Asset
-	3,  // 11: skillhub.configuration.v1.GetAssetResponse.asset:type_name -> skillhub.configuration.v1.Asset
-	11, // 12: skillhub.configuration.v1.ReadDraftResponse.view:type_name -> skillhub.configuration.v1.DraftView
-	6,  // 13: skillhub.configuration.v1.CreateAssetRequest.draft:type_name -> skillhub.configuration.v1.Draft
-	10, // 14: skillhub.configuration.v1.CreateAssetRequest.secrets:type_name -> skillhub.configuration.v1.SecretMutation
-	11, // 15: skillhub.configuration.v1.CreateAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
-	6,  // 16: skillhub.configuration.v1.UpdateAssetRequest.draft:type_name -> skillhub.configuration.v1.Draft
-	10, // 17: skillhub.configuration.v1.UpdateAssetRequest.secrets:type_name -> skillhub.configuration.v1.SecretMutation
-	11, // 18: skillhub.configuration.v1.UpdateAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
-	11, // 19: skillhub.configuration.v1.CopyAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
-	12, // 20: skillhub.configuration.v1.ConfigurationService.ListAssets:input_type -> skillhub.configuration.v1.ListAssetsRequest
-	14, // 21: skillhub.configuration.v1.ConfigurationService.GetAsset:input_type -> skillhub.configuration.v1.GetAssetRequest
-	16, // 22: skillhub.configuration.v1.ConfigurationService.ReadDraft:input_type -> skillhub.configuration.v1.ReadDraftRequest
-	18, // 23: skillhub.configuration.v1.ConfigurationService.CreateAsset:input_type -> skillhub.configuration.v1.CreateAssetRequest
-	20, // 24: skillhub.configuration.v1.ConfigurationService.UpdateAsset:input_type -> skillhub.configuration.v1.UpdateAssetRequest
-	22, // 25: skillhub.configuration.v1.ConfigurationService.CopyAsset:input_type -> skillhub.configuration.v1.CopyAssetRequest
-	24, // 26: skillhub.configuration.v1.ConfigurationService.DeleteAsset:input_type -> skillhub.configuration.v1.DeleteAssetRequest
-	13, // 27: skillhub.configuration.v1.ConfigurationService.ListAssets:output_type -> skillhub.configuration.v1.ListAssetsResponse
-	15, // 28: skillhub.configuration.v1.ConfigurationService.GetAsset:output_type -> skillhub.configuration.v1.GetAssetResponse
-	17, // 29: skillhub.configuration.v1.ConfigurationService.ReadDraft:output_type -> skillhub.configuration.v1.ReadDraftResponse
-	19, // 30: skillhub.configuration.v1.ConfigurationService.CreateAsset:output_type -> skillhub.configuration.v1.CreateAssetResponse
-	21, // 31: skillhub.configuration.v1.ConfigurationService.UpdateAsset:output_type -> skillhub.configuration.v1.UpdateAssetResponse
-	23, // 32: skillhub.configuration.v1.ConfigurationService.CopyAsset:output_type -> skillhub.configuration.v1.CopyAssetResponse
-	25, // 33: skillhub.configuration.v1.ConfigurationService.DeleteAsset:output_type -> skillhub.configuration.v1.DeleteAssetResponse
-	27, // [27:34] is the sub-list for method output_type
-	20, // [20:27] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	7,  // 2: skillhub.configuration.v1.ClaudeProvider.models:type_name -> skillhub.configuration.v1.ClaudeModels
+	4,  // 3: skillhub.configuration.v1.CodexModalities.values:type_name -> skillhub.configuration.v1.CodexModality
+	3,  // 4: skillhub.configuration.v1.CodexReasoningLevels.values:type_name -> skillhub.configuration.v1.CodexReasoningEffort
+	9,  // 5: skillhub.configuration.v1.CodexCatalogModel.input_modalities:type_name -> skillhub.configuration.v1.CodexModalities
+	10, // 6: skillhub.configuration.v1.CodexCatalogModel.reasoning_levels:type_name -> skillhub.configuration.v1.CodexReasoningLevels
+	3,  // 7: skillhub.configuration.v1.CodexCatalogModel.default_reasoning_level:type_name -> skillhub.configuration.v1.CodexReasoningEffort
+	11, // 8: skillhub.configuration.v1.CodexCatalog.models:type_name -> skillhub.configuration.v1.CodexCatalogModel
+	2,  // 9: skillhub.configuration.v1.CodexProvider.auth_mode:type_name -> skillhub.configuration.v1.CodexAuthMode
+	3,  // 10: skillhub.configuration.v1.CodexProvider.reasoning_effort:type_name -> skillhub.configuration.v1.CodexReasoningEffort
+	12, // 11: skillhub.configuration.v1.CodexProvider.catalog:type_name -> skillhub.configuration.v1.CodexCatalog
+	8,  // 12: skillhub.configuration.v1.Draft.claude_provider:type_name -> skillhub.configuration.v1.ClaudeProvider
+	13, // 13: skillhub.configuration.v1.Draft.codex_provider:type_name -> skillhub.configuration.v1.CodexProvider
+	16, // 14: skillhub.configuration.v1.SecretMutation.keep:type_name -> skillhub.configuration.v1.KeepSecret
+	17, // 15: skillhub.configuration.v1.SecretMutation.clear:type_name -> skillhub.configuration.v1.ClearSecret
+	6,  // 16: skillhub.configuration.v1.DraftView.asset:type_name -> skillhub.configuration.v1.Asset
+	14, // 17: skillhub.configuration.v1.DraftView.draft:type_name -> skillhub.configuration.v1.Draft
+	15, // 18: skillhub.configuration.v1.DraftView.secrets:type_name -> skillhub.configuration.v1.SecretStatus
+	5,  // 19: skillhub.configuration.v1.DraftView.credential_readiness:type_name -> skillhub.configuration.v1.CredentialReadiness
+	6,  // 20: skillhub.configuration.v1.ListAssetsResponse.assets:type_name -> skillhub.configuration.v1.Asset
+	6,  // 21: skillhub.configuration.v1.GetAssetResponse.asset:type_name -> skillhub.configuration.v1.Asset
+	19, // 22: skillhub.configuration.v1.ReadDraftResponse.view:type_name -> skillhub.configuration.v1.DraftView
+	14, // 23: skillhub.configuration.v1.CreateAssetRequest.draft:type_name -> skillhub.configuration.v1.Draft
+	18, // 24: skillhub.configuration.v1.CreateAssetRequest.secrets:type_name -> skillhub.configuration.v1.SecretMutation
+	19, // 25: skillhub.configuration.v1.CreateAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
+	14, // 26: skillhub.configuration.v1.UpdateAssetRequest.draft:type_name -> skillhub.configuration.v1.Draft
+	18, // 27: skillhub.configuration.v1.UpdateAssetRequest.secrets:type_name -> skillhub.configuration.v1.SecretMutation
+	19, // 28: skillhub.configuration.v1.UpdateAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
+	19, // 29: skillhub.configuration.v1.CopyAssetResponse.view:type_name -> skillhub.configuration.v1.DraftView
+	20, // 30: skillhub.configuration.v1.ConfigurationService.ListAssets:input_type -> skillhub.configuration.v1.ListAssetsRequest
+	22, // 31: skillhub.configuration.v1.ConfigurationService.GetAsset:input_type -> skillhub.configuration.v1.GetAssetRequest
+	24, // 32: skillhub.configuration.v1.ConfigurationService.ReadDraft:input_type -> skillhub.configuration.v1.ReadDraftRequest
+	26, // 33: skillhub.configuration.v1.ConfigurationService.CreateAsset:input_type -> skillhub.configuration.v1.CreateAssetRequest
+	28, // 34: skillhub.configuration.v1.ConfigurationService.UpdateAsset:input_type -> skillhub.configuration.v1.UpdateAssetRequest
+	30, // 35: skillhub.configuration.v1.ConfigurationService.CopyAsset:input_type -> skillhub.configuration.v1.CopyAssetRequest
+	32, // 36: skillhub.configuration.v1.ConfigurationService.DeleteAsset:input_type -> skillhub.configuration.v1.DeleteAssetRequest
+	21, // 37: skillhub.configuration.v1.ConfigurationService.ListAssets:output_type -> skillhub.configuration.v1.ListAssetsResponse
+	23, // 38: skillhub.configuration.v1.ConfigurationService.GetAsset:output_type -> skillhub.configuration.v1.GetAssetResponse
+	25, // 39: skillhub.configuration.v1.ConfigurationService.ReadDraft:output_type -> skillhub.configuration.v1.ReadDraftResponse
+	27, // 40: skillhub.configuration.v1.ConfigurationService.CreateAsset:output_type -> skillhub.configuration.v1.CreateAssetResponse
+	29, // 41: skillhub.configuration.v1.ConfigurationService.UpdateAsset:output_type -> skillhub.configuration.v1.UpdateAssetResponse
+	31, // 42: skillhub.configuration.v1.ConfigurationService.CopyAsset:output_type -> skillhub.configuration.v1.CopyAssetResponse
+	33, // 43: skillhub.configuration.v1.ConfigurationService.DeleteAsset:output_type -> skillhub.configuration.v1.DeleteAssetResponse
+	37, // [37:44] is the sub-list for method output_type
+	30, // [30:37] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_configuration_v1_configuration_proto_init() }
@@ -1644,10 +2189,13 @@ func file_skillhub_configuration_v1_configuration_proto_init() {
 	}
 	file_skillhub_configuration_v1_configuration_proto_msgTypes[1].OneofWrappers = []any{}
 	file_skillhub_configuration_v1_configuration_proto_msgTypes[2].OneofWrappers = []any{}
-	file_skillhub_configuration_v1_configuration_proto_msgTypes[3].OneofWrappers = []any{
+	file_skillhub_configuration_v1_configuration_proto_msgTypes[5].OneofWrappers = []any{}
+	file_skillhub_configuration_v1_configuration_proto_msgTypes[7].OneofWrappers = []any{}
+	file_skillhub_configuration_v1_configuration_proto_msgTypes[8].OneofWrappers = []any{
 		(*Draft_ClaudeProvider)(nil),
+		(*Draft_CodexProvider)(nil),
 	}
-	file_skillhub_configuration_v1_configuration_proto_msgTypes[7].OneofWrappers = []any{
+	file_skillhub_configuration_v1_configuration_proto_msgTypes[12].OneofWrappers = []any{
 		(*SecretMutation_Keep)(nil),
 		(*SecretMutation_Replace)(nil),
 		(*SecretMutation_Clear)(nil),
@@ -1657,8 +2205,8 @@ func file_skillhub_configuration_v1_configuration_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_configuration_v1_configuration_proto_rawDesc), len(file_skillhub_configuration_v1_configuration_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   23,
+			NumEnums:      6,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

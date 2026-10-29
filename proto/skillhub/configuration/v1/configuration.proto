@@ -30,6 +30,28 @@ enum ClaudeAuthMode {
   CLAUDE_AUTH_MODE_AUTH_TOKEN = 3;
 }
 
+enum CodexAuthMode {
+  CODEX_AUTH_MODE_UNSPECIFIED = 0;
+  CODEX_AUTH_MODE_PROVIDER_KEY = 1;
+}
+
+enum CodexReasoningEffort {
+  CODEX_REASONING_EFFORT_UNSPECIFIED = 0;
+  CODEX_REASONING_EFFORT_NONE = 1;
+  CODEX_REASONING_EFFORT_MINIMAL = 2;
+  CODEX_REASONING_EFFORT_LOW = 3;
+  CODEX_REASONING_EFFORT_MEDIUM = 4;
+  CODEX_REASONING_EFFORT_HIGH = 5;
+  CODEX_REASONING_EFFORT_XHIGH = 6;
+  CODEX_REASONING_EFFORT_MAX = 7;
+}
+
+enum CodexModality {
+  CODEX_MODALITY_UNSPECIFIED = 0;
+  CODEX_MODALITY_TEXT = 1;
+  CODEX_MODALITY_IMAGE = 2;
+}
+
 enum CredentialReadiness {
   CREDENTIAL_READINESS_UNSPECIFIED = 0;
   CREDENTIAL_READINESS_COMPLETE = 1;
@@ -60,10 +82,42 @@ message ClaudeProvider {
   ClaudeModels models = 3;
 }
 
+message CodexModalities {
+  repeated CodexModality values = 1;
+}
+
+message CodexReasoningLevels {
+  repeated CodexReasoningEffort values = 1;
+}
+
+message CodexCatalogModel {
+  string model = 1;
+  optional string display_name = 2;
+  optional uint64 context_window = 3;
+  optional bool supports_parallel_tool_calls = 4;
+  CodexModalities input_modalities = 5;
+  optional string base_instructions = 6;
+  CodexReasoningLevels reasoning_levels = 7;
+  optional CodexReasoningEffort default_reasoning_level = 8;
+}
+
+message CodexCatalog {
+  repeated CodexCatalogModel models = 1;
+}
+
+message CodexProvider {
+  CodexAuthMode auth_mode = 1;
+  string endpoint = 2;
+  string model = 3;
+  optional CodexReasoningEffort reasoning_effort = 4;
+  CodexCatalog catalog = 5;
+}
+
 message Draft {
   string name = 1;
   oneof payload {
     ClaudeProvider claude_provider = 2;
+    CodexProvider codex_provider = 3;
   }
 }
 
