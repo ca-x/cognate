@@ -1,0 +1,525 @@
+name: Independent Darwin APFS capability experiment
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capability:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Bounded independent capability experiment
+        shell: python {0}
+        run: |
+          import errno
+          import json
+          import os
+          from pathlib import Path
+          import platform
+          import plistlib
+          import re
+          import selectors
+          import shutil
+          import signal
+          import stat
+          import subprocess
+          import sys
+          import tempfile
+          import time
+
+          def bounded_run(command, environment, timeout, limit):
+              result = {"exit": 0, "exit_known": False, "output_limited": False, "class": "launch-failed"}
+              try:
+                  process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                             stderr=subprocess.PIPE, env=environment, cwd=environment.get("HOME"), start_new_session=True)
+              except OSError as error:
+                  result["class"] = {errno.ENOENT: "launch-missing", errno.EACCES: "launch-permission"}.get(error.errno, "launch-failed")
+                  return result, b"", b""
+              buffers = {"out": bytearray(), "err": bytearray()}
+              deadline = time.monotonic() + timeout
+              poller = selectors.DefaultSelector()
+              try:
+                  for stream, name in [(process.stdout, "out"), (process.stderr, "err")]:
+                      os.set_blocking(stream.fileno(), False)
+                      poller.register(stream, selectors.EVENT_READ, name)
+                  while poller.get_map():
+                      remaining = deadline - time.monotonic()
+                      if remaining <= 0:
+                          raise TimeoutError
+                      for key, unused in poller.select(min(remaining, 0.1)):
+                          total = sum(len(value) for value in buffers.values())
+                          chunk = os.read(key.fileobj.fileno(), min(4096, limit - total + 1))
+                          if not chunk:
+                              poller.unregister(key.fileobj)
+                          elif total + len(chunk) > limit:
+                              buffers[key.data].extend(chunk[:limit - total])
+                              result.update({"class": "output-limit", "output_limited": True})
+                              raise OverflowError
+                          else:
+                              buffers[key.data].extend(chunk)
+                  process.wait(timeout=max(0.001, deadline - time.monotonic()))
+                  result.update({"exit": process.returncode, "exit_known": True,
+                                 "class": "success" if process.returncode == 0 else "nonzero"})
+              except (TimeoutError, subprocess.TimeoutExpired):
+                  result["class"] = "timeout"
+              except OverflowError:
+                  pass
+              except Exception:
+                  result["class"] = "launch-failed"
+              finally:
+                  if not result["exit_known"]:
+                      try:
+                          os.killpg(process.pid, signal.SIGKILL)
+                      except ProcessLookupError:
+                          pass
+                  process.wait(timeout=5)
+                  poller.close()
+                  process.stdout.close()
+                  process.stderr.close()
+              return result, bytes(buffers["out"]), bytes(buffers["err"])
+
+          def native_runner(environment):
+              def run(command, role, stage, output_role, timeout=45, limit=65536):
+                  result, output, errors = bounded_run(command, environment, timeout, limit)
+                  if result["class"] == "nonzero" and stage in {"create", "attach", "detach"}:
+                      prefix = ("hdiutil: " + stage + " failed - ").encode()
+                      for message, category in [(b"Invalid argument", "invalid-argument"), (b"Resource busy", "resource-busy"),
+                                                (b"Permission denied", "permission-denied"), (b"Operation not permitted", "not-permitted"),
+                                                (b"No space left on device", "no-space"), (b"Operation not supported", "not-supported")]:
+                          if errors in {prefix + message, prefix + message + b"\n"}:
+                              result["class"] = category
+                  return dict(result, role=role, stage=stage, output_role=output_role), output + errors if stage in {"help", "manual"} else output
+              return run
+          def document_contract(documents):
+              candidates = {}
+              for source, text in documents.items():
+                  if source not in {"hdiutil-create-help", "hdiutil-manual"} or len(text) > 262144:
+                      continue
+                  for unused in range(8):
+                      cleaned = re.sub(r"[^\n]\x08", "", text)
+                      if cleaned == text:
+                          break
+                      text = cleaned
+                  text = text.replace("\r\n", "\n").replace("\f", "\n")
+                  if any(ord(character) < 32 and character not in "\n\t" or ord(character) > 126 for character in text):
+                      continue
+                  in_create = source == "hdiutil-create-help"
+                  in_fs = False
+                  in_list = False
+                  create_indent = None
+                  option_indent = None
+                  list_indent = None
+                  row_indent = None
+                  blocked_indent = None
+                  for line in text.expandtabs(8).splitlines():
+                      stripped = line.strip()
+                      indent = len(line) - len(line.lstrip())
+                      if blocked_indent is not None:
+                          if indent <= blocked_indent and re.fullmatch(r"(?:description|commands|subcommands):?", stripped, re.I):
+                              blocked_indent = None
+                          continue
+                      if create_indent is None and re.match(r"(?:synopsis|usage|notes?)\b", stripped, re.I):
+                          in_create, blocked_indent = False, indent
+                          continue
+                      heading = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*)(?:\s+(.*))?", stripped)
+                      command = heading and (not heading.group(2) or heading.group(2).startswith(("[", "<"))
+                                             or heading.group(1).lower() in {"create", "attach", "detach", "convert", "resize",
+                                                                           "compact", "verify", "info", "help", "mount", "unmount",
+                                                                           "eject", "burn", "imageinfo", "checksum", "segment"})
+                      if command and heading.group(1).lower() == "create":
+                          if create_indent is not None:
+                              break
+                          in_create, in_fs, in_list = True, False, False
+                          create_indent, option_indent = indent, None
+                          continue
+                      if command or re.match(r"(?:examples?|usage|synopsis|description|notes?|see also|caveats?|diagnostics)\b", stripped, re.I):
+                          if in_create or re.match(r"examples?\b", stripped, re.I):
+                              break
+                          continue
+                      if not in_create:
+                          continue
+                      if stripped and create_indent is not None and indent <= create_indent:
+                          break
+                      if re.match(r"-[A-Za-z]", stripped):
+                          if option_indent is None:
+                              option_indent = indent
+                          in_fs = indent == option_indent and re.fullmatch(r"-fs\s+(?:filesystem|<filesystem>|fsname|<fsname>)", stripped) is not None
+                          in_list, row_indent = False, None
+                          continue
+                      if in_fs and stripped in {"Supported filesystems:", "Valid filesystems:"} and indent >= option_indent:
+                          in_list, list_indent, row_indent = True, indent, None
+                          continue
+                      if re.fullmatch(r"[A-Za-z][A-Za-z0-9 _/-]{0,79}:?", stripped) and stripped.endswith(":"):
+                          break
+                      if stripped and option_indent is not None and indent <= option_indent and not in_list:
+                          break
+                      if in_list and (not stripped or indent < list_indent or row_indent is not None and indent != row_indent):
+                          in_fs, in_list = False, False
+                          continue
+                      if in_list:
+                          match = re.fullmatch(r'\s*(?:"([A-Za-z][A-Za-z0-9 +()-]{0,63})"|([A-Za-z][A-Za-z0-9+-]{0,31}))'
+                                               r'(?::\s*|\s*:\s*|\s*=\s*| {2,})'
+                                               r'(.{1,128}?)\s*', line)
+                          if match is None:
+                              if stripped and indent <= option_indent:
+                                  break
+                              in_fs, in_list = False, False
+                              continue
+                          row_indent = indent
+                          if re.fullmatch(r'(?:[Cc]ase-sensitive APFS|APFS \([Cc]ase-sensitive\))\.?', match.group(3)):
+                              selector = match.group(1) or match.group(2)
+                              candidates.setdefault(selector, set()).add(source)
+              if len(candidates) != 1:
+                  return {"classification": "contract-ambiguous" if candidates else "contract-unproven", "selector": "", "sources": []}
+              selector, sources = next(iter(candidates.items()))
+              return {"classification": "contract-confirmed", "selector": selector, "sources": sorted(sources)}
+          def sample_originals(root, runner):
+              events = []
+              for role, selector, output_role in [("sensitive", "APFSX", "insensitive"), ("insensitive", "APFS", "sensitive")]:
+                  command = ["/usr/bin/hdiutil", "create", "-size", "1g", "-type", "SPARSE", "-fs", selector,
+                             "-volname", "CognateFixture", str(root / (output_role + ".sparseimage"))]
+                  event, unused = runner(command, role, "create", output_role)
+                  events.append(event)
+              return events
+
+          def owned_root(root):
+              try:
+                  info = root.lstat()
+                  return (root.is_absolute() and root.resolve() == root and stat.S_ISDIR(info.st_mode)
+                          and info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700)
+              except OSError:
+                  return False
+
+          def case_probe(mount):
+              directory = os.open(mount, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+              try:
+                  before = os.fstat(directory)
+                  identities = []
+                  for name, payload in [("CognateCaseProbe", b"upper\n"), ("cognatecaseprobe", b"lower\n")]:
+                      descriptor = os.open(name, os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory)
+                      with os.fdopen(descriptor, "w+b") as target:
+                          if target.write(payload) != len(payload):
+                              return False
+                          target.flush()
+                          target.seek(0)
+                          if target.read(32) != payload:
+                              return False
+                          info = os.fstat(target.fileno())
+                          if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_dev != before.st_dev:
+                              return False
+                          identities.append((info.st_dev, info.st_ino))
+                  after = os.stat(mount, follow_symlinks=False)
+                  if identities[0] == identities[1] or (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino):
+                      return False
+                  for name in ["CognateCaseProbe", "cognatecaseprobe"]:
+                      os.unlink(name, dir_fd=directory)
+                  return True
+              except OSError:
+                  return False
+              finally:
+                  os.close(directory)
+
+          def cleanup_work(work, runner, state, events, mounted=os.path.ismount, remover=shutil.rmtree):
+              receipt = {"failed": True, "class": "cleanup-failed", "was_mounted": False,
+                         "still_mounted": False, "attachment_unknown": False, "work_removed": False}
+              try:
+                  if not owned_root(work):
+                      receipt["class"] = "unsafe-root"
+                      return receipt
+                  mount = work / "mount"
+                  receipt["was_mounted"] = mounted(mount)
+                  receipt["attachment_unknown"] = bool(state["attach_started"] and not state["attach_confirmed"])
+                  detach_ok = not state["attach_started"]
+                  if receipt["was_mounted"] and not state["attach_started"]:
+                      receipt.update({"class": "cleanup-uncertain", "attachment_unknown": True, "still_mounted": True})
+                      return receipt
+                  if receipt["was_mounted"]:
+                      event, unused = runner(["/usr/bin/hdiutil", "detach", str(mount)], "candidate", "detach", "candidate", timeout=30)
+                      events.append(event)
+                      detach_ok = event["class"] == "success"
+                  receipt["still_mounted"] = mounted(mount)
+                  if receipt["still_mounted"] or receipt["attachment_unknown"] or not detach_ok:
+                      receipt["class"] = "cleanup-uncertain"
+                      return receipt
+                  if not owned_root(work) or not shutil.rmtree.avoids_symlink_attacks:
+                      receipt["class"] = "unsafe-root"
+                      return receipt
+                  remover(work)
+                  receipt["work_removed"] = not work.exists() and not work.is_symlink()
+                  receipt["failed"] = not receipt["work_removed"]
+                  receipt["class"] = "success" if not receipt["failed"] else "cleanup-failed"
+              except Exception:
+                  pass
+              return receipt
+
+          def experiment(work, runner, mounted=os.path.ismount, remover=shutil.rmtree):
+              events = []
+              contract = {"classification": "contract-unproven", "selector": "", "sources": []}
+              candidate = {"attempted": False, "classification": "not-attempted", "apfs_identity": False, "case_sensitive": False}
+              state = {"attach_started": False, "attach_confirmed": False}
+              controller_failed = False
+              try:
+                  if not owned_root(work):
+                      raise ValueError
+                  events.extend(sample_originals(work, runner))
+                  documents = {}
+                  for source, stage, command in [
+                          ("hdiutil-create-help", "help", ["/usr/bin/hdiutil", "create", "-help"]),
+                          ("hdiutil-manual", "manual", ["/usr/bin/man", "-P", "/bin/cat", "hdiutil"])]:
+                      event, output = runner(command, "document", stage, "none", timeout=10, limit=262144)
+                      events.append(event)
+                      if event["class"] == "success":
+                          try:
+                              documents[source] = output.decode("ascii")
+                          except UnicodeDecodeError:
+                              pass
+                  contract = document_contract(documents)
+                  if contract["classification"] == "contract-confirmed":
+                      candidate.update({"attempted": True, "classification": "failed"})
+                      image = work / "candidate.sparseimage"
+                      mount = work / "mount"
+                      command = ["/usr/bin/hdiutil", "create", "-size", "1g", "-type", "SPARSE", "-fs", contract["selector"],
+                                 "-volname", "CognateFixture", str(image)]
+                      event, unused = runner(command, "candidate", "create", "candidate")
+                      events.append(event)
+                      if event["class"] == "success":
+                          state["attach_started"] = True
+                          event, unused = runner(["/usr/bin/hdiutil", "attach", "-nobrowse", "-mountpoint", str(mount), str(image)],
+                                                 "candidate", "attach", "candidate")
+                          events.append(event)
+                          if event["class"] == "success" and mounted(mount):
+                              state["attach_confirmed"] = True
+                              event, output = runner(["/usr/sbin/diskutil", "info", "-plist", str(mount)],
+                                                     "candidate", "identity", "candidate", timeout=15)
+                              events.append(event)
+                              if event["class"] == "success":
+                                  identity = plistlib.loads(output)
+                                  candidate["apfs_identity"] = (identity.get("FilesystemType") == "apfs"
+                                                                and identity.get("MountPoint") == str(mount) and mounted(mount))
+                                  if candidate["apfs_identity"]:
+                                      candidate["case_sensitive"] = case_probe(mount) and mounted(mount)
+                                      if candidate["case_sensitive"]:
+                                          candidate["classification"] = "validated"
+              except Exception:
+                  controller_failed = True
+              finally:
+                  cleanup = cleanup_work(work, runner, state, events, mounted, remover)
+              if cleanup["failed"] and candidate["classification"] == "validated":
+                  candidate["classification"] = "failed"
+              failed = (controller_failed or cleanup["failed"] or contract["classification"] != "contract-confirmed"
+                        or candidate["classification"] != "validated" or any(event["class"] != "success" for event in events))
+              return {"phase": "native-capability-experiment-not-product", "events": events, "contract": contract,
+                      "candidate": candidate, "cleanup": cleanup, "controller_failed": controller_failed, "failed": failed}
+
+          def main():
+              os.umask(0o077)
+              outer = Path(tempfile.mkdtemp(prefix="cognate-apfs-capability-", dir=os.environ["RUNNER_TEMP"]))
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+                  output.write("COGNATE_APFS_CAPABILITY_ROOT=" + str(outer) + "\n")
+              if platform.system() != "Darwin" or platform.machine() != "arm64" or os.uname().release.split(".")[0] != "24":
+                  raise ValueError
+              work = outer / "work"
+              work.mkdir(mode=0o700)
+              for name in ["home", "tmp", "mount"]:
+                  (work / name).mkdir(mode=0o700)
+              environment = {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "HOME": str(work / "home"), "TMPDIR": str(work / "tmp"),
+                             "LANG": "C", "LC_ALL": "C", "MANPATH": "/usr/share/man", "MANPAGER": "/bin/cat", "PAGER": "/bin/cat",
+                             "MANWIDTH": "100", "GROFF_NO_SGR": "1", "MANOPT": ""}
+              report = experiment(work, native_runner(environment))
+              report["context"] = {"run": int(os.environ["GITHUB_RUN_ID"]), "attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+                                   "commit": os.environ["GITHUB_SHA"], "target": "macos-15-arm64-darwin24"}
+              (outer / "result.json").write_text(json.dumps(report, sort_keys=True) + "\n")
+              if report["failed"]:
+                  raise ValueError
+
+          if __name__ == "__main__":
+              try:
+                  main()
+              except Exception:
+                  print("CAPABILITY_EXPERIMENT_FAILED: inspect only sealed receipts")
+                  sys.exit(1)
+      - name: Always seal safe capability receipts
+        id: seal
+        if: always()
+        shell: python {0}
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import stat
+          import sys
+          import tempfile
+
+          def unique(pairs):
+              result = {}
+              for key, value in pairs:
+                  if key in result:
+                      raise ValueError
+                  result[key] = value
+              return result
+
+          def fields(value, expected):
+              if type(value) is not dict or set(value) != set(expected.split()):
+                  raise ValueError
+
+          def require(condition):
+              if not condition:
+                  raise ValueError
+
+          def valid_report(report):
+              fields(report, "phase events contract candidate cleanup controller_failed failed context")
+              require(report["phase"] == "native-capability-experiment-not-product")
+              require(type(report["controller_failed"]) is bool and type(report["failed"]) is bool)
+              context = report["context"]
+              fields(context, "run attempt commit target")
+              require(type(context["run"]) is int and 0 < context["run"] < 10**15)
+              require(type(context["attempt"]) is int and 0 < context["attempt"] < 1000)
+              require(type(context["commit"]) is str and re.fullmatch(r"[0-9a-f]{40}", context["commit"]) is not None)
+              require(context["target"] == "macos-15-arm64-darwin24")
+              events = report["events"]
+              require(type(events) is list and 4 <= len(events) <= 8)
+              unknown = {"timeout", "launch-missing", "launch-permission", "launch-failed"}
+              nonzero = {"nonzero", "invalid-argument", "resource-busy", "permission-denied", "not-permitted", "no-space", "not-supported"}
+              for event in events:
+                  fields(event, "role stage output_role exit exit_known output_limited class")
+                  require(type(event["exit"]) is int and -255 <= event["exit"] <= 255)
+                  require(type(event["exit_known"]) is bool and type(event["output_limited"]) is bool)
+                  category = event["class"]
+                  require(type(category) is str and category in unknown | nonzero | {"success", "output-limit"})
+                  if category == "success":
+                      require(event["exit_known"] and event["exit"] == 0 and not event["output_limited"])
+                  elif category in nonzero:
+                      require(event["exit_known"] and event["exit"] != 0 and not event["output_limited"])
+                  else:
+                      require(not event["exit_known"] and event["exit"] == 0)
+                      require(event["output_limited"] == (category == "output-limit"))
+              triples = [(event["role"], event["stage"], event["output_role"]) for event in events]
+              require(triples[:4] == [("sensitive", "create", "insensitive"), ("insensitive", "create", "sensitive"),
+                                      ("document", "help", "none"), ("document", "manual", "none")])
+              tail = triples[4:]
+              detach = ("candidate", "detach", "candidate")
+              if tail and tail[-1] == detach:
+                  require(len(tail) >= 3)
+                  tail = tail[:-1]
+              expected = [("candidate", stage, "candidate") for stage in ["create", "attach", "identity"]]
+              require(tail == expected[:len(tail)])
+              for index in range(5, 4 + len(tail)):
+                  require(events[index - 1]["class"] == "success")
+              contract = report["contract"]
+              fields(contract, "classification selector sources")
+              require(type(contract["sources"]) is list and len(contract["sources"]) <= 2)
+              require(type(contract["selector"]) is str)
+              confirmed = contract["classification"] == "contract-confirmed"
+              if confirmed:
+                  require(re.fullmatch(r"[A-Za-z][A-Za-z0-9 +()-]{0,63}", contract["selector"]) is not None)
+                  require(contract["selector"] == contract["selector"].strip() and bool(contract["sources"]))
+                  require(contract["sources"] == sorted(set(contract["sources"])))
+                  for source in contract["sources"]:
+                      require(source in {"hdiutil-create-help", "hdiutil-manual"})
+                      require(events[2 if source == "hdiutil-create-help" else 3]["class"] == "success")
+              else:
+                  require(contract["classification"] in {"contract-unproven", "contract-ambiguous"})
+                  require(contract["selector"] == "" and contract["sources"] == [])
+              candidate = report["candidate"]
+              fields(candidate, "attempted classification apfs_identity case_sensitive")
+              require(all(type(candidate[key]) is bool for key in ["attempted", "apfs_identity", "case_sensitive"]))
+              require(candidate["attempted"] == bool(tail))
+              if candidate["attempted"]:
+                  require(confirmed and candidate["classification"] in {"failed", "validated"})
+              else:
+                  require(not confirmed and candidate["classification"] == "not-attempted")
+                  require(not candidate["apfs_identity"] and not candidate["case_sensitive"])
+              if candidate["apfs_identity"] or candidate["case_sensitive"] or candidate["classification"] == "validated":
+                  require(len(tail) == 3 and all(event["class"] == "success" for event in events[4:7]))
+              if candidate["classification"] == "validated":
+                  require(candidate["apfs_identity"] and candidate["case_sensitive"])
+              require(not candidate["case_sensitive"] or candidate["apfs_identity"])
+              cleanup = report["cleanup"]
+              fields(cleanup, "failed class was_mounted still_mounted attachment_unknown work_removed")
+              require(all(type(value) is bool for key, value in cleanup.items() if key != "class"))
+              require(cleanup["class"] in {"success", "cleanup-failed", "cleanup-uncertain", "unsafe-root"})
+              require(cleanup["failed"] == (cleanup["class"] != "success"))
+              if candidate["classification"] == "validated":
+                  require(not cleanup["failed"])
+              if not cleanup["failed"]:
+                  require(cleanup["work_removed"] and not cleanup["still_mounted"] and not cleanup["attachment_unknown"])
+                  if len(tail) >= 2:
+                      require(triples[-1] == detach and events[-1]["class"] == "success")
+              else:
+                  require(not cleanup["work_removed"])
+              failed = (report["controller_failed"] or cleanup["failed"] or not confirmed
+                        or candidate["classification"] != "validated" or any(event["class"] != "success" for event in events))
+              require(report["failed"] == failed)
+
+          def read_report(root):
+              info = root.lstat()
+              require(root.is_absolute() and root.resolve() == root and stat.S_ISDIR(info.st_mode)
+                      and info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700)
+              directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+              try:
+                  require((info.st_dev, info.st_ino) == (os.fstat(directory).st_dev, os.fstat(directory).st_ino))
+                  count = 0
+                  work_present = False
+                  with os.scandir(directory) as entries:
+                      for entry in entries:
+                          count += 1
+                          require(count <= 2 and entry.name in {"result.json", "work"} and not entry.is_symlink())
+                          if entry.name == "work":
+                              require(entry.is_dir(follow_symlinks=False))
+                              work_present = True
+                  descriptor = os.open("result.json", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+                  with os.fdopen(descriptor, "rb") as source:
+                      before = os.fstat(source.fileno())
+                      require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1 and before.st_uid == os.geteuid() and before.st_size <= 16384)
+                      data = source.read(16385)
+                      after = os.fstat(source.fileno())
+                      identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+                      require(len(data) == before.st_size and identity(before) == identity(after))
+              finally:
+                  os.close(directory)
+              report = json.loads(data, object_pairs_hook=unique)
+              valid_report(report)
+              require(not report["cleanup"]["work_removed"] or not work_present)
+              return report
+
+          def seal(root, destination):
+              try:
+                  report = read_report(root)
+                  payloads = {"capability.json": (json.dumps(report, sort_keys=True) + "\n").encode()}
+                  accepted = not report["failed"]
+              except Exception:
+                  payloads = {"refusal.json": b'{"classification":"unsafe-or-incomplete-capability-receipt"}\n'}
+                  accepted = False
+              destination.mkdir(mode=0o700)
+              manifest = []
+              for name, data in payloads.items():
+                  with (destination / name).open("xb") as output:
+                      output.write(data)
+                  manifest.append({"name": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+              with (destination / "evidence-manifest.json").open("x") as output:
+                  output.write(json.dumps(manifest, sort_keys=True) + "\n")
+              return accepted
+
+          if __name__ == "__main__":
+              try:
+                  os.umask(0o077)
+                  temporary = Path(tempfile.mkdtemp(prefix="cognate-capability-sealed-", dir=os.environ["RUNNER_TEMP"]))
+                  destination = temporary / "upload"
+                  root = Path(os.environ.get("COGNATE_APFS_CAPABILITY_ROOT", ""))
+                  accepted = seal(root, destination)
+                  with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                      output.write("path=" + str(destination) + "\nready=true\n")
+                  if not accepted:
+                      raise ValueError
+              except Exception:
+                  print("CAPABILITY_SEAL_FAILED: only validated receipts or fixed refusal may upload")
+                  sys.exit(1)
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.seal.outputs.ready == 'true'
+        with:
+          name: darwin-apfs-capability-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.seal.outputs.path }}
+          if-no-files-found: error
+          retention-days: 7
