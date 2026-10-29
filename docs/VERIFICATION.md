@@ -209,3 +209,22 @@ C0-S 独立 reviewer 额外验证认证全局库存后才认 absent、root 移�
 这两片依赖已交付的 Linux/Claude 本地加密 journal、备份、确认/CAS 发布及恢复内核（`0839b62`），但仍不是 CLI/MyGo 配置应用的完整产品闭环。CurrentSelection 返回的快照不是授权、reservation 或防恶意历史回放证明；网络撤销与本地落盘不是跨机器原子事务。B1c 也不是 App 已启用 managed 模式、全局备份协调器或 S3 恢复完成。
 
 显式客户端密钥准入的 capability map、core spec 与 plan 已在 `d40503e2dde3c0874a3e417904c3cc302fbc78c4` 提交推送，Build `40834848617` completed/success；这是设计文档交付，不是 key 初始化实现验收。旧 CLI/native 自动创建入口关闭、真实人类逐槽批准与安全 TTY、MyGo 配置 UI、自动/Pack 附件、其它 agent/平台、完整 F12 和首个正式 Release 仍分别待完成；不能因以上 CI 全绿勾掉这些门禁。
+
+## Explicit Client-Key Core And Contention Checkpoint
+
+2026-10-29 后续交付；下列四项均按独立验收的精确写集提交、SSH 推送并读回。此节更新后续事实，不把上一节当时尚未实现的功能追认为已完成。
+
+| 阶段 | 精确提交 / Build | 范围 |
+| --- | --- | --- |
+| 配置争用测试 | `bcbed01477120e6e46e97743b2f09bba8015e583` / `40842683164` completed/success | 保留真实并发下限次重试的 Conflict/Unavailable 分类，增加 KEEP-first、Replace-first 两个同版本快照后真实提交顺序；确定性失者必须 Conflict，不能重读重试或重合并秘密；不改生产逻辑 |
+| Codex 声明设计 | `a8a6ad8cece9744fa2bac2fa6c5aca375986ea2e` / `40843367375` completed/success | capability map、typed 声明 spec 与 plan；独立设计审全部 finding 已闭；不是 Codex provider 实现或本机安装 |
+| 显式客户端密钥核心 | `5637945e0e8a8921cf720dc0ea5288adaa2a8d81` / `40843635870` completed/success | Linux 的 LoadExisting/Initialize；只有显式初始化生成，先持久化 key 与必要父目录再持久化严格 marker，retry 重做同步；合法 legacy key 原样登记，缺 key 且有 marker/state 残留拒绝；尚未接入旧 CLI/MyGo 入口 |
+| 初始 Lists 子进程预算 | `ef004f2fbfc9c7fd81daf3525c8af4d9866b2c38` / `40844151112` 本节仅观察 in_progress | 预期成功的完整 SQLite 初始化独立限 3s；预期被维护锁阻塞仍限 250ms，且要求 nil Store、DeadlineExceeded 与 maintenance.ErrLock；不改生产锁等待语义 |
+
+密钥核心独立验收包含真实双向 Session/初始化锁争用、严格 marker 与残留、legacy 原 key、取消/释放错误 withholding、真实 fsync/父目录/解锁 EIO，以及八项编译后行为负控和精确源码恢复。故障注入不是物理断电证明；部分 lost-receipt 模拟与真实资源调用失败分别标注。非 Linux 仅编译，返回 unsupported，不能以九项构建宣称这些平台可初始化或安装。
+
+两个测试修复也分别经过非作者完整 Spec/Quality 验收。配置测试有真实 SQLite COMMIT 后屏障、取消及四项编译后负控；scheduler 使用真实受控慢读取和物理锁验证，回退成功预算、弱化锁证明均产生断言 RED，恢复 GREEN。原 `dff2546` 的 Build `40837382467` 确实失败，其日志与调查保留；没有通过重新运行原提交抹除失败，也不宣称已测得远端当时的具体物理延迟。
+
+主线程对六个代码路径的组合 tree `3b2ea6c4bf506d0f493940a9bbdcc9a909bc5c78` 做不可变 clean export，npm ci/build、全仓 Go tests/vet、模块校验、Buf lint/Go+Web 双模板 parity 和 CLI/服务端/MyGo 三目标平台九项 CGO0 编译均 exit0。最终 `ef004f2` tree `3a2f40063353c4716308e6fa3d5503f5645100d0` 相对该已测试树只增加上述独立设计验收的三个 Codex 文档，六代码路径 blob/mode 不变；密钥实际交付树还单独 fresh 跑过 key 包测试与 vet。完整主线程验证不冒称由独立 reviewer 重跑。
+
+CLI 真实逐槽确认/应用/恢复、旧入口安全准入与原生初始化 UI、MyGo 配置编辑、Codex 及其他 agent 的完整适配、导入/Pack 配置附件、自动应用、完整备份/S3 与正式 Release 仍分别待完成。本节不关闭这些首发门禁。
