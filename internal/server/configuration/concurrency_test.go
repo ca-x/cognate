@@ -13,10 +13,12 @@ import (
 
 type barrierStore struct {
 	configuration.Store
-	arrived chan struct{}
-	release chan struct{}
-	reads   atomic.Int32
-	writes  atomic.Int32
+	arrived        chan struct{}
+	release        chan struct{}
+	reads          atomic.Int32
+	writes         atomic.Int32
+	firstWrite     string
+	firstWriteDone chan struct{}
 }
 
 func (store *barrierStore) ReadConfigurationAssetVersion(ctx context.Context, owner, id string) (state.ConfigurationAsset, state.ConfigurationPayload, error) {
@@ -33,17 +35,41 @@ func (store *barrierStore) ReadConfigurationAssetVersion(ctx context.Context, ow
 
 func (store *barrierStore) UpdateConfigurationAsset(ctx context.Context, owner, id string, revision int64, draft state.ConfigurationAssetDraft) (state.ConfigurationAsset, error) {
 	store.writes.Add(1)
+	if store.firstWrite != "" {
+		if draft.Name == store.firstWrite {
+			defer close(store.firstWriteDone)
+		} else {
+			select {
+			case <-store.firstWriteDone:
+			case <-ctx.Done():
+				return state.ConfigurationAsset{}, ctx.Err()
+			}
+		}
+	}
 	return store.Store.UpdateConfigurationAsset(ctx, owner, id, revision, draft)
 }
 
 func TestConcurrentUpdatesHaveOneWinnerAndNoKeepRebase(test *testing.T) {
+	for _, schedule := range []struct{ name, firstWrite string }{
+		{name: "contended"},
+		{name: "keep-first", firstWrite: "Keep winner"},
+		{name: "replace-first", firstWrite: "Replace winner"},
+	} {
+		test.Run(schedule.name, func(test *testing.T) {
+			testConcurrentUpdates(test, schedule.firstWrite)
+		})
+	}
+}
+
+func testConcurrentUpdates(test *testing.T, firstWrite string) {
+	test.Helper()
 	store, _, _ := fixture(test)
 	base := configuration.New(store)
 	created, err := base.Create(test.Context(), "alice", draft(), replacement(sentinel))
 	if err != nil {
 		test.Fatal(err)
 	}
-	barrier := &barrierStore{Store: store, arrived: make(chan struct{}, 2), release: make(chan struct{})}
+	barrier := &barrierStore{Store: store, arrived: make(chan struct{}, 2), release: make(chan struct{}), firstWrite: firstWrite, firstWriteDone: make(chan struct{})}
 	service := configuration.New(barrier)
 	type result struct {
 		name string
@@ -81,12 +107,15 @@ func TestConcurrentUpdatesHaveOneWinnerAndNoKeepRebase(test *testing.T) {
 				test.Fatal("multiple successful CAS updates")
 			}
 			winner = result.name
-		} else if !errors.Is(result.err, configuration.ErrConflict) || result.view.Metadata.ID != "" {
-			test.Fatalf("loser must be conflict and zero view: %v", result.err)
+		} else if result.view.Metadata.ID != "" || (!errors.Is(result.err, configuration.ErrConflict) && (firstWrite != "" || !errors.Is(result.err, configuration.ErrUnavailable))) {
+			test.Fatalf("loser must be a permitted concurrent failure and zero view: %v", result.err)
 		}
 	}
 	if winner == "" || barrier.reads.Load() != 2 || barrier.writes.Load() != 2 {
 		test.Fatal("missing winner or automatic retry")
+	}
+	if firstWrite != "" && winner != firstWrite {
+		test.Fatal("the committed writer did not win its scheduled CAS")
 	}
 	expected := sentinel
 	if winner == "Replace winner" {
