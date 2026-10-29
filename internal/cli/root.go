@@ -22,6 +22,25 @@ func Execute() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	command := New()
+	if nativeInvocation(os.Args[1:]) {
+		output, err := prepareNativeOutput(ctx, os.Stdout)
+		if err != nil {
+			nativeExitDiagnostic(err)
+			os.Exit(1)
+		}
+		command.SetOut(output)
+		command.SetErr(output)
+		if err := command.ExecuteContext(ctx); err != nil {
+			_ = output.Close()
+			nativeExitDiagnostic(err)
+			os.Exit(1)
+		}
+		if err := output.Close(); err != nil {
+			nativeExitDiagnostic(err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := command.ExecuteContext(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, terminalText(err.Error()))
 		os.Exit(1)
@@ -34,6 +53,7 @@ func New() *cobra.Command {
 	root.AddCommand(newInstallPublicCommand())
 	root.AddCommand(newUninstallLocalCommand())
 	root.AddCommand(newPackCommand())
+	root.AddCommand(newNativeConfigurationCommand())
 	root.AddCommand(newImportCommand())
 	root.AddCommand(newInstallStatusCommand())
 	root.AddCommand(newBackupLocalCommand())
