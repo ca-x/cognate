@@ -64,7 +64,7 @@ jobs:
             done
           done
           go list -deps ./cmd/cognate-desktop > dist/cross/dependencies.txt
-          if grep -E 'internal/(server|cli)|MoeForge/moejs|spf13/cobra' dist/cross/dependencies.txt; then exit 1; fi
+          if grep -E '^github[.]com/(ca-x/cognate/internal/(server|cli)|MoeForge/moejs|spf13/cobra)(/|$)' dist/cross/dependencies.txt; then exit 1; fi
       - name: Real native window smoke (no installation)
         shell: bash
         run: |
