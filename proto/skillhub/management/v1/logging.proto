@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package skillhub.management.v1;
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/management/v1;managementv1";
+
+service LogManagementService {
+  rpc GetLogSettings(GetLogSettingsRequest) returns (GetLogSettingsResponse);
+  rpc UpdateLogSettings(UpdateLogSettingsRequest) returns (UpdateLogSettingsResponse);
+}
+
+message LogSettings {
+  string level = 1;
+  int32 max_file_mib = 2;
+  int32 max_backups = 3;
+  int32 retention_days = 4;
+  int64 revision = 5;
+}
+
+message LogHealth {
+  uint64 write_failures = 1;
+  uint64 cleanup_failures = 2;
+  uint64 dropped_records = 3;
+  bool degraded = 4;
+}
+
+message GetLogSettingsRequest {}
+
+message GetLogSettingsResponse {
+  LogSettings settings = 1;
+  LogHealth health = 2;
+}
+
+message UpdateLogSettingsRequest {
+  LogSettings settings = 1;
+  int64 expected_revision = 2;
+}
+
+message UpdateLogSettingsResponse {
+  LogSettings settings = 1;
+  LogHealth health = 2;
+}

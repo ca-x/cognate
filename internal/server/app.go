@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"uuid"
 
 	"github.com/ca-x/cognate/internal/nativesessionauth"
 	"github.com/ca-x/cognate/internal/repository"
@@ -23,6 +24,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/httpapi"
 	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/logging"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
 	"github.com/ca-x/cognate/internal/server/mcpserver"
 	"github.com/ca-x/cognate/internal/server/nativeconsumer"
@@ -36,6 +38,7 @@ import (
 )
 
 type Config struct {
+	AdminUserIDs          []string
 	DataDirectory         string
 	MasterKeyFile         string
 	TLSCertificate        string
@@ -52,6 +55,7 @@ type Config struct {
 }
 
 type App struct {
+	logs          *logging.Manager
 	store         *state.Store
 	handler       http.Handler
 	tlsConfig     *tls.Config
@@ -71,6 +75,20 @@ type App struct {
 func Open(ctx context.Context, config Config) (*App, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	if len(config.AdminUserIDs) > 32 {
+		return nil, fmt.Errorf("invalid administrator user IDs")
+	}
+	admins := make(map[string]struct{}, len(config.AdminUserIDs))
+	for _, id := range config.AdminUserIDs {
+		parsed, err := uuid.Parse(id)
+		if err != nil || parsed.String() != id {
+			return nil, fmt.Errorf("administrator user IDs must be canonical account UUIDs")
+		}
+		if _, duplicate := admins[id]; duplicate {
+			return nil, fmt.Errorf("duplicate administrator user ID")
+		}
+		admins[id] = struct{}{}
 	}
 	if config.ListSyncInterval < 0 || config.ListSyncInterval > 24*time.Hour {
 		return nil, fmt.Errorf("GitHub list synchronization interval must be between zero and 24 hours")
@@ -245,11 +263,21 @@ func Open(ctx context.Context, config Config) (*App, error) {
 			return nil, err
 		}
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
+	app.logs, err = logging.Open(ctx, config.DataDirectory)
+	if err != nil {
+		_ = app.Close()
+		return nil, fmt.Errorf("cannot initialize server logging")
+	}
+	app.handler = httpapi.NewWithOptions(service, httpapi.Options{Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
 	return app, nil
 }
 
-func (app *App) Close() error {
+func (app *App) Close() (result error) {
+	defer func() {
+		if app.logs != nil {
+			result = errors.Join(result, app.logs.Close())
+		}
+	}()
 	if app.native != nil {
 		app.native.Close()
 	}
@@ -295,7 +323,7 @@ func (app *App) Close() error {
 	return errors.Join(libraryError, app.store.Close())
 }
 
-func (app *App) Serve(ctx context.Context, listener net.Listener) error {
+func (app *App) Serve(ctx context.Context, listener net.Listener) (result error) {
 	defer listener.Close()
 	if err := ctx.Err(); err != nil {
 		return err
@@ -306,6 +334,15 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) error {
 			return fmt.Errorf("non-loopback HTTP requires TLS or explicit --allow-http for a trusted private network")
 		}
 	}
+	defer func() {
+		if app.logs != nil {
+			kind := logging.EventServerStopped
+			if result != nil {
+				kind = logging.EventServerFailed
+			}
+			_ = app.logs.Record(logging.Event{Kind: kind})
+		}
+	}()
 	if app.native != nil {
 		if err := app.native.Start(ctx); err != nil {
 			return err
@@ -330,6 +367,10 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) error {
 		WriteTimeout: 30 * time.Second, IdleTimeout: time.Minute, MaxHeaderBytes: 16 << 10,
 		BaseContext: func(net.Listener) context.Context { return ctx },
 		ErrorLog:    log.New(io.Discard, "", 0),
+	}
+	if app.logs != nil {
+		httpServer.ErrorLog = app.logs.HTTPErrorLog()
+		_ = app.logs.Record(logging.Event{Kind: logging.EventServerStarted})
 	}
 	defer httpServer.Close()
 	finished := make(chan error, 1)

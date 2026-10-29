@@ -5,6 +5,25 @@ import (
 	"time"
 )
 
+func TestAdministratorUserIDFlag(test *testing.T) {
+	command := New()
+	flag := command.Flags().Lookup("admin-user-id")
+	if flag == nil {
+		test.Fatal("server CLI does not expose explicit administrator enrollment")
+	}
+	defaults, err := command.Flags().GetStringArray("admin-user-id")
+	if err != nil || len(defaults) != 0 {
+		test.Fatal("administrator allowlist is not empty by default")
+	}
+	if err := command.Flags().Parse([]string{"--admin-user-id=first-id", "--admin-user-id=second-id"}); err != nil {
+		test.Fatal("administrator allowlist does not accept repeated flags")
+	}
+	ids, err := command.Flags().GetStringArray("admin-user-id")
+	if err != nil || len(ids) != 2 || ids[0] != "first-id" || ids[1] != "second-id" {
+		test.Fatal("administrator allowlist lost an explicitly configured ID")
+	}
+}
+
 func TestListSyncIntervalFlag(t *testing.T) {
 	for _, argument := range []string{"", "0", "30s"} {
 		t.Run(argument, func(t *testing.T) {

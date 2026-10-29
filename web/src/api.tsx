@@ -12,6 +12,7 @@ import { CategoryService, PublicationService, PublicCatalogService } from "./gen
 import { MCPManagementService } from "./gen/skillhub/mcp/v1/mcp_pb"
 import { ImportService } from "./gen/skillhub/import/v1/import_pb"
 import { ConfigurationService } from "./gen/skillhub/configuration/v1/configuration_pb"
+import { LogManagementService } from "./gen/skillhub/management/v1/logging_pb"
 
 type Session = { token: string; userId: string; username: string }
 type ApiContext = {
@@ -27,6 +28,7 @@ type ApiContext = {
   mcp: Client<typeof MCPManagementService>
   imports: Client<typeof ImportService>
   configuration: Client<typeof ConfigurationService>
+  logManagement: Client<typeof LogManagementService>
   completingLogin: boolean
   loginNotice: string
 }
@@ -65,7 +67,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
         }
       }],
     })
-    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport) }
+    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport) }
   }, [session, setSession])
   const value = { session, setSession, ...clients, publicCatalog, completingLogin, loginNotice }
   useEffect(() => {

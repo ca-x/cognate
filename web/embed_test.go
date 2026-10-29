@@ -10,7 +10,7 @@ import (
 )
 
 func TestEmbeddedUIAndDeepLink(t *testing.T) {
-	for _, path := range []string{"/", "/repositories", "/account", "/packs", "/categories", "/explore", "/explore/skill-ID_123", "/mcp-settings", "/configuration"} {
+	for _, path := range []string{"/", "/repositories", "/account", "/packs", "/categories", "/explore", "/explore/skill-ID_123", "/mcp-settings", "/configuration", "/server-logging"} {
 		response := httptest.NewRecorder()
 		web.Handler().ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
 		if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `id="root"`) || !strings.Contains(response.Header().Get("Content-Type"), "text/html") {
@@ -20,7 +20,7 @@ func TestEmbeddedUIAndDeepLink(t *testing.T) {
 			t.Fatal("missing UI content security policy")
 		}
 	}
-	for _, path := range []string{"/assets/missing.js", "/skillhub.missing.v1.Service/Method", "/../../go.mod", "/explore/", "/explore/a/b", "/explore/..", "/explore/has%20space", "/explore/id%2Fother", "/categories/private", "/mcp", "/configuration/", "/configuration/private", "/configuration.json"} {
+	for _, path := range []string{"/assets/missing.js", "/skillhub.missing.v1.Service/Method", "/../../go.mod", "/explore/", "/explore/a/b", "/explore/..", "/explore/has%20space", "/explore/id%2Fother", "/categories/private", "/mcp", "/configuration/", "/configuration/private", "/configuration.json", "/server-logging/", "/server-logging/settings.json", "/logs/settings.json"} {
 		response := httptest.NewRecorder()
 		web.Handler().ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
 		if response.Code == http.StatusOK || strings.Contains(response.Body.String(), "module github.com") {

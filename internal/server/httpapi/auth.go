@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -12,12 +13,14 @@ import (
 	"github.com/ca-x/cognate/gen/skillhub/github/v1/githubv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/library/v1/libraryv1connect"
+	"github.com/ca-x/cognate/gen/skillhub/management/v1/managementv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/mcp/v1/mcpv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/library"
+	"github.com/ca-x/cognate/internal/server/logging"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
 	"github.com/ca-x/cognate/internal/server/mcpserver"
 	"github.com/ca-x/cognate/internal/server/nativeconsumer"
@@ -38,6 +41,8 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
+	Logging             *logging.Manager
+	AdminUserIDs        []string
 	NativeConfiguration *nativeconsumer.Service
 	Configuration       *configuration.Service
 	PublicOrigin        string
@@ -73,6 +78,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	server.Use(guardRequests(options.PublicOrigin))
 	server.GET("/healthz", func(ctx echo.Context) error { return ctx.String(http.StatusOK, "ok\n") })
 	authentication := &authHandler{service: service, oidc: options.OIDC}
+	if options.Logging != nil {
+		path, handler := managementv1connect.NewLogManagementServiceHandler(&logManagementHandler{auth: authentication, logs: options.Logging, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
+		server.Any(path+"*", echo.WrapHandler(handler))
+	}
 	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
 	server.Any(path+"*", echo.WrapHandler(handler))
 	var nativeRequests http.Handler
@@ -119,7 +128,7 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	if options.WebUI != nil {
 		server.Any("/*", echo.WrapHandler(options.WebUI))
 	}
-	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	return observeRequests(options.Logging, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if nativeRequests != nil && strings.HasPrefix(request.URL.Path, nativeServicePath) {
 			nativeRequests.ServeHTTP(writer, request)
 			return
@@ -129,7 +138,7 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 			return
 		}
 		server.ServeHTTP(writer, request)
-	})
+	}))
 }
 
 func (handler *authHandler) Register(ctx context.Context, request *connect.Request[authv1.RegisterRequest]) (*connect.Response[authv1.RegisterResponse], error) {
