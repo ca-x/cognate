@@ -54,24 +54,37 @@ func (model *Model) View(context *ui.Context) {
 }
 
 func (model *Model) accountView(context *ui.Context) {
-	ui.Column(context.Key("account")).Grow(1).Gap(12).Children(func() {
-		ui.Text(context, "本地账号登录").FontSize(20).Bold()
-		if ui.TextInput(context.Key("username"), &model.Username).Label("用户名").Placeholder("用户名").FillWidth().Changed() {
-			model.Cancel()
-			model.clearOwner()
-			model.Status = "账号已更改，请重新登录"
-		}
-		if ui.TextInput(context.Key("password"), &model.Password).Label("密码").Placeholder("密码").Password().FillWidth().Changed() && model.Busy {
-			model.Cancel()
-		}
-		ui.Text(context, "密码与登录会话仅保存在进程内存，不写磁盘。切换服务地址会清除会话。")
-		ui.Row(context).Gap(8).Children(func() {
-			if ui.PrimaryButton(context.Key("login"), "登录").Disabled(model.Busy || model.Username == "" || model.Password == "").Clicked() {
-				model.Login()
+	ui.Scroll(context.Key("account-scroll")).Grow(1).Children(func() {
+		ui.Column(context.Key("account")).FillWidth().Gap(12).Children(func() {
+			ui.Text(context, "本机设置").FontSize(20).Bold()
+			ui.Text(context, "本机加密材料，与服务端登录无关；只在此明确初始化，不写入 agent 配置。")
+			if ui.Button(context.Key("client-key-init"), "初始化本机客户端密钥").Disabled(runtime.GOOS != "linux" || model.Busy || model.localWorkBlocked()).Clicked() {
+				model.InitializeClientKey()
 			}
-			if ui.Button(context.Key("logout"), "退出登录").Clicked() {
-				model.Logout()
+			if runtime.GOOS != "linux" {
+				ui.Text(context, "本机客户端密钥初始化与本地安装当前仅支持 Linux")
 			}
+			if model.watchLocksLocal() {
+				ui.Text(context, "请先停止后台同步并等待排空，再初始化本机密钥")
+			}
+			ui.Text(context, "本地账号登录").FontSize(20).Bold()
+			if ui.TextInput(context.Key("username"), &model.Username).Label("用户名").Placeholder("用户名").FillWidth().Changed() {
+				model.Cancel()
+				model.clearOwner()
+				model.Status = "账号已更改，请重新登录"
+			}
+			if ui.TextInput(context.Key("password"), &model.Password).Label("密码").Placeholder("密码").Password().FillWidth().Changed() && model.Busy {
+				model.Cancel()
+			}
+			ui.Text(context, "密码与登录会话仅保存在进程内存，不写磁盘。切换服务地址会清除会话。")
+			ui.Row(context).Gap(8).Children(func() {
+				if ui.PrimaryButton(context.Key("login"), "登录").Disabled(model.Busy || model.Username == "" || model.Password == "").Clicked() {
+					model.Login()
+				}
+				if ui.Button(context.Key("logout"), "退出登录").Clicked() {
+					model.Logout()
+				}
+			})
 		})
 	})
 }
@@ -100,7 +113,7 @@ func (model *Model) catalogView(context *ui.Context) {
 		if ui.Button(context.Key("details"), "查看详情").Disabled(model.Busy || model.Selected < 0).Clicked() {
 			model.Details()
 		}
-		if ui.PrimaryButton(context.Key("install"), "安装已确认技能").Disabled(model.Busy || model.watchLocksLocal() || model.Detail == nil || !model.Confirm).Clicked() {
+		if ui.PrimaryButton(context.Key("install"), "安装已确认技能").Disabled(model.Busy || model.localWorkBlocked() || model.Detail == nil || !model.Confirm).Clicked() {
 			model.Install()
 		}
 	})
@@ -123,7 +136,7 @@ func (model *Model) packsView(context *ui.Context) {
 	ui.TextInput(context.Key("share-token"), &model.ShareToken).Label("分享令牌").Placeholder("分享令牌（安全输入）").Password().FillWidth()
 	ui.Row(context).Gap(8).Children(func() {
 		for _, action := range []struct{ key, title string }{{"list", "刷新订阅"}, {"subscribe", "保存订阅"}, {"sync", "同步并应用安装变更"}, {"remove", "移除所选订阅"}} {
-			disabled := model.Busy || model.watchLocksLocal() || action.key == "subscribe" && model.ShareToken == "" || action.key == "remove" && model.PackSelected < 0
+			disabled := model.Busy || model.localWorkBlocked() || action.key == "subscribe" && model.ShareToken == "" || action.key == "remove" && model.PackSelected < 0
 			if ui.Button(context.Key("pack-"+action.key), action.title).Disabled(disabled).Clicked() {
 				model.Packs(action.key)
 			}
@@ -133,7 +146,7 @@ func (model *Model) packsView(context *ui.Context) {
 	ui.Text(context, "后台默认关闭；启用即首轮，每 5 分钟同步全部订阅（可跨服务），单轮 2 分钟。")
 	ui.Text(context, "后台自动更新/备份移除；本地修改或失权时保留。手动操作需先停止并排空。")
 	ui.Row(context).Gap(8).Children(func() {
-		if ui.Button(context.Key("watch-start"), "启用后台同步").Disabled(model.Busy || model.watchLocksLocal() || model.origin == "" || runtime.GOOS != "linux").Clicked() {
+		if ui.Button(context.Key("watch-start"), "启用后台同步").Disabled(model.Busy || model.localWorkBlocked() || model.origin == "" || runtime.GOOS != "linux").Clicked() {
 			model.StartWatch()
 		}
 		if ui.Button(context.Key("watch-stop"), "停止后台同步").Disabled(!model.WatchActive).Clicked() {

@@ -5,15 +5,20 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/ca-x/cognate/internal/clientkey"
 )
 
 func TestCredentialKeyPersistenceAndUntrustedStorage(test *testing.T) {
 	home := test.TempDir()
-	key, err := clientKey(home, true)
+	if err := clientkey.Initialize(test.Context(), home); err != nil {
+		test.Fatal(err)
+	}
+	key, err := clientkey.LoadExisting(test.Context(), home)
 	if err != nil {
 		test.Fatal(err)
 	}
-	again, err := clientKey(home, false)
+	again, err := clientkey.LoadExisting(test.Context(), home)
 	if err != nil || !bytes.Equal(key, again) {
 		test.Fatal("shared client.key was not reused")
 	}
@@ -23,13 +28,13 @@ func TestCredentialKeyPersistenceAndUntrustedStorage(test *testing.T) {
 	if err := os.Chmod(path, 0644); err != nil {
 		test.Fatal(err)
 	}
-	if _, err := clientKey(home, false); err == nil {
+	if _, err := clientkey.LoadExisting(test.Context(), home); err == nil {
 		test.Fatal("publicly readable credential key accepted")
 	}
 	if err := os.Remove(path); err != nil {
 		test.Fatal(err)
 	}
-	if _, err := clientKey(home, false); err == nil {
+	if _, err := clientkey.LoadExisting(test.Context(), home); err == nil {
 		test.Fatal("existing subscription key silently replaced")
 	}
 	target := filepath.Join(test.TempDir(), "key")
@@ -39,7 +44,7 @@ func TestCredentialKeyPersistenceAndUntrustedStorage(test *testing.T) {
 	if err := os.Symlink(target, path); err != nil {
 		test.Fatal(err)
 	}
-	if _, err := clientKey(home, true); err == nil {
+	if err := clientkey.Initialize(test.Context(), home); err == nil {
 		test.Fatal("symlinked credential key accepted")
 	}
 

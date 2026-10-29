@@ -12,6 +12,9 @@ import (
 func TestDesktopWatchCycleFreshManagerReleasesLock(test *testing.T) {
 	fixture := realServer(test)
 	service := &Service{Home: fixture.home, HTTP: fixture.server.Client()}
+	if err := service.InitializeClientKey(test.Context()); err != nil {
+		test.Fatal("explicit watch fixture initialization failed")
+	}
 	if _, err := service.Packs(test.Context(), "subscribe", fixture.server.URL, fixture.token, ""); err != nil {
 		test.Fatal("could not prepare synthetic subscription")
 	}

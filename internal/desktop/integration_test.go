@@ -248,6 +248,19 @@ func TestNativeLoginAnonymousSelectionConfirmationAndInstall(test *testing.T) {
 	if fixture.source.downloads.Load() != 0 {
 		test.Fatal("installation occurred before confirmation")
 	}
+	for _, relative := range []string{".config/skillhub/client.key", ".local/share/skillhub/client.db", ".agents"} {
+		if _, err := os.Lstat(filepath.Join(fixture.home, relative)); !errors.Is(err, os.ErrNotExist) {
+			test.Fatal("remote authentication/catalogue/details implicitly created client state")
+		}
+	}
+	click(test, tester, "账号")
+	click(test, tester, initializeClientKeyLabel)
+	pump()
+	tester.Frame()
+	if !strings.Contains(model.Status, "已就绪") {
+		test.Fatal("explicit native client initialization failed")
+	}
+	click(test, tester, "公开目录")
 	click(test, tester, "确认下载完整技能内容并写入本地 ~/.agents/skills 与已适配 agent 目录")
 	click(test, tester, "安装已确认技能")
 	pump()
@@ -281,7 +294,11 @@ func TestNativeLoginAnonymousSelectionConfirmationAndInstall(test *testing.T) {
 
 func TestNativePackOperationsUseSharedPersistentCore(test *testing.T) {
 	fixture := realServer(test)
-	model, pump := modelFixture(test, &Service{Home: fixture.home, HTTP: fixture.server.Client()})
+	service := &Service{Home: fixture.home, HTTP: fixture.server.Client()}
+	if err := service.InitializeClientKey(test.Context()); err != nil {
+		test.Fatal("explicit client initialization failed")
+	}
+	model, pump := modelFixture(test, service)
 	model.SetOrigin(fixture.server.URL)
 	tester := ui.NewTester(model.View, 920, 760)
 	click(test, tester, "Pack 订阅")

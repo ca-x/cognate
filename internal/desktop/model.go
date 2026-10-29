@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
@@ -18,6 +19,7 @@ import (
 )
 
 type Backend interface {
+	InitializeClientKey(context.Context) error
 	Login(context.Context, string, string, string) (string, error)
 	Logout(context.Context, string, string) error
 	Search(context.Context, string, string, string) (*catalogv1.ListSkillsResponse, error)
@@ -42,6 +44,7 @@ type Model struct {
 	stop                                                    context.CancelFunc
 	cancel                                                  context.CancelFunc
 	workers                                                 sync.WaitGroup
+	pendingJobs                                             atomic.Int32
 	publication                                             sync.Mutex
 	slots                                                   chan struct{}
 	generation                                              uint64
@@ -81,6 +84,7 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 func (model *Model) Cancel() {
 	model.StopWatch()
 	model.cancelJob()
+	model.Password, model.ShareToken, model.session = "", "", ""
 }
 
 func (model *Model) cancelJob() {
@@ -140,15 +144,39 @@ func (model *Model) Close() {
 func (model *Model) Wait() { model.workers.Wait() }
 
 func (model *Model) job(label string, work func(context.Context) (func(), error)) {
+	model.jobWithTimeout(label, 60*time.Second, work)
+}
+
+func (model *Model) localWorkBlocked() bool {
+	return model.pendingJobs.Load() > 0 || model.watchLocksLocal()
+}
+
+func (model *Model) InitializeClientKey() {
+	if model.closed {
+		return
+	}
+	if model.localWorkBlocked() || model.Busy {
+		model.Status = "请先停止后台同步并等待排空；当前任务尚未结束"
+		return
+	}
+	backend := model.backend
+	model.jobWithTimeout("正在初始化", 30*time.Second, func(ctx context.Context) (func(), error) {
+		err := backend.InitializeClientKey(ctx)
+		return func() { model.Status = "本机客户端密钥已就绪（未初始化服务端会话）" }, err
+	})
+}
+
+func (model *Model) jobWithTimeout(label string, limit time.Duration, work func(context.Context) (func(), error)) {
 	if model.closed {
 		return
 	}
 	model.cancelJob()
 	generation := model.generation
-	ctx, cancel := context.WithTimeout(model.life, 60*time.Second)
+	ctx, cancel := context.WithTimeout(model.life, limit)
 	model.cancel = cancel
 	model.Busy = true
 	model.Status = label + "…"
+	model.pendingJobs.Add(1)
 	model.workers.Go(func() {
 		defer cancel()
 		var commit func()
@@ -164,8 +192,10 @@ func (model *Model) job(label string, work func(context.Context) (func(), error)
 		case <-ctx.Done():
 			err = ctx.Err()
 		}
+		model.pendingJobs.Add(-1)
 		contextErr := ctx.Err()
 		if model.life.Err() != nil || errors.Is(contextErr, context.Canceled) {
+			model.publish(model.life, func() {})
 			return
 		}
 		delivery := ctx
@@ -274,7 +304,7 @@ func (model *Model) Details() {
 }
 
 func (model *Model) Install() {
-	if model.watchLocksLocal() {
+	if model.localWorkBlocked() {
 		model.Status = "请先停止后台同步并等待排空，再手动安装"
 		return
 	}
@@ -291,7 +321,7 @@ func (model *Model) Install() {
 }
 
 func (model *Model) Packs(action string) {
-	if model.watchLocksLocal() {
+	if model.localWorkBlocked() {
 		model.Status = "请先停止后台同步并等待排空，再操作 Pack"
 		return
 	}

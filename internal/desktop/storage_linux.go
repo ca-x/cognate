@@ -1,10 +1,7 @@
 package desktop
 
 import (
-	"crypto/rand"
 	"errors"
-	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,78 +61,4 @@ func prepareHome(home string) (string, error) {
 		return "", err
 	}
 	return directory, nil
-}
-
-func clientKey(home string, create bool) ([]byte, error) {
-	directory := filepath.Join(home, ".config", "skillhub")
-	if err := trustedDirectory(directory, true); err != nil {
-		return nil, err
-	}
-	root, err := os.OpenRoot(directory)
-	if err != nil {
-		return nil, err
-	}
-	defer root.Close()
-	before, err := root.Lstat("client.key")
-	missing := errors.Is(err, os.ErrNotExist)
-	if err != nil && !missing {
-		return nil, err
-	}
-	if missing && !create {
-		return nil, errors.New("请恢复既有 client.key，不能为已有订阅生成新密钥")
-	}
-	if !missing && !privateKey(before) {
-		return nil, errors.New("client.key 必须为私有、无硬链接的常规文件")
-	}
-	flags := os.O_RDONLY | syscall.O_NOFOLLOW | syscall.O_NONBLOCK
-	if missing {
-		flags = os.O_RDWR | os.O_CREATE | os.O_EXCL | syscall.O_NOFOLLOW
-	}
-	file, err := root.OpenFile("client.key", flags, 0600)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	info, err := file.Stat()
-	if err != nil || !privateKey(info) || !missing && !os.SameFile(before, info) {
-		return nil, errors.New("client.key 身份变化")
-	}
-	if missing {
-		key := make([]byte, 32)
-		defer clear(key)
-		if _, err = rand.Read(key); err != nil {
-			return nil, err
-		}
-		if _, err = file.Write(key); err != nil {
-			return nil, err
-		}
-		if err = file.Sync(); err != nil {
-			return nil, err
-		}
-		parent, err := root.Open(".")
-		if err != nil {
-			return nil, err
-		}
-		if err = errors.Join(parent.Sync(), parent.Close()); err != nil {
-			return nil, err
-		}
-		if _, err = file.Seek(0, io.SeekStart); err != nil {
-			return nil, err
-		}
-	}
-	key, err := io.ReadAll(io.LimitReader(file, 33))
-	after, afterErr := root.Lstat("client.key")
-	if err != nil || len(key) != 32 || afterErr != nil || !privateKey(after) || !os.SameFile(info, after) {
-		clear(key)
-		return nil, fmt.Errorf("读取 client.key 失败")
-	}
-	return key, nil
-}
-
-func privateKey(info os.FileInfo) bool {
-	if info == nil {
-		return false
-	}
-	attributes, ok := info.Sys().(*syscall.Stat_t)
-	return ok && info.Mode().IsRegular() && info.Mode().Perm()&0077 == 0 && attributes.Uid == uint32(os.Geteuid()) && attributes.Nlink == 1
 }

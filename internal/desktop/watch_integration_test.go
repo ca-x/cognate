@@ -124,6 +124,9 @@ func newWatchServer(test *testing.T) *watchServerFixture {
 	}))
 	test.Cleanup(fixture.server.Close)
 	fixture.service = &Service{Home: fixture.home, HTTP: fixture.server.Client()}
+	if err := fixture.service.InitializeClientKey(test.Context()); err != nil {
+		test.Fatal("explicit watch fixture initialization failed")
+	}
 	return fixture
 }
 

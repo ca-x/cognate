@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"slices"
 
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/state"
 	"github.com/ca-x/cognate/internal/subscription"
 )
@@ -32,12 +33,30 @@ func (model *Model) cut(cancel context.CancelFunc) {
 
 func safeTaskError(err error) string {
 	switch {
-	case errors.Is(err, errUnsupportedLocal):
-		return "本地安装、Pack 同步和后台同步当前仅支持 Linux"
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 		return "操作已取消或超时；若写入已开始，请核实本地状态"
+	case errors.Is(err, errUnsupportedLocal):
+		return "本地安装、Pack 同步和后台同步当前仅支持 Linux"
 	default:
+		if hint := clientKeyHint(err); hint != "" {
+			return hint
+		}
 		return "操作未完成；请检查服务权限、本地修改或待恢复状态后重试"
+	}
+}
+
+func clientKeyHint(err error) string {
+	switch {
+	case errors.Is(err, clientkey.ErrInitializationRequired):
+		return "请到账号页本机设置显式初始化客户端密钥"
+	case errors.Is(err, clientkey.ErrRecoveryRequired):
+		return "请恢复既有客户端密钥或状态；不能重新生成密钥"
+	case errors.Is(err, clientkey.ErrUnavailable):
+		return "本机密钥不可用；请核实权限、锁或待恢复状态"
+	case errors.Is(err, clientkey.ErrUnsupported):
+		return "本机客户端密钥初始化与本地安装当前仅支持 Linux"
+	default:
+		return ""
 	}
 }
 
@@ -51,7 +70,7 @@ func (model *Model) StartWatch() {
 		model.WatchStatus = safeTaskError(errUnsupportedLocal)
 		return
 	}
-	if model.watch != nil || model.Busy {
+	if model.localWorkBlocked() || model.Busy {
 		model.WatchStatus = "请等待当前任务或后台同步排空"
 		return
 	}
@@ -68,6 +87,7 @@ func (model *Model) StartWatch() {
 	model.workers.Go(func() {
 		defer cancel()
 		var records []state.Subscription
+		var keyHint string
 		_ = subscription.Watch(ctx, options, func(attempt context.Context) (subscription.SyncResult, error) {
 			select {
 			case model.slots <- struct{}{}:
@@ -79,6 +99,7 @@ func (model *Model) StartWatch() {
 				return subscription.SyncResult{}, err
 			}
 			result, latest, err := model.backend.WatchCycle(attempt)
+			keyHint = clientKeyHint(err)
 			records = latest
 			return result, err
 		}, func(ctx context.Context, report subscription.WatchReport) error {
@@ -86,6 +107,7 @@ func (model *Model) StartWatch() {
 				return err
 			}
 			snapshot := slices.Clone(records)
+			hint := keyHint
 			for index := range snapshot {
 				snapshot[index].Skills = slices.Clone(snapshot[index].Skills)
 			}
@@ -94,6 +116,10 @@ func (model *Model) StartWatch() {
 					return
 				}
 				if !report.Succeeded {
+					if hint != "" {
+						model.WatchStatus = hint + "；请显式停止后台同步并等待排空"
+						return
+					}
 					model.WatchStatus = fmt.Sprintf("后台同步未完成（连续 %d 轮）；%s 后重试。请核实权限、本地修改或待恢复状态", report.ConsecutiveFailures, report.NextAttemptIn)
 					return
 				}

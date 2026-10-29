@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
 	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
 	"github.com/ca-x/cognate/gen/skillhub/catalog/v1/catalogv1connect"
+	"github.com/ca-x/cognate/internal/clientkey"
 	"github.com/ca-x/cognate/internal/importclient"
 	"github.com/ca-x/cognate/internal/install"
 	"github.com/ca-x/cognate/internal/packclient"
@@ -147,14 +147,25 @@ func (service *Service) Details(ctx context.Context, origin, id string) (*catalo
 }
 
 func (service *Service) Install(ctx context.Context, origin string, selected *catalogv1.PublicSkill) (resultErr error) {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if runtime.GOOS != "linux" {
 		return errUnsupportedLocal
 	}
-	directory, err := prepareHome(service.Home)
+	if selected == nil {
+		return errors.New("请选择有效技能")
+	}
+	client, err := packclient.NewPublic(origin, service.client(origin))
 	if err != nil {
 		return err
 	}
-	client, err := packclient.NewPublic(origin, service.client(origin))
+	key, err := clientkey.LoadExisting(ctx, service.Home)
+	clear(key)
+	if err != nil {
+		return err
+	}
+	directory, err := prepareHome(service.Home)
 	if err != nil {
 		return err
 	}
@@ -172,30 +183,41 @@ func (service *Service) Install(ctx context.Context, origin string, selected *ca
 }
 
 func (service *Service) openPackManager(ctx context.Context) (*subscription.Manager, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if runtime.GOOS != "linux" {
 		return nil, errUnsupportedLocal
 	}
-	directory, err := prepareHome(service.Home)
-	if err != nil {
-		return nil, err
-	}
-	store, err := state.Open(ctx, filepath.Join(directory, "client.db"))
-	if err != nil {
-		return nil, err
-	}
-	existing, err := store.Subscriptions(ctx)
-	if closeErr := store.Close(); err != nil || closeErr != nil {
-		return nil, errors.Join(err, closeErr)
-	}
-	key, err := clientKey(service.Home, len(existing) == 0)
+	key, err := clientkey.LoadExisting(ctx, service.Home)
 	if err != nil {
 		return nil, err
 	}
 	defer clear(key)
+	directory, err := prepareHome(service.Home)
+	if err != nil {
+		return nil, err
+	}
 	return subscription.Open(ctx, service.Home, directory, key, service.clientForPacks())
 }
 
+func (service *Service) InitializeClientKey(ctx context.Context) error {
+	return clientkey.Initialize(ctx, service.Home)
+}
+
 func (service *Service) Packs(ctx context.Context, action, origin, token, id string) (records []state.Subscription, resultErr error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	switch action {
+	case "subscribe":
+		if _, err := packclient.New(origin, token, service.client(origin)); err != nil {
+			return nil, networkError(err)
+		}
+	case "list", "sync", "remove":
+	default:
+		return nil, errors.New("未知 Pack 操作")
+	}
 	manager, err := service.openPackManager(ctx)
 	if err != nil {
 		return nil, err
