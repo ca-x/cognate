@@ -141,7 +141,7 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
 		expectedVersion := "1.0.0"
-		if manifest.AgentID == "claude" || manifest.AgentID == "codex" {
+		if manifest.AgentID == "claude" || manifest.AgentID == "codex" || manifest.AgentID == "gemini" {
 			expectedVersion = "1.1.0"
 		}
 		if manifest.APIVersion != 1 || manifest.PluginVersion != expectedVersion || len(descriptor.DefinitionDigest) != 64 || expected[manifest.AgentID] != manifest.Target {
@@ -154,8 +154,8 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		if manifest.AgentID == "codex" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.CodexProviderPlanV1) {
 			test.Fatal("Codex must declare only its planner capability")
 		}
-		if manifest.AgentID == "gemini" && len(manifest.Capabilities) != 0 {
-			test.Fatal("metadata-only adapter advertises unsupported rendering")
+		if manifest.AgentID == "gemini" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.GeminiProviderPlanV1) {
+			test.Fatal("Gemini must declare only its planner capability")
 		}
 	}
 	if len(expected) != 0 {
@@ -284,5 +284,127 @@ func TestDefinitionJSONRejectsUnknownFieldsAndOversize(test *testing.T) {
 		if _, err := agentadapter.ParseDefinition([]byte(data)); !errors.Is(err, agentadapter.ErrInvalidDefinition) || strings.Contains(err.Error(), "secret-sentinel") {
 			test.Fatalf("unsafe definition JSON accepted: %v", err)
 		}
+	}
+}
+
+func TestGeminiProviderRegistryIdentity(test *testing.T) {
+	registry, err := agentadapter.Builtins()
+	if err != nil {
+		test.Fatal("builtin registration failed")
+	}
+	var descriptor agentconfig.Descriptor
+	for _, candidate := range registry.List() {
+		if candidate.Manifest.AgentID == "gemini" {
+			descriptor = candidate
+		}
+	}
+	manifest := descriptor.Manifest
+	if manifest.PluginID != "builtin.gemini" || manifest.PluginVersion != "1.1.0" || manifest.Target != agentconfig.GeminiSettings || manifest.Format != agentconfig.JSON || len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.GeminiProviderPlanV1 || len(descriptor.DefinitionDigest) != 64 {
+		test.Fatal("Gemini exact builtin identity missing")
+	}
+	request := agentconfig.GeminiProviderPlanRequest{APIVersion: 1, PluginID: manifest.PluginID, PluginVersion: manifest.PluginVersion, DefinitionDigest: descriptor.DefinitionDigest, Target: manifest.Target, Capabilities: []agentconfig.Capability{agentconfig.GeminiProviderPlanV1}, Desired: agentconfig.GeminiProviderDesired{AuthMode: agentconfig.GeminiNativeLogin}}
+	for name, mutate := range map[string]func(*agentconfig.GeminiProviderPlanRequest){
+		"api":     func(request *agentconfig.GeminiProviderPlanRequest) { request.APIVersion = 2 },
+		"version": func(request *agentconfig.GeminiProviderPlanRequest) { request.PluginVersion = "1.0.0" },
+		"digest":  func(request *agentconfig.GeminiProviderPlanRequest) { request.DefinitionDigest = "untrusted" },
+		"target":  func(request *agentconfig.GeminiProviderPlanRequest) { request.Target = agentconfig.CodexConfig },
+		"no-cap":  func(request *agentconfig.GeminiProviderPlanRequest) { request.Capabilities = nil },
+		"foreign-cap": func(request *agentconfig.GeminiProviderPlanRequest) {
+			request.Capabilities = []agentconfig.Capability{agentconfig.CodexProviderPlanV1}
+		},
+		"extra-cap": func(request *agentconfig.GeminiProviderPlanRequest) {
+			request.Capabilities = append(request.Capabilities, "extra")
+		},
+		"duplicate-cap": func(request *agentconfig.GeminiProviderPlanRequest) {
+			request.Capabilities = append(request.Capabilities, agentconfig.GeminiProviderPlanV1)
+		},
+	} {
+		test.Run(name, func(test *testing.T) {
+			changed := request
+			changed.Capabilities = append([]agentconfig.Capability{}, request.Capabilities...)
+			mutate(&changed)
+			result, err := registry.PlanGeminiProvider(test.Context(), changed)
+			if !errors.Is(err, agentadapter.ErrIncompatible) || result.Version != 0 {
+				test.Fatal("incompatible Gemini identity accepted")
+			}
+		})
+	}
+	render := agentconfig.RenderRequest{APIVersion: 1, PluginID: request.PluginID, PluginVersion: request.PluginVersion, DefinitionDigest: request.DefinitionDigest, Target: request.Target, Capabilities: request.Capabilities}
+	if _, err := registry.Render(test.Context(), render); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("Gemini planner opened generic Render")
+	}
+	encoded, err := json.Marshal(render)
+	if err != nil {
+		test.Fatal("render fixture encoding")
+	}
+	if _, err := registry.RenderJSON(test.Context(), encoded); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("Gemini planner opened RenderJSON")
+	}
+	request.PluginID = "unknown.plugin"
+	if _, err := registry.PlanGeminiProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("unknown Gemini plugin accepted")
+	}
+	if _, err := (*agentadapter.Registry)(nil).PlanGeminiProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("nil Gemini registry accepted")
+	}
+}
+
+func TestGeminiProviderDefinitionAndLegacyMetadata(test *testing.T) {
+	definition := agentadapter.Definition{Manifest: agentconfig.Manifest{APIVersion: 1, PluginID: "builtin.gemini", PluginVersion: "1.1.0", AgentID: "gemini", Target: agentconfig.GeminiSettings, Format: agentconfig.JSON, Capabilities: []agentconfig.Capability{agentconfig.GeminiProviderPlanV1}}, Module: `export function planGeminiProvider() { return {}; }`}
+	registry, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil {
+		test.Fatal("valid Gemini definition rejected")
+	}
+	for name, mutate := range map[string]func(*agentadapter.Definition){
+		"agent":  func(definition *agentadapter.Definition) { definition.Manifest.AgentID = "claude" },
+		"target": func(definition *agentadapter.Definition) { definition.Manifest.Target = agentconfig.CodexConfig },
+		"format": func(definition *agentadapter.Definition) { definition.Manifest.Format = agentconfig.TOML },
+		"cap": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{agentconfig.ClaudeProviderEnvV1}
+		},
+		"extra": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{agentconfig.GeminiProviderPlanV1, "extra"}
+		},
+		"duplicate": func(definition *agentadapter.Definition) {
+			definition.Manifest.Capabilities = []agentconfig.Capability{agentconfig.GeminiProviderPlanV1, agentconfig.GeminiProviderPlanV1}
+		},
+		"no-module":     func(definition *agentadapter.Definition) { definition.Module = "" },
+		"metadata-code": func(definition *agentadapter.Definition) { definition.Manifest.Capabilities = nil },
+	} {
+		test.Run(name, func(test *testing.T) {
+			changed := definition
+			mutate(&changed)
+			if _, err := agentadapter.NewRegistry([]agentadapter.Definition{changed}); !errors.Is(err, agentadapter.ErrInvalidDefinition) {
+				test.Fatal("invalid Gemini definition registered")
+			}
+		})
+	}
+	oldDigest := registry.List()[0].DefinitionDigest
+	definition.Module += "\n"
+	replaced, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil || replaced.List()[0].DefinitionDigest == oldDigest {
+		test.Fatal("Gemini module bytes not pinned")
+	}
+	request := agentconfig.GeminiProviderPlanRequest{APIVersion: 1, PluginID: "builtin.gemini", PluginVersion: "1.1.0", DefinitionDigest: oldDigest, Target: agentconfig.GeminiSettings, Capabilities: []agentconfig.Capability{agentconfig.GeminiProviderPlanV1}, Desired: agentconfig.GeminiProviderDesired{AuthMode: agentconfig.GeminiNativeLogin}}
+	if _, err := replaced.PlanGeminiProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrIncompatible) {
+		test.Fatal("old digest authorized replaced Gemini module")
+	}
+	definition.Manifest.PluginVersion = "1.0.0"
+	wrongVersion, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil {
+		test.Fatal("version fixture registration failed")
+	}
+	request.PluginVersion, request.DefinitionDigest = "1.0.0", wrongVersion.List()[0].DefinitionDigest
+	if _, err := wrongVersion.PlanGeminiProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("old version gained new planner capability")
+	}
+	definition.Module, definition.Manifest.PluginVersion, definition.Manifest.Capabilities = "", "1.0.0", nil
+	metadata, err := agentadapter.NewRegistry([]agentadapter.Definition{definition})
+	if err != nil || len(metadata.List()[0].Manifest.Capabilities) != 0 {
+		test.Fatal("legacy Gemini metadata rejected or upgraded")
+	}
+	request.PluginVersion, request.DefinitionDigest, request.Capabilities = "1.0.0", metadata.List()[0].DefinitionDigest, nil
+	if _, err := metadata.PlanGeminiProvider(test.Context(), request); !errors.Is(err, agentadapter.ErrUnsupported) {
+		test.Fatal("legacy metadata gained planner")
 	}
 }

@@ -16,6 +16,9 @@ var claudeModule string
 //go:embed codex.mjs
 var codexModule string
 
+//go:embed gemini.mjs
+var geminiModule string
+
 func Builtins() (*Registry, error) {
 	var manifests []agentconfig.Manifest
 	if json.Unmarshal(builtinManifests, &manifests, json.RejectUnknownMembers(true)) != nil {
@@ -29,6 +32,9 @@ func Builtins() (*Registry, error) {
 		}
 		if manifest.Target == agentconfig.CodexConfig {
 			definition.Module = codexModule
+		}
+		if manifest.Target == agentconfig.GeminiSettings {
+			definition.Module = geminiModule
 		}
 		definitions = append(definitions, definition)
 	}
