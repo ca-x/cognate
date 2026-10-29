@@ -242,3 +242,15 @@ Codex 实现的精确八路径候选 tree 为 `25fb32052ce748b34e6468029743f407d
 Claude/Linux 手动 CLI 配置工作流 C1 的独立候选 tree `feb621b2baf1a4fc5f2b1a6ddc3772df2e03651e` 尚未签收或交付。非作者完整验收发现两个 P2：未知子命令打印帮助后 exit0；满 stdout/stderr 时，1s 命令 deadline 未传到底层嵌套写入，约 10.06s 才退出。已有 focused 52/52 通过不能覆盖这两个真实进程反例；原候选与失败证据保留，须修复并复验。主线程曾验证的 A+C1 组合 tree `1ddbe8f66dc0ecf3db315206cbc222a09f33f38b` 全量通过，也不能替代此独立验收或为后续修订源码提供通过证明。
 
 显式密钥入口迁移、MyGo 配置 UI、完整十四 agent、配置导入/Pack 附件/自动应用、加密备份/S3/恢复、跨平台实际运行及首个正式 Release 仍分别未完成。
+
+## Claude Native CLI Apply And Restore Checkpoint
+
+2026-10-29，上一节未签收的 C1 已由原作者修复，两个独立反例分别闭合；原拒签、原 RED 与原样独立 oracle 均保留。接受的 successor tree 为 `a4b79217d59dbfa415c760329f38cacde4a70c7c`，仍为原八路径；独立 scoped 复验连同原完整实现审签收该精确范围，非作者重新执行 focused 63 个含子用例全部通过、零 fail/skip，且分别撤销两处修复的 overlay 均先编译成功再由原断言产生 RED。满输出的真实 1s 命令约 6.02s 自行退出，遵守原有命令预算加独立 5s 固定诊断尾预算，未放宽原 6.5s oracle，也不声称整个进程仅耗时 1s。
+
+该八路径以 `3b0345ead6bc27b906e89e9fb55bed8a8f081c72` 提交、SSH 推送并读回，交付 tree 为 `3ef3bbf250cfc50569f6e2ef2f253b96c396b3ad`。能力限 Linux/Claude 手动 CLI：`config apply` 默认预览，明确应用需要真实控制 TTY 的逐 secret slot 批准与另一次最终计划确认；`config restore` 独立预览、释放锁、确认、重开并校验 CAS；`config status` 为本地状态查询。网络与人类等待不持本地安装/目标锁；Unknown 只允许原 flow 内最多一次 Status，不重放秘密。已有客户端密钥必需，不创建新 key，不等于后续旧入口迁移或 MyGo 配置应用已经完成。
+
+主线程从 base `65d8c113fe9596947c3ab5bcb558dbb5c84ca42a` 加精确 successor 八路径构造 tree `a8593d2f1de1a6afc5938413ac0c81f289d45bc5`，fresh npm、全仓 Go tests/vet、模块校验、Buf 双模板生成比对、客户端依赖门禁与九项 CGO0 构建均退出 0。非作者另核全部 924 个 tracked blob/mode、八路径来源及主验证日志归属；不是重新执行主全量。最终交付相对该测试树只增加已独立接受的 B2 plan 与原生配置 UI spec 两份文档，无其他源码变化。交叉构建不证明非 Linux 实际运行，CLI 正确处理不证明 GUI 或完整 F12。
+
+实际交付的 Build `40866724425` completed/failure：全仓测试、amd64 OCI 与其余五组二进制成功，但 Linux arm64 二进制及 arm64 OCI 在 `internal/configapply/native_publish_linux.go:35` 编译失败。该架构的 `unix.Stat_t.Nlink` 为 uint32，而受控文件身份的 Links 为 uint64；此前九项主线程构建未包含 Linux arm64，不能拿其绿色声称六目标全覆盖。主线程在原不可变导出中以 Linux arm64 真正复现相同编译错误，保留原 CI 与本地 RED；需要单独修复显式类型转换并验证，而不是重跑原提交掩盖失败。
+
+已接受的密钥入口实施计划支持后续 CLI 与 MyGo 两个不相交写集并行；本地备份快照实施计划也已接受。此处只记录设计与后续实施边界，不提前签收入口迁移、原生配置 UI、完整备份/S3/恢复或首个正式 Release。

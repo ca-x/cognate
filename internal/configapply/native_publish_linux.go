@@ -32,7 +32,7 @@ type nativeDirectory struct {
 func nativePlatform() error { return nil }
 
 func statIdentity(stat *unix.Stat_t) nativeIdentity {
-	return nativeIdentity{Device: uint64(stat.Dev), Inode: stat.Ino, Mode: stat.Mode, Links: stat.Nlink, Owner: stat.Uid, Size: stat.Size}
+	return nativeIdentity{Device: uint64(stat.Dev), Inode: stat.Ino, Mode: stat.Mode, Links: uint64(stat.Nlink), Owner: stat.Uid, Size: stat.Size}
 }
 
 func sameDirectory(first, second nativeIdentity) bool {
