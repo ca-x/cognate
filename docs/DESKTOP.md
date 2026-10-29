@@ -153,3 +153,21 @@ CGO_ENABLED=0 go tool mygo build -platform linux/amd64,linux/arm64 -o /tmp/cogna
 | `desktop-windows-unsigned.zip` | `3eb70d10836ab43d80c7f8aa8425fc4e513523d94741dc9a4e0e4c40ed7c65bf` |
 
 证据为 `.superpowers/sdd/2026-10-28-release/desktop-downloaded-payload-review.md` 与 `desktop-identity-{darwin,windows,linux}-payloads.log`。摘要证明下载 bytes 与该 API 声明一致，VCS 字段是实际读取的构建声明；二者不构成源码到二进制的密码学证明、供应链 attestation、签名/公证、包装内部同一性或跨 OS 运行验收。完整首发与最终功能版本的打包验收仍未关闭。
+
+## 后续实际产物与 Linux 安装复核（2026-10-30）
+
+Native desktop Actions `40942868634` 精确绑定 `89e4cf5cada447109aeef620c7e69bcab22ebd88`。独立读取 GitHub API 确认该 run 为 completed/success，verify 和三系统 package jobs 全部 success，publish skipped；不是正式 Release，也不表示最新版本。实际下载复核的是以下三个包装 artifact，而非 `desktop-verification`：
+
+| Artifact | GitHub artifact ID |
+| --- | --- |
+| `desktop-windows-unsigned` | `12929005713` |
+| `desktop-darwin-unsigned` | `12928950790` |
+| `desktop-linux-unsigned` | `12927693111` |
+
+主线程使用 `gh` 下载解包；独立复核对落地的 **28 个文件**建立本地 SHA-256 清单并在测试后再次逐项核对。此次没有保留下载原始 ZIP，**没有核对本次 ZIP digest/CRC 或证明 ZIP 与 API digest 相符**；前节旧 run 的 ZIP 证据保持原范围。六个实际 PE/Mach-O/ELF payload 均读取到 Go 1.27.3、CGO0、正确 GOOS/GOARCH、上述精确 revision 和 `vcs.modified=false`。这些是二进制内的构建声明，不是源码到二进制的密码学证明。
+
+Linux 两架构 tar 内的二进制与裸 binary、deb 内 binary 逐字节相等；tar 和裸 PNG 与该 revision 的 `assets/branding/client.png` 相等。deb 图标是 256/512 像素缩放版本，仅核格式和尺寸，不宣称与原 PNG 字节相等。Windows 两个 Setup 仅核 NSIS 结构；macOS 两套 plist、ICNS、DMG 的 UDIF 尾部仅核结构，没有挂载 DMG、核验 codesign 或证明安装器内部 payload 与裸 binary 相同。
+
+独立 reviewer 在自己的全新 0700 合成 HOME，以 `bwrap --unshare-all`、固定 uid/gid 1000、零 capabilities、只读包输入和无外部网络执行原 Linux amd64 `install.sh`：安装、重装、卸载均通过，实际安装的二进制和图标与归档相等，launcher 路径正确。`desktop-file-validate` 退出 0，仍有 `Development;Utility;` 双主类 hint，未将其隐藏。配置/状态 canary、无关 launcher 和链接均保留；缺归档、路径穿越、缺二进制归档被拒且原安装保留，namespace uid 0 的安装也被拒。全子进程 exec trace 确认没有启动应用或执行 curl/wget。
+
+独立证据、命令、摘要和审阅结论见 `.superpowers/sdd/2026-10-28-release/desktop-packages-40942868634-independent-review.md`。这是已知实际包的隔离安装脚本 smoke，不是任意恶意归档/符号链接安全认证；没有执行 deb 安装、Linux arm64 应用、Windows/macOS 安装或应用启动，没有核验 Authenticode/Developer ID/公证，不关闭 macOS/APFS 技能安装或完整首发功能门禁。
