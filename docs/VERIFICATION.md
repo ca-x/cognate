@@ -254,3 +254,13 @@ Claude/Linux 手动 CLI 配置工作流 C1 的独立候选 tree `feb621b2baf1a4f
 实际交付的 Build `40866724425` completed/failure：全仓测试、amd64 OCI 与其余五组二进制成功，但 Linux arm64 二进制及 arm64 OCI 在 `internal/configapply/native_publish_linux.go:35` 编译失败。该架构的 `unix.Stat_t.Nlink` 为 uint32，而受控文件身份的 Links 为 uint64；此前九项主线程构建未包含 Linux arm64，不能拿其绿色声称六目标全覆盖。主线程在原不可变导出中以 Linux arm64 真正复现相同编译错误，保留原 CI 与本地 RED；需要单独修复显式类型转换并验证，而不是重跑原提交掩盖失败。
 
 已接受的密钥入口实施计划支持后续 CLI 与 MyGo 两个不相交写集并行；本地备份快照实施计划也已接受。此处只记录设计与后续实施边界，不提前签收入口迁移、原生配置 UI、完整备份/S3/恢复或首个正式 Release。
+
+## MyGo Explicit Client-Key Entrypoints Checkpoint
+
+2026-10-29，MyGo 密钥入口迁移已按精确十三路径独立 Spec/Quality PASS，零开放 finding，并以 `3fc1326ec84a170e095f30c1c85602d8441752b1` 提交、SSH 推送及远端读回。交付 tree 为 `1f1c694f2d7c0b128b4b0c5e9cf5a3281f6c24ea`；相对文档基线 `c24710d056f484d872e650f183ffde502f322e3e` 的十三项 blob/mode 均等于已签候选，其余沿用基线。客户端显式初始化持久密钥；已有密钥加载不再隐式创建，缺失或不确定状态须明确恢复。异步准入、取消后真实排空、generation 以及关闭错误保持原权限和生命周期边界；这不是 MyGo 配置编辑或应用界面的完成声明。
+
+非作者独立执行 desktop/clientkey 测试、vet、自建 late-key-loss、真实 drain、排队 generation、异步隐私及初始化释放失败 oracle；五项负控均编译成功后产生有限断言 RED，恢复后 GREEN。另以隔离 HOME/runtime 的私有 Cage/headless Wayland 实际启动生产 MyGo 窗口、捕获并正常退出；账号初始化的鼠标/键盘与截图仍是 `ui.NewTester` 证据，不冒称物理桌面或该原生窗口的账号输入验收。
+
+主线程在新鲜组合导出中执行 npm ci/build、全仓 Go tests/vet、模块校验、六平台乘 CLI/server/MyGo 共十八项 CGO0 构建，全部退出 0；另核 Buf 双模板生成一致、客户端依赖不含服务端或 moejs。非作者机械复核全部 931 项 tracked blob/mode 及十八个产物的 Go1.27.3/CGO0/平台元数据；这不是独立重跑主线程全量测试。交付的 Build `40888776765` 已实际观察 completed/success，九个 job 全部成功，包括双架构 OCI；交叉构建不证明非 Linux 实际运行。
+
+前述 Linux arm64 类型错误另以 `656c211d01a9d7d2632c5cee12b49f6fb3229ca9` 的显式 uint64 转换修复，Build `40869447717` completed/success；原失败 `40866724425` 保留，不能用新提交绿色改写旧结果。CLI 密钥入口另片、MyGo 原生配置 UI、完整十四 agent、导入/Pack 配置附件/自动应用、备份/S3/恢复及跨平台运行门禁仍需各自关闭；目前无正式 tag/Release。
