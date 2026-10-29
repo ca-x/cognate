@@ -19,6 +19,11 @@ func TestRepresentativeTimeoutDoesNotStarveNextRepository(t *testing.T) {
 			<-ctx.Done()
 			return nil, ctx.Err()
 		}
+		select {
+		case <-time.After(250 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 		return snapshot, nil
 	})
 	worker := newScheduler(t, fixture, fetcher, Options{Timeout: 200 * time.Millisecond, MaxCollections: 1})
@@ -28,7 +33,7 @@ func TestRepresentativeTimeoutDoesNotStarveNextRepository(t *testing.T) {
 	if err := worker.Close(); err != nil {
 		t.Fatal(err)
 	}
-	worker = newScheduler(t, fixture, fetcher, Options{Timeout: 200 * time.Millisecond, MaxCollections: 1})
+	worker = newScheduler(t, fixture, fetcher, Options{Timeout: 3 * time.Second, MaxCollections: 1})
 	secondErr := worker.RunOnce(t.Context())
 	if len(attempted) != 2 || attempted[0] != "org/skill-0" || attempted[1] != "org/skill-2" {
 		t.Fatalf("deadline-exhausting archive starved the next repository across restart: attempted=%v, second error=%v", attempted, secondErr)
