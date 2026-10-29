@@ -23,10 +23,11 @@ import (
 )
 
 type ArchiveCache struct {
-	root       *os.Root
-	filesystem afero.Fs
-	directory  string
-	maxBytes   int64
+	root        *os.Root
+	filesystem  afero.Fs
+	directory   string
+	maxBytes    int64
+	maintenance *cacheMaintenance
 }
 
 const DefaultCacheBytes int64 = 512 << 20
@@ -36,7 +37,10 @@ var (
 	ErrCachePolicy = errors.New("repository archive cache budget does not match its persisted policy")
 )
 
-type CacheOptions struct{ MaxBytes int64 }
+type CacheOptions struct {
+	MaxBytes           int64
+	MaintenanceManaged bool
+}
 
 func OpenArchiveCache(directory string) (*ArchiveCache, error) {
 	return OpenArchiveCacheWithOptions(context.Background(), directory, CacheOptions{})
@@ -52,27 +56,54 @@ func OpenArchiveCacheWithOptions(ctx context.Context, directory string, options 
 	if options.MaxBytes < 0 || options.MaxBytes > 1<<40 {
 		return nil, fmt.Errorf("repository archive cache budget must be positive and at most 1 TiB")
 	}
+	var managed *cacheMaintenance
+	releaseStartup := func() {}
+	if options.MaintenanceManaged {
+		var err error
+		ctx, managed, releaseStartup, err = beginCacheMaintenance(ctx, directory)
+		if err != nil {
+			return nil, err
+		}
+	}
+	retained := false
+	var opened *os.Root
+	var startupLock io.Closer
+	defer func() {
+		var closeError error
+		if !retained && opened != nil {
+			closeError = opened.Close()
+		}
+		if startupLock != nil {
+			_ = startupLock.Close()
+		}
+		releaseStartup()
+		if !retained && managed != nil && closeError == nil {
+			_ = managed.instance.Close()
+		}
+	}()
 	root, err := state.OpenPrivateDirectory(directory)
 	if err != nil {
 		return nil, fmt.Errorf("open repository archive cache")
 	}
-	cache := &ArchiveCache{root: root, filesystem: skill.RootedFS(root), directory: directory, maxBytes: options.MaxBytes}
+	opened = root
+	if managed != nil {
+		managed.physicalRoot = root
+	}
+	cache := &ArchiveCache{root: root, filesystem: skill.RootedFS(root), directory: directory, maxBytes: options.MaxBytes, maintenance: managed}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	lock, err := filelock.Acquire(ctx, filepath.Join(directory, ".cache.lock"))
 	if err != nil {
-		_ = root.Close()
 		return nil, err
 	}
-	defer lock.Close()
+	startupLock = lock
 	if err := cache.verifyDirectory(); err != nil {
-		_ = root.Close()
 		return nil, err
 	}
 	if err := cache.checkPolicy(true); err != nil {
-		_ = root.Close()
 		return nil, err
 	}
+	retained = true
 	return cache, nil
 }
 
@@ -83,6 +114,11 @@ func (cache *ArchiveCache) Put(ctx context.Context, hash string, data []byte) er
 	if !validArchiveHash(hash) || len(data) == 0 || len(data) > repository.MaxArchiveBytes || archiveHash(data) != hash {
 		return fmt.Errorf("invalid repository archive content")
 	}
+	ctx, release, err := cache.enterWriter(ctx)
+	if err != nil {
+		return err
+	}
+	defer release()
 	lock, err := filelock.Acquire(ctx, filepath.Join(cache.directory, ".cache.lock"))
 	if err != nil {
 		return err
@@ -166,9 +202,19 @@ func (cache *ArchiveCache) copyVerified(ctx context.Context, hash string, destin
 	return nil
 }
 
-func (cache *ArchiveCache) Close() error { return cache.root.Close() }
+func (cache *ArchiveCache) Close() error {
+	if cache.maintenance != nil {
+		return cache.maintenance.close()
+	}
+	return cache.root.Close()
+}
 
 func (cache *ArchiveCache) verifyDirectory() error {
+	if cache.maintenance != nil {
+		if err := cache.maintenance.verifyParent(cache.directory); err != nil {
+			return err
+		}
+	}
 	entry, err := os.Lstat(cache.directory)
 	if err != nil {
 		return fmt.Errorf("inspect repository archive directory")
