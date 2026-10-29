@@ -73,6 +73,16 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 				}
 			}
 			var maxBytes int64 = 4096
+			if strings.HasPrefix(request.URL.Path, nativeServicePath) {
+				maxBytes = nativeMaxWireBytes
+				if nativeBootstrapProcedure(request.URL.Path) {
+					maxBytes = nativeBootstrapMaxBytes
+					if !budget.allow() {
+						header.Set("Content-Type", "application/json")
+						return ctx.String(http.StatusTooManyRequests, `{"code":"resource_exhausted","message":"native capacity exhausted"}`)
+					}
+				}
+			}
 			switch request.URL.Path {
 			case configurationv1connect.ConfigurationServiceListAssetsProcedure,
 				configurationv1connect.ConfigurationServiceGetAssetProcedure,

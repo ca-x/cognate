@@ -20,6 +20,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
 	"github.com/ca-x/cognate/internal/server/mcpserver"
+	"github.com/ca-x/cognate/internal/server/nativeconsumer"
 	"github.com/ca-x/cognate/internal/server/oidclogin"
 	"github.com/ca-x/cognate/internal/server/packs"
 	"github.com/ca-x/cognate/internal/server/publiccatalog"
@@ -37,19 +38,20 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
-	Configuration *configuration.Service
-	PublicOrigin  string
-	Store         *state.Store
-	GitHubClient  *http.Client
-	WebUI         http.Handler
-	GitHubDevice  *githubauth.Service
-	OIDC          *oidclogin.Manager
-	Library       *library.Service
-	Imports       *ImportHandler
-	Packs         *packs.Service
-	MCPAccess     *mcpaccess.Service
-	MCP           *mcpserver.Server
-	PublicCatalog *publiccatalog.Service
+	NativeConfiguration *nativeconsumer.Service
+	Configuration       *configuration.Service
+	PublicOrigin        string
+	Store               *state.Store
+	GitHubClient        *http.Client
+	WebUI               http.Handler
+	GitHubDevice        *githubauth.Service
+	OIDC                *oidclogin.Manager
+	Library             *library.Service
+	Imports             *ImportHandler
+	Packs               *packs.Service
+	MCPAccess           *mcpaccess.Service
+	MCP                 *mcpserver.Server
+	PublicCatalog       *publiccatalog.Service
 }
 
 func NewWithOptions(service *auth.Service, options Options) http.Handler {
@@ -73,9 +75,15 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	authentication := &authHandler{service: service, oidc: options.OIDC}
 	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
 	server.Any(path+"*", echo.WrapHandler(handler))
+	var nativeRequests http.Handler
 	if options.Configuration != nil {
 		path, handler := configurationTransport(&configurationHandler{auth: authentication, service: options.Configuration})
 		server.Any(path+"*", echo.WrapHandler(handler))
+	}
+	if options.NativeConfiguration != nil && nativeOriginValid(options.PublicOrigin) && options.NativeConfiguration.Origin() == options.PublicOrigin {
+		path, handler := nativeConfigurationTransport(&nativeConfigurationHandler{auth: authentication, service: options.NativeConfiguration})
+		server.Any(path+"*", echo.WrapHandler(handler))
+		nativeRequests = nativeConfigurationRequests(options.NativeConfiguration, server)
 	}
 	if options.Store != nil {
 		path, handler := githubv1connect.NewGitHubServiceHandler(&githubHandler{auth: authentication, store: options.Store, client: options.GitHubClient, device: options.GitHubDevice, slots: make(chan struct{}, 2)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(8<<20))
@@ -112,6 +120,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 		server.Any("/*", echo.WrapHandler(options.WebUI))
 	}
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if nativeRequests != nil && strings.HasPrefix(request.URL.Path, nativeServicePath) {
+			nativeRequests.ServeHTTP(writer, request)
+			return
+		}
 		if options.MCP != nil && request.URL.Path == mcpserver.Path {
 			options.MCP.ServeHTTP(writer, request)
 			return

@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ca-x/cognate/internal/nativesessionauth"
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/configuration"
@@ -24,6 +25,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
 	"github.com/ca-x/cognate/internal/server/mcpserver"
+	"github.com/ca-x/cognate/internal/server/nativeconsumer"
 	"github.com/ca-x/cognate/internal/server/oidclogin"
 	"github.com/ca-x/cognate/internal/server/packs"
 	"github.com/ca-x/cognate/internal/server/publiccatalog"
@@ -63,6 +65,7 @@ type App struct {
 	scheduler     *scheduler.Scheduler
 	sourceRefresh *sourcerefresh.Worker
 	imports       *httpapi.ImportHandler
+	native        *nativeconsumer.Service
 }
 
 func Open(ctx context.Context, config Config) (*App, error) {
@@ -235,11 +238,21 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		_ = app.Close()
 		return nil, err
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store)})
+	if tlsConfig != nil && strings.HasPrefix(config.PublicOrigin, "https://") && nativesessionauth.ValidServerOrigin(config.PublicOrigin) {
+		app.native, err = nativeconsumer.New(store, service, key, config.PublicOrigin)
+		if err != nil {
+			_ = app.Close()
+			return nil, err
+		}
+	}
+	app.handler = httpapi.NewWithOptions(service, httpapi.Options{PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
 	return app, nil
 }
 
 func (app *App) Close() error {
+	if app.native != nil {
+		app.native.Close()
+	}
 	if app.sourceRefresh != nil {
 		_ = app.sourceRefresh.Close()
 	}
@@ -292,6 +305,12 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) error {
 		if !ok || !address.IP.IsLoopback() {
 			return fmt.Errorf("non-loopback HTTP requires TLS or explicit --allow-http for a trusted private network")
 		}
+	}
+	if app.native != nil {
+		if err := app.native.Start(ctx); err != nil {
+			return err
+		}
+		defer app.native.Close()
 	}
 	if app.scheduler != nil {
 		if err := app.scheduler.Start(ctx); err != nil {
