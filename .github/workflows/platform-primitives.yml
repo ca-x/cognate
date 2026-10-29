@@ -104,6 +104,7 @@ jobs:
       - name: Create two disposable real APFS volumes (no fallback)
         shell: python {0}
         run: |
+          import errno
           import json
           import os
           from pathlib import Path
@@ -112,6 +113,34 @@ jobs:
 
           root = Path(os.environ["COGNATE_BASELINE_ROOT"])
           receipts = {}
+          def operation(command, role, stage, timeout):
+              diagnostic = receipts["operation"] = {"role": role, "stage": stage, "exit": 0, "exit_known": False,
+                                                     "output_limited": False, "class": "unconfirmed"}
+              try:
+                  result = subprocess.run(command, capture_output=True, timeout=timeout)
+              except subprocess.TimeoutExpired:
+                  diagnostic["class"] = "timeout"
+                  raise RuntimeError("APFS fixture operation timed out") from None
+              except OSError as error:
+                  diagnostic["class"] = {errno.ENOENT: "launch-missing", errno.EACCES: "launch-permission"}.get(
+                      error.errno, "launch-failed")
+                  raise RuntimeError("APFS fixture operation unavailable") from None
+              diagnostic["exit"] = result.returncode
+              diagnostic["exit_known"] = True
+              diagnostic["output_limited"] = len(result.stdout) + (0 if stage == "identity" else len(result.stderr)) > 65536
+              diagnostic["class"] = "success"
+              if diagnostic["output_limited"]:
+                  diagnostic["class"] = "output-limit"
+              elif result.returncode != 0:
+                  diagnostic["class"] = "nonzero"
+                  if stage in {"create", "attach"}:
+                      prefix = ("hdiutil: " + stage + " failed - ").encode()
+                      for message, category in [(b"Resource busy", "resource-busy"), (b"Invalid argument", "invalid-argument"),
+                                                (b"Permission denied", "permission-denied"), (b"Operation not permitted", "not-permitted"),
+                                                (b"No space left on device", "no-space"), (b"Operation not supported", "not-supported")]:
+                          if result.stderr in {prefix + message, prefix + message + b"\n"}:
+                              diagnostic["class"] = category
+              return result
           try:
               for label, kind in [("sensitive", "APFSX"), ("insensitive", "APFS")]:
                   receipt = receipts[label] = {}
@@ -123,18 +152,26 @@ jobs:
                   ]
                   for stage, command in commands:
                       receipt[stage + "_started"] = True
-                      result = subprocess.run(command, capture_output=True, timeout=45)
+                      result = operation(command, label, stage, 45)
                       receipt[stage + "_exit"] = result.returncode
                       if result.returncode != 0 or len(result.stdout) + len(result.stderr) > 65536:
                           raise RuntimeError("APFS fixture operation failed")
                   receipt["mounted"] = os.path.ismount(root / label)
-                  info = subprocess.run(["diskutil", "info", "-plist", str(root / label)], capture_output=True, timeout=15)
+                  info = operation(["diskutil", "info", "-plist", str(root / label)], label, "identity", 15)
                   receipt["diskutil_exit"] = info.returncode
                   if info.returncode != 0 or len(info.stdout) > 65536 or not receipt["mounted"]:
+                      if info.returncode == 0 and len(info.stdout) <= 65536 and not receipt["mounted"]:
+                          receipts["operation"]["class"] = "not-mounted"
                       raise RuntimeError("APFS identity receipt unavailable")
-                  parsed = plistlib.loads(info.stdout)
-                  receipt["apfs"] = parsed.get("FilesystemType") == "apfs"
+                  try:
+                      parsed = plistlib.loads(info.stdout)
+                      apfs = parsed.get("FilesystemType") == "apfs"
+                  except Exception:
+                      receipts["operation"]["class"] = "invalid-identity"
+                      raise RuntimeError("APFS identity receipt unavailable") from None
+                  receipt["apfs"] = apfs
                   if not receipt["apfs"]:
+                      receipts["operation"]["class"] = "not-apfs"
                       raise RuntimeError("APFS identity mismatch")
           finally:
               (root / "evidence" / "volume-capability.json").write_text(json.dumps(receipts, indent=2) + "\n")
@@ -292,6 +329,7 @@ jobs:
         if: always()
         shell: python {0}
         run: |
+          import errno
           import json
           import os
           from pathlib import Path
@@ -304,6 +342,7 @@ jobs:
           root = Path(value)
           receipts = {}
           failed = False
+          auxiliary_failures = []
           capability_path = root / "evidence" / "volume-capability.json"
           capabilities = json.loads(capability_path.read_text()) if capability_path.exists() else {}
           for label in ["sensitive", "insensitive"]:
@@ -331,9 +370,14 @@ jobs:
           for relative in ["home", "config", "data", "cache", "tmp", "gopath", "go-build", "bin"]:
               try:
                   shutil.rmtree(root / relative)
-              except OSError:
+              except OSError as error:
                   failed = True
-          (root / "evidence" / "cleanup.json").write_text(json.dumps({"failed": failed, "volumes": receipts}, indent=2) + "\n")
+                  category = {errno.ENOENT: "missing", errno.EACCES: "permission-denied", errno.EPERM: "not-permitted",
+                              errno.EBUSY: "resource-busy", errno.ENOTDIR: "not-directory", errno.ENOTEMPTY: "not-empty",
+                              errno.EROFS: "read-only", errno.EIO: "io"}.get(error.errno, "other")
+                  auxiliary_failures.append({"role": relative, "class": category})
+          (root / "evidence" / "cleanup.json").write_text(json.dumps(
+              {"failed": failed, "volumes": receipts, "auxiliary_failures": auxiliary_failures}, indent=2) + "\n")
           if failed:
               raise SystemExit("BLOCKED: owned fixture cleanup incomplete")
       - name: Always seal finite baseline evidence
@@ -378,11 +422,62 @@ jobs:
                   if len(data) != before.st_size or identity(before) != identity(after):
                       raise ValueError("changed evidence object")
                   return data
+          def receipt_json(data):
+              def unique(pairs):
+                  result = {}
+                  for key, value in pairs:
+                      if key in result:
+                          raise ValueError("duplicate receipt field")
+                      result[key] = value
+                  return result
+              return json.loads(data, object_pairs_hook=unique)
+          def volume_receipt(data=None):
+              unknown = {"classification": "operation-unconfirmed"}
+              try:
+                  parsed = receipt_json(read_file("volume-capability.json") if data is None else data)
+                  if not {"sensitive", "operation"} <= set(parsed) or set(parsed) - {"sensitive", "insensitive", "operation"}:
+                      return unknown
+                  operation = parsed["operation"]
+                  if set(operation) != {"role", "stage", "exit", "exit_known", "output_limited", "class"}:
+                      return unknown
+                  if operation["role"] not in {"sensitive", "insensitive"} or operation["role"] not in parsed:
+                      return unknown
+                  if operation["stage"] not in {"create", "attach", "identity"}:
+                      return unknown
+                  if operation["class"] not in {"unconfirmed", "success", "nonzero", "output-limit", "timeout",
+                                                "launch-missing", "launch-permission", "launch-failed", "resource-busy",
+                                                "invalid-argument", "permission-denied", "not-permitted", "no-space",
+                                                "not-supported", "not-mounted", "invalid-identity", "not-apfs"}:
+                      return unknown
+                  if type(operation["output_limited"]) is not bool or type(operation["exit_known"]) is not bool:
+                      return unknown
+                  if type(operation["exit"]) is not int or not -255 <= operation["exit"] <= 255:
+                      return unknown
+                  unknown_exit = {"unconfirmed", "timeout", "launch-missing", "launch-permission", "launch-failed"}
+                  if operation["exit_known"]:
+                      if operation["class"] in unknown_exit:
+                          return unknown
+                  elif operation["exit"] != 0 or operation["class"] not in unknown_exit:
+                      return unknown
+                  for role in set(parsed) - {"operation"}:
+                      receipt = parsed[role]
+                      if not isinstance(receipt, dict) or not receipt or set(receipt) - {
+                              "create_started", "create_exit", "attach_started", "attach_exit", "mounted", "diskutil_exit", "apfs"}:
+                          return unknown
+                      for key, value in receipt.items():
+                          if key.endswith("_exit"):
+                              if type(value) is not int or not -255 <= value <= 255:
+                                  return unknown
+                          elif type(value) is not bool:
+                              return unknown
+                  return parsed
+              except Exception:
+                  return unknown
           def cleanup_receipt(data=None):
               unknown = {"classification": "cleanup-unconfirmed"}
               try:
-                  parsed = json.loads(read_file("cleanup.json") if data is None else data)
-                  if set(parsed) != {"failed", "volumes"} or type(parsed["failed"]) is not bool:
+                  parsed = receipt_json(read_file("cleanup.json") if data is None else data)
+                  if set(parsed) != {"failed", "volumes", "auxiliary_failures"} or type(parsed["failed"]) is not bool:
                       return unknown
                   if set(parsed["volumes"]) != {"sensitive", "insensitive"}:
                       return unknown
@@ -397,6 +492,21 @@ jobs:
                                   return unknown
                           elif type(value) is not bool:
                               return unknown
+                  failures = parsed["auxiliary_failures"]
+                  if not isinstance(failures, list) or len(failures) > 8:
+                      return unknown
+                  seen = set()
+                  for failure in failures:
+                      if set(failure) != {"role", "class"} or failure["role"] not in {
+                              "home", "config", "data", "cache", "tmp", "gopath", "go-build", "bin"}:
+                          return unknown
+                      if failure["role"] in seen or failure["class"] not in {
+                              "missing", "permission-denied", "not-permitted", "resource-busy", "not-directory",
+                              "not-empty", "read-only", "io", "other"}:
+                          return unknown
+                      seen.add(failure["role"])
+                  if failures and not parsed["failed"]:
+                      return unknown
                   return parsed
               except Exception:
                   return unknown
@@ -416,7 +526,8 @@ jobs:
                       if total > 12 << 20:
                           raise ValueError("total evidence limit")
                       payloads[entry.name] = data
-              if set(payloads) != set(allow) or "classification" in cleanup_receipt(payloads["cleanup.json"]):
+              if (set(payloads) != set(allow) or "classification" in cleanup_receipt(payloads["cleanup.json"])
+                      or "classification" in volume_receipt(payloads["volume-capability.json"])):
                   raise ValueError("incomplete evidence")
               expected = [{"test": name, "raw_exit": 0 if index < 2 else 1,
                            "classification": "capability-pass" if index < 2 else "baseline-unsupported-assertion-RED"}
@@ -429,7 +540,9 @@ jobs:
           except Exception:
               rejected = True
               payloads = {
-                  "refusal.json": b'{"classification":"evidence-rejected","reason":"invalid-or-incomplete-evidence"}\n',
+                  "refusal.json": (json.dumps({"classification": "evidence-rejected", "reason": "invalid-or-incomplete-evidence",
+                                               "operation": volume_receipt().get("operation", {"classification": "operation-unconfirmed"})},
+                                              sort_keys=True) + "\n").encode(),
                   "cleanup.json": (json.dumps(cleanup_receipt(), sort_keys=True) + "\n").encode(),
               }
           finally:
