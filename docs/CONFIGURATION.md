@@ -1,6 +1,6 @@
 # AI 配置资产
 
-> 2026-10-29：Claude 私有 provider 资产编辑首片已独立验收并提交于 `f659706`；本文不代表完整十四类 agent 配置或原生应用已经交付，完整证据与后续状态见 `VERIFICATION.md`。
+> 2026-10-30：Claude 私有 provider 资产管理已有 Web 入口；Linux 手动 CLI 配置工作流已在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo 配置界面、其它 agent 的完整配置及非 Linux 应用仍未交付；完整证据与后续状态见 `VERIFICATION.md`。
 
 Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前实现先提供 **Claude Code provider 的私有资产管理**；保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
 
@@ -30,11 +30,22 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 
 目标适配器只在服务端通过 moejs 执行，CLI/MyGo 不执行插件。已提交的 Claude `claude.provider-switch.v1` 支持七键声明式变更，包括删除旧认证和未选择的受管模型项；真实秘密和旧 env 不进入 JS，Go 宿主独立验证结果。旧四键 additive renderer 继续保留，但不能替代新能力，也不能单凭 renderer 成功声称本机已应用。
 
-已交付的本地 JSON codec 仅在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；它不自行读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离；服务端原生消费 endpoint 已接入，但客户端选择、受控文件发布及恢复仍未接通，不构成“可应用”状态。
+本地 JSON codec 在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；codec 本身不读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离；实际授权、受控发布和恢复由独立消费/应用内核及下述 Linux CLI 流程执行，不能把单独的 codec 成功当成已应用。
+
+## Linux 手动 CLI 应用与恢复
+
+先显式运行 `cognate client-key init`，并单独安全备份本机密钥。配置命令只加载已有密钥，不隐式创建替代；初始化及安全输出限制见 `CLIENT-SUBSCRIPTIONS.md`。
+
+- `cognate config apply` 默认只预览。需明确指定服务端 origin、owner、资产 ID/revision、本机 profile 和 `claude.settings` 目标；会话仅由 `--token-stdin` 从有界非 TTY 标准输入读取，不作为命令行参数或日志输出。服务端敏感消费接口的实际 TLS 要求仍适用。
+- 增加 `--apply` 才进入真实控制 TTY 的逐凭据槽批准和最终计划确认；没有槽也需最终确认。网络与人类等待不持本地安装/目标锁；确认后重新检查文件基线、版本及目标身份，不覆盖并发本地修改。
+- `cognate config status --operation OPERATION_ID` 查询本地持久化状态。远端消费或本地写入结果未知时不能重放秘密；取消、超时及丢失回执不代表回滚。
+- `cognate config restore --source-operation OPERATION_ID` 默认预览恢复，增加 `--apply` 后仍需独立确认并重开校验 CAS。恢复是受控的本机操作，不等于服务端整库备份、S3 或任意文件恢复。
+
+当前限 Claude/provider/schema1 和 Linux；不表示 Codex 已可应用、MyGo 已有配置页面，或配置随 Pack 自动应用。每次命令有总期限，`--timeout` 须大于零且不超过五分钟；实际选项见 `cognate config apply --help`。
 
 ## Native 内部消费核心（Task2C）
 
-2026-10-29：`880cef72` 的内部核心与 `7d8eff15` 的敏感 HTTP/App 接线已分别通过精确源码的独立 Spec/Quality 验收并 SSH 推送。合成数据库、真实 owner MAC/Ed25519、真实服务端 moejs、SQLite 和 TLS 六 RPC 验证 Prepare→Authorize→Consume→Status 闭环；未接 CLI/MyGo 或本机应用。不是原生应用/F12/完整首发完成。
+2026-10-29：`880cef72` 的内部核心与 `7d8eff15` 的敏感 HTTP/App 接线已分别通过精确源码的独立 Spec/Quality 验收并 SSH 推送。合成数据库、真实 owner MAC/Ed25519、真实服务端 moejs、SQLite 和 TLS 六 RPC 验证 Prepare→Authorize→Consume→Status 闭环；当时未接 CLI/MyGo 或本机应用。后续 Linux 手动 CLI 接线见上文，不代表 MyGo、完整 F12 或首发完成。
 
 Prepare 先固定版本与安全七槽 patch，Authorize 后才绑定完整 intent；API key、Auth token 分别验证精确一次原文返回，native-login 不生成 grant。凭据与配置同处一个加密 envelope，其版本由资产 CAS revision 覆盖，没有独立 credential_version。普通 Web/配置 CRUD/MCP 不获得秘密。
 
@@ -48,4 +59,4 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 
 六个接口仅接受 Connect unary protobuf POST，不接受 JSON、GET/query、gRPC-Web、压缩请求、浏览器 Origin/Sec-Fetch 或 cookie 认证。Begin/Bind 使用 owner bearer，其余只接受绑定的 native-purpose 子会话。响应及错误均 no-store；八个并发槽与 20 秒预算从 body 读取前覆盖解码、实际响应写出和取消排空，显式 Flush 不逃出计数。响应丢失不能重发秘密；proof 是持钥证明，不是官方客户端 attestation。详细合同见 `superpowers/plans/2026-10-29-native-configuration-transport.md`。
 
-来源配置导入、十四类 agent 的完整专属交互、期望选择与 Pack 附件、原生预览/安全发布/备份/恢复，以及明确选择后的自动应用仍为后续门禁。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以本首片缩减首发范围。
+来源配置导入、十四类 agent 的完整专属交互、Pack 配置附件、MyGo 配置选择/预览/应用/恢复界面、非 Linux 实际应用，以及明确选择后的自动应用仍为后续门禁。Linux 手动 CLI 的受控发布与恢复不替代这些能力。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以已交付部分缩减首发范围。

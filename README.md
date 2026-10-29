@@ -2,7 +2,7 @@
 
 原名 SkillHub；仓库已迁移至 `ca-x/cognate`。命名与已有数据/协议的兼容策略见 `docs/COGNATE-RENAME.md`。
 
-Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：支持仓库浏览与实验性本地安装，服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量与公开 GitHub 仓库收录，并提供 Web 面板与 Pack 分享/流式分发。Linux 客户端已接通 Pack 订阅、跨组合去重、显式同步与备份卸载。匿名公开目录/分类、免 token 安装、MCP token 管理及 Web 主题/中英文切换已通过各自限定范围的独立验收；整合验证方法与边界见 `docs/VERIFICATION.md`。完整导入、源自动更新和 MyGo 桌面 GUI 仍在开发，尚未发布首个可用版本。
+Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量、获授权的公开与私有 GitHub 仓库收录及来源更新，并提供 Web 面板与 Pack 分享/流式分发。Linux CLI 与 MyGo 客户端已有 Pack 订阅、跨组合去重、显式/持续同步与备份卸载；Claude 配置另有 Linux 手动 CLI 预览、批准应用和恢复。匿名公开目录/分类、免 token 安装、MCP token 管理及 Web 主题/中英文切换已通过各自限定范围的独立验收；整合验证方法与边界见 `docs/VERIFICATION.md`。完整配置导入、配置随 Pack 分发和自动应用、MyGo 配置界面及非 Linux 实际安装仍在开发，尚未发布首个正式版本。
 
 ## CLI
 
@@ -69,9 +69,9 @@ install -d -m 700 "$HOME/.config/skillhub"
 
 首次创建密钥只执行一次，已有服务不要覆盖密钥。浏览器打开 `http://127.0.0.1:8080`，创建本地账号后可在“仓库”页直接添加公开 GitHub 仓库，填写 `owner/repo` 或 HTTPS 地址及可选分支。服务端下载整仓归档，扫描到至少一个有效技能后保存内容和元数据；可浏览名称、描述、文件路径和内容 hash。留空分支或填写 `HEAD` 均使用默认分支；重复收录保持原快照，不表示已更新源。
 
-“组合”页可跨仓库挑选技能、设置安装别名、编辑或删除 Pack，并创建可过期/撤销的分享。分享令牌只在创建时显示一次，隐藏后无法重新查看；请仅交给获授权的订阅者。分享跟随组合的最新版本，客户端仅通过服务端的 Connect 分发接口获取 manifest 和选中技能归档，不接触 GitHub token。Linux CLI 已接通订阅与显式同步；持续客户端调度和 MyGo 原生界面仍待完成。协议与当前边界见 `docs/PACK-DISTRIBUTION.md` 和 `docs/CLIENT-SUBSCRIPTIONS.md`。
+“组合”页可跨仓库挑选技能、设置安装别名、编辑或删除 Pack，并创建可过期/撤销的分享。分享令牌只在创建时显示一次，隐藏后无法重新查看；请仅交给获授权的订阅者。分享跟随组合的最新版本，客户端仅通过服务端的 Connect 分发接口获取 manifest 和选中技能归档，不接触 GitHub token。Linux CLI 已接通订阅、显式同步及前台 `pack watch`；MyGo 提供订阅管理和明确启停的后台同步，不会自动应用 AI 配置。协议与当前边界见 `docs/PACK-DISTRIBUTION.md`、`docs/CLIENT-SUBSCRIPTIONS.md` 和 `docs/DESKTOP.md`。
 
-也可先连接 GitHub、勾选 Star Lists，再从“仓库”页展开“从 GitHub Lists 收录仓库”，手动收录公开仓库内容。服务端已接通可配置的 Lists 定时同步、水位线跳过与公开来源自动收录；这不等于将仓库发布到匿名目录，也不表示已有快照会自动替换。私有内容获取和源内容自动更新仍待完成。管理员配置 `--github-client-id`（或 `SKILLHUB_GITHUB_CLIENT_ID`）后，可通过 GitHub 设备授权连接，无需粘贴 token；该 OAuth App 必须启用 device flow。也支持手动 token。网页登录态仅保留在内存，刷新后重新登录。
+也可先连接 GitHub、勾选 Star Lists，再从“仓库”页展开“从 GitHub Lists 收录仓库”。服务端已有 Lists 定时同步、水位线跳过、获授权的私有来源收录，以及独立的手动/周期来源刷新；私有内容由服务端当前 owner 凭据获取，不向客户端传递 GitHub 凭据。重复收录本身不更新旧快照，Lists 元数据同步也不代替来源刷新；已发布仓库的内容变化会被拒绝，须显式取消公开、更新后重新确认发布。权限要求、更新边界和合成闭环证据见 `docs/SOURCE-REFRESH.md`；真实 GitHub 账号权限验收仍待完成。管理员配置 `--github-client-id`（或 `SKILLHUB_GITHUB_CLIENT_ID`）后，可通过 GitHub 设备授权连接，无需粘贴 token；该 OAuth App 必须启用 device flow，但不会自动获得私有仓库权限。也支持手动 token。网页登录态仅保留在内存，刷新后重新登录。
 
 单次归档上限 32 MiB、普通文件合计 64 MiB、10000 个归档条目和 512 个技能；单个 SKILL.md 上限 1 MiB，不跟随符号/硬链接。归档缓存位于数据目录的 `archives/`，默认对象预算 512 MiB，首次初始化可用 `--archive-cache-bytes` 指定，预算计入中断残留；每用户最多 1000 个收录记录。预算保存在私有 `.cache-budget`，共享目录的所有实例必须配置一致，不支持在线改预算，也不要在运行中编辑该策略文件。当前尚无自动回收或归档修复：失败事务/进程中断可能保留无引用内容，但不能无限突破缓存预算。不要直接删除缓存对象；详情浏览与重复收录会重新核验内容完整性，发现丢失或损坏时明确报错，不静默覆盖旧快照。
 
