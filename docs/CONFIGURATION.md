@@ -30,16 +30,22 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 
 目标适配器只在服务端通过 moejs 执行，CLI/MyGo 不执行插件。已提交的 Claude `claude.provider-switch.v1` 支持七键声明式变更，包括删除旧认证和未选择的受管模型项；真实秘密和旧 env 不进入 JS，Go 宿主独立验证结果。旧四键 additive renderer 继续保留，但不能替代新能力，也不能单凭 renderer 成功声称本机已应用。
 
-已交付的本地 JSON codec 仅在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；它不自行读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离也已单独提供，但没有开放原生消费 endpoint，不构成“可应用”状态。
+已交付的本地 JSON codec 仅在 Go 内存中将声明式 patch 与受控凭据合并为 settings bytes，保留无关 JSON 内容；它不自行读取文件、授权获取秘密或写入本机。Native-purpose schema 与 Web 生成隔离；服务端原生消费 endpoint 已接入，但客户端选择、受控文件发布及恢复仍未接通，不构成“可应用”状态。
 
-## Native 内部存储候选（Task2C）
+## Native 内部消费核心（Task2C）
 
-2026-10-29：当前候选已由作者以合成数据库、真实 owner MAC/Ed25519、真实服务端 moejs 和真实 SQLite 验证内部 Prepare→Authorize→Consume→Status 闭环；仍须 exact-tree 独立验收，尚未注册 HTTP/App，也未接 CLI/MyGo 或本机应用。不是原生应用/F12/完整首发完成。
+2026-10-29：`880cef72` 的内部核心与 `7d8eff15` 的敏感 HTTP/App 接线已分别通过精确源码的独立 Spec/Quality 验收并 SSH 推送。合成数据库、真实 owner MAC/Ed25519、真实服务端 moejs、SQLite 和 TLS 六 RPC 验证 Prepare→Authorize→Consume→Status 闭环；未接 CLI/MyGo 或本机应用。不是原生应用/F12/完整首发完成。
 
 Prepare 先固定版本与安全七槽 patch，Authorize 后才绑定完整 intent；API key、Auth token 分别验证精确一次原文返回，native-login 不生成 grant。凭据与配置同处一个加密 envelope，其版本由资产 CAS revision 覆盖，没有独立 credential_version。普通 Web/配置 CRUD/MCP 不获得秘密。
 
-四张 native 表执行已审逐表及 parent/owner/instance 行数与字节硬额度（总额 56/416 KiB、128/896 KiB、512/3584 KiB），所有未物理删除的终态/过期项仍计费；这是逻辑 charge，不是 SQLite/WAL 或整库磁盘上限。真实 Logout 删除父 session 并级联全部后代，不受 GC 批额度阻止。有界 prune 已提供，30 秒生命周期调度仍待后续接线，不能因此宣称生产入口已启用。
+四张 native 表执行已审逐表及 parent/owner/instance 行数与字节硬额度（总额 56/416 KiB、128/896 KiB、512/3584 KiB），所有未物理删除的终态/过期项仍计费；这是逻辑 charge，不是 SQLite/WAL 或整库磁盘上限。真实 Logout 删除父 session 并级联全部后代，不受 GC 批额度阻止。有界 prune 在启用的 native 服务启动时运行，随后串行按 30 秒节拍调度；这是调度间隔，不是实际删除的实时 SLA。
 
 grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、不重放响应，已提交事实保留；Status 不回 token/hash/patch/value。检查与 driver COMMIT/return 之间不是原子保证，不能保证远端收包时身份仍有效。仅清理已知 owned buffer；Go 字符串、副本、GC 与 WAL 不允许宣称完全清零/物理擦除。raw generated DTO 仍不安全，禁止日志。冻结实施合同见 `superpowers/plans/2026-10-29-native-configuration-store.md`。
+
+## Native 传输与部署
+
+服务端同时配置 `--tls-cert`、`--tls-key` 和规范 HTTPS `--public-origin` 才启用 native 接口；请求必须实际使用 TLS。反向代理终止 TLS 后转发到 HTTP 后端暂不支持此接口，Host/Forwarded/X-Forwarded-* 不能替代受信 origin 或实际 TLS，不因此扩大代理信任。
+
+六个接口仅接受 Connect unary protobuf POST，不接受 JSON、GET/query、gRPC-Web、压缩请求、浏览器 Origin/Sec-Fetch 或 cookie 认证。Begin/Bind 使用 owner bearer，其余只接受绑定的 native-purpose 子会话。响应及错误均 no-store；八个并发槽与 20 秒预算从 body 读取前覆盖解码、实际响应写出和取消排空，显式 Flush 不逃出计数。响应丢失不能重发秘密；proof 是持钥证明，不是官方客户端 attestation。详细合同见 `superpowers/plans/2026-10-29-native-configuration-transport.md`。
 
 来源配置导入、十四类 agent 的完整专属交互、期望选择与 Pack 附件、原生预览/安全发布/备份/恢复，以及明确选择后的自动应用仍为后续门禁。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以本首片缩减首发范围。

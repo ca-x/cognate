@@ -7,6 +7,8 @@ on:
       - 'internal/install/**'
       - 'internal/skill/**'
       - 'internal/packclient/**'
+      - 'internal/server/maintenance/**'
+      - 'internal/server/state/**'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/platform-primitives.yml'
@@ -81,6 +83,12 @@ jobs:
             -run '^TestDarwin(IdentityPrimitives|TrustPrimitives|ProjectionLinkPrimitives|RenameNoReplacePrimitives)$' \
             ./internal/install | tee darwin.json
           go vet ./internal/install
+      - name: Store platform validation boundary (native execution)
+        run: |
+          set -euo pipefail
+          go test -count=1 -timeout=120s -json \
+            -run '^Test(ManagedStorePlatformValidationPrecedence|ManagedStorePlatformCheckPrecedesFilesystem|DefaultStoreRemainsOutsideManagedProtocol)$' \
+            ./internal/server/state | tee state-platform.json
       - name: Reject skipped or missing required tests
         shell: python {0}
         run: |
@@ -99,8 +107,13 @@ jobs:
                   "TestConcurrencyBudgetIsFailFastAndReusable", "TestPublicClientDoesNotFollowRedirects",
                   "TestPublicClientCancellationAndOriginBoundary",
               ],
+              "internal/server/state": [
+                  "TestManagedStorePlatformValidationPrecedence",
+                  "TestManagedStorePlatformCheckPrecedesFilesystem",
+                  "TestDefaultStoreRemainsOutsideManagedProtocol",
+              ],
           }
-          logs = [Path("common.json")]
+          logs = [Path("common.json"), Path("state-platform.json")]
           if os.environ["RUNNER_OS"] == "macOS":
               required["internal/install"] = [
                   "TestDarwinIdentityPrimitives", "TestDarwinTrustPrimitives",

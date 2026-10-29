@@ -2,6 +2,16 @@
 
 目标：完成需求文档全部功能并发布首个可用版本。首版尚未发布；M2–M7 不算完成。里程碑由独立用户代表验收，用户在首发后进行真人测试。
 
+## 2026-10-29 原生配置与维护闸
+
+- `880cef72` 已交付原生配置消费的服务内核：真实 owner MAC/Ed25519、SQLite 和服务端 moejs 串起 Prepare→Authorize→Consume→Status，API key/Auth token 各自精确一次消费，native-login 不生成秘密 grant。独立验收修复先读业务资产后验 proof 的错误顺序；先验权，最终事务仍完整复核。普通 Web/MCP 不获得秘密，未知提交或提交后取消不重发凭据。尚不等于 CLI/MyGo 本机配置应用。
+- `7d8eff15` 已交付实际 TLS 六 RPC 与 App 生命周期：严格 protobuf-only、八槽/20 秒、有界 body/wire 和串行 GC。独立复验关闭实际尾部响应写逃出占槽/预算，以及清理慢 body 改写拒绝类别的两个问题；真实生产 20 秒阻塞写、Close 排空、429/503/499、H1 keepalive/H2 六 RPC 和根因回退负控通过。只在规范 HTTPS origin 与本地 TLS 配对时启用，不支持代理终止后端 HTTP；proof 不是 attestation。干净组合全量/vet、Native 混排三轮、Buf/modules 和九次 CGO0 交叉构建通过。
+- `0c542727` 已交付显式 managed Store 的启动、全部数据库写者及 Close 维护租约；默认多 Store/多进程行为不变。native 外层逻辑重试与提交后结果发布也受租约保护。SQL 物理关闭失败保留实例锁和 closing 状态，重复 Close 不伪造恢复；非 Unix 在文件系统访问前固定拒绝。独立 Spec/Quality 及干净组合全量 Go/vet、Managed 混排、Buf 生成/兼容检查通过；这不是 archive cache/App 全资源屏障或可用备份。
+- `06eedca9` 的受控私有归档传输已独立验收并推送：服务端固定 GitHub API 认证，再以新请求访问受限 codeload 临时 URL；不将 Bearer 带到第二跳，不回退公共下载。metadata、Store 凭据/选择 proof、手动/Lists 收录与周期更新的完整私有源纵切片仍待接通，不能以下载 helper 代替 F1/F2/F5。
+- `5b3f80bc`/`cb4e1389` 增加并修复 Darwin 文件身份、信任和链接原语及三系统原生 CI；修复后的 Build `40792716610`、Platform `40792716603` completed/success，旧失败保留。非 Linux 安装、卸载、备份和恢复入口没有因此开放；跨平台原语与交叉构建不等于完整平台使用通过。
+
+后续按独占写集并行推进完整私有源、共享配置应用/恢复及 managed cache；所有阶段仍须独立验收、精确提交并 SSH 推送。十四类 agent、完整导入/Pack 附件、S3 真实恢复与平台实际安装的首发目标不缩减。
+
 ## 2026-10-29 公开来源持续同步
 
 - `556f6dee` 接通 MyGo 原生后台同步，默认关闭、显式启停，复用共享 Watch、每轮 fresh Manager，idle 不持安装锁。停止、换地址、退出和关窗取消并实际排空；UI 线程不等待后台，迟到回填被拒，运行/排空期间方法层也拒绝手动本地写入。独立真实 MyGo 事件、双 origin/三 Pack HTTP/锁、实际原生 main-process 循环与八项行为负控通过；不把 Linux 运行和六目标构建称为其他平台安装通过。
