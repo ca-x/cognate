@@ -70,6 +70,7 @@ jobs:
           values["COGNATE_APFS_SENSITIVE"] = str(root / "sensitive")
           values["COGNATE_APFS_INSENSITIVE"] = str(root / "insensitive")
           values["COGNATE_DARWIN_BINARY"] = str(root / "bin" / "cognate")
+          values["GOMODCACHE"] = str(root / "gopath" / "pkg" / "mod")
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as target:
               for name, value in values.items():
                   target.write(f"{name}={value}\n")
@@ -112,10 +113,12 @@ jobs:
           import subprocess
 
           root = Path(os.environ["COGNATE_BASELINE_ROOT"])
-          receipts = {}
+          receipts = {"creates": {}}
           def operation(command, role, stage, timeout):
               diagnostic = receipts["operation"] = {"role": role, "stage": stage, "exit": 0, "exit_known": False,
                                                      "output_limited": False, "class": "unconfirmed"}
+              if stage == "create":
+                  receipts["creates"][role] = diagnostic
               try:
                   result = subprocess.run(command, capture_output=True, timeout=timeout)
               except subprocess.TimeoutExpired:
@@ -142,6 +145,8 @@ jobs:
                               diagnostic["class"] = category
               return result
           try:
+              commands_by_role = {}
+              failed_create = None
               for label, kind in [("sensitive", "APFSX"), ("insensitive", "APFS")]:
                   receipt = receipts[label] = {}
                   commands = [
@@ -150,7 +155,21 @@ jobs:
                       ("attach", ["hdiutil", "attach", "-nobrowse", "-mountpoint", str(root / label),
                                   str(root / (label + ".sparseimage"))]),
                   ]
-                  for stage, command in commands:
+                  commands_by_role[label] = commands
+                  receipt["create_started"] = True
+                  try:
+                      result = operation(commands[0][1], label, "create", 45)
+                      receipt["create_exit"] = result.returncode
+                  except RuntimeError:
+                      pass
+                  if receipts["creates"][label]["class"] != "success" and failed_create is None:
+                      failed_create = receipts["creates"][label]
+              if failed_create is not None:
+                  receipts["operation"] = failed_create
+                  raise RuntimeError("APFS fixture operation failed")
+              for label in ["sensitive", "insensitive"]:
+                  receipt = receipts[label]
+                  for stage, command in commands_by_role[label][1:]:
                       receipt[stage + "_started"] = True
                       result = operation(command, label, stage, 45)
                       receipt[stage + "_exit"] = result.returncode
@@ -334,12 +353,114 @@ jobs:
           import os
           from pathlib import Path
           import shutil
+          import stat
           import subprocess
+          import time
 
+          def owned_root(root):
+              try:
+                  info = root.lstat()
+                  return (root.is_absolute() and str(root) == os.path.abspath(root) == os.path.realpath(root)
+                          and stat.S_ISDIR(info.st_mode) and info.st_uid == os.geteuid()
+                          and stat.S_IMODE(info.st_mode) == 0o700)
+              except OSError:
+                  return False
+          def clean_module_cache(root):
+              descriptors = []
+              try:
+                  if not owned_root(root) or os.environ.get("GOPATH") != str(root / "gopath") or os.environ.get("GOMODCACHE") != str(root / "gopath/pkg/mod"):
+                      return "unsafe-cache"
+                  flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK
+                  root_descriptor = os.open(root, flags)
+                  descriptors.append(root_descriptor)
+                  root_info = os.fstat(root_descriptor)
+                  if root_info.st_uid != os.geteuid() or stat.S_IMODE(root_info.st_mode) != 0o700:
+                      return "unsafe-cache"
+                  def open_owned(name, parent):
+                      descriptor = os.open(name, flags, dir_fd=parent)
+                      descriptors.append(descriptor)
+                      info = os.fstat(descriptor)
+                      if info.st_uid != os.geteuid() or info.st_dev != root_info.st_dev or info.st_mode & 0o022:
+                          raise ValueError("unsafe cache directory")
+                      return descriptor
+                  gopath_descriptor = open_owned("gopath", root_descriptor)
+                  deadline = time.monotonic() + 10
+                  checked = 0
+                  def inspect(descriptor, depth):
+                      nonlocal checked
+                      if depth > 64 or time.monotonic() > deadline:
+                          raise RuntimeError("cache inspection limit")
+                      with os.scandir(descriptor) as entries:
+                          for entry in entries:
+                              checked += 1
+                              if checked > 200000 or time.monotonic() > deadline:
+                                  raise RuntimeError("cache inspection limit")
+                              info = entry.stat(follow_symlinks=False)
+                              if info.st_uid != os.geteuid() or info.st_dev != root_info.st_dev or info.st_mode & 0o022:
+                                  raise ValueError("unsafe cache entry")
+                              if stat.S_ISDIR(info.st_mode):
+                                  child = os.open(entry.name, flags, dir_fd=descriptor)
+                                  try:
+                                      actual = os.fstat(child)
+                                      if ((info.st_dev, info.st_ino) != (actual.st_dev, actual.st_ino)
+                                              or actual.st_uid != os.geteuid() or actual.st_mode & 0o022):
+                                          raise ValueError("changed cache directory")
+                                      inspect(child, depth + 1)
+                                  finally:
+                                      os.close(child)
+                              elif not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                                  raise ValueError("unsafe cache object")
+                  inspect(gopath_descriptor, 0)
+                  try:
+                      pkg_descriptor = open_owned("pkg", gopath_descriptor)
+                      cache_descriptor = open_owned("mod", pkg_descriptor)
+                  except FileNotFoundError:
+                      return None
+                  def unchanged(path, descriptor):
+                      before = os.fstat(descriptor)
+                      after = path.lstat()
+                      if ((before.st_dev, before.st_ino, before.st_uid) != (after.st_dev, after.st_ino, after.st_uid)
+                              or not stat.S_ISDIR(after.st_mode) or after.st_uid != os.geteuid() or after.st_mode & 0o022):
+                          raise ValueError("changed cache identity")
+                  for path, descriptor in [(root, root_descriptor), (root / "gopath", gopath_descriptor),
+                                           (root / "gopath/pkg", pkg_descriptor), (root / "gopath/pkg/mod", cache_descriptor)]:
+                      unchanged(path, descriptor)
+                  for name in ["home", "tmp", "go-build"]:
+                      open_owned(name, root_descriptor)
+                  if not owned_root(root):
+                      return "unsafe-cache"
+                  environment = {"PATH": os.environ["PATH"], "HOME": str(root / "home"), "TMPDIR": str(root / "tmp"),
+                                 "GOPATH": str(root / "gopath"), "GOMODCACHE": str(root / "gopath/pkg/mod"),
+                                 "GOCACHE": str(root / "go-build"), "GOENV": "off", "GOWORK": "off", "GOTOOLCHAIN": "local",
+                                 "CGO_ENABLED": "0", "GOFLAGS": "", "GOPROXY": "off"}
+                  result = subprocess.run(["go", "clean", "-modcache"], cwd=root, env=environment,
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+                  if result.returncode != 0:
+                      return "cache-clean-failed"
+                  if not owned_root(root):
+                      return "unsafe-cache"
+                  for path, descriptor in [(root, root_descriptor), (root / "gopath", gopath_descriptor), (root / "gopath/pkg", pkg_descriptor)]:
+                      unchanged(path, descriptor)
+                  try:
+                      (root / "gopath/pkg/mod").lstat()
+                  except FileNotFoundError:
+                      return None
+                  return "cache-clean-failed"
+              except subprocess.TimeoutExpired:
+                  return "cache-clean-timeout"
+              except RuntimeError:
+                  return "cache-limit"
+              except (OSError, ValueError, KeyError):
+                  return "unsafe-cache"
+              finally:
+                  for descriptor in reversed(descriptors):
+                      os.close(descriptor)
           value = os.environ.get("COGNATE_BASELINE_ROOT")
           if value is None:
               raise SystemExit("BLOCKED: no isolated root cleanup receipt")
           root = Path(value)
+          if not owned_root(root):
+              raise SystemExit("BLOCKED: unsafe isolated cleanup root")
           receipts = {}
           failed = False
           auxiliary_failures = []
@@ -367,7 +488,13 @@ jobs:
                   except OSError:
                       receipt["remove_failed"] = True
                       failed = True
+          cache_failure = clean_module_cache(root)
+          if cache_failure is not None:
+              failed = True
+              auxiliary_failures.append({"role": "gopath", "class": cache_failure})
           for relative in ["home", "config", "data", "cache", "tmp", "gopath", "go-build", "bin"]:
+              if relative == "gopath" and cache_failure is not None:
+                  continue
               try:
                   shutil.rmtree(root / relative)
               except OSError as error:
@@ -435,31 +562,40 @@ jobs:
               unknown = {"classification": "operation-unconfirmed"}
               try:
                   parsed = receipt_json(read_file("volume-capability.json") if data is None else data)
-                  if not {"sensitive", "operation"} <= set(parsed) or set(parsed) - {"sensitive", "insensitive", "operation"}:
+                  if set(parsed) != {"sensitive", "insensitive", "operation", "creates"}:
                       return unknown
-                  operation = parsed["operation"]
-                  if set(operation) != {"role", "stage", "exit", "exit_known", "output_limited", "class"}:
-                      return unknown
-                  if operation["role"] not in {"sensitive", "insensitive"} or operation["role"] not in parsed:
-                      return unknown
-                  if operation["stage"] not in {"create", "attach", "identity"}:
-                      return unknown
-                  if operation["class"] not in {"unconfirmed", "success", "nonzero", "output-limit", "timeout",
-                                                "launch-missing", "launch-permission", "launch-failed", "resource-busy",
-                                                "invalid-argument", "permission-denied", "not-permitted", "no-space",
-                                                "not-supported", "not-mounted", "invalid-identity", "not-apfs"}:
-                      return unknown
-                  if type(operation["output_limited"]) is not bool or type(operation["exit_known"]) is not bool:
-                      return unknown
-                  if type(operation["exit"]) is not int or not -255 <= operation["exit"] <= 255:
-                      return unknown
-                  unknown_exit = {"unconfirmed", "timeout", "launch-missing", "launch-permission", "launch-failed"}
-                  if operation["exit_known"]:
+                  def valid_operation(operation):
+                      if set(operation) != {"role", "stage", "exit", "exit_known", "output_limited", "class"}:
+                          return False
+                      if operation["role"] not in {"sensitive", "insensitive"} or operation["stage"] not in {"create", "attach", "identity"}:
+                          return False
+                      if operation["class"] not in {"unconfirmed", "success", "nonzero", "output-limit", "timeout",
+                                                    "launch-missing", "launch-permission", "launch-failed", "resource-busy",
+                                                    "invalid-argument", "permission-denied", "not-permitted", "no-space",
+                                                    "not-supported", "not-mounted", "invalid-identity", "not-apfs"}:
+                          return False
+                      if type(operation["output_limited"]) is not bool or type(operation["exit_known"]) is not bool:
+                          return False
+                      if type(operation["exit"]) is not int or not -255 <= operation["exit"] <= 255:
+                          return False
+                      unknown_exit = {"unconfirmed", "timeout", "launch-missing", "launch-permission", "launch-failed"}
+                      if not operation["exit_known"]:
+                          return operation["exit"] == 0 and not operation["output_limited"] and operation["class"] in unknown_exit
                       if operation["class"] in unknown_exit:
-                          return unknown
-                  elif operation["exit"] != 0 or operation["class"] not in unknown_exit:
+                          return False
+                      if operation["class"] == "output-limit":
+                          return operation["output_limited"]
+                      if operation["output_limited"]:
+                          return False
+                      if operation["class"] in {"success", "not-mounted", "invalid-identity", "not-apfs"}:
+                          return operation["exit"] == 0 and (operation["class"] == "success" or operation["stage"] == "identity")
+                      return operation["exit"] != 0
+                  if not valid_operation(parsed["operation"]) or set(parsed["creates"]) != {"sensitive", "insensitive"}:
                       return unknown
-                  for role in set(parsed) - {"operation"}:
+                  for role in ["sensitive", "insensitive"]:
+                      create = parsed["creates"][role]
+                      if not valid_operation(create) or create["role"] != role or create["stage"] != "create":
+                          return unknown
                       receipt = parsed[role]
                       if not isinstance(receipt, dict) or not receipt or set(receipt) - {
                               "create_started", "create_exit", "attach_started", "attach_exit", "mounted", "diskutil_exit", "apfs"}:
@@ -470,6 +606,14 @@ jobs:
                                   return unknown
                           elif type(value) is not bool:
                               return unknown
+                      if receipt.get("create_started") is not True or create["exit_known"] != ("create_exit" in receipt):
+                          return unknown
+                      if create["exit_known"] and receipt["create_exit"] != create["exit"]:
+                          return unknown
+                  first_failure = next((parsed["creates"][role] for role in ["sensitive", "insensitive"]
+                                        if parsed["creates"][role]["class"] != "success"), None)
+                  if first_failure is not None and parsed["operation"] != first_failure:
+                      return unknown
                   return parsed
               except Exception:
                   return unknown
@@ -502,7 +646,9 @@ jobs:
                           return unknown
                       if failure["role"] in seen or failure["class"] not in {
                               "missing", "permission-denied", "not-permitted", "resource-busy", "not-directory",
-                              "not-empty", "read-only", "io", "other"}:
+                              "not-empty", "read-only", "io", "other", "unsafe-cache", "cache-limit", "cache-clean-failed", "cache-clean-timeout"}:
+                          return unknown
+                      if failure["class"] in {"unsafe-cache", "cache-limit", "cache-clean-failed", "cache-clean-timeout"} and failure["role"] != "gopath":
                           return unknown
                       seen.add(failure["role"])
                   if failures and not parsed["failed"]:
@@ -529,6 +675,11 @@ jobs:
               if (set(payloads) != set(allow) or "classification" in cleanup_receipt(payloads["cleanup.json"])
                       or "classification" in volume_receipt(payloads["volume-capability.json"])):
                   raise ValueError("incomplete evidence")
+              volume = volume_receipt(payloads["volume-capability.json"])
+              if cleanup_receipt(payloads["cleanup.json"])["failed"] or any(
+                      not create["exit_known"] or create["exit"] != 0 or create["output_limited"] or create["class"] != "success"
+                      for create in volume["creates"].values()):
+                  raise ValueError("unsuccessful fixture")
               expected = [{"test": name, "raw_exit": 0 if index < 2 else 1,
                            "classification": "capability-pass" if index < 2 else "baseline-unsupported-assertion-RED"}
                           for index, name in enumerate(names)]
@@ -539,9 +690,11 @@ jobs:
                       raise ValueError("invalid raw exit receipt")
           except Exception:
               rejected = True
+              volume = volume_receipt()
               payloads = {
                   "refusal.json": (json.dumps({"classification": "evidence-rejected", "reason": "invalid-or-incomplete-evidence",
-                                               "operation": volume_receipt().get("operation", {"classification": "operation-unconfirmed"})},
+                                               "operation": volume.get("operation", {"classification": "operation-unconfirmed"}),
+                                               "creates": volume.get("creates", {"classification": "creates-unconfirmed"})},
                                               sort_keys=True) + "\n").encode(),
                   "cleanup.json": (json.dumps(cleanup_receipt(), sort_keys=True) + "\n").encode(),
               }
