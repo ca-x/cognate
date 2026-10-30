@@ -1,4 +1,8 @@
 export const english: Record<string, string> = {
+  "来源未关联仓库候选。请明确选择当前账号已收录的仓库与技能；重新预览后由服务端验证绑定，不会自动收录。": "The source has no linked repository candidate. Explicitly choose a repository and skill already collected by this account. Preview again for server binding validation; nothing is collected automatically.",
+  "读取当前账号已收录仓库供选择": "Read this account's collected repositories to choose",
+  "明确选择已收录仓库 / ref": "Explicitly choose a collected repository / ref",
+  "请选择仓库，不推断关联": "Choose a repository; no association is inferred",
   "本次草稿槽：存在": "Draft slot: present",
   "本次草稿槽：不存在": "Draft slot: absent",
   "Gemini provider 资产": "Gemini provider assets",

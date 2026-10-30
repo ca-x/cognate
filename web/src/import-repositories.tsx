@@ -7,8 +7,8 @@ import { Code, ConnectError } from "@connectrpc/connect"
 import { FileUp } from "lucide-react"
 import { useApi } from "./api"
 import { t, formatNumber } from "./i18n"
-import { ExportFormat, ImportSelectionSource, ImportReceiptPhase, SkillBindingSchema, type RepositoryCandidate, type ImportCandidateOptions } from "./gen/skillhub/import/v1/import_pb"
-import { ImportSelectionForm, ImportSelectionDiscard, type BindingChoice, type ImportSource } from "./import-selection-form"
+import { ExportFormat, ImportSelectionSource, ImportReceiptPhase, ImportCandidateStatus, ImportCandidateOptionsSchema, SkillBindingSchema, type RepositoryCandidate, type ImportCandidateOptions } from "./gen/skillhub/import/v1/import_pb"
+import { ImportSelectionForm, ImportSelectionDiscard, type BindingChoice, type BindingRepositoryChoice, type ImportSource } from "./import-selection-form"
 import { acceptSelectionReceipt, acceptSelectionStatus, acknowledgeSelection, canConfirmSelection, changeSelectionOption, chooseSelection, initialSelectionState, selectionPlan, withSelectionPreview, type SelectionPlan, type SelectionState } from "./import-selection-state"
 import { Button } from "./components/ui/button"
 import { Checkbox } from "./components/ui/checkbox"
@@ -286,6 +286,8 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   const [statusPending, setStatusPending] = useState(false)
   const [bindingPending, setBindingPending] = useState(false)
   const [bindingChoices, setBindingChoices] = useState<Record<string, BindingChoice[]>>({})
+  const [bindingRepositories, setBindingRepositories] = useState<Record<string, BindingRepositoryChoice[]>>({})
+  const [bindingRepositoryIds, setBindingRepositoryIds] = useState<Record<string, string>>({})
   const [discardOpen, setDiscardOpen] = useState(false)
   const origin = window.location.origin
   const owner = session?.userId
@@ -328,6 +330,8 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     setStatusPending(false)
     setBindingPending(false)
     setBindingChoices({})
+    setBindingRepositories({})
+    setBindingRepositoryIds({})
     setDiscardOpen(false)
     discardAction.current = null
     if (uncertain) { setState((previous) => ({ ...previous, phase: "unknown", stale: true })); invalidate() }
@@ -343,6 +347,8 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
       setStatusPending(false)
       setBindingPending(false)
       setBindingChoices({})
+      setBindingRepositories({})
+      setBindingRepositoryIds({})
       setDiscardOpen(false)
       previousIdentity.current = identity
     } else reset()
@@ -410,6 +416,8 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
       setState(next)
       setHasFile(true)
       setBindingChoices({})
+      setBindingRepositories({})
+      setBindingRepositoryIds({})
       expiry.current = setTimeout(() => {
         if (!isCurrent(attempt, captured, controller)) return
         if (active.current?.write) return
@@ -433,26 +441,40 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     } catch { setState((value) => ({ ...value, error: Code.InvalidArgument })) }
   }
 
-  async function loadBindings(candidateId: string) {
-    if (bindingRequest.current || active.current || current.current.phase !== "ready" || !session) return
+  async function loadBindings(candidateId: string, repositoryId?: string) {
+    if (active.current || current.current.phase !== "ready" || !session) return
     const skill = current.current.preview?.skills.find((candidate) => candidate.id === candidateId)
     const hint = current.current.preview?.repositories.find((candidate) => candidate.id === skill?.repositoryCandidateId)?.hint
-    if (!skill || !hint) return
+    if (!skill || ![ImportCandidateStatus.READY, ImportCandidateStatus.UNRESOLVED].includes(skill.status) || skill.repositoryCandidateId && !hint) return
+    const selectedRepository = repositoryId === undefined ? undefined : bindingRepositories[candidateId]?.find((entry) => entry.id === repositoryId)
+    if (repositoryId !== undefined && (hint || !selectedRepository)) return
+    bindingRequest.current?.abort()
     const controller = new AbortController()
     bindingRequest.current = controller
+    setBindingChoices((value) => { const next = { ...value }; delete next[candidateId]; return next })
+    setBindingRepositoryIds((value) => ({ ...value, [candidateId]: repositoryId ?? "" }))
+    updateOption(create(ImportCandidateOptionsSchema, { candidateId }))
     setBindingPending(true)
     const attempt = generation.current
     const captured = identity
     try {
-      const result = await library.listRepositories({}, { signal: controller.signal, timeoutMs: 15000 })
-      if (!isCurrent(attempt, captured, controller)) return
-      const matches = result.repositories.filter((entry) => entry.nameWithOwner === hint.repository && entry.branch === hint.branch)
+      let matches: BindingRepositoryChoice[]
+      if (selectedRepository) matches = [selectedRepository]
+      else {
+        const result = await library.listRepositories({}, { signal: controller.signal, timeoutMs: 15000 })
+        if (!isCurrent(attempt, captured, controller)) return
+        if (!hint) {
+          setBindingRepositories((value) => ({ ...value, [candidateId]: result.repositories.map((entry) => ({ id: entry.id, repository: entry.nameWithOwner, branch: entry.branch, archiveHash: entry.archiveHash })) }))
+          return
+        }
+        matches = result.repositories.filter((entry) => entry.nameWithOwner === hint.repository && entry.branch === hint.branch).map((entry) => ({ id: entry.id, repository: entry.nameWithOwner, branch: entry.branch, archiveHash: entry.archiveHash }))
+      }
       const choices: BindingChoice[] = []
       for (const repository of matches) {
         const detail = await library.getRepository({ repositoryId: repository.id }, { signal: controller.signal, timeoutMs: 15000 })
         if (!isCurrent(attempt, captured, controller)) return
-        if (!detail.repository || detail.repository.id !== repository.id || detail.repository.archiveHash !== repository.archiveHash) throw new ConnectError("", Code.Aborted)
-        for (const skill of detail.skills) choices.push({ label: `${skill.name} · ${skill.path}`, binding: create(SkillBindingSchema, { repository: repository.nameWithOwner, branch: repository.branch, repositoryId: repository.id, archiveHash: repository.archiveHash, skillId: skill.id, logicalPath: skill.path, contentHash: skill.contentHash }) })
+        if (!detail.repository || detail.repository.id !== repository.id || detail.repository.nameWithOwner !== repository.repository || detail.repository.branch !== repository.branch || detail.repository.archiveHash !== repository.archiveHash) throw new ConnectError("", Code.Aborted)
+        for (const skill of detail.skills) choices.push({ label: `${repository.repository} · ${repository.branch || t("默认分支")} · ${skill.name} · ${skill.path}`, binding: create(SkillBindingSchema, { repository: repository.repository, branch: repository.branch, repositoryId: repository.id, archiveHash: detail.repository.archiveHash, skillId: skill.id, logicalPath: skill.path, contentHash: skill.contentHash }) })
       }
       setBindingChoices((value) => ({ ...value, [candidateId]: choices }))
     } catch (failure) {
@@ -510,9 +532,9 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   }
 
   return <>
-    <ImportSelectionForm source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingPending={bindingPending}
+    <ImportSelectionForm source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
       onSource={(value) => requestReset(() => { reset(); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
-      onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)}
+      onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)} onBindingRepository={(id, repositoryId) => void loadBindings(id, repositoryId)}
       onConfirm={() => { if (canConfirmSelection(current.current) && !collectionBusy) setState((value) => ({ ...value, phase: "confirming" })) }} onConfirmClose={() => { if (current.current.phase === "confirming") setState((value) => ({ ...value, phase: "ready" })) }} onCommit={() => void commitSelection()}
       onCancel={reset} onClear={() => requestReset(reset)} onStatus={() => void queryStatus()} />
     <Button variant="ghost" className="mt-3" disabled={state.phase === "unknown" || state.phase === "committing"} onClick={() => requestReset(() => { reset(); onLegacy() })}>{t("使用旧版仅仓库收录流程")}</Button>

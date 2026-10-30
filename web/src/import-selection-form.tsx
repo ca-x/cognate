@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./compone
 
 export type ImportSource = "magpie" | "cc-switch"
 export type BindingChoice = { label: string; binding: SkillBinding }
+export type BindingRepositoryChoice = { id: string; repository: string; branch: string; archiveHash: string }
 export type ImportSelectionFormProps = {
   source: ImportSource
   state: SelectionState
@@ -20,6 +21,8 @@ export type ImportSelectionFormProps = {
   collectionBusy: boolean
   statusPending: boolean
   bindingChoices: Record<string, BindingChoice[]>
+  bindingRepositories?: Record<string, BindingRepositoryChoice[]>
+  bindingRepositoryIds?: Record<string, string>
   bindingPending: boolean
   onSource: (source: ImportSource) => void
   onFile: (event: ChangeEvent<HTMLInputElement>) => void
@@ -28,6 +31,7 @@ export type ImportSelectionFormProps = {
   onAcknowledge: (id: string, checked: boolean) => void
   onOption: (option: ImportCandidateOptions) => void
   onBindings: (candidateId: string) => void
+  onBindingRepository?: (candidateId: string, repositoryId: string) => void
   onConfirm: () => void
   onConfirmClose: () => void
   onCommit: () => void
@@ -134,7 +138,8 @@ export function ImportSelectionForm(props: ImportSelectionFormProps) {
             {preview.skills.map((candidate) => <div key={candidate.id} className="border-b border-border pb-3 last:border-0">
               {chooseBox("skills", candidate.id, candidate.status, candidate.safeName)}<p className="text-xs text-muted-foreground">{t(selectionStatusLabels[candidate.status])}</p>
               {candidate.binding && <dl><ReadField label="repository / ref" value={`${candidate.binding.repository} / ${candidate.binding.branch}`} /><ReadField label="path" value={candidate.binding.logicalPath} /><ReadField label="contentHash" value={candidate.binding.contentHash} /></dl>}
-              {[ImportCandidateStatus.UNRESOLVED, ImportCandidateStatus.READY].includes(candidate.status) && <div className="mt-3 space-y-2"><Button variant="outline" disabled={locked || props.bindingPending} onClick={() => props.onBindings(candidate.id)}>{t("读取同仓已收录技能供绑定")}</Button>{props.bindingChoices[candidate.id] && <><label htmlFor={`${id}-binding-${candidate.id}`} className="block text-sm">{t("显式选择现有技能绑定")}</label><Select value={selectionOption(state, candidate.id).skillBinding?.skillId ?? "unset"} disabled={locked} onValueChange={(value) => { const binding = props.bindingChoices[candidate.id]?.find((entry) => entry.binding.skillId === value)?.binding; if (binding) { const option = clone(ImportCandidateOptionsSchema, selectionOption(state, candidate.id)); option.skillBinding = binding; props.onOption(option) } }}><SelectTrigger id={`${id}-binding-${candidate.id}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unset">{t("请选择绑定，不按名称猜测")}</SelectItem>{props.bindingChoices[candidate.id].map((choice) => <SelectItem key={choice.binding.skillId} value={choice.binding.skillId}>{choice.label}</SelectItem>)}</SelectContent></Select>{props.bindingChoices[candidate.id].length === 0 && <p className="text-xs">{t("没有同仓可绑定技能；请先收录仓库，再重新预览。")}</p>}</>}</div>}
+              {!candidate.repositoryCandidateId && [ImportCandidateStatus.UNRESOLVED, ImportCandidateStatus.READY].includes(candidate.status) && <div className="mt-3 space-y-2"><p className="text-sm text-muted-foreground">{t("来源未关联仓库候选。请明确选择当前账号已收录的仓库与技能；重新预览后由服务端验证绑定，不会自动收录。")}</p><Button variant="outline" disabled={locked || props.bindingPending} onClick={() => props.onBindings(candidate.id)}>{t("读取当前账号已收录仓库供选择")}</Button>{props.bindingRepositories?.[candidate.id] && <><label htmlFor={`${id}-repository-${candidate.id}`} className="block text-sm">{t("明确选择已收录仓库 / ref")}</label><Select value={props.bindingRepositoryIds?.[candidate.id] || "unset"} disabled={locked} onValueChange={(value) => { if (value !== "unset") props.onBindingRepository?.(candidate.id, value) }}><SelectTrigger id={`${id}-repository-${candidate.id}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unset">{t("请选择仓库，不推断关联")}</SelectItem>{props.bindingRepositories[candidate.id].map((repository) => <SelectItem key={repository.id} value={repository.id}>{repository.repository} · {repository.branch || t("默认分支")}</SelectItem>)}</SelectContent></Select></>}</div>}
+              {[ImportCandidateStatus.UNRESOLVED, ImportCandidateStatus.READY].includes(candidate.status) && <div className="mt-3 space-y-2">{candidate.repositoryCandidateId && <Button variant="outline" disabled={locked || props.bindingPending} onClick={() => props.onBindings(candidate.id)}>{t("读取同仓已收录技能供绑定")}</Button>}{!props.bindingPending && props.bindingChoices[candidate.id] && <><label htmlFor={`${id}-binding-${candidate.id}`} className="block text-sm">{t("显式选择现有技能绑定")}</label><Select value={selectionOption(state, candidate.id).skillBinding?.skillId ?? "unset"} disabled={locked} onValueChange={(value) => { const binding = props.bindingChoices[candidate.id]?.find((entry) => entry.binding.skillId === value)?.binding; if (binding) { const option = clone(ImportCandidateOptionsSchema, selectionOption(state, candidate.id)); option.skillBinding = binding; props.onOption(option) } }}><SelectTrigger id={`${id}-binding-${candidate.id}`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unset">{t("请选择绑定，不按名称猜测")}</SelectItem>{props.bindingChoices[candidate.id].map((choice) => <SelectItem key={choice.binding.skillId} value={choice.binding.skillId}>{choice.label}</SelectItem>)}</SelectContent></Select>{props.bindingChoices[candidate.id].length === 0 && <p className="text-xs">{t("没有同仓可绑定技能；请先收录仓库，再重新预览。")}</p>}</>}</div>}
             </div>)}
           </Column>
           <Column title={t("仓库")}>

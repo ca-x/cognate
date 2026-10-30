@@ -79,7 +79,7 @@ export function acceptSelectionPreview(response: PreviewImportSelectionResponse,
   for (const entry of response.repositories) requireSelection(entry.hint && [ImportCandidateStatus.READY, ImportCandidateStatus.UNSUPPORTED_FIELD].includes(entry.status))
   for (const entry of response.skills) {
     requireSelection([ImportCandidateStatus.READY, ImportCandidateStatus.NEEDS_REPOSITORY_IMPORT, ImportCandidateStatus.UNRESOLVED, ImportCandidateStatus.UNSUPPORTED_AGENT, ImportCandidateStatus.UNSUPPORTED_KIND, ImportCandidateStatus.UNSUPPORTED_FIELD].includes(entry.status))
-    requireSelection(entry.repositoryCandidateId === "" && [ImportCandidateStatus.UNSUPPORTED_KIND, ImportCandidateStatus.UNSUPPORTED_FIELD, ImportCandidateStatus.UNSUPPORTED_AGENT].includes(entry.status) || response.repositories.some((repository) => repository.id === entry.repositoryCandidateId))
+    requireSelection(entry.repositoryCandidateId === "" || response.repositories.some((repository) => repository.id === entry.repositoryCandidateId))
     if (entry.status === ImportCandidateStatus.READY) requireSelection(validSkillBinding(entry.binding))
     else requireSelection(entry.binding === undefined)
   }
