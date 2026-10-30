@@ -99,6 +99,27 @@ not to the existence of this schema.
 
 ## Limits and compatibility
 
+### Admission and observation
+
+The selection controller uses two separate, nonqueued admission lanes. Preview
+and Commit share one heavy-request slot per owner and two slots per process.
+Status has one observer slot per owner and one slot per process, so an active
+Commit can be observed without granting another execution. The combined maximum
+is three requests per process. Each lane's global slot includes authentication
+and body handling, including requests not yet associated with an owner. An owner
+slot is acquired after authentication and before reading the body. Capacity
+exhaustion rejects immediately; it does not enqueue or retry a request.
+
+Status only authenticates and observes durable receipts and process-local
+liveness. It never projects a source, runs a plugin, collects repositories,
+reserves execution, or applies assets. Database contention may still prevent an
+observation within its deadline. Nonterminal receipts without a matching live
+execution are Unknown, including after restart; NotObserved is not proof that a
+concurrent Commit cannot finish. These limits are process-local, not deployment-
+wide coordination. The two legacy preview RPCs retain their existing admission
+contract. This is the approved controller contract, not a claim that the new
+RPCs are enabled.
+
 Preview/Commit wire limit24MiB, decoded source16MiB (Magpie1MiB); preview response
 2MiB. Status request64KiB, response128KiB. Identity encoding only; authentication
 precedes body reads. Preview deadlines5s for Magpie/15s for snapshot, Commit120s,
