@@ -10,6 +10,8 @@
 
 **Spec:** `docs/SERVER-LOGGING.md`, `docs/REQUIREMENTS.md` F13, `docs/SECURITY-LOGGING.md`.
 
+**Execution status:** L1–L3 are implemented, independently accepted and delivered in `52a235c9d3a4293040a396a4dbd1ef81aeb4a84c`; see the named Delivery Checkpoint below. The original unchecked implementation checklist is retained as historical planning text, not an open feature backlog or a claim that every sample command was rerun in this documentation update.
+
 ## Global Constraints
 
 - Private fixed data-directory path, explicit stable-user-ID administrator allowlist, no auto-enrollment or MCP management.
@@ -60,6 +62,17 @@
 - [ ] Run `npm run build --prefix web`; browser-check real administrator save/reload, normal-user restriction, dirty conflict, language/theme, keyboard and narrow screens against a synthetic isolated server. Existing components handle motion; add none without purpose.
 - [ ] Run clean integrated fullGo/vet, module/Buf generation parity and nine CGO0 binary cross-builds. Obtain exact-candidate independent Spec/Quality and user-representative acceptance; stage only the accepted manifest, commit/SSH push/readback, then record Nowledge progress with remaining release limitations.
 
-## Execution Checkpoint
+## Historical Design Checkpoint
+
+The following paragraph preserves the pre-implementation review state. Its L2/L3 waiting condition was superseded by the independently accepted delivery below; it is not a current blocked dependency.
 
 Independent representative review conditionally accepts the spec/plan with four required contracts now written in the spec: lock-time latest-policy reads and durable segment age; short-write/damaged-tail/remnant accounting; CAS→cleanup→atomic persistence→ACK ordering and unknown outcomes; failed-close ownership and cooperative I/O cancellation limits. L1 implementation may proceed under that exact contract; L2/L3 implementation waits for L1's final types. Existing S1 and native-client work continues separately.
+
+## Delivery Checkpoint (2026-10-30)
+
+- **Delivered identity:** commit `52a235c9d3a4293040a396a4dbd1ef81aeb4a84c`, tree `feba337c15cf34154b2c99f3554288dae3bb0284`. Historical delivery records include SSH push/readback and Build `40815459306` success. No new remote/CI query is asserted here.
+- **Current source equivalence:** the read-only status audit archived `66d27e7f220bd2beb68f16a959f8148a64967583`, tree `be4d6550d1a6d555c3823327c94bb8b8fb6dbf92`, and verified all 32 original inventory paths against the accepted commit: every byte/blob/mode matches before this two-document checkpoint update. L1/L2/L3 are therefore not a new implementation queue.
+- **Independent acceptance:** local `.superpowers/sdd/2026-10-29-server-logging/task-1-fix1-review.md` (`ff9a757a4ff2f3491c6cffb79536e6d9edcb4c7af4ba249c1e9b46dc3a917e03`) closes `LOG-L1-01`; `task-2-3-final-review.md` (`c87b4f8dfe7bd0f2bac480eddd4b5f818dd49ada639a6cfdde985a5bd1d101e8`) accepts main19 conditionally; `combined-final-review.md` (`d33b3012e17527c5787599f7544298c347b6a3ba3f4f712f3f231afc932707ca`) ratifies the exact new combination, Spec/Quality PASS with no open P1/P2 in scope. The original D98 REJECT/RED and old a445 dependency condition are preserved, not washed green.
+- **Real browser evidence already obtained:** the L2/L3 independent reviewer rebuilt the server and exercised administrator save/reload, actual restart persistence, conflict/unknown draft preservation without automatic replay, ordinary-account restriction, Chinese/English, theme, keyboard, narrow layout and browser-storage privacy. The combination review ties unchanged main19 to accepted L1 and adds actual full-stderr HTTP/shutdown and logger-enabled native EOF/streaming/drain/20-second budget checks. These are historical attributed results, not a new browser run by this document's author.
+- **Fresh bounded audit:** Go1.27.3/CGO0, synthetic HOME/SQLite/keys; logging count3, logging-focused tests in HTTP/App/server-CLI/embed and vet for those five packages all exited0. The focused integration run has 14 top-level tests/no skips; the standalone subprocess-helper skip is not behavioral evidence, and actual cooperating-process parent tests passed. Report SHA256 `f49b6eed546090d379e5cbe269751fdfef0e8aea70899c0e8b5da345edab6287`, `/tmp/cognate-f13-status-audit.IYBP8Qvo/REPORT.md`; the full source-contract and receipt mapping is also recorded in `docs/SERVER-LOGGING.md`'s Delivery Checkpoint.
+- **This update's boundary:** exact two documentation paths only; no implementation, protocol, module or test changes. No browser/fullGo/Buf/cross-build/native-budget rerun is claimed for this update, and it does not approve non-Linux runtime, full F12/14-agent delivery or a whole release. The fixed-path, privacy, authorization, retention, failure and lifecycle contracts remain unchanged.

@@ -2,7 +2,7 @@
 
 ## Objective And Authority
 
-F13 adds private operational file logs and administrator-only Web configuration. This document specifies the initial implementation; it is not a completion receipt. The user delegates planning and acceptance to an independent representative, so no additional human implementation checkpoint is required. Existing requirements, CGO-free builds and secret-handling rules remain binding.
+F13 provides private operational file logs and administrator-only Web configuration. L1–L3 have been implemented, independently accepted and delivered; the named Delivery Checkpoint below records the exact identity and evidence. This document preserves the implementation contract and is not a whole-release completion receipt. The user delegates planning and acceptance to an independent representative, so no additional human implementation checkpoint is required. Existing requirements, CGO-free builds and secret-handling rules remain binding.
 
 ## Capability Map
 
@@ -68,3 +68,23 @@ Start the server normally, create the intended local or OIDC account and open **
 Open **Server logs** again to change level, size, count and age. Save applies the policy to cooperating processes sharing the data directory. An unavailable/timed-out save may have committed; use the explicit reload control before trying another write. Reload discards the draft only when a fresh read succeeds. Health counters describe only the responding process; refresh explicitly for a current snapshot.
 
 Keep the server data directory on a persistent private volume when using Docker; its `logs` subdirectory contains settings and JSONL segments. Logs are never served by the Web UI. Check the container/service's stderr for fixed degradation notices if the filesystem becomes unwritable. Do not mount log files publicly or configure a proxy/body dumper to bypass the confidentiality policy. Removing an administrator ID from the startup configuration and restarting revokes that account's management access without changing its ordinary account data.
+
+## Delivery Checkpoint (2026-10-30)
+
+**F13 is delivered, not spec-only.** The delivery commit is `52a235c9d3a4293040a396a4dbd1ef81aeb4a84c`, tree `feba337c15cf34154b2c99f3554288dae3bb0284`. It contains the accepted private file manager, administrator-only Connect settings, App/request instrumentation, translated Web editor and deployment flag. The historical delivery ledger records SSH push/readback and successful Build `40815459306`; the status audit did not re-query remote Git or CI.
+
+At the frozen, pre-edit observation base `66d27e7f220bd2beb68f16a959f8148a64967583` (tree `be4d6550d1a6d555c3823327c94bb8b8fb6dbf92`), **all 32 original acceptance-inventory paths match the delivery commit byte-for-byte and mode-for-mode**. This checkpoint update changes only this document and the logging implementation plan; it does not change the implementation or transfer unrelated work into F13.
+
+Named local acceptance receipts under `.superpowers/sdd/2026-10-29-server-logging/` identify the historical evidence; these are review artifacts, not runtime files:
+
+| Receipt | Accepted scope and SHA256 |
+|---|---|
+| `task-1-fix1-review.md` | L1 Spec/Quality PASS; `LOG-L1-01` closed. `ff9a757a4ff2f3491c6cffb79536e6d9edcb4c7af4ba249c1e9b46dc3a917e03` |
+| `task-2-3-final-review.md` | L2/L3 main19 conditional Spec/Quality PASS, including the reviewer's rebuilt server and real browser checks. `c87b4f8dfe7bd0f2bac480eddd4b5f818dd49ada639a6cfdde985a5bd1d101e8` |
+| `combined-final-review.md` | Exact `feba337c15cf34154b2c99f3554288dae3bb0284` combination Spec/Quality PASS, zero open P1/P2 in this slice; discharges the L1 dependency condition. `d33b3012e17527c5787599f7544298c347b6a3ba3f4f712f3f231afc932707ca` |
+
+The historical independent browser evidence covers administrator save/reload and restart persistence, stale-CAS draft preservation, uncertain-save/no-replay recovery, ordinary-account restriction, Chinese/English and theme changes, keyboard operation, narrow layout and safe browser storage. The combination review additionally verifies actual full-stderr failure/shutdown and actual-logger native EOF, streaming, drain and the unshortened 20-second budget. Original D98 rejection/RED and old a445 conditional acceptance remain historical failures/conditions, not retroactive successes.
+
+The separate 2026-10-30 status audit at the observation base freshly ran Go1.27.3/CGO0 with synthetic HOME/SQLite/keys: the logging package count3, logging-focused HTTP/App/server-CLI/embed tests, and vet for those five packages all exited0. The focused integration run executed 14 top-level tests with no skips; the logging package's subprocess-helper entry skip is not counted as a behavioral test, while its real cooperating-process parent tests passed. Audit report SHA256: `f49b6eed546090d379e5cbe269751fdfef0e8aea70899c0e8b5da345edab6287` (`f13-status-audit` report, `/tmp/cognate-f13-status-audit.IYBP8Qvo/REPORT.md`).
+
+This documentation update does not rerun that audit or the historical browser, full-repository, generation, cross-build or native-budget gates. It does not establish non-Linux runtime/installation, lossless audit delivery, new F12/14-agent capabilities or whole-release completion. The operational and platform boundaries above remain binding; no new logging source implementation is pending solely because this contract was originally written as a specification.

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
 	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -158,6 +159,10 @@ func (codec importCodec) Unmarshal(data []byte, value any) error {
 	message, ok := value.(proto.Message)
 	if !ok {
 		return connect.NewError(connect.CodeInvalidArgument, errors.New("invalid export request"))
+	}
+	switch message.(type) {
+	case *importv1.PreviewImportSelectionRequest, *importv1.CommitImportSelectionRequest, *importv1.GetImportCommitStatusRequest:
+		return importSelectionUnmarshal(data, message, codec.name)
 	}
 	var err error
 	if codec.name == "json" {
