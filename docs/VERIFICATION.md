@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：Codex CLI 显式编排与原操作确认
+
+原 Q4 独审发现恢复的同终端复核遗漏 source operation，保持原 REJECT 和普通 RED；后继仅修改原五路径内的三叶，明确显示原操作与新计划并维持最终确认绑定新计划。原字节不变的真实 main/App/TLS/SQLite/native/PTY 探针转绿；独立回退旧 renderer 或错误确认原操作的编译负控均普通 RED，恢复原后继通过。修复独审报告 SHA256 `160a38cb554471aff2360c4a57a6e1c96b0c3f432a1892e4494ad5091ef40e6e`，仅关闭该后继的同终端身份显示问题，不改旧失败历史。
+
+四个 CLI 实现/测试叶逐字节等于签收后继；主线既有配置文档完整保留后，追加原 CLI 说明。独立最终组合报告 SHA256 `1b71ae02889edd2b4616a77fd8503c6cd61ac6d693f98d133d12d765999422ca`，确认精确五叶组合 tree `4deaebafe324242f755c9441b77adcbfafb8c969`，其它 1,279 叶 mode/bytes 不变。主线程实际 stage 后计算得到相同 tree，再单独添加本段与需求进度说明；无额外实现漂移。独立默认构建/renderer 窄门 8 PASS、零 FAIL/SKIP，普通实际 CLI 拒绝资格并不创建 HOME 或发放能力；生产依赖不含 server/moejs，登记表仍为空。
+
+主线程固定最终实现组合中 cli/configapply/configclient 三包测试退出 0：1,760 个含包及子用例 PASS、103 个显式条件 SKIP、零 FAIL；六目标 CLI CGO0 构建、相关 vet 和 module verify 均退出 0。没有重跑旧完整 native 批次，不将条件跳过或交编称为新消费者/平台运行资格；尚不开放普通 Codex/v2 应用、MyGo 接线或十四 agent/F12。
+
 ## 2026-10-31：Grok Build 类型化 Connect API
 
 精确八个手写路径和两个正常 Buf 生成路径已获非作者 Spec/Quality 独立签收；报告 SHA256 `b031c4a5b6ed3108436b50f12a138284073875c76547660b466064230dec9f18`，输入源码包 SHA256 `fc609b234cca605f6a61a38fc36835dc6d291314b4ab50e8dad1d1fb0e95a680`。独立真实 App/TLS、第二物理 SQLite、protobuf/protoJSON 验证覆盖所有者/Origin 隔离、凭据及未来字段、CAS、复制、完整旧 descriptor 保全与关闭；四个可编译负控均普通断言失败，原源码恢复通过。独立冻结片测试 66 PASS、邻接 219 PASS、独立探针 16 PASS，均零 FAIL/SKIP；Buf 双模板全部 35 生成叶一致、仅两个生成差异，lint/breaking、Web build、vet/module verify 退出 0。

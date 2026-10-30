@@ -105,6 +105,9 @@ func readNativeSession(ctx context.Context, input io.Reader) (string, error) {
 }
 
 func nativeErrorMessage(err error) string {
+	if message, ok := nativeCodexErrorMessage(err); ok {
+		return message
+	}
 	if clientKeyFailure(err) {
 		return clientKeyErrorMessage(err)
 	}
@@ -145,16 +148,22 @@ func nativeExitDiagnostic(err error) {
 
 func newNativeConfigurationCommand() *cobra.Command {
 	parent := &cobra.Command{
-		Use: "config", Short: "预览并手动应用 Claude 本机配置（既有 key，仅 Linux）", SilenceUsage: true, SilenceErrors: true,
+		Use: "config", Short: "预览并手动管理本机配置（既有 key；Codex需独立资格）", SilenceUsage: true, SilenceErrors: true,
 		Args: cobra.NoArgs,
 		RunE: func(command *cobra.Command, _ []string) error { return command.Help() },
 	}
 	for _, action := range []string{"apply", "restore", "status"} {
-		var server, owner, asset, profile, target, operation string
+		var server, owner, asset, profile, target, operation, executable, directory string
 		var revision int64
 		var apply, tokenStdin bool
 		var timeout time.Duration
 		command := &cobra.Command{Use: action, Args: cobra.NoArgs, RunE: func(command *cobra.Command, _ []string) (returnedError error) {
+			if target == "codex.config" {
+				return runCodexConfiguration(command, codexCLIOptions{action: action, server: server, owner: owner, asset: asset, profile: profile, operation: operation, executable: executable, directory: directory, revision: revision, apply: apply, tokenStdin: tokenStdin, timeout: timeout})
+			}
+			if command.Flags().Changed("codex-executable") || command.Flags().Changed("codex-cwd") || target != "" && target != "claude.settings" {
+				return nativeconfig.ErrInvalid
+			}
 			if timeout <= 0 || timeout > 5*time.Minute {
 				return nativeconfig.ErrInvalid
 			}
@@ -252,17 +261,24 @@ func newNativeConfigurationCommand() *cobra.Command {
 			command.Flags().StringVar(&asset, "asset", "", "明确的资产 ID")
 			command.Flags().Int64Var(&revision, "revision", 0, "已选择的资产 revision")
 			command.Flags().StringVar(&profile, "profile", "", "本机 profile")
-			command.Flags().StringVar(&target, "target", "", "仅 claude.settings/user")
+			command.Flags().StringVar(&target, "target", "", "claude.settings 或具备独立资格的 codex.config/user")
+			command.Flags().StringVar(&executable, "codex-executable", "", "Codex固定可执行文件绝对路径；不搜索PATH")
+			command.Flags().StringVar(&directory, "codex-cwd", "", "Codex受控工作目录绝对路径")
 			command.Flags().BoolVar(&tokenStdin, "token-stdin", false, "仅从有界非TTY stdin读取 session，不表示批准")
 		} else if action == "restore" {
+			command.Flags().StringVar(&target, "target", "", "codex.config 必须显式；省略保持Claude")
 			command.Flags().StringVar(&operation, "source-operation", "", "已应用操作 ID；必须重新预览确认")
 		} else {
+			command.Flags().StringVar(&target, "target", "", "codex.config 必须显式；省略保持Claude")
 			command.Flags().StringVar(&operation, "operation", "", "本机 durable 操作 ID")
 		}
 		if action != "status" {
 			command.Flags().BoolVar(&apply, "apply", false, "显式逐项批准并确认本次计划（需要控制TTY）")
 		}
 		parent.AddCommand(command)
+	}
+	for _, action := range []string{"recover", "abandon", "retire-unpublished"} {
+		parent.AddCommand(newCodexLocalCommand(action))
 	}
 	return parent
 }

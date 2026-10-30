@@ -106,3 +106,24 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 六个接口仅接受 Connect unary protobuf POST，不接受 JSON、GET/query、gRPC-Web、压缩请求、浏览器 Origin/Sec-Fetch 或 cookie 认证。Begin/Bind 使用 owner bearer，其余只接受绑定的 native-purpose 子会话。响应及错误均 no-store；八个并发槽与 20 秒预算从 body 读取前覆盖解码、实际响应写出和取消排空，显式 Flush 不逃出计数。响应丢失不能重发秘密；proof 是持钥证明，不是官方客户端 attestation。详细合同见 `superpowers/plans/2026-10-29-native-configuration-transport.md`。
 
 来源配置导入、十四类 agent 的完整专属交互、Pack 配置附件、完整历史枚举与值级/文件 diff、非 Linux 配置应用，以及明确选择后的自动应用仍为后续门禁。已交付的 Claude CLI/MyGo 手动流程不替代这些能力。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以已交付部分缩减首发范围。
+
+# Codex CLI：显式本机编排，生产资格仍关闭
+
+`config apply --target codex.config` 接入既有 Codex 编排、原生消费与多文件发布合同；**当前生产资格登记仍为空，普通构建拒绝新 Codex apply，不表示 Codex/v2/全部十四类 agent 已可应用。** 专用私有编译fixture的真实consumer/PTY验收不是生产登记或真实账号资格。此节不替代前文历史交付与未交付记录，也不启用随Pack自动应用或MyGo流程。
+
+```
+session-producer | cognate config apply --target codex.config --server HTTPS_ORIGIN --owner OWNER --asset ASSET --revision N --profile C0 --token-stdin --codex-executable ABS --codex-cwd ABS
+cognate config status --target codex.config --operation OP
+cognate config recover --target codex.config --operation OP
+cognate config restore --target codex.config --source-operation OP
+cognate config abandon --target codex.config --operation OP
+cognate config retire-unpublished --target codex.config --operation OP
+```
+
+`session-producer` 是已有私有session来源的占位符，不是新登录命令；不把session写入argv/history/env。仅apply需要有界非TTY stdin（2048B/10s）；这不是批准输入。客户端仅LoadExisting，不隐式生成或替换client key。原Claude参数/省略target的restore/status保持原义；Codex每次必须显式target，新三种本地命令不猜journal目标。没有裸`retire`或force选项。本地命令不重新传server/session/native路径，使用原操作认证的绑定与新鲜观察；Status可收敛实际磁盘事实，不保证绝对只读。
+
+默认仅预览。要执行写操作，在相应命令追加`--apply`，必须在**同一个实际控制TTY**看到完整角色/字段/动作/count、原操作与新计划、C0/NativeProfile、selection/confirmation、期限和auth Keep等安全metadata，然后逐槽输入`approve codex.provider-key OP`及最终`confirm OP`。本地恢复/还原/中止不取新秘密槽，但仍需新计划及精确最终确认；restore确认的是新计划OP，不是source-operation。stdin yes、无控制TTY、截断/短写/阻塞review、到期或取消均不能批准。部分本地安全视图不提供owner/origin/资产revision字符串，明确显示未提供并依赖经本机key认证的原operation，不能推断当前远端资产状态。
+
+每次TTY I/O最多5s写/受控读，完整review/确认最多60s，且不能越过原计划/调用期限。`--timeout`外层默认2m、>0且<=5m；Codex编排另有2m硬上限，设置5m不会延长原observation/prepare/批准期限。Linux固定受支持native路径以外的运行时没有由交编获得资格；不PATH搜索、不换selector或静默fallback。既有auth文件始终Keep，不上传OAuth/既有key，不打印provider正文/路径/session或原始错误。
+
+Completed/Restored仅表示当时认证的durable文件事实，不保证agent已加载。多文件可partial；失败/取消/输出错误不表示回滚。Unknown不自动重放，最多一次live安全远端Status；查看本地明确target的status后再选择新鲜确认的recover/restore。Abandon只允许有证据的ConsumeAttempted之前本机中止，不称远端grant已retired。`retire-unpublished`在未发布且满足原D门限时保留Unknown/reservation/quota，远端可能已消费、材料不可取回；成功写入该本机tombstone仍以Unknown诊断退出，不是还原或删除。任何N+1/foreign/source/身份冲突拒绝强制覆盖。
