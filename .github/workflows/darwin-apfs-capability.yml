@@ -12,6 +12,7 @@ jobs:
         shell: python {0}
         run: |
           import errno
+          import hashlib
           import json
           import os
           from pathlib import Path
@@ -208,6 +209,11 @@ jobs:
               selector, sources = next(iter(candidates.items()))
               return {"classification": "contract-confirmed", "selector": selector, "sources": sorted(sources)}
 
+          def fixed_help_contract(output):
+              if hashlib.sha256(output).hexdigest() == "60325e582f6721bb7b3482815ea50436e477983eee05f0d7a7d17683e3f0bdb9":
+                  return {"classification": "contract-confirmed", "selector": "Case-sensitive APFS", "sources": ["hdiutil-create-help"]}
+              return {"classification": "contract-unproven", "selector": "", "sources": []}
+
           def diagnostic_record(source, status):
               return {"source": source, "status": status, "reason": "not-scanned", "create_heading": False,
                       "fs_option": False, "support_list": False, "section_reset": False, "sensitive_rows": 0,
@@ -373,7 +379,7 @@ jobs:
                   if not owned_root(work):
                       raise ValueError
                   events.extend(sample_originals(work, runner))
-                  documents = {}
+                  help_output = b""
                   for source, stage, command in [
                           ("hdiutil-create-help", "help", ["/usr/bin/hdiutil", "create", "-help"]),
                           ("hdiutil-manual", "manual", ["/usr/bin/man", "-P", "/bin/cat", "hdiutil"])]:
@@ -383,12 +389,10 @@ jobs:
                           status = public_document_status(output) if event["class"] == "success" else event["class"]
                           public_documents[stage] = (status, output if status == "captured" else b"")
                       if event["class"] == "success":
+                          if stage == "help":
+                              help_output = output
                           document_diagnostics.append(document_diagnostic(stage, output))
-                          try:
-                              documents[source] = output.decode("ascii")
-                          except UnicodeDecodeError:
-                              pass
-                  contract = document_contract(documents)
+                  contract = fixed_help_contract(help_output)
                   if contract["classification"] == "contract-confirmed":
                       candidate.update({"attempted": True, "classification": "failed"})
                       image = work / "candidate.sparseimage"
@@ -715,6 +719,11 @@ jobs:
                   report = read_report(root)
                   payloads = {"capability.json": (json.dumps(report, sort_keys=True) + "\n").encode()}
                   payloads.update(read_public_documents(root, report))
+                  if report["contract"]["classification"] == "contract-confirmed":
+                      require(report["contract"]["selector_class"] == "other"
+                              and report["contract"]["sources"] == ["hdiutil-create-help"])
+                      require(hashlib.sha256(payloads["hdiutil-create-help.txt"]).hexdigest()
+                              == "60325e582f6721bb7b3482815ea50436e477983eee05f0d7a7d17683e3f0bdb9")
                   accepted = not report["failed"]
               except Exception:
                   payloads = {"refusal.json": b'{"classification":"unsafe-or-incomplete-capability-receipt"}\n'}
