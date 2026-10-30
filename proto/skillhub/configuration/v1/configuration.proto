@@ -35,6 +35,18 @@ enum CodexAuthMode {
   CODEX_AUTH_MODE_PROVIDER_KEY = 1;
 }
 
+enum GeminiAuthMode {
+  GEMINI_AUTH_MODE_UNSPECIFIED = 0;
+  GEMINI_AUTH_MODE_NATIVE_LOGIN = 1;
+  GEMINI_AUTH_MODE_API_KEY = 2;
+}
+
+enum GeminiKeyTransport {
+  GEMINI_KEY_TRANSPORT_UNSPECIFIED = 0;
+  GEMINI_KEY_TRANSPORT_NATIVE_DEFAULT = 1;
+  GEMINI_KEY_TRANSPORT_BEARER = 2;
+}
+
 enum CodexReasoningEffort {
   CODEX_REASONING_EFFORT_UNSPECIFIED = 0;
   CODEX_REASONING_EFFORT_NONE = 1;
@@ -113,11 +125,20 @@ message CodexProvider {
   CodexCatalog catalog = 5;
 }
 
+message GeminiProvider {
+  GeminiAuthMode auth_mode = 1;
+  optional string endpoint = 2;
+  optional GeminiKeyTransport key_transport = 3;
+  optional string env_model = 4;
+  optional string settings_model = 5;
+}
+
 message Draft {
   string name = 1;
   oneof payload {
     ClaudeProvider claude_provider = 2;
     CodexProvider codex_provider = 3;
+    GeminiProvider gemini_provider = 4;
   }
 }
 

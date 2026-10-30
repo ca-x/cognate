@@ -78,6 +78,7 @@ func (handler *configurationHandler) CreateAsset(ctx context.Context, request *c
 		if err != nil {
 			return nil, err
 		}
+		defer configurationClearSecrets(secrets)
 		entry, err := handler.service.Create(ctx, owner, draft, secrets)
 		if err != nil {
 			return nil, err
@@ -93,6 +94,7 @@ func (handler *configurationHandler) UpdateAsset(ctx context.Context, request *c
 		if err != nil {
 			return nil, err
 		}
+		defer configurationClearSecrets(secrets)
 		entry, err := handler.service.Update(ctx, owner, request.Msg.Id, request.Msg.ExpectedRevision, draft, secrets)
 		if err != nil {
 			return nil, err

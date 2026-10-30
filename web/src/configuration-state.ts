@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Code, ConnectError } from "@connectrpc/connect"
 import { AssetKind, ClaudeAuthMode, CredentialReadiness, type Asset, type DraftView } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { requireCodexView, supportsCodex, type CodexView } from "./configuration-codex-state"
+import { requireGeminiView, supportsGemini, type GeminiView } from "./configuration-gemini-state"
 
 export type AssetMetadata = Pick<Asset, "id" | "agentId" | "kind" | "name" | "schemaVersion" | "revision" | "createdAtUnix" | "updatedAtUnix">
 export const secretSlots = ["claude.api-key", "claude.auth-token"] as const
@@ -24,11 +25,12 @@ export function requireClaudeView(view?: DraftView) {
 }
 
 export type ClaudeView = ReturnType<typeof requireClaudeView>
-export type ConfigurationView = { kind: "claude"; view: ClaudeView } | { kind: "codex"; view: CodexView }
+export type ConfigurationView = { kind: "claude"; view: ClaudeView } | { kind: "codex"; view: CodexView } | { kind: "gemini"; view: GeminiView }
 
 export function requireConfigurationView(view?: DraftView): ConfigurationView {
   if (view?.asset && supportsClaude(view.asset)) return { kind: "claude", view: requireClaudeView(view) }
   if (view?.asset && supportsCodex(view.asset)) return { kind: "codex", view: requireCodexView(view) }
+  if (view?.asset && supportsGemini(view.asset)) return { kind: "gemini", view: requireGeminiView(view) }
   throw new ConnectError("", Code.FailedPrecondition)
 }
 

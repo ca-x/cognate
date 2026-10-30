@@ -9,6 +9,11 @@ import (
 )
 
 func configurationInput(draft *configurationv1.Draft, mutations []*configurationv1.SecretMutation) (configuration.Draft, []configuration.SecretMutation, error) {
+	if draft != nil {
+		if _, gemini := draft.Payload.(*configurationv1.Draft_GeminiProvider); gemini {
+			return configurationGeminiInput(draft, mutations)
+		}
+	}
 	if draft != nil && draft.GetCodexProvider() != nil {
 		return configurationCodexInput(draft, mutations)
 	}
@@ -38,8 +43,19 @@ func configurationInput(draft *configurationv1.Draft, mutations []*configuration
 	return input, secrets, err
 }
 
-func configurationSecretInput(mutations []*configurationv1.SecretMutation) ([]configuration.SecretMutation, error) {
+func configurationClearSecrets(secrets []configuration.SecretMutation) {
+	for index := range secrets {
+		secrets[index].Replacement.Clear()
+	}
+}
+
+func configurationSecretInput(mutations []*configurationv1.SecretMutation) (_ []configuration.SecretMutation, finalErr error) {
 	secrets := make([]configuration.SecretMutation, 0, len(mutations))
+	defer func() {
+		if finalErr != nil {
+			configurationClearSecrets(secrets)
+		}
+	}()
 	for _, mutation := range mutations {
 		if mutation == nil {
 			return nil, configuration.ErrInvalid
@@ -47,17 +63,22 @@ func configurationSecretInput(mutations []*configurationv1.SecretMutation) ([]co
 		secret := configuration.SecretMutation{Slot: configuration.Slot(mutation.SlotId)}
 		switch action := mutation.Action.(type) {
 		case *configurationv1.SecretMutation_Keep:
-			if action.Keep == nil {
+			if action == nil || action.Keep == nil {
 				return nil, configuration.ErrInvalid
 			}
 			secret.Action = configuration.Keep
 		case *configurationv1.SecretMutation_Clear:
-			if action.Clear == nil {
+			if action == nil || action.Clear == nil {
 				return nil, configuration.ErrInvalid
 			}
 			secret.Action = configuration.Clear
 		case *configurationv1.SecretMutation_Replace:
-			secret.Action, secret.Replacement = configuration.Replace, configuration.NewSecret([]byte(action.Replace))
+			if action == nil {
+				return nil, configuration.ErrInvalid
+			}
+			value := []byte(action.Replace)
+			secret.Action, secret.Replacement = configuration.Replace, configuration.NewSecret(value)
+			clear(value)
 		default:
 			return nil, configuration.ErrInvalid
 		}
@@ -89,6 +110,12 @@ func configurationAsset(entry state.ConfigurationAsset) (*configurationv1.Asset,
 }
 
 func configurationView(entry configuration.EditView) (*configurationv1.DraftView, error) {
+	if entry.Provider != (configuration.ClaudeProvider{}) && (entry.CodexProvider != nil || entry.GeminiProvider != nil) || entry.CodexProvider != nil && entry.GeminiProvider != nil {
+		return nil, configuration.ErrUnavailable
+	}
+	if entry.GeminiProvider != nil || entry.Metadata.AgentID == "gemini" {
+		return configurationGeminiView(entry)
+	}
 	if entry.CodexProvider != nil || entry.Metadata.AgentID == "codex" {
 		return configurationCodexView(entry)
 	}
