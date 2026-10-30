@@ -147,7 +147,7 @@ jobs:
           try:
               commands_by_role = {}
               failed_create = None
-              for label, kind in [("sensitive", "APFSX"), ("insensitive", "APFS")]:
+              for label, kind in [("sensitive", "Case-sensitive APFS"), ("insensitive", "APFS")]:
                   receipt = receipts[label] = {}
                   commands = [
                       ("create", ["hdiutil", "create", "-size", "1g", "-type", "SPARSE", "-fs", kind,
