@@ -70,6 +70,9 @@ func (state *codexEngineState) inspectCodex(ctx context.Context, operation *code
 	if operation.State == CodexCompleted || operation.State == CodexRestored {
 		return result, nil
 	}
+	if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+		return result, err
+	}
 	target, images, bodies, err := state.observeCodex()
 	defer codexClearBodies(&bodies)
 	if err != nil {
@@ -143,6 +146,9 @@ func (state *codexEngineState) finishObservedCodex(ctx context.Context, target *
 	if err := state.checkpointContext(ctx, "reconcile-targets-durable"); err != nil {
 		return err
 	}
+	if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+		return err
+	}
 	return state.finishCodex(operation)
 }
 
@@ -153,6 +159,10 @@ func (state *codexEngineState) previewCodexRecovery(ctx context.Context, operati
 	operation := state.inventory.Operations[operationID]
 	if operation == nil || !operation.Candidate.Present {
 		return nil, ErrCodexInvalid
+	}
+	expires, err := state.codexOperationObservationExpiry(ctx, operation)
+	if err != nil {
+		return nil, err
 	}
 	if restore && (operation.State != CodexCompleted || operation.Restoring) {
 		return nil, ErrCodexInvalid
@@ -190,7 +200,7 @@ func (state *codexEngineState) previewCodexRecovery(ctx context.Context, operati
 	if restore {
 		next = codexRandomID()
 	}
-	data := &codexRecoveryData{engine: state, id: operationID, images: images, target: target.identity, base: base, expires: state.now().Add(120 * time.Second), restore: restore, operation: next}
+	data := &codexRecoveryData{engine: state, id: operationID, images: images, target: target.identity, base: base, expires: expires, restore: restore, operation: next}
 	data.view = SafeCodexPlan{OperationID: next, AssetID: operation.Asset, C0ProfileID: operation.Profile, SelectionRevision: base.Revision + 1, ConfirmationRevision: base.Confirmation + 1, ExpiresAt: data.expires, RecoverableWindow: true}
 	for index, writes := range operation.Write {
 		if writes {
@@ -237,6 +247,9 @@ func (state *codexEngineState) validateRecovery(ctx context.Context, data *codex
 	}
 	if !state.now().Before(data.expires) {
 		return ErrCodexExpired
+	}
+	if err := state.validateCodexOperationObservation(ctx, state.inventory.Operations[data.id]); err != nil {
+		return err
 	}
 	if err := state.validateSelection(data.base); err != nil {
 		return err
@@ -313,6 +326,9 @@ func (engine *CodexEngine) RecoverCodex(ctx context.Context, plan CodexRecoveryP
 		if err := state.completeCodexStages(ctx, operation); err != nil {
 			return err
 		}
+		if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+			return err
+		}
 		var err error
 		result, err = state.publishCodex(ctx, operation)
 		return err
@@ -386,6 +402,11 @@ func (engine *CodexEngine) RestoreCodex(ctx context.Context, plan CodexRestorePl
 		}
 		defer codexClearBodies(&bodies)
 		operation := &codexOperation{ID: data.operation, Owner: source.Owner, Origin: source.Origin, Profile: source.Profile, Source: source.ID, Binding: source.Binding, Target: data.target, Before: data.images, After: data.images, Write: source.Write, Base: data.base, Expires: data.expires.UnixNano(), Restoring: true, State: CodexRestorePrepared}
+		operation.ProfileIdentity = source.ProfileIdentity
+		operation.ManagedModels = slices.Clone(source.ManagedModels)
+		if source.Observation != nil {
+			operation.Observation = new(codexCopyLaunchDescriptor(*source.Observation))
+		}
 		for index := range operation.Write {
 			if operation.Write[index] {
 				operation.After[index] = nativeImage{Present: source.Before[index].Present}
@@ -395,6 +416,9 @@ func (engine *CodexEngine) RestoreCodex(ctx context.Context, plan CodexRestorePl
 			}
 		}
 		if err := state.prepareCodexOperation(ctx, operation, bodies); err != nil {
+			return err
+		}
+		if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
 			return err
 		}
 		result, err = state.publishCodex(ctx, operation)

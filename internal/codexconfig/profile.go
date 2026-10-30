@@ -40,7 +40,7 @@ type nativeProfile struct {
 }
 
 func approvedProfile(id string) (nativeProfile, bool) {
-	for _, profile := range [...]nativeProfile{} {
+	for _, profile := range [...]nativeProfile{native0166Profile()} {
 		if profile.id == id {
 			return profile, true
 		}

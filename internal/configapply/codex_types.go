@@ -131,6 +131,41 @@ type CodexPlan struct{ codexOpaque }
 type CodexAdmission struct{ codexOpaque }
 type CodexRecoveryPlan struct{ codexOpaque }
 type CodexRestorePlan struct{ codexOpaque }
+type CodexObservation struct{ codexOpaque }
+
+type CodexLaunch struct {
+	Executable  string
+	Directory   string
+	Arguments   []string
+	Environment []string
+}
+
+type codexSourceStamp struct {
+	Path      string
+	Parent    nativeIdentity
+	MissingAt int
+}
+
+type codexLaunchDescriptor struct {
+	Version    int
+	Launch     CodexLaunch
+	Executable nativeImage
+	Directory  nativeIdentity
+	Sources    []codexSourceStamp
+	Layers     [32]byte
+	Auth       nativeImage
+}
+
+type codexObservationData struct {
+	engine     *codexEngineState
+	selection  *codexSelectionData
+	descriptor codexLaunchDescriptor
+	baseline   [3]nativeImage
+	target     nativeIdentity
+	expires    time.Time
+}
+
+func (data *codexObservationData) destroy() { *data = codexObservationData{} }
 
 type CodexSafeChange struct {
 	Role   codexconfig.Role
@@ -275,13 +310,14 @@ func codexOperationID(value string) bool {
 }
 
 type codexPlanData struct {
-	engine    *codexEngineState
-	selection *codexSelectionData
-	view      SafeCodexPlan
-	baseline  [3]nativeImage
-	target    nativeIdentity
-	provider  codexconfig.ProviderPlan
-	profile   CodexProfileIdentity
+	engine      *codexEngineState
+	selection   *codexSelectionData
+	view        SafeCodexPlan
+	baseline    [3]nativeImage
+	target      nativeIdentity
+	provider    codexconfig.ProviderPlan
+	profile     CodexProfileIdentity
+	observation *codexObservationData
 }
 
 func (plan CodexPlan) View() SafeCodexPlan {
@@ -334,7 +370,7 @@ func (admission CodexAdmission) Revalidate(ctx context.Context) error {
 		return ErrCodexInvalid
 	}
 	return data.plan.engine.withLock(ctx, func(ctx context.Context) error {
-		if err := data.plan.engine.validatePlan(data.plan); err != nil {
+		if err := data.plan.engine.validatePlan(ctx, data.plan); err != nil {
 			return err
 		}
 		operation, err := codexOperationFromPlan(data.plan)

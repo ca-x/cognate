@@ -1,14 +1,22 @@
 package configapply
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hkdf"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json/v2"
 	"errors"
 	"math"
+	"path/filepath"
+	"reflect"
+	"slices"
+	"time"
+
+	"github.com/ca-x/cognate/internal/codexconfig"
 )
 
 const codexMetadataLimit = 64 << 10
@@ -78,6 +86,62 @@ type codexOperation struct {
 	ReservationsReleased bool
 	ProfileIdentity      CodexProfileIdentity
 	ManagedModels        []string
+	Observation          *codexLaunchDescriptor
+}
+
+func (state *codexEngineState) validateCodexOperationObservation(ctx context.Context, operation *codexOperation) error {
+	_, err := state.codexOperationObservationExpiry(ctx, operation)
+	return err
+}
+
+func (state *codexEngineState) codexOperationObservationExpiry(ctx context.Context, operation *codexOperation) (time.Time, error) {
+	if operation == nil {
+		return time.Time{}, ErrCodexInvalid
+	}
+	if operation.Observation == nil {
+		if operation.ProfileIdentity.ID != "" {
+			return time.Time{}, ErrCodexConflict
+		}
+		return state.now().Add(120 * time.Second), nil
+	}
+	if err := state.checkCodexContext(ctx); err != nil {
+		return time.Time{}, err
+	}
+	if codexDescriptorShape(operation.Observation) != nil || operation.ProfileIdentity != codexNative0166Identity() || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
+		return time.Time{}, ErrCodexConflict
+	}
+	actual, _, target, expires, err := state.captureCodexLaunch(ctx, operation.Observation.Launch)
+	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, ErrCodexClosed) {
+			return time.Time{}, err
+		}
+		return time.Time{}, ErrCodexConflict
+	}
+	if !reflect.DeepEqual(actual, *operation.Observation) || !sameDirectory(target, operation.Target) || !state.now().Before(expires) {
+		return time.Time{}, ErrCodexConflict
+	}
+	return minTime(state.now().Add(120*time.Second), expires), nil
+}
+
+func codexDescriptorShape(descriptor *codexLaunchDescriptor) error {
+	if descriptor == nil || descriptor.Version != 1 || !descriptor.Executable.Present || descriptor.Executable.SHA256 == [32]byte{} || descriptor.Directory.Inode == 0 || descriptor.Layers == [32]byte{} || len(descriptor.Launch.Executable) > 4096 || len(descriptor.Launch.Directory) > 4096 || !filepath.IsAbs(descriptor.Launch.Executable) || filepath.Clean(descriptor.Launch.Executable) != descriptor.Launch.Executable || !filepath.IsAbs(descriptor.Launch.Directory) || filepath.Clean(descriptor.Launch.Directory) != descriptor.Launch.Directory || !slices.Equal(descriptor.Launch.Arguments, []string{"app-server"}) || len(descriptor.Launch.Environment) != 4 || len(descriptor.Sources) == 0 || len(descriptor.Sources) > 64 {
+		return ErrCodexAttention
+	}
+	for _, source := range descriptor.Sources {
+		if len(source.Path) > 4096 || !filepath.IsAbs(source.Path) || filepath.Clean(source.Path) != source.Path || source.Parent.Inode == 0 || source.MissingAt < 0 || source.MissingAt >= 64 {
+			return ErrCodexAttention
+		}
+	}
+	raw, err := json.Marshal(descriptor)
+	defer clear(raw)
+	if err != nil || len(raw) > 32<<10 {
+		return ErrCodexCapacity
+	}
+	expected := codexconfig.Native0166ExecutableSHA256
+	if hex.EncodeToString(descriptor.Executable.SHA256[:]) != expected {
+		return ErrCodexAttention
+	}
+	return nil
 }
 
 type codexInventory struct {
@@ -325,6 +389,13 @@ func codexInventoryShape(inventory *codexInventory) error {
 	}
 	for id, operation := range inventory.Operations {
 		if operation == nil || !codexOperationID(id) || operation.ID != id || !codexIdentifier(operation.Owner) || !codexIdentifier(operation.Profile) || operation.Write[1] || operation.State < CodexPreviewed || operation.State > CodexAbandonedBeforeWrite || operation.Backup.Present != operation.Candidate.Present {
+			return ErrCodexAttention
+		}
+		if operation.Observation != nil {
+			if codexDescriptorShape(operation.Observation) != nil || operation.ProfileIdentity != codexNative0166Identity() || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
+				return ErrCodexAttention
+			}
+		} else if operation.ProfileIdentity.ID != "" {
 			return ErrCodexAttention
 		}
 	}

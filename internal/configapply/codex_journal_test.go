@@ -10,6 +10,60 @@ import (
 	"testing"
 )
 
+func TestCodexObservationDescriptorIsBoundedAndPrivate(test *testing.T) {
+	engine, home, stateRoot, _ := codexFixture(test)
+	launch := codexNativeLaunchFixture(test, home)
+	var descriptor codexLaunchDescriptor
+	if err := engine.private().withLock(test.Context(), func(ctx context.Context) error {
+		var err error
+		descriptor, _, _, _, err = engine.private().captureCodexLaunch(ctx, launch)
+		return err
+	}); err != nil {
+		test.Fatal("descriptor fixture failed")
+	}
+	bodies := [3][]byte{[]byte("model=\"synthetic-after\"\n"), nil, []byte(`{"models":[]}`)}
+	operation := codexLiteral(test, engine, bodies, [3]bool{true, false, true})
+	operation.ProfileIdentity = codexNative0166Identity()
+	operation.Observation = &descriptor
+	codexStageLiteral(test, engine, operation, bodies)
+	for _, name := range []string{codexAnchorName, codexNextAnchorName} {
+		raw, err := os.ReadFile(filepath.Join(stateRoot, name))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			test.Fatal("encrypted anchor read failed")
+		}
+		if bytes.Contains(raw, []byte(launch.Directory)) || bytes.Contains(raw, []byte("SYNTHETIC_")) || bytes.Contains(raw, []byte("app-server")) {
+			test.Fatal("observation descriptor escaped encrypted journal")
+		}
+	}
+	for _, kind := range []string{"version", "source-count", "relative", "arguments", "digest"} {
+		owned := codexCopyLaunchDescriptor(descriptor)
+		switch kind {
+		case "version":
+			owned.Version = 2
+		case "source-count":
+			owned.Sources = make([]codexSourceStamp, 65)
+		case "relative":
+			owned.Launch.Directory = "relative"
+		case "arguments":
+			owned.Launch.Arguments = []string{"app-server", "-c", "model_context_window=4096"}
+		case "digest":
+			owned.Executable.SHA256[0] ^= 1
+		}
+		if codexDescriptorShape(&owned) == nil {
+			test.Fatal("unbounded or unknown descriptor accepted")
+		}
+	}
+	before := operation.Before[1]
+	operation.Before[1].Present = !before.Present
+	if codexInventoryShape(&engine.private().inventory) == nil {
+		test.Fatal("journal accepted mismatched auth observation")
+	}
+	operation.Before[1] = before
+}
+
 func TestCodexStagedAnchorDoesNotTrustUnknownOrInvalidState(test *testing.T) {
 	for _, scenario := range []string{"equal-sequence", "gap", "device", "tamper", "shape", "unknown-vault", "missing-candidate", "next-mode"} {
 		test.Run(scenario, func(test *testing.T) {

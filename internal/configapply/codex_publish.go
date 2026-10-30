@@ -150,6 +150,9 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 	if !state.now().Before(timeFromCodex(operation.Expires)) {
 		return result, ErrCodexExpired
 	}
+	if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+		return result, err
+	}
 	target, images, bodies, err := state.observeCodex()
 	defer codexClearBodies(&bodies)
 	if err != nil {
@@ -200,6 +203,12 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 		}
 		if err := state.checkpointContext(ctx, "before-publish-"+strconv.Itoa(index)); err != nil {
 			return codexOperationResult(operation), err
+		}
+		if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+			return codexOperationResult(operation), err
+		}
+		if !state.now().Before(timeFromCodex(operation.Expires)) {
+			return codexOperationResult(operation), ErrCodexExpired
 		}
 		if err := state.checkCodexRoots(target); err != nil {
 			return codexOperationResult(operation), err
@@ -288,6 +297,12 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 	}
 	if err := state.checkCodexContext(ctx); err != nil {
 		return codexOperationResult(operation), err
+	}
+	if err := state.validateCodexOperationObservation(ctx, operation); err != nil {
+		return codexOperationResult(operation), err
+	}
+	if !state.now().Before(timeFromCodex(operation.Expires)) {
+		return codexOperationResult(operation), ErrCodexExpired
 	}
 	if err := state.finishCodex(operation); err != nil {
 		return codexOperationResult(operation), err

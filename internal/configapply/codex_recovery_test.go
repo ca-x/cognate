@@ -12,6 +12,172 @@ import (
 	"time"
 )
 
+func TestCodexObservedRestartRevalidatesSource(test *testing.T) {
+	for _, changed := range []bool{false, true} {
+		test.Run(strconv.FormatBool(changed), func(test *testing.T) {
+			engine, home, stateRoot, key := codexFixture(test)
+			launch := codexNativeLaunchFixture(test, home)
+			var descriptor codexLaunchDescriptor
+			if err := engine.private().withLock(test.Context(), func(ctx context.Context) error {
+				var err error
+				descriptor, _, _, _, err = engine.private().captureCodexLaunch(ctx, launch)
+				return err
+			}); err != nil {
+				test.Fatal("restart observation fixture failed")
+			}
+			bodies := [3][]byte{[]byte("model=\"synthetic-after\"\n"), nil, []byte(`{"models":[]}`)}
+			operation := codexLiteral(test, engine, bodies, [3]bool{true, false, true})
+			operation.ProfileIdentity = codexNative0166Identity()
+			operation.Observation = &descriptor
+			codexStageLiteral(test, engine, operation, bodies)
+			if err := engine.Close(); err != nil {
+				test.Fatal("restart close failed")
+			}
+			if changed {
+				if os.Mkdir(filepath.Join(launch.Directory, ".codex"), 0o700) != nil || os.WriteFile(filepath.Join(launch.Directory, ".codex", "config.toml"), []byte("model_context_window=4096\n"), 0o600) != nil {
+					test.Fatal("restart source fixture failed")
+				}
+			}
+			reopened, err := OpenCodex(test.Context(), home, stateRoot, key)
+			if err != nil {
+				test.Fatal("restart open failed")
+			}
+			defer reopened.Close()
+			err = reopened.private().withLock(test.Context(), func(ctx context.Context) error {
+				return reopened.private().validateCodexOperationObservation(ctx, reopened.private().inventory.Operations[operation.ID])
+			})
+			if changed {
+				if !errors.Is(err, ErrCodexConflict) {
+					test.Fatal("changed source accepted after restart")
+				}
+			} else if err != nil {
+				test.Fatal("unchanged authenticated descriptor refused after restart")
+			}
+		})
+	}
+}
+
+func TestCodexObservedPublicationCrashChild(test *testing.T) {
+	if os.Getenv("COGNATE_Q2_CRASH") != "1" {
+		return
+	}
+	engine, err := OpenCodex(test.Context(), os.Getenv("COGNATE_Q2_HOME"), os.Getenv("COGNATE_Q2_STATE"), bytes.Repeat([]byte{0x67}, 32))
+	if err != nil {
+		test.Fatal("crash child open failed")
+	}
+	defer engine.Close()
+	engine.private().fault = func(stage string) error {
+		if stage == "directory-synced-2" {
+			os.Exit(73)
+		}
+		return nil
+	}
+	err = engine.private().withLock(test.Context(), func(ctx context.Context) error {
+		operation := engine.private().inventory.Operations[os.Getenv("COGNATE_Q2_OPERATION")]
+		if err := engine.private().validateCodexOperationObservation(ctx, operation); err != nil {
+			return err
+		}
+		_, err := engine.private().publishCodex(ctx, operation)
+		return err
+	})
+	if err != nil {
+		test.Fatal("crash child publication refused")
+	}
+	test.Fatal("real crash checkpoint not reached")
+}
+
+func TestCodexObservedCrashRecoveryAndRestore(test *testing.T) {
+	for _, change := range []bool{false, true} {
+		test.Run(strconv.FormatBool(change), func(test *testing.T) {
+			engine, home, stateRoot, key := codexFixture(test)
+			launch := codexNativeLaunchFixture(test, home)
+			auth := []byte(`{"OPENAI_API_KEY":"SYNTHETIC_KEEP_API"}`)
+			if os.WriteFile(filepath.Join(home, ".codex", "auth.json"), auth, 0o600) != nil {
+				test.Fatal("auth fixture failed")
+			}
+			var descriptor codexLaunchDescriptor
+			if err := engine.private().withLock(test.Context(), func(ctx context.Context) error {
+				var err error
+				descriptor, _, _, _, err = engine.private().captureCodexLaunch(ctx, launch)
+				return err
+			}); err != nil {
+				test.Fatal("crash descriptor capture failed")
+			}
+			bodies := [3][]byte{[]byte("model=\"synthetic-after\"\n"), nil, []byte(`{"models":[]}`)}
+			operation := codexLiteral(test, engine, bodies, [3]bool{true, false, true})
+			operation.ProfileIdentity = codexNative0166Identity()
+			operation.Observation = &descriptor
+			codexStageLiteral(test, engine, operation, bodies)
+			if engine.Close() != nil {
+				test.Fatal("crash parent close failed")
+			}
+			ctx, cancel := context.WithTimeout(test.Context(), 15*time.Second)
+			defer cancel()
+			child := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestCodexObservedPublicationCrashChild$", "-test.timeout=10s")
+			child.Env = []string{"HOME=" + home, "TMPDIR=" + os.TempDir(), "PATH=/usr/bin:/bin", "COGNATE_Q2_CRASH=1", "COGNATE_Q2_HOME=" + home, "COGNATE_Q2_STATE=" + stateRoot, "COGNATE_Q2_OPERATION=" + operation.ID}
+			err := child.Run()
+			status, ok := errors.AsType[*exec.ExitError](err)
+			if !ok || status.ExitCode() != 73 || ctx.Err() != nil {
+				test.Fatal("child did not join at real publication crash")
+			}
+			if change {
+				if os.Mkdir(filepath.Join(launch.Directory, ".codex"), 0o700) != nil || os.WriteFile(filepath.Join(launch.Directory, ".codex", "config.toml"), []byte("model_context_window=4096\n"), 0o600) != nil {
+					test.Fatal("post-crash source mutation failed")
+				}
+			}
+			reopened, err := OpenCodex(test.Context(), home, stateRoot, key)
+			if err != nil {
+				test.Fatal("post-crash open failed")
+			}
+			defer reopened.Close()
+			plan, err := reopened.PreviewCodexRecovery(test.Context(), operation.ID)
+			if change {
+				if !errors.Is(err, ErrCodexConflict) {
+					test.Fatal("restart source mutation did not fail closed")
+				}
+				if _, err := os.Stat(filepath.Join(home, ".codex", "config.toml")); !errors.Is(err, os.ErrNotExist) {
+					test.Fatal("rejected recovery published config")
+				}
+				return
+			}
+			if err != nil {
+				test.Fatal("legitimate pre/post role mix recovery refused")
+			}
+			defer plan.Destroy()
+			plan, err = plan.Confirm(test.Context(), true)
+			if err != nil {
+				test.Fatal("recovery confirmation failed")
+			}
+			result, err := reopened.RecoverCodex(test.Context(), plan)
+			if err != nil || result.State != CodexCompleted {
+				test.Fatal("fresh authenticated recovery did not complete")
+			}
+			restore, err := reopened.PreviewCodexRestore(test.Context(), operation.ID)
+			if err != nil {
+				test.Fatal("restore preview failed")
+			}
+			defer restore.Destroy()
+			restore, err = restore.Confirm(test.Context(), true)
+			if err != nil {
+				test.Fatal("restore confirmation failed")
+			}
+			result, err = reopened.RestoreCodex(test.Context(), restore)
+			if err != nil || result.State != CodexRestored {
+				test.Fatal("fresh authenticated restore failed")
+			}
+			for _, name := range []string{"config.toml", "cognate-model-catalog.json"} {
+				if _, err := os.Stat(filepath.Join(home, ".codex", name)); !errors.Is(err, os.ErrNotExist) {
+					test.Fatal("restore did not preserve original absence")
+				}
+			}
+			actual, err := os.ReadFile(filepath.Join(home, ".codex", "auth.json"))
+			if err != nil || !bytes.Equal(auth, actual) {
+				test.Fatal("crash/recovery/restore changed Keep auth")
+			}
+		})
+	}
+}
+
 func TestCodexAnchorRepairCrashChild(test *testing.T) {
 	if os.Getenv("COGNATE_D1_ANCHOR_REPAIR") != "1" {
 		return

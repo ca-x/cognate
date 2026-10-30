@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +15,19 @@ import (
 	nativev1 "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1"
 	"github.com/ca-x/cognate/internal/agentconfig"
 )
+
+func codexNativeLaunchFixture(test *testing.T, home string) CodexLaunch {
+	test.Helper()
+	executable := os.Getenv("COGNATE_Q2_NATIVE_FIXTURE")
+	if executable == "" {
+		test.Skip("explicit pinned native consumer fixture required; no runtime qualification from compilation")
+	}
+	workspace := filepath.Join(filepath.Dir(home), "workspace")
+	if os.Mkdir(workspace, 0o700) != nil {
+		test.Fatal("workspace fixture setup failed")
+	}
+	return CodexLaunch{Executable: executable, Directory: workspace, Arguments: []string{"app-server"}}
+}
 
 func codexShapeSelection(test *testing.T, engine *CodexEngine) CodexSelection {
 	test.Helper()
@@ -37,7 +52,7 @@ func codexShapeSelection(test *testing.T, engine *CodexEngine) CodexSelection {
 func TestCodexOpaqueAndCounterBoundaries(test *testing.T) {
 	engine, home, _, _ := codexFixture(test)
 	selection := codexShapeSelection(test, engine)
-	values := []any{engine, *engine, selection, CodexPlan{}, CodexAdmission{}, CodexRecoveryPlan{}, CodexRestorePlan{}, CodexSelectionState{}, struct{ private CodexSelection }{selection}, map[string]any{"private": selection}}
+	values := []any{engine, *engine, selection, CodexPlan{}, CodexAdmission{}, CodexRecoveryPlan{}, CodexRestorePlan{}, CodexSelectionState{}, CodexObservation{}, struct{ private CodexSelection }{selection}, map[string]any{"private": selection}}
 	for _, value := range values {
 		for _, verb := range []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"} {
 			output := fmt.Sprintf(verb, value)

@@ -24,4 +24,16 @@ AlwaysOn 遇有效本地 Lite 模式必须拒绝；未知启动参数、其它�
 - 模板、已有目录 legacy false/错误类型、Lite 与未知模式拒绝；无关字节保全。
 - 模式与完整声明/presence/order 绑定；不修改输入，不读本机登录或补密钥；取消使用原 context sentinel。
 - 原 synthetic Catalog golden 与旧 codec 测试保持；真实 consumer 证据只证明上述有限观察，不签 keyring/Auto、所有字段/平台、安装 launcher、D 或完整首发。
-- 生产 `approvedProfile` 保持空。公开 `CheckProvider` 即使收到 synthetic 或源码身份也不能打开生产门。
+- 已提交基线的生产资格表为空；Q2 私有候选新增固定 0.166.0 codec manifest，不等于生产登记或资格签收。engine 的 `codexQualifiedProfiles` 仍为空；公开 `CheckProvider` 的 codec manifest 不能代替 engine 的启动观察与资格门。
+
+## Q2 私有候选边界（未验收）
+
+仅 Linux 的固定 ELF/source manifest、直接 `app-server`、受控清空环境及具体 cwd 可进入观察。观察器复用 B 的 TOML/JSON 解析，核真实 executable 物理身份与 SHA、实际 native config/read 的 user/system 层，以及所有受支持 source 的缺失物理见证；任何其它层、override、未知 File auth 或需要 refresh 的状态均拒绝。fresh OAuth 的语法与时间窗口分类不是账户真实性或 refresh 成功证明。
+
+`ObserveCodex` 产生 engine-owned opaque 观察；`PreviewCodexObserved` 绑定 owner/origin/selection、三 role 基线和期限。原 `PreviewCodex` 不会因新增 API 自动放行。auth 仍 Keep，true/absence 与全模型 explicit false 的 AlwaysOn 合同不变。descriptor 仅进入既有加密认证 journal；restart 必须重新观察，不能把持久化 hash 当新鲜授权。非 role closure 与可合法交换的 managed Before/After 分开。
+
+当前私有候选的 materialization、publisher 入口、每次 `before-publish-N` 之后交换前、最终 Completed/Restored 持久化前及 restart 均重新复核。原真实晚变更 compiled RED 保留；获批 exact17 扩展仅增加 publisher 文件，并复用同一 fresh validator。若某 role 已实际落盘才发现 source 冲突，保留实际部分发布或恢复状态，不虚构回滚或完成；后续恢复仍需 fresh 观察和显式确认。最终新鲜复核也不延长原 operation 安全期限。
+
+固定 native loader 会将相对 catalog 路径规范化；观察器只对 B 已支持的固定相对 `cognate-model-catalog.json` 按具体 user config 目录生成期望值，逐层语义比对仍拒绝其它路径或未解析结果，不另造配置合并。候选 template 的新增固定值须绑定 manifest 独立核证；Q1 的旧 native 证据不自动证明候选所有新值。独立真实规格验收前不得登记生产 profile、称 Applied 资格已完成或把私有 fixture 当真实端到端交付。
+
+非 Linux 仍 failclosed；跨编译不代表运行支持。CLI/MyGo 后续应用、C2、完整 D 与全部十四 agent 首发范围不因本片改变。
