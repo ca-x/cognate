@@ -24,6 +24,11 @@ func validateNativeModel(raw []byte, model *jsonNode, profile nativeProfile) err
 	if model.kind != '{' {
 		return ErrInvalidLocalImage
 	}
+	if profile.parallel == parallelAlwaysOn {
+		if err := validateAlwaysOnModel(model); err != nil {
+			return err
+		}
+	}
 	if err := requiredJSON(model, profile.requiredModel); err != nil {
 		return err
 	}
@@ -131,8 +136,14 @@ func catalogUpdates(model agentconfig.CodexCatalogModelDesired, profile nativePr
 		}
 	}
 	if model.SupportsParallelToolCalls != nil {
-		if err := add("supports_parallel_tool_calls", *model.SupportsParallelToolCalls); err != nil {
-			return nil, err
+		if profile.parallel == parallelAlwaysOn {
+			if !*model.SupportsParallelToolCalls {
+				return nil, ErrUnsupportedNativeProfile
+			}
+		} else {
+			if err := add("supports_parallel_tool_calls", *model.SupportsParallelToolCalls); err != nil {
+				return nil, err
+			}
 		}
 	}
 	if model.InputModalities != nil {
@@ -183,6 +194,9 @@ func rewriteCatalog(ctx context.Context, image LocalImage, declaration agentconf
 		return nil, 0, 0, ErrInvalidDeclaration
 	}
 	if err := validateProfile(ctx, profile); err != nil {
+		return nil, 0, 0, err
+	}
+	if err := validateParallelDeclaration(declaration, profile); err != nil {
 		return nil, 0, 0, err
 	}
 	var raw []byte

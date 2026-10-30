@@ -113,7 +113,7 @@ func TestCodexCatalogRequiredNativeFields(test *testing.T) {
 		test.Fatal("required native default guessed")
 	}
 	profile = syntheticProfile()
-	profile.parallel = false
+	profile.parallel = parallelUnverified
 	if _, _, _, err := rewriteCatalog(test.Context(), missing, goldenDeclaration(test), ownershipData{catalog: Absent}, profile); !errors.Is(err, ErrUnsupportedNativeProfile) {
 		test.Fatal("parallel field dropped")
 	}

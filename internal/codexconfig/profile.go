@@ -11,11 +11,19 @@ import (
 	"github.com/ca-x/cognate/internal/agentconfig"
 )
 
+type parallelMode uint8
+
+const (
+	parallelUnverified parallelMode = iota
+	parallelCatalog
+	parallelAlwaysOn
+)
+
 type nativeProfile struct {
 	id                 string
 	dialect            string
 	defaultStore       AuthStore
-	parallel           bool
+	parallel           parallelMode
 	legacyInstructions bool
 	relativeCatalog    bool
 	bearerPrecedence   bool
@@ -44,7 +52,7 @@ func validateProfile(ctx context.Context, profile nativeProfile) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if !validModelID(profile.id) || profile.dialect != "toml-1.1" || profile.defaultStore < File || profile.defaultStore > Auto || !profile.parallel || !profile.legacyInstructions || !profile.relativeCatalog || !profile.bearerPrecedence {
+	if !validModelID(profile.id) || profile.dialect != "toml-1.1" || profile.defaultStore < File || profile.defaultStore > Auto || profile.parallel != parallelCatalog && profile.parallel != parallelAlwaysOn || !profile.legacyInstructions || !profile.relativeCatalog || !profile.bearerPrecedence {
 		return ErrUnsupportedNativeProfile
 	}
 	if len(profile.rootDefaults)+len(profile.modelDefaults) > 64<<10 {
@@ -68,15 +76,68 @@ func validateProfile(ctx context.Context, profile nativeProfile) error {
 			return ErrUnsupportedNativeProfile
 		}
 	}
-	for _, raw := range [][]byte{profile.rootDefaults, profile.modelDefaults} {
-		if _, err := readJSON(ctx, raw); err != nil {
+	for index, raw := range [][]byte{profile.rootDefaults, profile.modelDefaults} {
+		document, err := readJSON(ctx, raw)
+		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return err
 			}
 			return ErrUnsupportedNativeProfile
 		}
+		if index == 1 && profile.parallel == parallelAlwaysOn && document.root.member("supports_parallel_tool_calls") != nil {
+			return ErrUnsupportedNativeProfile
+		}
+		if index == 1 && profile.parallel == parallelAlwaysOn {
+			if lite := document.root.member("use_responses_lite"); lite != nil && lite.kind != 'f' {
+				return ErrUnsupportedNativeProfile
+			}
+		}
 	}
 	return ctx.Err()
+}
+
+func validateParallelDeclaration(declaration agentconfig.CodexProviderDeclarationV1, profile nativeProfile) error {
+	if profile.parallel == parallelAlwaysOn && declaration.Catalog != nil {
+		for _, model := range declaration.Catalog.Models {
+			if model.SupportsParallelToolCalls != nil && !*model.SupportsParallelToolCalls {
+				return ErrUnsupportedNativeProfile
+			}
+		}
+	}
+	return nil
+}
+
+func validateParallelCatalog(ctx context.Context, catalog LocalImage) error {
+	document, err := readJSON(ctx, catalog.get[imageData]().body)
+	if err != nil {
+		return err
+	}
+	models := document.root.member("models")
+	if models == nil || models.kind != '[' {
+		return ErrOwnershipConflict
+	}
+	for _, model := range models.elements {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if err := validateAlwaysOnModel(model); err != nil {
+			return err
+		}
+	}
+	return ctx.Err()
+}
+
+func validateAlwaysOnModel(model *jsonNode) error {
+	if model.kind != '{' {
+		return ErrOwnershipConflict
+	}
+	if parallel := model.member("supports_parallel_tool_calls"); parallel != nil && parallel.kind != 't' {
+		return ErrOwnershipConflict
+	}
+	if lite := model.member("use_responses_lite"); lite != nil && lite.kind != 'f' {
+		return ErrOwnershipConflict
+	}
+	return nil
 }
 
 func resolveLocalAuth(ctx context.Context, document *tomlDocument, image LocalImage, local resolutionData, profile nativeProfile) (bool, error) {
@@ -153,6 +214,15 @@ func validateLocal(ctx context.Context, document *tomlDocument, catalog LocalIma
 	}
 	if document.closed {
 		return ErrUnsupportedRepresentation
+	}
+	if profile.parallel == parallelAlwaysOn {
+		if catalog.Presence() == Present {
+			if err := validateParallelCatalog(ctx, catalog); err != nil {
+				return err
+			}
+		} else if _, exists := document.lookup("model_catalog_json"); exists && declaration.Catalog == nil {
+			return ErrOwnershipConflict
+		}
 	}
 	owners := local.ownership
 	provider, exists := document.lookup("model_providers", "cognate")
@@ -235,13 +305,14 @@ func profileDigest(profile nativeProfile) [32]byte {
 		ID           string
 		Dialect      string
 		DefaultStore AuthStore
-		Flags        [4]bool
+		Parallel     parallelMode
+		Flags        [3]bool
 		Template     [32]byte
 		Required     [2][]string
 		Ignored      [4][]string
 		Efforts      []agentconfig.CodexReasoningEffort
 		Descriptions map[agentconfig.CodexReasoningEffort]string
-	}{profile.id, profile.dialect, profile.defaultStore, [4]bool{profile.parallel, profile.legacyInstructions, profile.relativeCatalog, profile.bearerPrecedence}, profileTemplateDigest(profile),
+	}{profile.id, profile.dialect, profile.defaultStore, profile.parallel, [3]bool{profile.legacyInstructions, profile.relativeCatalog, profile.bearerPrecedence}, profileTemplateDigest(profile),
 		[2][]string{profile.requiredRoot, profile.requiredModel}, [4][]string{profile.ignoredRoot, profile.ignoredProvider, profile.ignoredCatalogRoot, profile.ignoredModel}, profile.efforts, profile.descriptions}, json.Deterministic(true))
 	return sha256.Sum256(raw)
 }

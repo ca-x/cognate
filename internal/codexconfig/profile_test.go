@@ -15,7 +15,7 @@ import (
 func syntheticProfile() nativeProfile {
 	return nativeProfile{
 		id: "synthetic.full-v1", dialect: "toml-1.1", defaultStore: File,
-		parallel: true, legacyInstructions: true, relativeCatalog: true, bearerPrecedence: true,
+		parallel: parallelCatalog, legacyInstructions: true, relativeCatalog: true, bearerPrecedence: true,
 		rootDefaults: []byte(`{"models":[]}`), modelDefaults: []byte(`{"description":"SYNTHETIC_ONLY"}`),
 		requiredRoot: []string{"models"}, requiredModel: []string{"slug", "description"},
 		ignoredRoot: []string{"keep", "other", "note", "model_providers.cognate"}, ignoredProvider: []string{"description"},
@@ -91,7 +91,7 @@ func TestCodexNativeProfileGate(test *testing.T) {
 	if validateProfile(test.Context(), profile) != nil {
 		test.Fatal("full synthetic profile rejected")
 	}
-	profile.parallel = false
+	profile.parallel = parallelUnverified
 	if !errors.Is(validateProfile(test.Context(), profile), ErrUnsupportedNativeProfile) {
 		test.Fatal("missing parallel mapping accepted")
 	}

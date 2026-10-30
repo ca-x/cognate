@@ -307,6 +307,7 @@ const (
 	ChangeSet
 	ChangeReorder
 	ChangeManagedModelRemove
+	ChangeNativeAlwaysOn
 )
 
 type FieldPreview struct {
@@ -381,6 +382,9 @@ func checkProvider(ctx context.Context, images LocalImages, declaration agentcon
 	if err := validateProfile(ctx, profile); err != nil {
 		return ProviderPlan{}, err
 	}
+	if err := validateParallelDeclaration(declaration, profile); err != nil {
+		return ProviderPlan{}, err
+	}
 	observation := *resolution
 	observation.ownership.models = slices.Clone(resolution.ownership.models)
 	values := captured.get[imagesData]().images
@@ -436,7 +440,7 @@ func checkProvider(ctx context.Context, images LocalImages, declaration agentcon
 	if err := checkOutputSizes(len(config), len(catalog), len(values[1].get[imageData]().body), len(values[2].get[imageData]().body), declaration.Catalog != nil); err != nil {
 		return ProviderPlan{}, err
 	}
-	preview := buildPreview(document, declaration, removed)
+	preview := buildPreview(document, declaration, removed, profile.parallel)
 	if err := ctx.Err(); err != nil {
 		return ProviderPlan{}, err
 	}
@@ -459,7 +463,7 @@ func checkOutputSizes(config, catalog, auth, retainedCatalog int, catalogWrite b
 	return nil
 }
 
-func buildPreview(document *tomlDocument, declaration agentconfig.CodexProviderDeclarationV1, removed int) []FieldPreview {
+func buildPreview(document *tomlDocument, declaration agentconfig.CodexProviderDeclarationV1, removed int, parallel parallelMode) []FieldPreview {
 	paths := [][]string{{"model_provider"}, {"model"}, {"model_reasoning_effort"}, {"model_catalog_json"}, {"model_providers", "cognate", "name"}, {"model_providers", "cognate", "base_url"}, {"model_providers", "cognate", "wire_api"}, {"model_providers", "cognate", "requires_openai_auth"}, {"model_providers", "cognate", "experimental_bearer_token"}}
 	result := make([]FieldPreview, 0, 18)
 	for index, path := range paths {
@@ -500,6 +504,9 @@ func buildPreview(document *tomlDocument, declaration agentconfig.CodexProviderD
 			change := ChangeKeep
 			if selected {
 				change = ChangeSet
+			}
+			if field == FieldParallel && parallel == parallelAlwaysOn {
+				change = ChangeNativeAlwaysOn
 			}
 			result = append(result, FieldPreview{Role: CatalogRole, Field: field, Change: change})
 		}
