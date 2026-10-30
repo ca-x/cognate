@@ -88,8 +88,28 @@ func TestGeminiConfigurationProtocolDescriptor(test *testing.T) {
 		}
 	}
 	draft := file.Messages().ByName("Draft")
-	if draft.Fields().ByName("claude_provider").Number() != 2 || draft.Fields().ByName("codex_provider").Number() != 3 || draft.Fields().ByName("gemini_provider").Number() != 4 || draft.Fields().ByName("opencode_provider").Number() != 5 || draft.Oneofs().ByName("payload").Fields().Len() != 4 || file.Services().Get(0).Methods().Len() != 7 {
+	if draft.Fields().ByName("claude_provider").Number() != 2 || draft.Fields().ByName("codex_provider").Number() != 3 || draft.Fields().ByName("gemini_provider").Number() != 4 || draft.Fields().ByName("opencode_provider").Number() != 5 || draft.Oneofs().ByName("payload").Fields().Len() != 4 || file.Services().Get(0).Methods().Len() != 9 {
 		test.Fatal("legacy draft or RPC contract changed")
+	}
+	for _, expected := range []struct {
+		name   protoreflect.Name
+		input  protoreflect.FullName
+		output protoreflect.FullName
+	}{
+		{"ListAssets", "skillhub.configuration.v1.ListAssetsRequest", "skillhub.configuration.v1.ListAssetsResponse"},
+		{"GetAsset", "skillhub.configuration.v1.GetAssetRequest", "skillhub.configuration.v1.GetAssetResponse"},
+		{"ReadDraft", "skillhub.configuration.v1.ReadDraftRequest", "skillhub.configuration.v1.ReadDraftResponse"},
+		{"CreateAsset", "skillhub.configuration.v1.CreateAssetRequest", "skillhub.configuration.v1.CreateAssetResponse"},
+		{"UpdateAsset", "skillhub.configuration.v1.UpdateAssetRequest", "skillhub.configuration.v1.UpdateAssetResponse"},
+		{"CopyAsset", "skillhub.configuration.v1.CopyAssetRequest", "skillhub.configuration.v1.CopyAssetResponse"},
+		{"DeleteAsset", "skillhub.configuration.v1.DeleteAssetRequest", "skillhub.configuration.v1.DeleteAssetResponse"},
+		{"GetAssetOrder", "skillhub.configuration.v1.GetAssetOrderRequest", "skillhub.configuration.v1.GetAssetOrderResponse"},
+		{"ReplaceAssetOrder", "skillhub.configuration.v1.ReplaceAssetOrderRequest", "skillhub.configuration.v1.ReplaceAssetOrderResponse"},
+	} {
+		method := file.Services().Get(0).Methods().ByName(expected.name)
+		if method == nil || method.Input().FullName() != expected.input || method.Output().FullName() != expected.output || method.IsStreamingClient() || method.IsStreamingServer() {
+			test.Fatalf("RPC contract changed: %s", expected.name)
+		}
 	}
 	for mask := range 16 {
 		value := dynamicpb.NewMessage(provider)

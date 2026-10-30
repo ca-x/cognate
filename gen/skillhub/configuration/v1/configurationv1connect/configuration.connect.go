@@ -54,6 +54,12 @@ const (
 	// ConfigurationServiceDeleteAssetProcedure is the fully-qualified name of the
 	// ConfigurationService's DeleteAsset RPC.
 	ConfigurationServiceDeleteAssetProcedure = "/skillhub.configuration.v1.ConfigurationService/DeleteAsset"
+	// ConfigurationServiceGetAssetOrderProcedure is the fully-qualified name of the
+	// ConfigurationService's GetAssetOrder RPC.
+	ConfigurationServiceGetAssetOrderProcedure = "/skillhub.configuration.v1.ConfigurationService/GetAssetOrder"
+	// ConfigurationServiceReplaceAssetOrderProcedure is the fully-qualified name of the
+	// ConfigurationService's ReplaceAssetOrder RPC.
+	ConfigurationServiceReplaceAssetOrderProcedure = "/skillhub.configuration.v1.ConfigurationService/ReplaceAssetOrder"
 )
 
 // ConfigurationServiceClient is a client for the skillhub.configuration.v1.ConfigurationService
@@ -66,6 +72,8 @@ type ConfigurationServiceClient interface {
 	UpdateAsset(context.Context, *connect.Request[v1.UpdateAssetRequest]) (*connect.Response[v1.UpdateAssetResponse], error)
 	CopyAsset(context.Context, *connect.Request[v1.CopyAssetRequest]) (*connect.Response[v1.CopyAssetResponse], error)
 	DeleteAsset(context.Context, *connect.Request[v1.DeleteAssetRequest]) (*connect.Response[v1.DeleteAssetResponse], error)
+	GetAssetOrder(context.Context, *connect.Request[v1.GetAssetOrderRequest]) (*connect.Response[v1.GetAssetOrderResponse], error)
+	ReplaceAssetOrder(context.Context, *connect.Request[v1.ReplaceAssetOrderRequest]) (*connect.Response[v1.ReplaceAssetOrderResponse], error)
 }
 
 // NewConfigurationServiceClient constructs a client for the
@@ -122,18 +130,32 @@ func NewConfigurationServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(configurationServiceMethods.ByName("DeleteAsset")),
 			connect.WithClientOptions(opts...),
 		),
+		getAssetOrder: connect.NewClient[v1.GetAssetOrderRequest, v1.GetAssetOrderResponse](
+			httpClient,
+			baseURL+ConfigurationServiceGetAssetOrderProcedure,
+			connect.WithSchema(configurationServiceMethods.ByName("GetAssetOrder")),
+			connect.WithClientOptions(opts...),
+		),
+		replaceAssetOrder: connect.NewClient[v1.ReplaceAssetOrderRequest, v1.ReplaceAssetOrderResponse](
+			httpClient,
+			baseURL+ConfigurationServiceReplaceAssetOrderProcedure,
+			connect.WithSchema(configurationServiceMethods.ByName("ReplaceAssetOrder")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // configurationServiceClient implements ConfigurationServiceClient.
 type configurationServiceClient struct {
-	listAssets  *connect.Client[v1.ListAssetsRequest, v1.ListAssetsResponse]
-	getAsset    *connect.Client[v1.GetAssetRequest, v1.GetAssetResponse]
-	readDraft   *connect.Client[v1.ReadDraftRequest, v1.ReadDraftResponse]
-	createAsset *connect.Client[v1.CreateAssetRequest, v1.CreateAssetResponse]
-	updateAsset *connect.Client[v1.UpdateAssetRequest, v1.UpdateAssetResponse]
-	copyAsset   *connect.Client[v1.CopyAssetRequest, v1.CopyAssetResponse]
-	deleteAsset *connect.Client[v1.DeleteAssetRequest, v1.DeleteAssetResponse]
+	listAssets        *connect.Client[v1.ListAssetsRequest, v1.ListAssetsResponse]
+	getAsset          *connect.Client[v1.GetAssetRequest, v1.GetAssetResponse]
+	readDraft         *connect.Client[v1.ReadDraftRequest, v1.ReadDraftResponse]
+	createAsset       *connect.Client[v1.CreateAssetRequest, v1.CreateAssetResponse]
+	updateAsset       *connect.Client[v1.UpdateAssetRequest, v1.UpdateAssetResponse]
+	copyAsset         *connect.Client[v1.CopyAssetRequest, v1.CopyAssetResponse]
+	deleteAsset       *connect.Client[v1.DeleteAssetRequest, v1.DeleteAssetResponse]
+	getAssetOrder     *connect.Client[v1.GetAssetOrderRequest, v1.GetAssetOrderResponse]
+	replaceAssetOrder *connect.Client[v1.ReplaceAssetOrderRequest, v1.ReplaceAssetOrderResponse]
 }
 
 // ListAssets calls skillhub.configuration.v1.ConfigurationService.ListAssets.
@@ -171,6 +193,16 @@ func (c *configurationServiceClient) DeleteAsset(ctx context.Context, req *conne
 	return c.deleteAsset.CallUnary(ctx, req)
 }
 
+// GetAssetOrder calls skillhub.configuration.v1.ConfigurationService.GetAssetOrder.
+func (c *configurationServiceClient) GetAssetOrder(ctx context.Context, req *connect.Request[v1.GetAssetOrderRequest]) (*connect.Response[v1.GetAssetOrderResponse], error) {
+	return c.getAssetOrder.CallUnary(ctx, req)
+}
+
+// ReplaceAssetOrder calls skillhub.configuration.v1.ConfigurationService.ReplaceAssetOrder.
+func (c *configurationServiceClient) ReplaceAssetOrder(ctx context.Context, req *connect.Request[v1.ReplaceAssetOrderRequest]) (*connect.Response[v1.ReplaceAssetOrderResponse], error) {
+	return c.replaceAssetOrder.CallUnary(ctx, req)
+}
+
 // ConfigurationServiceHandler is an implementation of the
 // skillhub.configuration.v1.ConfigurationService service.
 type ConfigurationServiceHandler interface {
@@ -181,6 +213,8 @@ type ConfigurationServiceHandler interface {
 	UpdateAsset(context.Context, *connect.Request[v1.UpdateAssetRequest]) (*connect.Response[v1.UpdateAssetResponse], error)
 	CopyAsset(context.Context, *connect.Request[v1.CopyAssetRequest]) (*connect.Response[v1.CopyAssetResponse], error)
 	DeleteAsset(context.Context, *connect.Request[v1.DeleteAssetRequest]) (*connect.Response[v1.DeleteAssetResponse], error)
+	GetAssetOrder(context.Context, *connect.Request[v1.GetAssetOrderRequest]) (*connect.Response[v1.GetAssetOrderResponse], error)
+	ReplaceAssetOrder(context.Context, *connect.Request[v1.ReplaceAssetOrderRequest]) (*connect.Response[v1.ReplaceAssetOrderResponse], error)
 }
 
 // NewConfigurationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -232,6 +266,18 @@ func NewConfigurationServiceHandler(svc ConfigurationServiceHandler, opts ...con
 		connect.WithSchema(configurationServiceMethods.ByName("DeleteAsset")),
 		connect.WithHandlerOptions(opts...),
 	)
+	configurationServiceGetAssetOrderHandler := connect.NewUnaryHandler(
+		ConfigurationServiceGetAssetOrderProcedure,
+		svc.GetAssetOrder,
+		connect.WithSchema(configurationServiceMethods.ByName("GetAssetOrder")),
+		connect.WithHandlerOptions(opts...),
+	)
+	configurationServiceReplaceAssetOrderHandler := connect.NewUnaryHandler(
+		ConfigurationServiceReplaceAssetOrderProcedure,
+		svc.ReplaceAssetOrder,
+		connect.WithSchema(configurationServiceMethods.ByName("ReplaceAssetOrder")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.configuration.v1.ConfigurationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConfigurationServiceListAssetsProcedure:
@@ -248,6 +294,10 @@ func NewConfigurationServiceHandler(svc ConfigurationServiceHandler, opts ...con
 			configurationServiceCopyAssetHandler.ServeHTTP(w, r)
 		case ConfigurationServiceDeleteAssetProcedure:
 			configurationServiceDeleteAssetHandler.ServeHTTP(w, r)
+		case ConfigurationServiceGetAssetOrderProcedure:
+			configurationServiceGetAssetOrderHandler.ServeHTTP(w, r)
+		case ConfigurationServiceReplaceAssetOrderProcedure:
+			configurationServiceReplaceAssetOrderHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -283,4 +333,12 @@ func (UnimplementedConfigurationServiceHandler) CopyAsset(context.Context, *conn
 
 func (UnimplementedConfigurationServiceHandler) DeleteAsset(context.Context, *connect.Request[v1.DeleteAssetRequest]) (*connect.Response[v1.DeleteAssetResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.configuration.v1.ConfigurationService.DeleteAsset is not implemented"))
+}
+
+func (UnimplementedConfigurationServiceHandler) GetAssetOrder(context.Context, *connect.Request[v1.GetAssetOrderRequest]) (*connect.Response[v1.GetAssetOrderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.configuration.v1.ConfigurationService.GetAssetOrder is not implemented"))
+}
+
+func (UnimplementedConfigurationServiceHandler) ReplaceAssetOrder(context.Context, *connect.Request[v1.ReplaceAssetOrderRequest]) (*connect.Response[v1.ReplaceAssetOrderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.configuration.v1.ConfigurationService.ReplaceAssetOrder is not implemented"))
 }

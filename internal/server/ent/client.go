@@ -19,6 +19,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorder"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorderentry"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -55,6 +57,10 @@ type Client struct {
 	CollectedSkill *CollectedSkillClient
 	// ConfigurationAsset is the client for interacting with the ConfigurationAsset builders.
 	ConfigurationAsset *ConfigurationAssetClient
+	// ConfigurationOrder is the client for interacting with the ConfigurationOrder builders.
+	ConfigurationOrder *ConfigurationOrderClient
+	// ConfigurationOrderEntry is the client for interacting with the ConfigurationOrderEntry builders.
+	ConfigurationOrderEntry *ConfigurationOrderEntryClient
 	// GitHubCredential is the client for interacting with the GitHubCredential builders.
 	GitHubCredential *GitHubCredentialClient
 	// GitHubList is the client for interacting with the GitHubList builders.
@@ -112,6 +118,8 @@ func (c *Client) init() {
 	c.CollectedRepository = NewCollectedRepositoryClient(c.config)
 	c.CollectedSkill = NewCollectedSkillClient(c.config)
 	c.ConfigurationAsset = NewConfigurationAssetClient(c.config)
+	c.ConfigurationOrder = NewConfigurationOrderClient(c.config)
+	c.ConfigurationOrderEntry = NewConfigurationOrderEntryClient(c.config)
 	c.GitHubCredential = NewGitHubCredentialClient(c.config)
 	c.GitHubList = NewGitHubListClient(c.config)
 	c.GitHubMembership = NewGitHubMembershipClient(c.config)
@@ -229,6 +237,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CollectedRepository:         NewCollectedRepositoryClient(cfg),
 		CollectedSkill:              NewCollectedSkillClient(cfg),
 		ConfigurationAsset:          NewConfigurationAssetClient(cfg),
+		ConfigurationOrder:          NewConfigurationOrderClient(cfg),
+		ConfigurationOrderEntry:     NewConfigurationOrderEntryClient(cfg),
 		GitHubCredential:            NewGitHubCredentialClient(cfg),
 		GitHubList:                  NewGitHubListClient(cfg),
 		GitHubMembership:            NewGitHubMembershipClient(cfg),
@@ -273,6 +283,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CollectedRepository:         NewCollectedRepositoryClient(cfg),
 		CollectedSkill:              NewCollectedSkillClient(cfg),
 		ConfigurationAsset:          NewConfigurationAssetClient(cfg),
+		ConfigurationOrder:          NewConfigurationOrderClient(cfg),
+		ConfigurationOrderEntry:     NewConfigurationOrderEntryClient(cfg),
 		GitHubCredential:            NewGitHubCredentialClient(cfg),
 		GitHubList:                  NewGitHubListClient(cfg),
 		GitHubMembership:            NewGitHubMembershipClient(cfg),
@@ -324,9 +336,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
-		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
-		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.ConfigurationOrder, c.ConfigurationOrderEntry, c.GitHubCredential,
+		c.GitHubList, c.GitHubMembership, c.GitHubRepository, c.ImportReceipt,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
+		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
 		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
@@ -340,9 +353,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
-		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
-		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.ConfigurationOrder, c.ConfigurationOrderEntry, c.GitHubCredential,
+		c.GitHubList, c.GitHubMembership, c.GitHubRepository, c.ImportReceipt,
+		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
+		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
 		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
@@ -362,6 +376,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CollectedSkill.mutate(ctx, m)
 	case *ConfigurationAssetMutation:
 		return c.ConfigurationAsset.mutate(ctx, m)
+	case *ConfigurationOrderMutation:
+		return c.ConfigurationOrder.mutate(ctx, m)
+	case *ConfigurationOrderEntryMutation:
+		return c.ConfigurationOrderEntry.mutate(ctx, m)
 	case *GitHubCredentialMutation:
 		return c.GitHubCredential.mutate(ctx, m)
 	case *GitHubListMutation:
@@ -1082,6 +1100,320 @@ func (c *ConfigurationAssetClient) mutate(ctx context.Context, m *ConfigurationA
 		return (&ConfigurationAssetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ConfigurationAsset mutation op: %q", m.Op())
+	}
+}
+
+// ConfigurationOrderClient is a client for the ConfigurationOrder schema.
+type ConfigurationOrderClient struct {
+	config
+}
+
+// NewConfigurationOrderClient returns a client for the ConfigurationOrder from the given config.
+func NewConfigurationOrderClient(c config) *ConfigurationOrderClient {
+	return &ConfigurationOrderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `configurationorder.Hooks(f(g(h())))`.
+func (c *ConfigurationOrderClient) Use(hooks ...Hook) {
+	c.hooks.ConfigurationOrder = append(c.hooks.ConfigurationOrder, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `configurationorder.Intercept(f(g(h())))`.
+func (c *ConfigurationOrderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ConfigurationOrder = append(c.inters.ConfigurationOrder, interceptors...)
+}
+
+// Create returns a builder for creating a ConfigurationOrder entity.
+func (c *ConfigurationOrderClient) Create() *ConfigurationOrderCreate {
+	mutation := newConfigurationOrderMutation(c.config, OpCreate)
+	return &ConfigurationOrderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ConfigurationOrder entities.
+func (c *ConfigurationOrderClient) CreateBulk(builders ...*ConfigurationOrderCreate) *ConfigurationOrderCreateBulk {
+	return &ConfigurationOrderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConfigurationOrderClient) MapCreateBulk(slice any, setFunc func(*ConfigurationOrderCreate, int)) *ConfigurationOrderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConfigurationOrderCreateBulk{err: fmt.Errorf("calling to ConfigurationOrderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConfigurationOrderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ConfigurationOrderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ConfigurationOrder.
+func (c *ConfigurationOrderClient) Update() *ConfigurationOrderUpdate {
+	mutation := newConfigurationOrderMutation(c.config, OpUpdate)
+	return &ConfigurationOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConfigurationOrderClient) UpdateOne(_m *ConfigurationOrder) *ConfigurationOrderUpdateOne {
+	mutation := newConfigurationOrderMutation(c.config, OpUpdateOne, withConfigurationOrder(_m))
+	return &ConfigurationOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConfigurationOrderClient) UpdateOneID(id int) *ConfigurationOrderUpdateOne {
+	mutation := newConfigurationOrderMutation(c.config, OpUpdateOne, withConfigurationOrderID(id))
+	return &ConfigurationOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ConfigurationOrder.
+func (c *ConfigurationOrderClient) Delete() *ConfigurationOrderDelete {
+	mutation := newConfigurationOrderMutation(c.config, OpDelete)
+	return &ConfigurationOrderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConfigurationOrderClient) DeleteOne(_m *ConfigurationOrder) *ConfigurationOrderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConfigurationOrderClient) DeleteOneID(id int) *ConfigurationOrderDeleteOne {
+	builder := c.Delete().Where(configurationorder.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConfigurationOrderDeleteOne{builder}
+}
+
+// Query returns a query builder for ConfigurationOrder.
+func (c *ConfigurationOrderClient) Query() *ConfigurationOrderQuery {
+	return &ConfigurationOrderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConfigurationOrder},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ConfigurationOrder entity by its id.
+func (c *ConfigurationOrderClient) Get(ctx context.Context, id int) (*ConfigurationOrder, error) {
+	return c.Query().Where(configurationorder.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConfigurationOrderClient) GetX(ctx context.Context, id int) *ConfigurationOrder {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ConfigurationOrder.
+func (c *ConfigurationOrderClient) QueryUser(_m *ConfigurationOrder) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configurationorder.Table, configurationorder.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, configurationorder.UserTable, configurationorder.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ConfigurationOrderClient) Hooks() []Hook {
+	return c.hooks.ConfigurationOrder
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConfigurationOrderClient) Interceptors() []Interceptor {
+	return c.inters.ConfigurationOrder
+}
+
+func (c *ConfigurationOrderClient) mutate(ctx context.Context, m *ConfigurationOrderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConfigurationOrderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConfigurationOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConfigurationOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConfigurationOrderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ConfigurationOrder mutation op: %q", m.Op())
+	}
+}
+
+// ConfigurationOrderEntryClient is a client for the ConfigurationOrderEntry schema.
+type ConfigurationOrderEntryClient struct {
+	config
+}
+
+// NewConfigurationOrderEntryClient returns a client for the ConfigurationOrderEntry from the given config.
+func NewConfigurationOrderEntryClient(c config) *ConfigurationOrderEntryClient {
+	return &ConfigurationOrderEntryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `configurationorderentry.Hooks(f(g(h())))`.
+func (c *ConfigurationOrderEntryClient) Use(hooks ...Hook) {
+	c.hooks.ConfigurationOrderEntry = append(c.hooks.ConfigurationOrderEntry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `configurationorderentry.Intercept(f(g(h())))`.
+func (c *ConfigurationOrderEntryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ConfigurationOrderEntry = append(c.inters.ConfigurationOrderEntry, interceptors...)
+}
+
+// Create returns a builder for creating a ConfigurationOrderEntry entity.
+func (c *ConfigurationOrderEntryClient) Create() *ConfigurationOrderEntryCreate {
+	mutation := newConfigurationOrderEntryMutation(c.config, OpCreate)
+	return &ConfigurationOrderEntryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ConfigurationOrderEntry entities.
+func (c *ConfigurationOrderEntryClient) CreateBulk(builders ...*ConfigurationOrderEntryCreate) *ConfigurationOrderEntryCreateBulk {
+	return &ConfigurationOrderEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConfigurationOrderEntryClient) MapCreateBulk(slice any, setFunc func(*ConfigurationOrderEntryCreate, int)) *ConfigurationOrderEntryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConfigurationOrderEntryCreateBulk{err: fmt.Errorf("calling to ConfigurationOrderEntryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConfigurationOrderEntryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ConfigurationOrderEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ConfigurationOrderEntry.
+func (c *ConfigurationOrderEntryClient) Update() *ConfigurationOrderEntryUpdate {
+	mutation := newConfigurationOrderEntryMutation(c.config, OpUpdate)
+	return &ConfigurationOrderEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConfigurationOrderEntryClient) UpdateOne(_m *ConfigurationOrderEntry) *ConfigurationOrderEntryUpdateOne {
+	mutation := newConfigurationOrderEntryMutation(c.config, OpUpdateOne, withConfigurationOrderEntry(_m))
+	return &ConfigurationOrderEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConfigurationOrderEntryClient) UpdateOneID(id int) *ConfigurationOrderEntryUpdateOne {
+	mutation := newConfigurationOrderEntryMutation(c.config, OpUpdateOne, withConfigurationOrderEntryID(id))
+	return &ConfigurationOrderEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ConfigurationOrderEntry.
+func (c *ConfigurationOrderEntryClient) Delete() *ConfigurationOrderEntryDelete {
+	mutation := newConfigurationOrderEntryMutation(c.config, OpDelete)
+	return &ConfigurationOrderEntryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConfigurationOrderEntryClient) DeleteOne(_m *ConfigurationOrderEntry) *ConfigurationOrderEntryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConfigurationOrderEntryClient) DeleteOneID(id int) *ConfigurationOrderEntryDeleteOne {
+	builder := c.Delete().Where(configurationorderentry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConfigurationOrderEntryDeleteOne{builder}
+}
+
+// Query returns a query builder for ConfigurationOrderEntry.
+func (c *ConfigurationOrderEntryClient) Query() *ConfigurationOrderEntryQuery {
+	return &ConfigurationOrderEntryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConfigurationOrderEntry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ConfigurationOrderEntry entity by its id.
+func (c *ConfigurationOrderEntryClient) Get(ctx context.Context, id int) (*ConfigurationOrderEntry, error) {
+	return c.Query().Where(configurationorderentry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConfigurationOrderEntryClient) GetX(ctx context.Context, id int) *ConfigurationOrderEntry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a ConfigurationOrderEntry.
+func (c *ConfigurationOrderEntryClient) QueryOrder(_m *ConfigurationOrderEntry) *ConfigurationOrderQuery {
+	query := (&ConfigurationOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configurationorderentry.Table, configurationorderentry.FieldID, id),
+			sqlgraph.To(configurationorder.Table, configurationorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, configurationorderentry.OrderTable, configurationorderentry.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAsset queries the asset edge of a ConfigurationOrderEntry.
+func (c *ConfigurationOrderEntryClient) QueryAsset(_m *ConfigurationOrderEntry) *ConfigurationAssetQuery {
+	query := (&ConfigurationAssetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configurationorderentry.Table, configurationorderentry.FieldID, id),
+			sqlgraph.To(configurationasset.Table, configurationasset.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, configurationorderentry.AssetTable, configurationorderentry.AssetColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ConfigurationOrderEntryClient) Hooks() []Hook {
+	return c.hooks.ConfigurationOrderEntry
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConfigurationOrderEntryClient) Interceptors() []Interceptor {
+	return c.inters.ConfigurationOrderEntry
+}
+
+func (c *ConfigurationOrderEntryClient) mutate(ctx context.Context, m *ConfigurationOrderEntryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConfigurationOrderEntryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConfigurationOrderEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConfigurationOrderEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConfigurationOrderEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ConfigurationOrderEntry mutation op: %q", m.Op())
 	}
 }
 
@@ -4762,18 +5094,20 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
-		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
-		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
-		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
-		OIDCIdentity, Pack, PackConfigurationAttachment, PackItem, PackShare,
-		RepositoryPrivateHistory, ServerMetadata, Session, User []ent.Hook
+		ConfigurationOrder, ConfigurationOrderEntry, GitHubCredential, GitHubList,
+		GitHubMembership, GitHubRepository, ImportReceipt, LocalAccount, MCPAudit,
+		MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
+		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
+		PackConfigurationAttachment, PackItem, PackShare, RepositoryPrivateHistory,
+		ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
-		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
-		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
-		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
-		OIDCIdentity, Pack, PackConfigurationAttachment, PackItem, PackShare,
-		RepositoryPrivateHistory, ServerMetadata, Session, User []ent.Interceptor
+		ConfigurationOrder, ConfigurationOrderEntry, GitHubCredential, GitHubList,
+		GitHubMembership, GitHubRepository, ImportReceipt, LocalAccount, MCPAudit,
+		MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
+		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
+		PackConfigurationAttachment, PackItem, PackShare, RepositoryPrivateHistory,
+		ServerMetadata, Session, User []ent.Interceptor
 	}
 )

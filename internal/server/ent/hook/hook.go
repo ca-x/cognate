@@ -57,6 +57,30 @@ func (f ConfigurationAssetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationAssetMutation", m)
 }
 
+// The ConfigurationOrderFunc type is an adapter to allow the use of ordinary
+// function as ConfigurationOrder mutator.
+type ConfigurationOrderFunc func(context.Context, *ent.ConfigurationOrderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConfigurationOrderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ConfigurationOrderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationOrderMutation", m)
+}
+
+// The ConfigurationOrderEntryFunc type is an adapter to allow the use of ordinary
+// function as ConfigurationOrderEntry mutator.
+type ConfigurationOrderEntryFunc func(context.Context, *ent.ConfigurationOrderEntryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConfigurationOrderEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ConfigurationOrderEntryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationOrderEntryMutation", m)
+}
+
 // The GitHubCredentialFunc type is an adapter to allow the use of ordinary
 // function as GitHubCredential mutator.
 type GitHubCredentialFunc func(context.Context, *ent.GitHubCredentialMutation) (ent.Value, error)

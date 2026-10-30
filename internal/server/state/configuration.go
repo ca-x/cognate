@@ -202,17 +202,27 @@ func (store *Store) createConfigurationAssetTx(ctx context.Context, tx *ent.Tx, 
 	if err != nil {
 		return ConfigurationAsset{}, err
 	}
+	if err := configurationOrderAppend(ctx, tx.Client(), owner, saved); err != nil {
+		return ConfigurationAsset{}, err
+	}
 	return configurationMetadata(saved), nil
 }
 
 func (store *Store) ListConfigurationAssets(ctx context.Context, owner string) ([]ConfigurationAsset, error) {
-	entries, err := store.state.client.ConfigurationAsset.Query().Where(configurationasset.HasUserWith(user.UserKeyEQ(owner))).Select(configurationMetadataFields...).Order(ent.Desc(configurationasset.FieldCreatedAt), ent.Asc(configurationasset.FieldPublicID)).Limit(MaxConfigurationAssets).All(ctx)
+	tx, err := store.state.client.Tx(ctx)
 	if err != nil {
 		return nil, configurationFailure(err)
 	}
-	result := make([]ConfigurationAsset, 0, len(entries))
-	for _, entry := range entries {
-		result = append(result, configurationMetadata(entry))
+	defer tx.Rollback()
+	result, err := configurationOrderedList(ctx, tx.Client(), owner)
+	if err == nil {
+		err = tx.Commit()
+	}
+	if err == nil {
+		err = ctx.Err()
+	}
+	if err != nil {
+		return nil, configurationFailure(err)
 	}
 	return result, nil
 }
@@ -303,6 +313,16 @@ func (store *Store) DeleteConfigurationAsset(ctx context.Context, owner, id stri
 		}
 		if inUse {
 			return ErrConfigurationInUse
+		}
+		fenced, err := tx.ConfigurationAsset.Update().Where(configurationasset.PublicIDEQ(id), configurationasset.RevisionEQ(expectedRevision), configurationasset.HasUserWith(user.UserKeyEQ(owner))).SetRevision(expectedRevision).Save(ctx)
+		if err != nil {
+			return err
+		}
+		if fenced != 1 {
+			return ErrConfigurationConflict
+		}
+		if err := configurationOrderRemove(ctx, tx.Client(), owner, entry); err != nil {
+			return err
 		}
 		count, err := tx.ConfigurationAsset.Delete().Where(configurationasset.PublicIDEQ(id), configurationasset.RevisionEQ(expectedRevision), configurationasset.HasUserWith(user.UserKeyEQ(owner))).Exec(ctx)
 		if err != nil {

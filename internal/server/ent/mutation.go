@@ -15,6 +15,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorder"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorderentry"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -52,6 +54,8 @@ const (
 	TypeCollectedRepository         = "CollectedRepository"
 	TypeCollectedSkill              = "CollectedSkill"
 	TypeConfigurationAsset          = "ConfigurationAsset"
+	TypeConfigurationOrder          = "ConfigurationOrder"
+	TypeConfigurationOrderEntry     = "ConfigurationOrderEntry"
 	TypeGitHubCredential            = "GitHubCredential"
 	TypeGitHubList                  = "GitHubList"
 	TypeGitHubMembership            = "GitHubMembership"
@@ -3651,6 +3655,1154 @@ func (m *ConfigurationAssetMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ConfigurationAsset edge %s", name)
+}
+
+// ConfigurationOrderMutation represents an operation that mutates the ConfigurationOrder nodes in the graph.
+type ConfigurationOrderMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	agent_id      *string
+	kind          *configurationorder.Kind
+	revision      *int64
+	addrevision   *int64
+	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*ConfigurationOrder, error)
+	predicates    []predicate.ConfigurationOrder
+}
+
+var _ ent.Mutation = (*ConfigurationOrderMutation)(nil)
+
+// configurationorderOption allows management of the mutation configuration using functional options.
+type configurationorderOption func(*ConfigurationOrderMutation)
+
+// newConfigurationOrderMutation creates new mutation for the ConfigurationOrder entity.
+func newConfigurationOrderMutation(c config, op Op, opts ...configurationorderOption) *ConfigurationOrderMutation {
+	m := &ConfigurationOrderMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeConfigurationOrder,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withConfigurationOrderID sets the ID field of the mutation.
+func withConfigurationOrderID(id int) configurationorderOption {
+	return func(m *ConfigurationOrderMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ConfigurationOrder
+		)
+		m.oldValue = func(ctx context.Context) (*ConfigurationOrder, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ConfigurationOrder.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withConfigurationOrder sets the old ConfigurationOrder of the mutation.
+func withConfigurationOrder(node *ConfigurationOrder) configurationorderOption {
+	return func(m *ConfigurationOrderMutation) {
+		m.oldValue = func(context.Context) (*ConfigurationOrder, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ConfigurationOrderMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ConfigurationOrderMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ConfigurationOrderMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ConfigurationOrderMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ConfigurationOrder.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ConfigurationOrderMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ConfigurationOrderMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ConfigurationOrder entity.
+// If the ConfigurationOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ConfigurationOrderMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetAgentID sets the "agent_id" field.
+func (m *ConfigurationOrderMutation) SetAgentID(s string) {
+	m.agent_id = &s
+}
+
+// AgentID returns the value of the "agent_id" field in the mutation.
+func (m *ConfigurationOrderMutation) AgentID() (r string, exists bool) {
+	v := m.agent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAgentID returns the old "agent_id" field's value of the ConfigurationOrder entity.
+// If the ConfigurationOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderMutation) OldAgentID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAgentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAgentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAgentID: %w", err)
+	}
+	return oldValue.AgentID, nil
+}
+
+// ResetAgentID resets all changes to the "agent_id" field.
+func (m *ConfigurationOrderMutation) ResetAgentID() {
+	m.agent_id = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *ConfigurationOrderMutation) SetKind(c configurationorder.Kind) {
+	m.kind = &c
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *ConfigurationOrderMutation) Kind() (r configurationorder.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the ConfigurationOrder entity.
+// If the ConfigurationOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderMutation) OldKind(ctx context.Context) (v configurationorder.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *ConfigurationOrderMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetRevision sets the "revision" field.
+func (m *ConfigurationOrderMutation) SetRevision(i int64) {
+	m.revision = &i
+	m.addrevision = nil
+}
+
+// Revision returns the value of the "revision" field in the mutation.
+func (m *ConfigurationOrderMutation) Revision() (r int64, exists bool) {
+	v := m.revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevision returns the old "revision" field's value of the ConfigurationOrder entity.
+// If the ConfigurationOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderMutation) OldRevision(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevision is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevision requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevision: %w", err)
+	}
+	return oldValue.Revision, nil
+}
+
+// AddRevision adds i to the "revision" field.
+func (m *ConfigurationOrderMutation) AddRevision(i int64) {
+	if m.addrevision != nil {
+		*m.addrevision += i
+	} else {
+		m.addrevision = &i
+	}
+}
+
+// AddedRevision returns the value that was added to the "revision" field in this mutation.
+func (m *ConfigurationOrderMutation) AddedRevision() (r int64, exists bool) {
+	v := m.addrevision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRevision resets all changes to the "revision" field.
+func (m *ConfigurationOrderMutation) ResetRevision() {
+	m.revision = nil
+	m.addrevision = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *ConfigurationOrderMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[configurationorder.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *ConfigurationOrderMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *ConfigurationOrderMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *ConfigurationOrderMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the ConfigurationOrderMutation builder.
+func (m *ConfigurationOrderMutation) Where(ps ...predicate.ConfigurationOrder) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ConfigurationOrderMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ConfigurationOrderMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ConfigurationOrder, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ConfigurationOrderMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ConfigurationOrderMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ConfigurationOrder).
+func (m *ConfigurationOrderMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ConfigurationOrderMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.user != nil {
+		fields = append(fields, configurationorder.FieldUserID)
+	}
+	if m.agent_id != nil {
+		fields = append(fields, configurationorder.FieldAgentID)
+	}
+	if m.kind != nil {
+		fields = append(fields, configurationorder.FieldKind)
+	}
+	if m.revision != nil {
+		fields = append(fields, configurationorder.FieldRevision)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ConfigurationOrderMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case configurationorder.FieldUserID:
+		return m.UserID()
+	case configurationorder.FieldAgentID:
+		return m.AgentID()
+	case configurationorder.FieldKind:
+		return m.Kind()
+	case configurationorder.FieldRevision:
+		return m.Revision()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ConfigurationOrderMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case configurationorder.FieldUserID:
+		return m.OldUserID(ctx)
+	case configurationorder.FieldAgentID:
+		return m.OldAgentID(ctx)
+	case configurationorder.FieldKind:
+		return m.OldKind(ctx)
+	case configurationorder.FieldRevision:
+		return m.OldRevision(ctx)
+	}
+	return nil, fmt.Errorf("unknown ConfigurationOrder field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationOrderMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case configurationorder.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case configurationorder.FieldAgentID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAgentID(v)
+		return nil
+	case configurationorder.FieldKind:
+		v, ok := value.(configurationorder.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case configurationorder.FieldRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevision(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrder field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ConfigurationOrderMutation) AddedFields() []string {
+	var fields []string
+	if m.addrevision != nil {
+		fields = append(fields, configurationorder.FieldRevision)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ConfigurationOrderMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case configurationorder.FieldRevision:
+		return m.AddedRevision()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationOrderMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case configurationorder.FieldRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRevision(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrder numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ConfigurationOrderMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ConfigurationOrderMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ConfigurationOrderMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ConfigurationOrder nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ConfigurationOrderMutation) ResetField(name string) error {
+	switch name {
+	case configurationorder.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case configurationorder.FieldAgentID:
+		m.ResetAgentID()
+		return nil
+	case configurationorder.FieldKind:
+		m.ResetKind()
+		return nil
+	case configurationorder.FieldRevision:
+		m.ResetRevision()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrder field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ConfigurationOrderMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, configurationorder.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ConfigurationOrderMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case configurationorder.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ConfigurationOrderMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ConfigurationOrderMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ConfigurationOrderMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, configurationorder.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ConfigurationOrderMutation) EdgeCleared(name string) bool {
+	switch name {
+	case configurationorder.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ConfigurationOrderMutation) ClearEdge(name string) error {
+	switch name {
+	case configurationorder.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrder unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ConfigurationOrderMutation) ResetEdge(name string) error {
+	switch name {
+	case configurationorder.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrder edge %s", name)
+}
+
+// ConfigurationOrderEntryMutation represents an operation that mutates the ConfigurationOrderEntry nodes in the graph.
+type ConfigurationOrderEntryMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	ordinal       *int
+	addordinal    *int
+	clearedFields map[string]struct{}
+	_order        *int
+	cleared_order bool
+	asset         *int
+	clearedasset  bool
+	done          bool
+	oldValue      func(context.Context) (*ConfigurationOrderEntry, error)
+	predicates    []predicate.ConfigurationOrderEntry
+}
+
+var _ ent.Mutation = (*ConfigurationOrderEntryMutation)(nil)
+
+// configurationorderentryOption allows management of the mutation configuration using functional options.
+type configurationorderentryOption func(*ConfigurationOrderEntryMutation)
+
+// newConfigurationOrderEntryMutation creates new mutation for the ConfigurationOrderEntry entity.
+func newConfigurationOrderEntryMutation(c config, op Op, opts ...configurationorderentryOption) *ConfigurationOrderEntryMutation {
+	m := &ConfigurationOrderEntryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeConfigurationOrderEntry,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withConfigurationOrderEntryID sets the ID field of the mutation.
+func withConfigurationOrderEntryID(id int) configurationorderentryOption {
+	return func(m *ConfigurationOrderEntryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ConfigurationOrderEntry
+		)
+		m.oldValue = func(ctx context.Context) (*ConfigurationOrderEntry, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ConfigurationOrderEntry.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withConfigurationOrderEntry sets the old ConfigurationOrderEntry of the mutation.
+func withConfigurationOrderEntry(node *ConfigurationOrderEntry) configurationorderentryOption {
+	return func(m *ConfigurationOrderEntryMutation) {
+		m.oldValue = func(context.Context) (*ConfigurationOrderEntry, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ConfigurationOrderEntryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ConfigurationOrderEntryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ConfigurationOrderEntryMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ConfigurationOrderEntryMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ConfigurationOrderEntry.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *ConfigurationOrderEntryMutation) SetOrderID(i int) {
+	m._order = &i
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *ConfigurationOrderEntryMutation) OrderID() (r int, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the ConfigurationOrderEntry entity.
+// If the ConfigurationOrderEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderEntryMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *ConfigurationOrderEntryMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetAssetID sets the "asset_id" field.
+func (m *ConfigurationOrderEntryMutation) SetAssetID(i int) {
+	m.asset = &i
+}
+
+// AssetID returns the value of the "asset_id" field in the mutation.
+func (m *ConfigurationOrderEntryMutation) AssetID() (r int, exists bool) {
+	v := m.asset
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssetID returns the old "asset_id" field's value of the ConfigurationOrderEntry entity.
+// If the ConfigurationOrderEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderEntryMutation) OldAssetID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssetID: %w", err)
+	}
+	return oldValue.AssetID, nil
+}
+
+// ResetAssetID resets all changes to the "asset_id" field.
+func (m *ConfigurationOrderEntryMutation) ResetAssetID() {
+	m.asset = nil
+}
+
+// SetOrdinal sets the "ordinal" field.
+func (m *ConfigurationOrderEntryMutation) SetOrdinal(i int) {
+	m.ordinal = &i
+	m.addordinal = nil
+}
+
+// Ordinal returns the value of the "ordinal" field in the mutation.
+func (m *ConfigurationOrderEntryMutation) Ordinal() (r int, exists bool) {
+	v := m.ordinal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrdinal returns the old "ordinal" field's value of the ConfigurationOrderEntry entity.
+// If the ConfigurationOrderEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationOrderEntryMutation) OldOrdinal(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrdinal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrdinal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrdinal: %w", err)
+	}
+	return oldValue.Ordinal, nil
+}
+
+// AddOrdinal adds i to the "ordinal" field.
+func (m *ConfigurationOrderEntryMutation) AddOrdinal(i int) {
+	if m.addordinal != nil {
+		*m.addordinal += i
+	} else {
+		m.addordinal = &i
+	}
+}
+
+// AddedOrdinal returns the value that was added to the "ordinal" field in this mutation.
+func (m *ConfigurationOrderEntryMutation) AddedOrdinal() (r int, exists bool) {
+	v := m.addordinal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrdinal resets all changes to the "ordinal" field.
+func (m *ConfigurationOrderEntryMutation) ResetOrdinal() {
+	m.ordinal = nil
+	m.addordinal = nil
+}
+
+// ClearOrder clears the "order" edge to the ConfigurationOrder entity.
+func (m *ConfigurationOrderEntryMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[configurationorderentry.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the ConfigurationOrder entity was cleared.
+func (m *ConfigurationOrderEntryMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *ConfigurationOrderEntryMutation) OrderIDs() (ids []int) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *ConfigurationOrderEntryMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearAsset clears the "asset" edge to the ConfigurationAsset entity.
+func (m *ConfigurationOrderEntryMutation) ClearAsset() {
+	m.clearedasset = true
+	m.clearedFields[configurationorderentry.FieldAssetID] = struct{}{}
+}
+
+// AssetCleared reports if the "asset" edge to the ConfigurationAsset entity was cleared.
+func (m *ConfigurationOrderEntryMutation) AssetCleared() bool {
+	return m.clearedasset
+}
+
+// AssetIDs returns the "asset" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AssetID instead. It exists only for internal usage by the builders.
+func (m *ConfigurationOrderEntryMutation) AssetIDs() (ids []int) {
+	if id := m.asset; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAsset resets all changes to the "asset" edge.
+func (m *ConfigurationOrderEntryMutation) ResetAsset() {
+	m.asset = nil
+	m.clearedasset = false
+}
+
+// Where appends a list predicates to the ConfigurationOrderEntryMutation builder.
+func (m *ConfigurationOrderEntryMutation) Where(ps ...predicate.ConfigurationOrderEntry) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ConfigurationOrderEntryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ConfigurationOrderEntryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ConfigurationOrderEntry, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ConfigurationOrderEntryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ConfigurationOrderEntryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ConfigurationOrderEntry).
+func (m *ConfigurationOrderEntryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ConfigurationOrderEntryMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m._order != nil {
+		fields = append(fields, configurationorderentry.FieldOrderID)
+	}
+	if m.asset != nil {
+		fields = append(fields, configurationorderentry.FieldAssetID)
+	}
+	if m.ordinal != nil {
+		fields = append(fields, configurationorderentry.FieldOrdinal)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ConfigurationOrderEntryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case configurationorderentry.FieldOrderID:
+		return m.OrderID()
+	case configurationorderentry.FieldAssetID:
+		return m.AssetID()
+	case configurationorderentry.FieldOrdinal:
+		return m.Ordinal()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ConfigurationOrderEntryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case configurationorderentry.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case configurationorderentry.FieldAssetID:
+		return m.OldAssetID(ctx)
+	case configurationorderentry.FieldOrdinal:
+		return m.OldOrdinal(ctx)
+	}
+	return nil, fmt.Errorf("unknown ConfigurationOrderEntry field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationOrderEntryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case configurationorderentry.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case configurationorderentry.FieldAssetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssetID(v)
+		return nil
+	case configurationorderentry.FieldOrdinal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrdinal(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrderEntry field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ConfigurationOrderEntryMutation) AddedFields() []string {
+	var fields []string
+	if m.addordinal != nil {
+		fields = append(fields, configurationorderentry.FieldOrdinal)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ConfigurationOrderEntryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case configurationorderentry.FieldOrdinal:
+		return m.AddedOrdinal()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationOrderEntryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case configurationorderentry.FieldOrdinal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrdinal(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrderEntry numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ConfigurationOrderEntryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ConfigurationOrderEntryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ConfigurationOrderEntryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ConfigurationOrderEntry nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ConfigurationOrderEntryMutation) ResetField(name string) error {
+	switch name {
+	case configurationorderentry.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case configurationorderentry.FieldAssetID:
+		m.ResetAssetID()
+		return nil
+	case configurationorderentry.FieldOrdinal:
+		m.ResetOrdinal()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrderEntry field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ConfigurationOrderEntryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._order != nil {
+		edges = append(edges, configurationorderentry.EdgeOrder)
+	}
+	if m.asset != nil {
+		edges = append(edges, configurationorderentry.EdgeAsset)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ConfigurationOrderEntryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case configurationorderentry.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case configurationorderentry.EdgeAsset:
+		if id := m.asset; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ConfigurationOrderEntryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ConfigurationOrderEntryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ConfigurationOrderEntryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_order {
+		edges = append(edges, configurationorderentry.EdgeOrder)
+	}
+	if m.clearedasset {
+		edges = append(edges, configurationorderentry.EdgeAsset)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ConfigurationOrderEntryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case configurationorderentry.EdgeOrder:
+		return m.cleared_order
+	case configurationorderentry.EdgeAsset:
+		return m.clearedasset
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ConfigurationOrderEntryMutation) ClearEdge(name string) error {
+	switch name {
+	case configurationorderentry.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case configurationorderentry.EdgeAsset:
+		m.ClearAsset()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrderEntry unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ConfigurationOrderEntryMutation) ResetEdge(name string) error {
+	switch name {
+	case configurationorderentry.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case configurationorderentry.EdgeAsset:
+		m.ResetAsset()
+		return nil
+	}
+	return fmt.Errorf("unknown ConfigurationOrderEntry edge %s", name)
 }
 
 // GitHubCredentialMutation represents an operation that mutates the GitHubCredential nodes in the graph.

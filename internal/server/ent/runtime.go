@@ -9,6 +9,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorder"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorderentry"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -203,6 +205,52 @@ func init() {
 	configurationassetDescCiphertext := configurationassetFields[9].Descriptor()
 	// configurationasset.CiphertextValidator is a validator for the "ciphertext" field. It is called by the builders before save.
 	configurationasset.CiphertextValidator = configurationassetDescCiphertext.Validators[0].(func([]byte) error)
+	configurationorderFields := schema.ConfigurationOrder{}.Fields()
+	_ = configurationorderFields
+	// configurationorderDescAgentID is the schema descriptor for agent_id field.
+	configurationorderDescAgentID := configurationorderFields[1].Descriptor()
+	// configurationorder.AgentIDValidator is a validator for the "agent_id" field. It is called by the builders before save.
+	configurationorder.AgentIDValidator = func() func(string) error {
+		validators := configurationorderDescAgentID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(agent_id string) error {
+			for _, fn := range fns {
+				if err := fn(agent_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// configurationorderDescRevision is the schema descriptor for revision field.
+	configurationorderDescRevision := configurationorderFields[3].Descriptor()
+	// configurationorder.DefaultRevision holds the default value on creation for the revision field.
+	configurationorder.DefaultRevision = configurationorderDescRevision.Default.(int64)
+	// configurationorder.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
+	configurationorder.RevisionValidator = configurationorderDescRevision.Validators[0].(func(int64) error)
+	configurationorderentryFields := schema.ConfigurationOrderEntry{}.Fields()
+	_ = configurationorderentryFields
+	// configurationorderentryDescOrdinal is the schema descriptor for ordinal field.
+	configurationorderentryDescOrdinal := configurationorderentryFields[2].Descriptor()
+	// configurationorderentry.OrdinalValidator is a validator for the "ordinal" field. It is called by the builders before save.
+	configurationorderentry.OrdinalValidator = func() func(int) error {
+		validators := configurationorderentryDescOrdinal.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(ordinal int) error {
+			for _, fn := range fns {
+				if err := fn(ordinal); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	githubcredentialFields := schema.GitHubCredential{}.Fields()
 	_ = githubcredentialFields
 	// githubcredentialDescViewerID is the schema descriptor for viewer_id field.

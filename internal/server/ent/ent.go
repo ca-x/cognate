@@ -16,6 +16,8 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorder"
+	"github.com/ca-x/cognate/internal/server/ent/configurationorderentry"
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
@@ -101,6 +103,8 @@ func checkColumn(t, c string) error {
 			collectedrepository.Table:         collectedrepository.ValidColumn,
 			collectedskill.Table:              collectedskill.ValidColumn,
 			configurationasset.Table:          configurationasset.ValidColumn,
+			configurationorder.Table:          configurationorder.ValidColumn,
+			configurationorderentry.Table:     configurationorderentry.ValidColumn,
 			githubcredential.Table:            githubcredential.ValidColumn,
 			githublist.Table:                  githublist.ValidColumn,
 			githubmembership.Table:            githubmembership.ValidColumn,

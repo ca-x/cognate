@@ -20,6 +20,10 @@ type Tx struct {
 	CollectedSkill *CollectedSkillClient
 	// ConfigurationAsset is the client for interacting with the ConfigurationAsset builders.
 	ConfigurationAsset *ConfigurationAssetClient
+	// ConfigurationOrder is the client for interacting with the ConfigurationOrder builders.
+	ConfigurationOrder *ConfigurationOrderClient
+	// ConfigurationOrderEntry is the client for interacting with the ConfigurationOrderEntry builders.
+	ConfigurationOrderEntry *ConfigurationOrderEntryClient
 	// GitHubCredential is the client for interacting with the GitHubCredential builders.
 	GitHubCredential *GitHubCredentialClient
 	// GitHubList is the client for interacting with the GitHubList builders.
@@ -197,6 +201,8 @@ func (tx *Tx) init() {
 	tx.CollectedRepository = NewCollectedRepositoryClient(tx.config)
 	tx.CollectedSkill = NewCollectedSkillClient(tx.config)
 	tx.ConfigurationAsset = NewConfigurationAssetClient(tx.config)
+	tx.ConfigurationOrder = NewConfigurationOrderClient(tx.config)
+	tx.ConfigurationOrderEntry = NewConfigurationOrderEntryClient(tx.config)
 	tx.GitHubCredential = NewGitHubCredentialClient(tx.config)
 	tx.GitHubList = NewGitHubListClient(tx.config)
 	tx.GitHubMembership = NewGitHubMembershipClient(tx.config)

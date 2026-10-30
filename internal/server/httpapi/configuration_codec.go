@@ -45,7 +45,9 @@ func (codec configurationCodec) Unmarshal(data []byte, value any) error {
 	}
 	var err error
 	if codec.name == "json" {
-		if !configurationCodexJSONValid(data, message.ProtoReflect().Descriptor(), false, 0) {
+		name := message.ProtoReflect().Descriptor().FullName()
+		orderRequest := name == "skillhub.configuration.v1.GetAssetOrderRequest" || name == "skillhub.configuration.v1.ReplaceAssetOrderRequest"
+		if !configurationCodexJSONValid(data, message.ProtoReflect().Descriptor(), orderRequest, 0) {
 			return invalid()
 		}
 		limit := configurationOpenCodeRecursionLimit(data, message.ProtoReflect().Descriptor(), true)

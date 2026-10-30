@@ -90,7 +90,9 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 				configurationv1connect.ConfigurationServiceCreateAssetProcedure,
 				configurationv1connect.ConfigurationServiceUpdateAssetProcedure,
 				configurationv1connect.ConfigurationServiceCopyAssetProcedure,
-				configurationv1connect.ConfigurationServiceDeleteAssetProcedure:
+				configurationv1connect.ConfigurationServiceDeleteAssetProcedure,
+				configurationv1connect.ConfigurationServiceGetAssetOrderProcedure,
+				configurationv1connect.ConfigurationServiceReplaceAssetOrderProcedure:
 				maxBytes = configurationMaxRequestBytes
 			}
 			if request.URL.Path == importv1connect.ImportServicePreviewLibraryExportProcedure {

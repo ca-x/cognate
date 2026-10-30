@@ -144,6 +144,79 @@ var (
 			},
 		},
 	}
+	// ConfigurationOrdersColumns holds the columns for the "configuration_orders" table.
+	ConfigurationOrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "agent_id", Type: field.TypeString, Size: 64},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"provider", "mcp", "prompt", "agent-settings", "workspace"}},
+		{Name: "revision", Type: field.TypeInt64, Default: 1},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// ConfigurationOrdersTable holds the schema information for the "configuration_orders" table.
+	ConfigurationOrdersTable = &schema.Table{
+		Name:       "configuration_orders",
+		Columns:    ConfigurationOrdersColumns,
+		PrimaryKey: []*schema.Column{ConfigurationOrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "configuration_orders_users_user",
+				Columns:    []*schema.Column{ConfigurationOrdersColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "configurationorder_user_id_agent_id_kind",
+				Unique:  true,
+				Columns: []*schema.Column{ConfigurationOrdersColumns[4], ConfigurationOrdersColumns[1], ConfigurationOrdersColumns[2]},
+			},
+		},
+	}
+	// ConfigurationOrderEntriesColumns holds the columns for the "configuration_order_entries" table.
+	ConfigurationOrderEntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ordinal", Type: field.TypeInt},
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "asset_id", Type: field.TypeInt},
+	}
+	// ConfigurationOrderEntriesTable holds the schema information for the "configuration_order_entries" table.
+	ConfigurationOrderEntriesTable = &schema.Table{
+		Name:       "configuration_order_entries",
+		Columns:    ConfigurationOrderEntriesColumns,
+		PrimaryKey: []*schema.Column{ConfigurationOrderEntriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "configuration_order_entries_configuration_orders_order",
+				Columns:    []*schema.Column{ConfigurationOrderEntriesColumns[2]},
+				RefColumns: []*schema.Column{ConfigurationOrdersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "configuration_order_entries_configuration_assets_asset",
+				Columns:    []*schema.Column{ConfigurationOrderEntriesColumns[3]},
+				RefColumns: []*schema.Column{ConfigurationAssetsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "configurationorderentry_order_id_asset_id",
+				Unique:  true,
+				Columns: []*schema.Column{ConfigurationOrderEntriesColumns[2], ConfigurationOrderEntriesColumns[3]},
+			},
+			{
+				Name:    "configurationorderentry_order_id_ordinal",
+				Unique:  true,
+				Columns: []*schema.Column{ConfigurationOrderEntriesColumns[2], ConfigurationOrderEntriesColumns[1]},
+			},
+			{
+				Name:    "configurationorderentry_asset_id",
+				Unique:  true,
+				Columns: []*schema.Column{ConfigurationOrderEntriesColumns[3]},
+			},
+		},
+	}
 	// GitHubCredentialsColumns holds the columns for the "git_hub_credentials" table.
 	GitHubCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -889,6 +962,8 @@ var (
 		CollectedRepositoriesTable,
 		CollectedSkillsTable,
 		ConfigurationAssetsTable,
+		ConfigurationOrdersTable,
+		ConfigurationOrderEntriesTable,
 		GitHubCredentialsTable,
 		GitHubListsTable,
 		GitHubMembershipsTable,
@@ -919,6 +994,9 @@ func init() {
 	CollectedRepositoriesTable.ForeignKeys[0].RefTable = UsersTable
 	CollectedSkillsTable.ForeignKeys[0].RefTable = CollectedRepositoriesTable
 	ConfigurationAssetsTable.ForeignKeys[0].RefTable = UsersTable
+	ConfigurationOrdersTable.ForeignKeys[0].RefTable = UsersTable
+	ConfigurationOrderEntriesTable.ForeignKeys[0].RefTable = ConfigurationOrdersTable
+	ConfigurationOrderEntriesTable.ForeignKeys[1].RefTable = ConfigurationAssetsTable
 	GitHubCredentialsTable.ForeignKeys[0].RefTable = UsersTable
 	GitHubListsTable.ForeignKeys[0].RefTable = UsersTable
 	GitHubMembershipsTable.ForeignKeys[0].RefTable = GitHubListsTable
