@@ -39,6 +39,9 @@ func (service *Service) Edit(ctx context.Context, owner, id string) (EditView, e
 	if err != nil {
 		return EditView{}, err
 	}
+	if metadata.AgentID == "grokbuild" {
+		return grokBuildEdit(ctx, metadata, payload)
+	}
 	if metadata.AgentID == "gemini" {
 		return geminiEdit(ctx, metadata, payload)
 	}
@@ -67,6 +70,9 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if metadata.Revision != expectedRevision {
 		return EditView{}, ErrConflict
 	}
+	if metadata.AgentID == "grokbuild" {
+		return service.updateGrokBuild(ctx, owner, metadata, payload, input, mutations)
+	}
 	if metadata.AgentID == "opencode" {
 		return service.updateOpenCode(ctx, owner, metadata, payload, input, mutations)
 	}
@@ -76,7 +82,7 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if metadata.AgentID == "codex" {
 		return service.updateCodex(ctx, owner, metadata, payload, input, mutations)
 	}
-	if input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil {
+	if input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider != nil {
 		return EditView{}, ErrInvalid
 	}
 	_, current, err := decodeEnvelope(payload)
@@ -120,6 +126,16 @@ func (service *Service) Copy(ctx context.Context, owner, id string, expectedSour
 	}
 	if metadata.Revision != expectedSourceRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "grokbuild" {
+		view, err := grokBuildEdit(ctx, metadata, payload)
+		if err != nil {
+			return EditView{}, err
+		}
+		if view.HasPreservedExtras {
+			return EditView{}, ErrUnsupported
+		}
+		return service.Create(ctx, owner, Draft{Name: name, GrokBuildProvider: view.GrokBuildProvider}, nil)
 	}
 	if metadata.AgentID == "opencode" {
 		view, err := openCodeEdit(ctx, metadata, payload)
@@ -255,6 +271,16 @@ func normalizeDraft(input Draft) (Draft, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	if !validText(input.Name, 128) {
 		return Draft{}, ErrInvalid
+	}
+	if input.GrokBuildProvider != nil {
+		if input.Provider != (ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil {
+			return Draft{}, ErrInvalid
+		}
+		if err := validateGrokBuildProvider(*input.GrokBuildProvider); err != nil {
+			return Draft{}, err
+		}
+		input.GrokBuildProvider = cloneGrokBuildProvider(*input.GrokBuildProvider)
+		return input, nil
 	}
 	if input.OpenCodeProvider != nil {
 		if input.Provider != (ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil {
@@ -450,6 +476,14 @@ func (service *Service) Create(ctx context.Context, owner string, input Draft, m
 	input, err := normalizeDraft(input)
 	if err != nil {
 		return EditView{}, err
+	}
+	if input.GrokBuildProvider != nil {
+		secret, err := mergeGrokBuildSecret(Secret{}, mutations, true)
+		if err != nil {
+			return EditView{}, err
+		}
+		defer secret.Clear()
+		return service.createGrokBuild(ctx, owner, input, secret)
 	}
 	if input.OpenCodeProvider != nil {
 		secrets, err := mergeOpenCodeSecrets(nil, *input.OpenCodeProvider, mutations, true)

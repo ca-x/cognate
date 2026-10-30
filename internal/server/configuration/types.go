@@ -40,11 +40,27 @@ type ClaudeProvider struct {
 }
 
 type Draft struct {
-	Name             string                        `json:"name"`
-	Provider         ClaudeProvider                `json:"provider,omitzero"`
-	CodexProvider    *CodexProvider                `json:"codex_provider,omitzero"`
-	GeminiProvider   *GeminiProvider               `json:"gemini_provider,omitzero"`
-	OpenCodeProvider *agentconfig.OpenCodeProvider `json:"opencode_provider,omitzero"`
+	Name              string                        `json:"name"`
+	Provider          ClaudeProvider                `json:"provider,omitzero"`
+	CodexProvider     *CodexProvider                `json:"codex_provider,omitzero"`
+	GeminiProvider    *GeminiProvider               `json:"gemini_provider,omitzero"`
+	OpenCodeProvider  *agentconfig.OpenCodeProvider `json:"opencode_provider,omitzero"`
+	GrokBuildProvider *GrokBuildProvider            `json:"grokbuild_provider,omitzero"`
+}
+
+type GrokBuildProvider struct {
+	Mode  agentconfig.GrokBuildMode `json:"mode"`
+	Model *GrokBuildModel           `json:"model,omitzero"`
+}
+
+type GrokBuildModel struct {
+	Profile       string  `json:"profile"`
+	UpstreamModel string  `json:"upstreamModel"`
+	Endpoint      string  `json:"endpoint"`
+	Name          string  `json:"name"`
+	APIBackend    string  `json:"apiBackend"`
+	ContextWindow int64   `json:"contextWindow"`
+	EnvKey        *string `json:"envKey,omitzero"`
 }
 
 type GeminiProvider struct {
@@ -70,6 +86,7 @@ const (
 	AuthTokenSlot        Slot = "claude.auth-token"
 	CodexProviderKeySlot Slot = "codex.provider-key"
 	GeminiAPIKeySlot     Slot = "gemini.api-key"
+	GrokBuildAPIKeySlot  Slot = "grokbuild.api-key"
 )
 
 type SecretAction string
@@ -106,6 +123,7 @@ type EditView struct {
 	CodexProvider      *CodexProvider                `json:"codex_provider,omitzero"`
 	GeminiProvider     *GeminiProvider               `json:"gemini_provider,omitzero"`
 	OpenCodeProvider   *agentconfig.OpenCodeProvider `json:"opencode_provider,omitzero"`
+	GrokBuildProvider  *GrokBuildProvider            `json:"grokbuild_provider,omitzero"`
 	HasPreservedExtras bool                          `json:"has_preserved_extras"`
 }
 

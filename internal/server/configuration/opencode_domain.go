@@ -74,7 +74,9 @@ func (service *Service) loadProviderEditable(ctx context.Context, owner, id stri
 	if metadata.ID != id {
 		return state.ConfigurationAsset{}, state.ConfigurationPayload{}, ErrUnavailable
 	}
-	if metadata.AgentID == "opencode" {
+	if metadata.AgentID == "grokbuild" {
+		err = grokBuildMetadata(metadata)
+	} else if metadata.AgentID == "opencode" {
 		err = openCodeMetadata(metadata)
 	} else {
 		err = editableMetadata(metadata)

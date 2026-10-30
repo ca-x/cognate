@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：Grok Build 加密资产域
+
+独立签收精确八个领域层路径，沿用既有 Store 加密/AAD、单快照读取、所有者隔离、revision CAS、总配额和排序事务，无 schema/module/native 登记变更。非作者独审实际执行领域/adapter 回归、独立 SQLite/moejs 探针和四个可编译负控，Spec/Quality 均接受，零未关闭 finding；报告 SHA256 为 `40c4ddc9d8187c8a1c0af3224a3a46c506aea082432e4926f34906e082642305`。
+
+主线程精确核对领域八叶 SHA256，并在包含后续私有 RPC 候选的固定组合执行 configuration/agentadapter/state/httpapi 四包测试：3,037 个含包及子用例 PASS、五个显式 helper/browser SKIP、零 FAIL，退出 0。该命令开始后另补的 binary-only API 测试不计入此次数量；八个领域源文件始终不变，新增 binary-only 测试另行通过。这里只交付加密资产域，不借用未签收 RPC 候选的断言作其独立验收，不代表 Grok 编辑器、CLI/native 应用或完整十四 agent/F12 完成。
+
+提交前主树仅集成精确领域八叶、没有 RPC 候选时，主线程新鲜执行 configuration/agentadapter 两包：944 个含包及子用例 PASS、零 FAIL/SKIP；对应 vet 退出 0，八叶 SHA256 再次全部匹配。
+
 ## 2026-10-31：可读许可打包与 Docker 实跑跟踪
 
 源码 `489bcf2` 的 Native desktop `41137504523` 已完成三系统双架构打包、Go/VCS 身份和实际安装包许可检查；`publish=false`，发布 job 跳过，没有创建正式 Release。Windows、Darwin、Linux 三个实际上传 artifact 的 ZIP SHA256 均与 GitHub 记录相符。此处是 unsigned/ad-hoc 预览产物及打包验证，不是安装运行、完整客户端或消费者资格。
