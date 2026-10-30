@@ -10,6 +10,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/ca-x/cognate/internal/filelock"
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/state"
@@ -161,59 +162,116 @@ func TestWorkerCloseCancelsDrainsAndSharedLockRejectsOverlap(test *testing.T) {
 }
 
 func TestWorkerTimeoutAdvancesOnlyAttemptedSources(test *testing.T) {
-	var requested []string
-	worker, store, service := workerFixture(test, func(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
-		requested = append(requested, reference.NameWithOwner)
-		<-ctx.Done()
-		return nil, ctx.Err()
-	})
-	options := worker.options
-	options.Timeout = 20 * time.Millisecond
-	bounded, err := New(store, service, options)
-	if err != nil {
-		test.Fatal(err)
-	}
-	defer bounded.Close()
-	for range 2 {
-		if err := bounded.RunOnce(test.Context()); !errors.Is(err, context.DeadlineExceeded) {
-			test.Fatalf("batch did not time out: %v", err)
+	synctest.Test(test, func(test *testing.T) {
+		var requested []string
+		worker, store, service := workerFixture(test, func(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
+			requested = append(requested, reference.NameWithOwner)
+			deadline, present := ctx.Deadline()
+			if !present || ctx.Err() != nil || time.Until(deadline) != 20*time.Millisecond {
+				test.Error("fetch did not enter with the full controlled timeout")
+			}
+			<-ctx.Done()
+			return nil, ctx.Err()
+		})
+		options := worker.options
+		options.Timeout = 20 * time.Millisecond
+		bounded, err := New(store, service, options)
+		if err != nil {
+			test.Fatal(err)
 		}
-	}
-	if len(requested) != 2 || requested[0] == requested[1] {
-		test.Fatal("timeout starved the next source")
-	}
+		defer bounded.Close()
+		for range 2 {
+			if err := bounded.RunOnce(test.Context()); !errors.Is(err, context.DeadlineExceeded) {
+				test.Fatalf("batch did not time out: %v", err)
+			}
+		}
+		if len(requested) != 2 || requested[0] == requested[1] {
+			test.Fatal("timeout starved the next source")
+		}
+	})
 }
 
 func TestWorkerPartialTimeoutDoesNotSkipRemainingOwners(test *testing.T) {
-	var requested []string
-	worker, store, service := workerFixture(test, func(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
-		requested = append(requested, reference.NameWithOwner)
-		<-ctx.Done()
-		return nil, ctx.Err()
+	synctest.Test(test, func(test *testing.T) {
+		var requested []string
+		worker, store, service := workerFixture(test, func(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
+			requested = append(requested, reference.NameWithOwner)
+			deadline, present := ctx.Deadline()
+			if !present || ctx.Err() != nil || time.Until(deadline) != 20*time.Millisecond {
+				test.Error("partial fetch did not enter with the full controlled timeout")
+			}
+			<-ctx.Done()
+			return nil, ctx.Err()
+		})
+		for _, owner := range []string{"bob", "carol"} {
+			if err := store.CreateUser(test.Context(), owner); err != nil {
+				test.Fatal(err)
+			}
+			if _, err := store.CollectRepository(test.Context(), owner, repository.Reference{NameWithOwner: "org/" + owner}, strings.Repeat("a", 64), []repository.ArchivedSkill{{Path: "skills/chosen", Name: "Chosen", Description: "Synthetic", ContentHash: strings.Repeat("b", 64)}}); err != nil {
+				test.Fatal(err)
+			}
+		}
+		options := worker.options
+		options.Timeout, options.MaxOwners = 20*time.Millisecond, 3
+		bounded, err := New(store, service, options)
+		if err != nil {
+			test.Fatal(err)
+		}
+		defer bounded.Close()
+		for range 3 {
+			if err := bounded.RunOnce(test.Context()); !errors.Is(err, context.DeadlineExceeded) {
+				test.Fatalf("partial batch did not time out: %v", err)
+			}
+		}
+		if len(requested) != 3 || requested[1] != "org/bob" || requested[2] != "org/carol" {
+			test.Fatal("timeout skipped unattempted owners")
+		}
 	})
-	for _, owner := range []string{"bob", "carol"} {
-		if err := store.CreateUser(test.Context(), owner); err != nil {
-			test.Fatal(err)
+}
+
+func TestWorkerLockTimeoutKeepsUnattemptedCursor(test *testing.T) {
+	synctest.Test(test, func(test *testing.T) {
+		var requested []string
+		worker, store, service := workerFixture(test, func(ctx context.Context, reference repository.Reference) (*repository.ArchiveSnapshot, error) {
+			requested = append(requested, reference.NameWithOwner)
+			deadline, present := ctx.Deadline()
+			if !present || ctx.Err() != nil || time.Until(deadline) != 20*time.Millisecond {
+				test.Error("unblocked fetch did not enter with the full controlled timeout")
+			}
+			<-ctx.Done()
+			return nil, ctx.Err()
+		})
+		options := worker.options
+		options.Timeout = 20 * time.Millisecond
+		bounded, err := New(store, service, options)
+		if err != nil {
+			test.Fatal("bounded worker unavailable")
 		}
-		if _, err := store.CollectRepository(test.Context(), owner, repository.Reference{NameWithOwner: "org/" + owner}, strings.Repeat("a", 64), []repository.ArchivedSkill{{Path: "skills/chosen", Name: "Chosen", Description: "Synthetic", ContentHash: strings.Repeat("b", 64)}}); err != nil {
-			test.Fatal(err)
+		defer bounded.Close()
+		held, err := filelock.Acquire(test.Context(), filepath.Join(options.DataDirectory, ".source-refresh.lock"))
+		if err != nil {
+			test.Fatal("controlled pre-fetch lock unavailable")
 		}
-	}
-	options := worker.options
-	options.Timeout, options.MaxOwners = 20*time.Millisecond, 3
-	bounded, err := New(store, service, options)
-	if err != nil {
-		test.Fatal(err)
-	}
-	defer bounded.Close()
-	for range 3 {
+		defer held.Close()
+		before := bounded.cursor
 		if err := bounded.RunOnce(test.Context()); !errors.Is(err, context.DeadlineExceeded) {
-			test.Fatalf("partial batch did not time out: %v", err)
+			test.Fatal("pre-fetch wait did not time out")
 		}
-	}
-	if len(requested) != 3 || requested[1] != "org/bob" || requested[2] != "org/carol" {
-		test.Fatal("timeout skipped unattempted owners")
-	}
+		if len(requested) != 0 || bounded.cursor != before {
+			test.Fatal("pre-fetch timeout attempted or advanced a source")
+		}
+		if err := held.Close(); err != nil {
+			test.Fatal("controlled pre-fetch lock did not release")
+		}
+		for range 2 {
+			if err := bounded.RunOnce(test.Context()); !errors.Is(err, context.DeadlineExceeded) {
+				test.Fatal("unblocked fetch did not time out")
+			}
+		}
+		if len(requested) != 2 || requested[0] != "org/first" || requested[1] != "org/second" {
+			test.Fatal("pre-fetch timeout skipped a source or fetch timeout did not advance")
+		}
+	})
 }
 
 func TestWorkerOptionBoundsAndCanceledCalls(test *testing.T) {
