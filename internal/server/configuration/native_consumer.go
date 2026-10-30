@@ -160,6 +160,13 @@ func (service *NativeService) Authorize(ctx context.Context, bearer string, requ
 }
 
 func (service *NativeService) Consume(ctx context.Context, bearer string, request nativesessionauth.ConsumeRequest, signature []byte) (state.NativeMaterialization, error) {
+	protocol, err := service.consumer.ConfigurationProtocol(ctx, bearer, request.OperationID, request.PrepareID)
+	if err != nil {
+		return state.NativeMaterialization{}, err
+	}
+	if protocol == 2 {
+		return service.consumeCodex(ctx, bearer, request, signature)
+	}
 	snapshot, err := service.consumer.PreflightConsume(ctx, bearer, request, signature)
 	if err != nil {
 		return state.NativeMaterialization{}, err
@@ -207,6 +214,13 @@ func (service *NativeService) Consume(ctx context.Context, bearer string, reques
 }
 
 func (service *NativeService) Status(ctx context.Context, bearer string, request nativesessionauth.StatusRequest, signature []byte) (state.NativeGrantStatus, error) {
+	protocol, err := service.consumer.ConfigurationProtocol(ctx, bearer, request.OperationID, request.PrepareID)
+	if err != nil {
+		return state.NativeGrantStatus{}, err
+	}
+	if protocol == 2 {
+		return service.consumer.StatusCodex(ctx, bearer, request, signature)
+	}
 	return service.consumer.Status(ctx, bearer, request, signature)
 }
 

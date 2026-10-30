@@ -242,7 +242,7 @@ func HashPatch(target configurationnativev1.Target, patch *configurationnativev1
 }
 
 func ValidatePreparedPatch(response *configurationnativev1.PrepareNativeApplyResponse) error {
-	if !knownMessage(response) || !validPreparation(response.Binding) || len(response.AuthorizeChallenge) != 32 {
+	if !knownMessage(response) || response.CodexDeclaration != nil || !validPreparation(response.Binding) || len(response.AuthorizeChallenge) != 32 {
 		return ErrInvalidNativeProof
 	}
 	hash, err := HashPatch(response.Binding.Target, response.Patch)
@@ -334,19 +334,28 @@ func validChallenge(response *configurationnativev1.BeginNativeConsumerResponse)
 }
 
 func validPrepareRequest(request *configurationnativev1.PrepareNativeApplyRequest) bool {
+	if request != nil && request.CodexContractVersion != 0 {
+		return false
+	}
 	return knownMessage(request) && validOwner(request.ExpectedOwnerId) && assetID(request.AssetId) && request.ExpectedAssetRevision > 0 && request.AgentId == "claude" && request.SchemaVersion == 1 && validAdapter(request.Adapter) && request.Target == configurationnativev1.Target_TARGET_CLAUDE_SETTINGS && request.Scope == configurationnativev1.Scope_SCOPE_USER && opaqueID(request.ProfileId) && request.SelectionRevision > 0 && len(request.OperationId) == 16 && len(request.ClientNonce) == 32 && optionalSignature(request.ProofSignature)
 }
 
 func validPreparation(binding *configurationnativev1.PreparationBinding) bool {
+	if binding != nil && binding.Codex != nil {
+		return false
+	}
 	return knownMessage(binding) && validOwner(binding.OwnerId) && validOrigin(binding.ServerOrigin) && len(binding.NativeSessionBinding) == 32 && len(binding.OperationId) == 16 && assetID(binding.AssetId) && binding.AssetRevision > 0 && binding.AgentId == "claude" && binding.AssetKind == configurationv1.AssetKind_ASSET_KIND_PROVIDER && binding.SchemaVersion == 1 && validAdapter(binding.Adapter) && binding.Target == configurationnativev1.Target_TARGET_CLAUDE_SETTINGS && binding.Scope == configurationnativev1.Scope_SCOPE_USER && opaqueID(binding.ProfileId) && binding.SelectionRevision > 0 && validSlots(binding.RequiredSlots) && binding.PreparedAtUnixMs > 0 && binding.PrepareExpiresAtUnixMs > binding.PreparedAtUnixMs && binding.PrepareExpiresAtUnixMs-binding.PreparedAtUnixMs <= 300000 && len(binding.ConsumerKeySha256) == 32 && opaqueID(binding.PrepareId) && len(binding.PatchSha256) == 32
 }
 
 func validApply(binding *configurationnativev1.ApplyBinding) bool {
+	if binding != nil && binding.CodexLocalBinding != nil {
+		return false
+	}
 	return knownMessage(binding) && validPreparation(binding.Preparation) && len(binding.IntentCommitment) == 32 && binding.IntentExpiresAtUnixMs > binding.Preparation.PreparedAtUnixMs && binding.IntentExpiresAtUnixMs <= binding.Preparation.PrepareExpiresAtUnixMs
 }
 
 func validAuthorizeRequest(request *configurationnativev1.AuthorizeNativeMaterializationRequest) bool {
-	if !knownMessage(request) || !opaqueID(request.PrepareId) || len(request.OperationId) != 16 || len(request.IntentCommitment) != 32 || !validSlots(request.RequestedSlots) || len(request.ClientNonce) != 32 || !optionalSignature(request.ProofSignature) || request.IntentExpiresAtUnixMs <= 0 {
+	if !knownMessage(request) || request.CodexLocalBinding != nil || !opaqueID(request.PrepareId) || len(request.OperationId) != 16 || len(request.IntentCommitment) != 32 || !validSlots(request.RequestedSlots) || len(request.ClientNonce) != 32 || !optionalSignature(request.ProofSignature) || request.IntentExpiresAtUnixMs <= 0 {
 		return false
 	}
 	switch authorization := request.Authorization.(type) {
@@ -595,16 +604,32 @@ func validDecodedProof(message proto.Message) bool {
 	case *configurationnativev1.AdapterBinding:
 		return validAdapter(value)
 	case *configurationnativev1.PreparationBinding:
+		if value.Target == 2 {
+			return validCodexPreparation(value)
+		}
 		return validPreparation(value)
 	case *configurationnativev1.ApplyBinding:
+		if value.Preparation != nil && value.Preparation.Target == 2 {
+			_, err := HashCodexApply(value)
+			return err == nil
+		}
 		return validApply(value)
 	case *configurationnativev1.ClaudeProviderPatch:
 		return validPatch(value)
 	case *configurationnativev1.PrepareNativeApplyRequest:
+		if value.Target == 2 {
+			return validCodexPrepare(value) && len(value.ProofSignature) == 64
+		}
 		return validPrepareRequest(value) && len(value.ProofSignature) == 64
 	case *configurationnativev1.PrepareNativeApplyResponse:
+		if value.Binding != nil && value.Binding.Target == 2 {
+			return ValidateCodexPreparedDeclaration(value) == nil
+		}
 		return ValidatePreparedPatch(value) == nil
 	case *configurationnativev1.AuthorizeNativeMaterializationRequest:
+		if value.CodexLocalBinding != nil {
+			return validCodexAuthorize(value) && len(value.ProofSignature) == 64
+		}
 		return validAuthorizeRequest(value) && len(value.ProofSignature) == 64
 	case *configurationnativev1.ConsumeNativeMaterializationRequest:
 		return validConsumeRequest(value) && len(value.ProofSignature) == 64
@@ -624,12 +649,21 @@ func canonicalVarint(data []byte) (uint64, int) {
 }
 
 func strictProofWire(data []byte, descriptor protoreflect.MessageDescriptor, depth int) bool {
+	budget := 1024
+	return strictProofValue(data, descriptor, depth, &budget)
+}
+
+func strictProofValue(data []byte, descriptor protoreflect.MessageDescriptor, depth int, budget *int) bool {
 	if depth >= 16 {
 		return false
 	}
 	seenFields := make(map[protoreflect.FieldNumber]bool)
 	seenOneofs := make(map[protoreflect.FullName]bool)
 	for len(data) > 0 {
+		*budget--
+		if *budget < 0 {
+			return false
+		}
 		tag, count := canonicalVarint(data)
 		if count < 0 || tag>>3 == 0 || tag>>3 > uint64(protowire.MaxValidNumber) {
 			return false
@@ -658,7 +692,7 @@ func strictProofWire(data []byte, descriptor protoreflect.MessageDescriptor, dep
 			}
 			value := data[prefix : prefix+int(length)]
 			data = data[prefix+int(length):]
-			if field.Kind() == protoreflect.MessageKind && !strictProofWire(value, field.Message(), depth+1) || field.Kind() == protoreflect.StringKind && !utf8.Valid(value) {
+			if field.Kind() == protoreflect.MessageKind && !strictProofValue(value, field.Message(), depth+1, budget) || field.Kind() == protoreflect.StringKind && !utf8.Valid(value) {
 				return false
 			}
 		case protoreflect.EnumKind, protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Int64Kind, protoreflect.BoolKind:
@@ -670,6 +704,10 @@ func strictProofWire(data []byte, descriptor protoreflect.MessageDescriptor, dep
 				packed := data[prefix : prefix+int(length)]
 				data = data[prefix+int(length):]
 				for len(packed) > 0 {
+					*budget--
+					if *budget < 0 {
+						return false
+					}
 					value, size := canonicalVarint(packed)
 					if size < 0 || !validWireScalar(field, value) {
 						return false
@@ -687,10 +725,19 @@ func strictProofWire(data []byte, descriptor protoreflect.MessageDescriptor, dep
 			return false
 		}
 	}
+	if descriptor.FullName() == "skillhub.configuration.native.v1.PreparationBinding" && seenFields[21] && seenFields[40] {
+		return false
+	}
+	if descriptor.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyResponse" && seenFields[2] && seenFields[5] {
+		return false
+	}
 	return true
 }
 
 func validWireScalar(field protoreflect.FieldDescriptor, value uint64) bool {
+	if field.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyRequest.codex_contract_version" && value != 1 {
+		return false
+	}
 	switch field.Kind() {
 	case protoreflect.EnumKind:
 		return value > 0 && value <= 0x7fffffff && field.Enum().Values().ByNumber(protoreflect.EnumNumber(value)) != nil

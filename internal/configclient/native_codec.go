@@ -76,6 +76,9 @@ func nativeFieldBudget(data []byte, descriptor protoreflect.MessageDescriptor, r
 }
 
 func nativeResponseValid(message proto.Message) bool {
+	if handled, valid := codexClientResponseValid(message); handled {
+		return valid
+	}
 	switch value := message.(type) {
 	case *nativev1.BeginNativeConsumerResponse:
 		return validChallenge(value)

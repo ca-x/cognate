@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	nativev1 "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1"
 	"github.com/ca-x/cognate/internal/nativesessionauth"
 	"github.com/ca-x/cognate/internal/server/agentadapter"
 	"github.com/ca-x/cognate/internal/server/auth"
@@ -152,6 +153,13 @@ func (service *Service) Prepare(ctx context.Context, bearer string, request nati
 
 func (service *Service) Authorize(ctx context.Context, bearer string, request nativesessionauth.AuthorizeRequest, signature []byte) (auth.IssuedNativeGrant, error) {
 	return service.domain.Authorize(ctx, bearer, request, signature)
+}
+
+func (service *Service) PrepareCodex(ctx context.Context, bearer string, request nativesessionauth.CodexPrepareRequest, signature []byte) (state.NativeCodexPrepared, error) {
+	return service.domain.PrepareCodex(ctx, bearer, request, signature)
+}
+func (service *Service) AuthorizeCodex(ctx context.Context, bearer string, request nativesessionauth.AuthorizeRequest, local *nativev1.CodexLocalBindingV1, signature []byte) (auth.IssuedCodexNativeGrant, error) {
+	return service.domain.AuthorizeCodex(ctx, bearer, request, local, signature)
 }
 
 func (service *Service) Consume(ctx context.Context, bearer string, request nativesessionauth.ConsumeRequest, signature []byte) (state.NativeMaterialization, error) {

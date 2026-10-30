@@ -7,6 +7,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	"io"
+	"log/slog"
 	"slices"
 	"strings"
 	"sync"
@@ -64,16 +67,26 @@ type NativeStatus struct {
 }
 
 type NativeFlow struct {
-	admission                            chan struct{}
-	workers                              sync.WaitGroup
-	closed                               bool
-	mutex                                sync.Mutex
-	client                               *NativeClient
-	ctx                                  context.Context
-	cancel                               context.CancelFunc
-	key                                  nativeSecret
-	bearer                               nativeSecret
-	grant                                nativeSecret
+	nativeFlowOpaque
+	*nativeFlowPayload
+	admission chan struct{}
+	workers   sync.WaitGroup
+	cleanup   sync.Once
+	closed    bool
+	mutex     sync.Mutex
+	client    *NativeClient
+	ctx       context.Context
+	cancel    context.CancelFunc
+	key       nativeSecret
+	bearer    nativeSecret
+	grant     nativeSecret
+}
+
+type nativeFlowPayload struct{ *nativeFlowSensitive }
+type nativeFlowSensitive struct {
+	agent                                string
+	codex                                *codexFlowState
+	codexAdmission                       codexAdmission
 	consumer                             ConsumerBinding
 	expires                              time.Time
 	prepared                             *nativev1.PrepareNativeApplyResponse
@@ -84,15 +97,34 @@ type NativeFlow struct {
 	authorizeAttempted, consumeAttempted bool
 }
 
+type nativeFlowOpaque struct{}
+
+func (nativeFlowOpaque) String() string   { return "[redacted native flow]" }
+func (nativeFlowOpaque) GoString() string { return "[redacted native flow]" }
+func (nativeFlowOpaque) Format(state fmt.State, _ rune) {
+	_, _ = io.WriteString(state, "[redacted native flow]")
+}
+func (nativeFlowOpaque) MarshalJSON() ([]byte, error) { return []byte(`"[redacted native flow]"`), nil }
+func (nativeFlowOpaque) MarshalText() ([]byte, error) { return []byte("[redacted native flow]"), nil }
+func (nativeFlowOpaque) LogValue() slog.Value         { return slog.StringValue("[redacted native flow]") }
+
 func (flow *NativeFlow) destroy() {
 	flow.mutex.Lock()
 	flow.closed = true
 	flow.cancel()
 	flow.mutex.Unlock()
 	flow.workers.Wait()
-	flow.key.Destroy()
-	flow.bearer.Destroy()
-	flow.grant.Destroy()
+	flow.cleanup.Do(func() {
+		flow.key.Destroy()
+		flow.bearer.Destroy()
+		flow.grant.Destroy()
+		flow.codex.destroy()
+		clear(flow.consumer.NativeSessionBinding)
+		clear(flow.consumer.OperationID)
+		clear(flow.consumer.ConsumerKeySHA256)
+		flow.consumer = ConsumerBinding{}
+		flow.codexAdmission = nil
+	})
 }
 
 func (flow *NativeFlow) Close() { flow.cancel(); flow.destroy() }
@@ -143,7 +175,7 @@ func (client *NativeClient) OpenConsumer(caller context.Context, owner, ownerBea
 	bearer := "cn1." + base64.RawURLEncoding.EncodeToString(bound.NativeSessionToken)
 	keyHash := sha256.Sum256(public)
 	flowCtx, cancel := context.WithCancel(client.ctx)
-	flow := &NativeFlow{admission: make(chan struct{}, 1), client: client, ctx: flowCtx, cancel: cancel, key: newNativeSecret(private), bearer: newNativeSecret([]byte(bearer)), consumer: ConsumerBinding{ServerOrigin: client.origin, OwnerID: owner, NativeSessionBinding: bytes.Clone(bound.NativeSessionBinding), OperationID: bytes.Clone(operation), ConsumerKeySHA256: bytes.Clone(keyHash[:])}, expires: time.UnixMilli(bound.ExpiresAtUnixMs)}
+	flow := &NativeFlow{admission: make(chan struct{}, 1), client: client, ctx: flowCtx, cancel: cancel, key: newNativeSecret(private), bearer: newNativeSecret([]byte(bearer)), nativeFlowPayload: &nativeFlowPayload{nativeFlowSensitive: &nativeFlowSensitive{consumer: ConsumerBinding{ServerOrigin: client.origin, OwnerID: owner, NativeSessionBinding: bytes.Clone(bound.NativeSessionBinding), OperationID: bytes.Clone(operation), ConsumerKeySHA256: bytes.Clone(keyHash[:])}, expires: time.UnixMilli(bound.ExpiresAtUnixMs)}}}
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
 	if ctx.Err() != nil || caller.Err() != nil || client.closed {
@@ -226,12 +258,16 @@ func (flow *NativeFlow) Prepare(caller context.Context, selection NativeSelectio
 	if flow.prepared != nil {
 		return NativePreparation{}, ErrNativeInvalid
 	}
+	if flow.agent != "" && flow.agent != "claude" {
+		return NativePreparation{}, ErrNativeInvalid
+	}
 	request := &nativev1.PrepareNativeApplyRequest{ExpectedOwnerId: flow.consumer.OwnerID, AssetId: selection.AssetID, ExpectedAssetRevision: selection.AssetRevision, AgentId: "claude", SchemaVersion: 1, Adapter: nativeAdapterBinding(), Target: 1, Scope: 1, ProfileId: selection.ProfileID, SelectionRevision: selection.SelectionRevision, OperationId: bytes.Clone(flow.consumer.OperationID), ClientNonce: nativeNonce()}
 	request.ProofSignature, err = flow.sign(PrepareTranscript(flow.consumer, request))
 	if err != nil {
 		return NativePreparation{}, err
 	}
 	response := new(nativev1.PrepareNativeApplyResponse)
+	flow.agent = "claude"
 	started := time.Now()
 	if err := flow.call(ctx, "PrepareNativeApply", request, response); err != nil {
 		return NativePreparation{}, err

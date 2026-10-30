@@ -118,6 +118,10 @@ func nativeWireValid(data []byte, descriptor protoreflect.MessageDescriptor, dep
 					return false
 				}
 				for len(nested) > 0 {
+					*remaining--
+					if *remaining < 0 {
+						return false
+					}
 					value, size := nativeVarint(nested)
 					if size < 0 || !nativeScalarValid(field, value) {
 						return false
@@ -135,10 +139,19 @@ func nativeWireValid(data []byte, descriptor protoreflect.MessageDescriptor, dep
 			data = data[size:]
 		}
 	}
+	if descriptor.FullName() == "skillhub.configuration.native.v1.PreparationBinding" && seen[21] && seen[40] {
+		return false
+	}
+	if descriptor.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyResponse" && seen[2] && seen[5] {
+		return false
+	}
 	return true
 }
 
 func nativeScalarValid(field protoreflect.FieldDescriptor, value uint64) bool {
+	if field.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyRequest.codex_contract_version" && value != 1 {
+		return false
+	}
 	switch field.Kind() {
 	case protoreflect.EnumKind:
 		return value > 0 && value <= math.MaxInt32 && field.Enum().Values().ByNumber(protoreflect.EnumNumber(value)) != nil
@@ -208,10 +221,16 @@ func nativeSlotsValid(slots []nativev1.SecretSlot) bool {
 }
 
 func nativePreparationValid(value *nativev1.PreparationBinding) bool {
+	if value != nil && value.Codex != nil {
+		return false
+	}
 	return value != nil && nativeOwnerValid(value.OwnerId) && nativeOriginValid(value.ServerOrigin) && len(value.NativeSessionBinding) == 32 && len(value.OperationId) == 16 && nativeAssetValid(value.AssetId) && value.AssetRevision > 0 && value.AgentId == "claude" && value.AssetKind == 1 && value.SchemaVersion == 1 && nativeAdapterValid(value.Adapter) && value.Adapter.ApiVersion == 1 && value.Adapter.PluginId == "builtin.claude" && value.Adapter.PluginVersion == "1.1.0" && value.Target == 1 && value.Scope == 1 && nativeIdentifier(value.ProfileId) && value.SelectionRevision > 0 && nativeSlotsValid(value.RequiredSlots) && value.PreparedAtUnixMs > 0 && value.PrepareExpiresAtUnixMs > value.PreparedAtUnixMs && value.PrepareExpiresAtUnixMs-value.PreparedAtUnixMs <= 300000 && len(value.ConsumerKeySha256) == 32 && nativeIdentifier(value.PrepareId) && len(value.PatchSha256) == 32
 }
 
 func nativeApplyValid(value *nativev1.ApplyBinding) bool {
+	if value != nil && value.CodexLocalBinding != nil {
+		return false
+	}
 	return value != nil && nativePreparationValid(value.Preparation) && len(value.IntentCommitment) == 32 && value.IntentExpiresAtUnixMs > value.Preparation.PreparedAtUnixMs && value.IntentExpiresAtUnixMs <= value.Preparation.PrepareExpiresAtUnixMs
 }
 
@@ -245,6 +264,9 @@ func nativeKnown(message protoreflect.Message) bool {
 func nativeMessageValid(message proto.Message) bool {
 	if !message.ProtoReflect().IsValid() || !nativeKnown(message.ProtoReflect()) {
 		return false
+	}
+	if handled, valid := nativeCodexMessageValid(message); handled {
+		return valid
 	}
 	switch value := message.(type) {
 	case *nativev1.BeginNativeConsumerRequest:

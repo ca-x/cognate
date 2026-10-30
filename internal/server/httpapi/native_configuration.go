@@ -388,6 +388,9 @@ func (handler *nativeConfigurationHandler) PrepareNativeApply(ctx context.Contex
 	}
 	value := request.Msg
 	input := nativesessionauth.PrepareRequest{OwnerID: value.ExpectedOwnerId, AssetID: value.AssetId, AssetRevision: value.ExpectedAssetRevision, AgentID: value.AgentId, SchemaVersion: value.SchemaVersion, Adapter: nativeAdapterFields(value.Adapter), Target: uint32(value.Target), Scope: uint32(value.Scope), ProfileID: value.ProfileId, SelectionRevision: value.SelectionRevision, OperationID: [16]byte(value.OperationId), Nonce: [32]byte(value.ClientNonce)}
+	if value.Target == 2 {
+		return handler.prepareCodex(ctx, raw, value, input)
+	}
 	prepared, err := handler.service.Prepare(ctx, raw, input, value.ProofSignature)
 	if err != nil {
 		return nil, nativeError(ctx, err)
@@ -428,6 +431,9 @@ func (handler *nativeConfigurationHandler) AuthorizeNativeMaterialization(ctx co
 		input.Consent = nativesessionauth.ConsentFields{Kind: 2, Revision: consent.AutoPolicy.PolicyRevision, PolicyID: string(consent.AutoPolicy.PolicyId)}
 	default:
 		return nil, nativeError(ctx, state.ErrNativeInvalid)
+	}
+	if value.CodexLocalBinding != nil {
+		return handler.authorizeCodex(ctx, raw, value, input)
 	}
 	issued, err := handler.service.Authorize(ctx, raw, input, value.ProofSignature)
 	if err != nil {
