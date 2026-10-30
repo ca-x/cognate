@@ -23,6 +23,10 @@ jobs:
           node-version: '26'
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Install private Secret Service test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends dbus gnome-keyring
       - run: npm ci --prefix web
       - run: npm run build --prefix web
       - uses: actions/upload-artifact@v4

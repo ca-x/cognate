@@ -26,6 +26,71 @@ import (
 var helperBinary = flag.String("helper-binary", os.Args[0], "private test helper binary")
 var shippingDirectory = flag.String("shipping-directory", "", "prebuilt shipping binaries for syscall evidence")
 
+func findFixtureExecutable(name string, directories []string) (string, error) {
+	if name != "dbus-daemon" && name != "gnome-keyring-daemon" {
+		return "", os.ErrNotExist
+	}
+	for _, directory := range directories {
+		candidate := filepath.Join(directory, name)
+		info, err := os.Stat(candidate)
+		if err == nil && info.Mode().IsRegular() && info.Mode().Perm()&0111 != 0 {
+			return candidate, nil
+		}
+	}
+	return "", os.ErrNotExist
+}
+
+func fixtureExecutable(test *testing.T, name string) string {
+	test.Helper()
+	path, err := findFixtureExecutable(name, []string{"/usr/bin", "/bin", "/usr/sbin", "/sbin"})
+	if err != nil {
+		test.Fatalf("fixture requires %s in standard system directories", name)
+	}
+	return path
+}
+
+func TestFixtureExecutableLayouts(test *testing.T) {
+	for _, layout := range []string{"bin", "sbin"} {
+		test.Run(layout, func(test *testing.T) {
+			root := test.TempDir()
+			bin, sbin := filepath.Join(root, "usr", "bin"), filepath.Join(root, "usr", "sbin")
+			for _, directory := range []string{bin, sbin} {
+				if err := os.MkdirAll(directory, 0700); err != nil {
+					test.Fatal(err)
+				}
+			}
+			for _, name := range []string{"dbus-daemon", "gnome-keyring-daemon"} {
+				expected := filepath.Join(root, "usr", layout, name)
+				if err := os.WriteFile(expected, []byte{0}, 0700); err != nil {
+					test.Fatal(err)
+				}
+				actual, err := findFixtureExecutable(name, []string{sbin, bin})
+				if err != nil || actual != expected {
+					test.Fatal("fixture executable layout not supported")
+				}
+			}
+			if err := os.WriteFile(filepath.Join(root, "usr", "dbus-daemon"), []byte{0}, 0700); err != nil {
+				test.Fatal(err)
+			}
+			if _, err := findFixtureExecutable("../dbus-daemon", []string{sbin, bin}); !errors.Is(err, os.ErrNotExist) {
+				test.Fatal("fixture executable name not closed")
+			}
+			if err := os.Chmod(filepath.Join(root, "usr", layout, "dbus-daemon"), 0600); err != nil {
+				test.Fatal(err)
+			}
+			if _, err := findFixtureExecutable("dbus-daemon", []string{sbin, bin}); !errors.Is(err, os.ErrNotExist) {
+				test.Fatal("nonexecutable fixture accepted")
+			}
+			if err := os.Remove(filepath.Join(root, "usr", layout, "gnome-keyring-daemon")); err != nil {
+				test.Fatal(err)
+			}
+			if _, err := findFixtureExecutable("gnome-keyring-daemon", []string{sbin, bin}); !errors.Is(err, os.ErrNotExist) {
+				test.Fatal("missing fixture dependency accepted")
+			}
+		})
+	}
+}
+
 func TestMain(tests *testing.M) {
 	if code, handled := HelperDispatch(); handled {
 		os.Exit(code)
@@ -524,7 +589,7 @@ func newFixture(test *testing.T, withKeyring bool) fixture {
 		test.Fatal("fixture-config")
 	}
 	environment := []string{"PATH=/usr/sbin:/usr/bin:/bin", "HOME=" + home, "XDG_RUNTIME_DIR=" + runtime, "XDG_CONFIG_HOME=" + filepath.Join(home, "config"), "XDG_DATA_HOME=" + filepath.Join(home, "data"), "XDG_CACHE_HOME=" + filepath.Join(home, "cache"), "DBUS_SESSION_BUS_ADDRESS=unix:path=" + socket, "DBUS_SYSTEM_BUS_ADDRESS=unix:path=" + filepath.Join(root, "no-system-bus"), "SYSTEMD_BYPASS_USERDB=1", "SYSTEMD_NSS_DYNAMIC_BYPASS=1", "LANG=C", "LC_ALL=C"}
-	startProcess(test, environment, nil, "/usr/sbin/dbus-daemon", "--nofork", "--nopidfile", "--config-file="+configPath)
+	startProcess(test, environment, nil, fixtureExecutable(test, "dbus-daemon"), "--nofork", "--nopidfile", "--config-file="+configPath)
 	deadline := time.Now().Add(3 * time.Second)
 	for {
 		if _, err := os.Lstat(socket); err == nil {
@@ -547,7 +612,7 @@ func newFixture(test *testing.T, withKeyring bool) fixture {
 	input := []byte(base64.StdEncoding.EncodeToString(password))
 	clear(password)
 	test.Cleanup(func() { clear(input) })
-	startProcess(test, environment, bytes.NewReader(input), "/usr/sbin/gnome-keyring-daemon", "--foreground", "--unlock", "--components=secrets", "--control-directory="+filepath.Join(root, "control"))
+	startProcess(test, environment, bytes.NewReader(input), fixtureExecutable(test, "gnome-keyring-daemon"), "--foreground", "--unlock", "--components=secrets", "--control-directory="+filepath.Join(root, "control"))
 	for {
 		var owner string
 		if connection.BusObject().CallWithContext(test.Context(), "org.freedesktop.DBus.GetNameOwner", 0, secretService).Store(&owner) == nil {
