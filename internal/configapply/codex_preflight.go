@@ -8,6 +8,7 @@ import (
 	"errors"
 	"math"
 	"reflect"
+	"runtime"
 	"slices"
 
 	nativev1 "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1"
@@ -19,6 +20,14 @@ import (
 var codexQualifiedProfiles = []CodexProfileIdentity{}
 
 var codexRoleNames = [...]string{"config.toml", "auth.json", "cognate-model-catalog.json"}
+
+func QualifiedCodexNativeProfile() (CodexProfileIdentity, error) {
+	profile := codexNative0166Identity()
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && codexQualified(profile) {
+		return profile, nil
+	}
+	return CodexProfileIdentity{}, ErrCodexUnsupported
+}
 
 func codexQualified(profile CodexProfileIdentity) bool {
 	for _, trusted := range codexQualifiedProfiles {
@@ -337,6 +346,10 @@ func (state *codexEngineState) validatePlan(ctx context.Context, plan *codexPlan
 }
 
 func (engine *CodexEngine) ConfirmCodex(ctx context.Context, plan CodexPlan, approvedSlots []agentconfig.CodexSecretSlot, finalApproved bool) (CodexAdmission, error) {
+	return engine.confirmCodex(ctx, plan, approvedSlots, finalApproved, 0)
+}
+
+func (engine *CodexEngine) confirmCodex(ctx context.Context, plan CodexPlan, approvedSlots []agentconfig.CodexSecretSlot, finalApproved bool, lifecycle uint32) (CodexAdmission, error) {
 	state := engine.private()
 	data := plan.get[codexPlanData]()
 	if data == nil || data.engine != state || !finalApproved || !slices.Equal(approvedSlots, []agentconfig.CodexSecretSlot{agentconfig.CodexProviderKeySecret}) {
@@ -354,6 +367,15 @@ func (engine *CodexEngine) ConfirmCodex(ctx context.Context, plan CodexPlan, app
 		if state.inventory.Operations[operation.ID] != nil {
 			return ErrCodexConflict
 		}
+		var constraints codexAuthorizationRecord
+		if lifecycle == 1 {
+			constraints = codexAuthorizationRecord{Operation: [16]byte(data.selection.prepared.OperationId), Slot: agentconfig.CodexProviderKeySecret, Revision: data.view.ConfirmationRevision, DeadlineUnixMS: data.view.ExpiresAt.UnixMilli()}
+			operation.LifecycleVersion = 1
+			operation.Authorization = new(constraints)
+			if err := codexLifecycleShape(operation); err != nil {
+				return err
+			}
+		}
 		target, images, bodies, err := state.observeCodex()
 		defer codexClearBodies(&bodies)
 		if err != nil {
@@ -366,10 +388,13 @@ func (engine *CodexEngine) ConfirmCodex(ctx context.Context, plan CodexPlan, app
 		if err := state.validatePlanExpiry(data); err != nil {
 			return err
 		}
+		if lifecycle == 1 && !state.now().Before(timeFromCodex(constraints.DeadlineUnixMS*1_000_000)) {
+			return ErrCodexExpired
+		}
 		if err := state.reserveCodexOperation(target, operation); err != nil {
 			return err
 		}
-		result = CodexAdmission{value: new(any(&codexAdmissionData{plan: data}))}
+		result = CodexAdmission{value: new(any(&codexAdmissionData{plan: data, lifecycle: lifecycle, constraints: constraints}))}
 		return nil
 	})
 	return result, err
@@ -382,6 +407,11 @@ func (engine *CodexEngine) MaterializeCodex(ctx context.Context, admission Codex
 	}
 	if err := admission.Revalidate(ctx); err != nil {
 		return codexconfig.ProviderCandidate{}, err
+	}
+	if data.lifecycle == 1 {
+		if err := admission.requireConsumed(ctx); err != nil {
+			return codexconfig.ProviderCandidate{}, err
+		}
 	}
 	state := engine.private()
 	state.mutex.Lock()
@@ -449,6 +479,10 @@ func (engine *CodexEngine) ApplyCodex(ctx context.Context, admission CodexAdmiss
 		if err := state.validatePlan(ctx, data.plan); err != nil {
 			return err
 		}
+		actual := state.inventory.Operations[data.plan.view.OperationID]
+		if actual == nil || codexTerminal(actual.State) || !codexAdmissionRecordMatches(data, actual) || data.lifecycle == 1 && actual.State != CodexConsumeAttempted {
+			return ErrCodexConflict
+		}
 		binding := candidate.Binding()
 		defer binding.Destroy()
 		original := data.plan.provider.Binding()
@@ -464,6 +498,10 @@ func (engine *CodexEngine) ApplyCodex(ctx context.Context, admission CodexAdmiss
 			return err
 		}
 		operation.State = CodexConsumeAttempted
+		operation.LifecycleVersion = actual.LifecycleVersion
+		if actual.Authorization != nil {
+			operation.Authorization = new(*actual.Authorization)
+		}
 		for index, role := range []codexconfig.Role{codexconfig.ConfigRole, codexconfig.AuthRole, codexconfig.CatalogRole} {
 			image := candidate.CopyImage(role)
 			presence := image.Presence()
@@ -481,6 +519,20 @@ func (engine *CodexEngine) ApplyCodex(ctx context.Context, admission CodexAdmiss
 				operation.After[index] = nativeImage{Present: true, SHA256: sha256.Sum256(bodies[index])}
 			} else if presence != codexconfig.Present && presence != codexconfig.Missing {
 				return ErrCodexInvalid
+			}
+		}
+		if data.lifecycle == 1 {
+			declaration := original.CopyDeclaration()
+			if declaration.Catalog != nil {
+				operation.ManagedModels = make([]string, len(declaration.Catalog.Models))
+				for index, model := range declaration.Catalog.Models {
+					operation.ManagedModels[index] = model.Model
+				}
+				operation.ManagedModelsVersion = 1
+			} else if previous := state.inventory.Operations[operation.Base.Operation]; previous != nil {
+				operation.ManagedModelsVersion = previous.ManagedModelsVersion
+			} else {
+				operation.ManagedModelsVersion = 1
 			}
 		}
 		if err := state.prepareCodexOperation(ctx, operation, bodies); err != nil {

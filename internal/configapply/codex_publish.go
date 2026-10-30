@@ -26,6 +26,9 @@ func (state *codexEngineState) prepareCodexOperation(ctx context.Context, operat
 		return ErrCodexInvalid
 	}
 	existing := state.inventory.Operations[operation.ID]
+	if codexTerminal(operation.State) || existing != nil && codexTerminal(existing.State) {
+		return ErrCodexConflict
+	}
 	if existing != nil && (existing.Candidate.Present || existing.Binding != operation.Binding || existing.Base != operation.Base) {
 		return ErrCodexConflict
 	}
@@ -61,7 +64,7 @@ func (state *codexEngineState) prepareCodexOperation(ctx context.Context, operat
 		if sameDirectory(pending.Target, operation.Target) && (pending.Owner != operation.Owner || pending.Origin != operation.Origin || pending.Profile != operation.Profile) {
 			return ErrCodexConflict
 		}
-		if pending.ID != operation.ID && pending.State != CodexCompleted && pending.State != CodexRestored && pending.State != CodexAbandonedBeforeWrite {
+		if pending.ID != operation.ID && !codexTerminal(pending.State) {
 			return ErrCodexConflict
 		}
 	}
@@ -138,6 +141,9 @@ func (state *codexEngineState) prepareCodexOperation(ctx context.Context, operat
 
 func (state *codexEngineState) publishCodex(ctx context.Context, operation *codexOperation) (result CodexResult, resultError error) {
 	result = codexOperationResult(operation)
+	if operation.State == CodexAbandonedBeforeWrite || operation.State == CodexRetiredUnpublished {
+		return result, ErrCodexConflict
+	}
 	if operation.State == CodexCompleted || operation.State == CodexRestored {
 		return result, nil
 	}
@@ -175,7 +181,7 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 	if err := state.checkCodexRoots(target); err != nil {
 		return result, err
 	}
-	for _, index := range []int{2, 0} {
+	for _, index := range codexPublicationOrder(operation) {
 		if !operation.Write[index] || images[index] == operation.After[index] {
 			continue
 		}
@@ -310,6 +316,13 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 	return codexOperationResult(operation), nil
 }
 
+func codexPublicationOrder(operation *codexOperation) [2]int {
+	if operation.Restoring && operation.Write[2] && !operation.After[2].Present && operation.ManagedModelsVersion == 1 && len(operation.ManagedModels) > 0 {
+		return [2]int{0, 2}
+	}
+	return [2]int{2, 0}
+}
+
 func (state *codexEngineState) codexActualImages(target *nativeDirectory) ([3]nativeImage, error) {
 	var images [3]nativeImage
 	for index, name := range codexRoleNames {
@@ -410,7 +423,7 @@ func codexOperationResult(operation *codexOperation) CodexResult {
 	if operation == nil {
 		return CodexResult{}
 	}
-	result := CodexResult{OperationID: operation.ID, State: operation.State, NeedsAttention: operation.State == CodexNeedsAttention, SelectionRevision: operation.Base.Revision, ConfirmationRevision: operation.Base.Confirmation}
+	result := CodexResult{OperationID: operation.ID, State: operation.State, NeedsAttention: operation.State == CodexNeedsAttention || operation.State == CodexRetiredUnpublished, RemoteOutcomeUnknown: operation.State == CodexRetiredUnpublished, SelectionRevision: operation.Base.Revision, ConfirmationRevision: operation.Base.Confirmation}
 	if operation.State == CodexCompleted || operation.State == CodexRestored {
 		result.SelectionRevision++
 		result.ConfirmationRevision++

@@ -63,8 +63,22 @@ func (state *codexEngineState) inspectCodex(ctx context.Context, operation *code
 	if err := state.checkCodexContext(ctx); err != nil {
 		return result, err
 	}
+	if operation.State == CodexAbandonedBeforeWrite {
+		if err := state.cleanupCodexAbandoned(ctx, operation); err != nil {
+			return result, err
+		}
+		return result, nil
+	}
+	if operation.State == CodexRetiredUnpublished {
+		return result, nil
+	}
 	if !operation.Candidate.Present {
+		if operation.LifecycleVersion == 1 {
+			result.RemoteOutcomeUnknown = operation.State != CodexPreviewed
+			return result, nil
+		}
 		result.State = CodexRemoteOutcomeUnknown
+		result.RemoteOutcomeUnknown = true
 		return result, nil
 	}
 	if operation.State == CodexCompleted || operation.State == CodexRestored {
@@ -404,6 +418,7 @@ func (engine *CodexEngine) RestoreCodex(ctx context.Context, plan CodexRestorePl
 		operation := &codexOperation{ID: data.operation, Owner: source.Owner, Origin: source.Origin, Profile: source.Profile, Source: source.ID, Binding: source.Binding, Target: data.target, Before: data.images, After: data.images, Write: source.Write, Base: data.base, Expires: data.expires.UnixNano(), Restoring: true, State: CodexRestorePrepared}
 		operation.ProfileIdentity = source.ProfileIdentity
 		operation.ManagedModels = slices.Clone(source.ManagedModels)
+		operation.ManagedModelsVersion = source.ManagedModelsVersion
 		if source.Observation != nil {
 			operation.Observation = new(codexCopyLaunchDescriptor(*source.Observation))
 		}

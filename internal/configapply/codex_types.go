@@ -36,6 +36,7 @@ const (
 	CodexRestoring
 	CodexRestored
 	CodexAbandonedBeforeWrite
+	CodexRetiredUnpublished
 )
 
 type CodexErrorClass uint8
@@ -201,6 +202,7 @@ type CodexResult struct {
 	NeedsAttention       bool
 	SelectionRevision    uint64
 	ConfirmationRevision uint64
+	RemoteOutcomeUnknown bool
 }
 
 type codexSelectionRecord struct {
@@ -332,6 +334,8 @@ func (plan CodexPlan) View() SafeCodexPlan {
 
 type codexAdmissionData struct {
 	plan            *codexPlanData
+	lifecycle       uint32
+	constraints     codexAuthorizationRecord
 	used            bool
 	materialized    bool
 	rendered        bool
@@ -378,7 +382,7 @@ func (admission CodexAdmission) Revalidate(ctx context.Context) error {
 			return err
 		}
 		actual := data.plan.engine.inventory.Operations[operation.ID]
-		if actual == nil || actual.Binding != operation.Binding || actual.Base != operation.Base {
+		if actual == nil || actual.Binding != operation.Binding || actual.Base != operation.Base || codexTerminal(actual.State) || !codexAdmissionRecordMatches(data, actual) {
 			return ErrCodexConflict
 		}
 		target, err := data.plan.engine.home.child(".codex", false)

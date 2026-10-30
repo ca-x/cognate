@@ -86,7 +86,10 @@ type codexOperation struct {
 	ReservationsReleased bool
 	ProfileIdentity      CodexProfileIdentity
 	ManagedModels        []string
+	ManagedModelsVersion uint32 `json:",omitzero"`
 	Observation          *codexLaunchDescriptor
+	LifecycleVersion     uint32                    `json:",omitzero"`
+	Authorization        *codexAuthorizationRecord `json:",omitzero"`
 }
 
 func (state *codexEngineState) validateCodexOperationObservation(ctx context.Context, operation *codexOperation) error {
@@ -388,8 +391,17 @@ func codexInventoryShape(inventory *codexInventory) error {
 		return ErrCodexAttention
 	}
 	for id, operation := range inventory.Operations {
-		if operation == nil || !codexOperationID(id) || operation.ID != id || !codexIdentifier(operation.Owner) || !codexIdentifier(operation.Profile) || operation.Write[1] || operation.State < CodexPreviewed || operation.State > CodexAbandonedBeforeWrite || operation.Backup.Present != operation.Candidate.Present {
+		if operation == nil || !codexOperationID(id) || operation.ID != id || !codexIdentifier(operation.Owner) || !codexIdentifier(operation.Profile) || operation.Write[1] || operation.State < CodexPreviewed || operation.State > CodexRetiredUnpublished || operation.Backup.Present != operation.Candidate.Present {
 			return ErrCodexAttention
+		}
+		if err := codexLifecycleShape(operation); err != nil {
+			return err
+		}
+		if operation.ManagedModelsVersion == 1 && operation.Restoring {
+			source := inventory.Operations[operation.Source]
+			if source == nil || source.LifecycleVersion != 1 || source.ManagedModelsVersion != 1 || source.Binding != operation.Binding || source.Owner != operation.Owner || source.Origin != operation.Origin || source.Profile != operation.Profile || source.ProfileIdentity != operation.ProfileIdentity || !slices.Equal(source.ManagedModels, operation.ManagedModels) {
+				return ErrCodexAttention
+			}
 		}
 		if operation.Observation != nil {
 			if codexDescriptorShape(operation.Observation) != nil || operation.ProfileIdentity != codexNative0166Identity() || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {

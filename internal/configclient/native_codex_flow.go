@@ -14,6 +14,7 @@ import (
 	nativev1 "github.com/ca-x/cognate/gen/skillhub/configuration/native/v1"
 	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/codexconfig"
+	"github.com/ca-x/cognate/internal/configapply"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -147,6 +148,7 @@ func (value CodexNativeAuthorization) Destroy() {
 
 type codexAdmission func(context.Context, codexconfig.ProviderPlan) (*nativev1.CodexLocalBindingV1, error)
 type codexFlowState struct {
+	admitted                             configapply.CodexAdmission
 	prepared                             *nativev1.PrepareNativeApplyResponse
 	apply                                *nativev1.ApplyBinding
 	grantID                              string
@@ -440,13 +442,32 @@ func (flow *NativeFlow) ConsumeCodex(caller context.Context) (NativeMaterial, er
 	if flow.agent != "codex" || flow.codex == nil || flow.codex.apply == nil || flow.codex.grantID == "" || flow.codex.consumeAttempted || time.Now().UnixMilli() >= flow.codex.grantExpiry {
 		return NativeMaterial{}, ErrNativeInvalid
 	}
-	state := flow.codex
-	request := &nativev1.ConsumeNativeMaterializationRequest{PrepareId: state.prepared.Binding.PrepareId, GrantId: state.grantID, GrantToken: flow.grant.CloneBytes(), OperationId: bytes.Clone(flow.consumer.OperationID), IntentCommitment: bytes.Clone(state.apply.IntentCommitment), ClientNonce: nativeNonce()}
-	defer nativeClear(request)
-	request.ProofSignature, err = flow.sign(CodexConsumeTranscript(state.apply, state.prepared.AuthorizeChallenge, state.consumeChallenge, state.grantExpiry, request))
+	if err := flow.codex.admitted.BeginConsume(ctx); err != nil {
+		return NativeMaterial{}, codexAdmissionFailure(err)
+	}
+	material, err := flow.consumeCore(ctx, caller)
 	if err != nil {
 		return NativeMaterial{}, err
 	}
+	if err := flow.codex.admitted.Revalidate(ctx); err != nil {
+		material.Destroy()
+		return NativeMaterial{}, ErrNativeUnknown
+	}
+	return material, nil
+}
+
+func (flow *NativeFlow) consumeCore(ctx, caller context.Context) (NativeMaterial, error) {
+	if flow.agent != "codex" || flow.codex == nil || flow.codex.apply == nil || flow.codex.grantID == "" || flow.codex.consumeAttempted || time.Now().UnixMilli() >= flow.codex.grantExpiry {
+		return NativeMaterial{}, ErrNativeInvalid
+	}
+	state := flow.codex
+	request := &nativev1.ConsumeNativeMaterializationRequest{PrepareId: state.prepared.Binding.PrepareId, GrantId: state.grantID, GrantToken: flow.grant.CloneBytes(), OperationId: bytes.Clone(flow.consumer.OperationID), IntentCommitment: bytes.Clone(state.apply.IntentCommitment), ClientNonce: nativeNonce()}
+	defer nativeClear(request)
+	signature, err := flow.sign(CodexConsumeTranscript(state.apply, state.prepared.AuthorizeChallenge, state.consumeChallenge, state.grantExpiry, request))
+	if err != nil {
+		return NativeMaterial{}, err
+	}
+	request.ProofSignature = signature
 	state.consumeAttempted = true
 	defer flow.grant.Destroy()
 	response := new(nativev1.ConsumeNativeMaterializationResponse)

@@ -130,7 +130,7 @@ func TestCodexNativeClientUnknownAndClose(test *testing.T) {
 							}
 							result <- err
 						} else {
-							material, err := flow.ConsumeCodex(ctx)
+							material, err := consumeCodexProtocolFixture(ctx, flow)
 							defer material.Destroy()
 							if len(material.CloneBytes()) != 0 {
 								test.Error("unknown materialization returned secret")
@@ -158,7 +158,7 @@ func TestCodexNativeClientUnknownAndClose(test *testing.T) {
 					if _, err := flow.authorizeCodex(test.Context(), local, approval); err == nil {
 						test.Fatal("authorization replayed after unknown/Close")
 					}
-					material, err := flow.ConsumeCodex(test.Context())
+					material, err := consumeCodexProtocolFixture(test.Context(), flow)
 					defer material.Destroy()
 					if err == nil || len(material.CloneBytes()) != 0 || authorizes.Load() != 1 || consumes.Load() != map[bool]int32{false: 0, true: 1}[stage == "ConsumeNativeMaterialization"] {
 						test.Fatal("unknown request caused sensitive replay")
@@ -448,12 +448,12 @@ func TestCodexNativeClientFlow(test *testing.T) {
 			if _, err := flow.authorizeCodex(test.Context(), local, cloned); !errors.Is(err, ErrNativeInvalid) || authorizes.Load() != 1 {
 				test.Fatal("sensitive authorization replayed")
 			}
-			material, err := flow.ConsumeCodex(test.Context())
+			material, err := consumeCodexProtocolFixture(test.Context(), flow)
 			if err != nil || !bytes.Equal(material.CloneBytes(), []byte("synthetic-C2-client-slot-key")) {
 				test.Fatal("actual single-slot client materialization failed")
 			}
 			defer material.Destroy()
-			if _, err := flow.ConsumeCodex(test.Context()); !errors.Is(err, ErrNativeInvalid) || consumes.Load() != 1 {
+			if _, err := consumeCodexProtocolFixture(test.Context(), flow); !errors.Is(err, ErrNativeInvalid) || consumes.Load() != 1 {
 				test.Fatal("client replayed consumed material")
 			}
 			if status, err := flow.StatusCodex(test.Context()); err != nil || status.State != NativeConsumed {
@@ -467,6 +467,15 @@ func TestCodexNativeClientFlow(test *testing.T) {
 			}
 		})
 	}
+}
+
+func consumeCodexProtocolFixture(caller context.Context, flow *NativeFlow) (NativeMaterial, error) {
+	ctx, done, err := flow.start(caller)
+	if err != nil {
+		return NativeMaterial{}, err
+	}
+	defer done()
+	return flow.consumeCore(ctx, caller)
 }
 
 func TestCodexNativePreflightClosed(test *testing.T) {
