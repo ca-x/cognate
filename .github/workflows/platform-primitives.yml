@@ -567,11 +567,13 @@ jobs:
           import os
           from pathlib import Path
           import platform
+          import plistlib
           import re
           import resource
           import signal
           import stat
           import subprocess
+          import tempfile
 
           os.umask(0o077)
           root = Path(os.environ["COGNATE_BASELINE_ROOT"])
@@ -581,10 +583,30 @@ jobs:
               raise SystemExit("actual Darwin arm64 required")
           parents = [Path(os.environ[name]) for name in ["COGNATE_APFS_SENSITIVE", "COGNATE_APFS_INSENSITIVE"]]
           identities = []
+          def filesystem_type(parent):
+              try:
+                  with tempfile.TemporaryFile(dir=root / "tmp") as capture:
+                      def limits():
+                          resource.setrlimit(resource.RLIMIT_FSIZE, (65536, 65536))
+                      result = subprocess.run(
+                          ["/usr/sbin/diskutil", "info", "-plist", str(parent)], stdout=capture,
+                          stderr=subprocess.DEVNULL, timeout=10, preexec_fn=limits,
+                      )
+                      if result.returncode != 0 or not 0 < os.fstat(capture.fileno()).st_size <= 65536:
+                          raise ValueError
+                      capture.seek(0)
+                      document = plistlib.loads(capture.read(65537))
+                  if type(document) is not dict or type(document.get("FilesystemType")) is not str:
+                      raise ValueError
+                  return document["FilesystemType"]
+              except Exception:
+                  raise SystemExit("APFS filesystem identity unavailable") from None
           for parent in parents:
               info = parent.lstat()
-              filesystem = subprocess.check_output(["/usr/bin/stat", "-f", "%T", str(parent)], timeout=10).decode().strip()
-              if parent.resolve() != parent or not stat.S_ISDIR(info.st_mode) or filesystem != "apfs":
+              filesystem = filesystem_type(parent)
+              after = parent.lstat()
+              if (parent.resolve() != parent or not stat.S_ISDIR(info.st_mode) or filesystem != "apfs"
+                      or (after.st_dev, after.st_ino) != (info.st_dev, info.st_ino)):
                   raise SystemExit("canonical APFS parent required")
               identities.append((info.st_dev, info.st_ino))
           if identities[0][0] == identities[1][0]:
