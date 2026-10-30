@@ -134,10 +134,11 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		test.Fatal(err)
 	}
 	descriptors := registry.List()
-	if len(descriptors) != 5 {
-		test.Fatalf("expected five built-in adapters, got %d", len(descriptors))
+	if len(descriptors) != 6 {
+		test.Fatalf("expected six built-in adapters, got %d", len(descriptors))
 	}
 	expected := map[string]agentconfig.Target{"claude": agentconfig.ClaudeSettings, "codex": agentconfig.CodexConfig, "gemini": agentconfig.GeminiSettings, "opencode": agentconfig.OpenCodeConfig}
+	expected["grokbuild"] = agentconfig.GrokBuildConfig
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
 		if manifest.PluginID == agentconfig.MCPPluginID {
@@ -165,6 +166,9 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		}
 		if manifest.AgentID == "opencode" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.OpenCodeProviderPlanV1) {
 			test.Fatal("OpenCode must declare only its planner capability")
+		}
+		if manifest.AgentID == "grokbuild" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.GrokBuildProviderPlanV1 || manifest.Format != agentconfig.TOML) {
+			test.Fatal("Grok Build must declare only its own planner capability")
 		}
 	}
 	if len(expected) != 0 {

@@ -1,6 +1,12 @@
 # Agent 适配插件边界
 
-状态：已实现内置 Claude/Codex/Gemini/OpenCode 元数据 registry，以及各自声明的服务端 provider 转换能力；旧 Claude env additive merge 继续保留。OpenCode 的 V1/V2 typed 资产与普通 Connect 接口已接通，Web/原生应用尚未交付。转换成功不等于设备已经应用。当前 Web 与客户端实际支持范围见 `CONFIGURATION.md`；配置导入、Pack 配置附件及完整 cc-switch 交互仍未接通。下文按切片记录合同，不能把较早的 metadata-only 状态当成当前全部能力。
+状态：内置 Claude/Codex/Gemini/OpenCode/Grok Build provider 描述符及独立 Claude MCP 描述符使用同一 registry，并各自声明已实现的服务端转换能力；旧 Claude env additive merge 保留。Grok Build 当前仅有类型化服务端 planner，尚无其资产/RPC/编辑器或本机应用。各 agent 的 Web 与客户端实际范围见 `CONFIGURATION.md`；已接通的导入和 Pack 附件元数据管理不等于配置自动分发/应用闭环。转换成功不等于设备已经应用。下文保留各历史切片的当时状态，不能以较早的待办覆盖后续交付，也不能将完整 cc-switch 交互视为已完成。
+
+## Grok Build 类型化声明（2026-10-31）
+
+`builtin.grokbuild` 1.0.0 仅声明 `grokbuild.provider-plan.v1`，目标为 `grokbuild.config`。官方 native-login 不带自定义模型或秘密槽；custom-model 明确区分本地 profile 和上游 model，保留 endpoint、name、responses backend、context window，可同时声明选中的 API key 存在性与环境变量名。变量名不是变量值，模块不会读取环境，也不会接收真实 key。
+
+宿主执行真实服务端 moejs，并独立核对完整结果、字段 presence、凭据引用与所需槽；旧五个描述符及模块输入不变。未知 backend 明确 Unsupported，不静默改写。该声明不写 TOML、不删除当前默认模型表、不触达用户本机；未来清理旧表必须有已认证的托管归属证据和明确批准。完整资产加密/版本 CAS、RPC/编辑器、MCP/提示词、路由及客户端应用仍需后继实现，不代表 Grok Build 或十四类 agent 全部完成。详见 `superpowers/specs/2026-10-31-grokbuild-provider-planner.md`。
 
 ## 分工
 

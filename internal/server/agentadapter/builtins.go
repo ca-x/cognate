@@ -25,6 +25,9 @@ var opencodeModule string
 //go:embed mcp_claude.mjs
 var mcpClaudeModule string
 
+//go:embed grokbuild.mjs
+var grokBuildModule string
+
 func Builtins() (*Registry, error) {
 	var manifests []agentconfig.Manifest
 	if json.Unmarshal(builtinManifests, &manifests, json.RejectUnknownMembers(true)) != nil {
@@ -47,6 +50,9 @@ func Builtins() (*Registry, error) {
 		}
 		if manifest.Target == agentconfig.OpenCodeConfig {
 			definition.Module = opencodeModule
+		}
+		if manifest.Target == agentconfig.GrokBuildConfig {
+			definition.Module = grokBuildModule
 		}
 		definitions = append(definitions, definition)
 	}

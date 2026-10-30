@@ -81,11 +81,15 @@ func validDefinition(definition Definition) bool {
 		return false
 	}
 	validTarget := manifest.AgentID == "claude" && manifest.Target == agentconfig.ClaudeSettings && manifest.Format == agentconfig.JSON || manifest.AgentID == "codex" && manifest.Target == agentconfig.CodexConfig && manifest.Format == agentconfig.TOML || manifest.AgentID == "gemini" && manifest.Target == agentconfig.GeminiSettings && manifest.Format == agentconfig.JSON || manifest.AgentID == "opencode" && manifest.Target == agentconfig.OpenCodeConfig && manifest.Format == agentconfig.JSON
+	validTarget = validTarget || manifest.AgentID == "grokbuild" && manifest.Target == agentconfig.GrokBuildConfig && manifest.Format == agentconfig.TOML
 	if !validTarget {
 		return false
 	}
 	if len(manifest.Capabilities) == 0 {
 		return definition.Module == ""
+	}
+	if manifest.Target == agentconfig.GrokBuildConfig {
+		return len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.GrokBuildProviderPlanV1 && len(definition.Module) > 0
 	}
 	if manifest.Target == agentconfig.OpenCodeConfig {
 		return len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.OpenCodeProviderPlanV1 && len(definition.Module) > 0

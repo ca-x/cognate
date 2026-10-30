@@ -3,5 +3,6 @@
   {"apiVersion":1,"pluginID":"builtin.codex","pluginVersion":"1.1.0","agentID":"codex","target":"codex.config","format":"toml","capabilities":["codex.provider-plan.v1"]},
   {"apiVersion":1,"pluginID":"builtin.gemini","pluginVersion":"1.1.0","agentID":"gemini","target":"gemini.settings","format":"json","capabilities":["gemini.provider-plan.v1"]},
   {"apiVersion":1,"pluginID":"builtin.opencode","pluginVersion":"1.0.0","agentID":"opencode","target":"opencode.config","format":"json","capabilities":["opencode.provider-plan.v1"]},
-  {"apiVersion":1,"pluginID":"builtin.mcp.claude","pluginVersion":"1.0.0","agentID":"claude","target":"claude.mcp","format":"json","capabilities":["claude.mcp-plan.v1"]}
+  {"apiVersion":1,"pluginID":"builtin.mcp.claude","pluginVersion":"1.0.0","agentID":"claude","target":"claude.mcp","format":"json","capabilities":["claude.mcp-plan.v1"]},
+  {"apiVersion":1,"pluginID":"builtin.grokbuild","pluginVersion":"1.0.0","agentID":"grokbuild","target":"grokbuild.config","format":"toml","capabilities":["grokbuild.provider-plan.v1"]}
 ]
