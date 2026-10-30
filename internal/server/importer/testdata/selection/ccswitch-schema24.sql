@@ -1,0 +1,16 @@
+PRAGMA user_version=24;
+CREATE TABLE skill_repos(owner TEXT NOT NULL,name TEXT NOT NULL,branch TEXT NOT NULL,enabled INTEGER NOT NULL);
+CREATE TABLE skills(id TEXT PRIMARY KEY,name TEXT NOT NULL,description TEXT,directory TEXT,repo_owner TEXT,repo_name TEXT,repo_branch TEXT,content_hash TEXT);
+CREATE TABLE providers(id TEXT,app_type TEXT,name TEXT,settings_config TEXT,meta TEXT,website_url TEXT,category TEXT,created_at INTEGER,sort_index INTEGER,notes TEXT,icon TEXT,icon_color TEXT,is_current INTEGER,in_failover_queue INTEGER,PRIMARY KEY(id,app_type));
+CREATE TABLE provider_endpoints(id INTEGER PRIMARY KEY,provider_id TEXT,app_type TEXT,url TEXT);
+CREATE TABLE mcp_servers(id TEXT,server_config TEXT);
+CREATE TABLE prompts(id TEXT,content TEXT);
+CREATE TABLE settings(key TEXT,value TEXT);
+INSERT INTO skill_repos VALUES('Example','Toolkit','HEAD',1);
+INSERT INTO skills VALUES('skill-source','review-guide','SYNTHETIC-PRIVATE-MARKER','/SYNTHETIC-PRIVATE-MARKER','example','toolkit','HEAD','source-hash-not-cognate-hash');
+INSERT INTO providers VALUES('claude-source','claude','Claude imported','{"env":{"ANTHROPIC_BASE_URL":"https://claude.example/v1","ANTHROPIC_MODEL":"claude-default","ANTHROPIC_API_KEY":"SYNTHETIC-PRIVATE-MARKER","ANTHROPIC_AUTH_TOKEN":"SYNTHETIC-PRIVATE-MARKER"}}','{}',NULL,NULL,0,0,NULL,NULL,NULL,1,0);
+INSERT INTO providers VALUES('codex-source','codex','Codex imported','{"auth":{"OPENAI_API_KEY":"SYNTHETIC-PRIVATE-MARKER"},"config":"model_provider = \"custom\"\nmodel = \"codex-a\"\nmodel_reasoning_effort = \"low\"\n[model_providers.custom]\nname = \"Custom\"\nbase_url = \"https://codex.example/v1\"\nwire_api = \"responses\"\nrequires_openai_auth = true\n","modelCatalog":{"models":[{"model":"codex-a","displayName":"Codex A","contextWindow":2147483647,"supportsParallelToolCalls":false,"inputModalities":["image","text"],"baseInstructions":"  synthetic\r\n\tprovider instructions  ","reasoningLevels":["high","none","low"],"defaultReasoningLevel":"low"}]}}','{}',NULL,NULL,0,0,NULL,NULL,NULL,0,0);
+INSERT INTO providers VALUES('gemini-source','gemini','Gemini imported','{"env":{"GOOGLE_GEMINI_BASE_URL":"https://gemini.example/v1","GEMINI_MODEL":"gemini-env","GEMINI_API_KEY":"SYNTHETIC-PRIVATE-MARKER"},"config":{"model":{"name":"gemini-settings"},"security":{"auth":{"selectedType":"gemini-api-key"}}}}','{}',NULL,NULL,0,0,NULL,NULL,NULL,0,0);
+INSERT INTO mcp_servers VALUES('mcp-source','SYNTHETIC-PRIVATE-MARKER');
+INSERT INTO prompts VALUES('prompt-source','SYNTHETIC-PRIVATE-MARKER');
+INSERT INTO settings VALUES('private-source','SYNTHETIC-PRIVATE-MARKER');

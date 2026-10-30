@@ -348,7 +348,6 @@ func (fixture *geminiBrowserFixture) shutdown(initialized <-chan struct{}) {
 	<-initialized
 	fixture.closeOnce.Do(func() {
 		defer close(fixture.done)
-		fixture.faults.releaseHeld()
 		for _, realm := range []*geminiBrowserRealm{fixture.realm, fixture.alternate} {
 			if realm != nil {
 				realm.public.CloseClientConnections()

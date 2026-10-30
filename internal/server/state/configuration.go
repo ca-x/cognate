@@ -177,27 +177,31 @@ func (store *Store) CreateConfigurationAsset(ctx context.Context, owner string, 
 		if err != nil {
 			return err
 		}
-		count, err := tx.ConfigurationAsset.Query().Where(configurationasset.UserIDEQ(ownerEntry.ID)).Count(ctx)
-		if err != nil {
-			return err
-		}
-		if count >= MaxConfigurationAssets {
-			return ErrConfigurationLimit
-		}
-		now := store.state.now().UTC()
-		entry := &ent.ConfigurationAsset{PublicID: rand.Text(), UserID: ownerEntry.ID, AgentID: draft.AgentID, Kind: configurationasset.Kind(draft.Kind), Name: draft.Name, SchemaVersion: draft.SchemaVersion, Revision: 1, CreatedAt: now, UpdatedAt: now}
-		ciphertext := store.state.configurationAEAD.Seal(nil, nil, draft.Payload.data, configurationAAD(owner, entry))
-		saved, err := tx.ConfigurationAsset.Create().SetPublicID(entry.PublicID).SetUserID(entry.UserID).SetAgentID(entry.AgentID).SetKind(entry.Kind).SetName(entry.Name).SetSchemaVersion(entry.SchemaVersion).SetRevision(entry.Revision).SetCreatedAt(now).SetUpdatedAt(now).SetCiphertext(ciphertext).Save(ctx)
-		if err != nil {
-			return err
-		}
-		result = configurationMetadata(saved)
-		return nil
+		result, err = store.createConfigurationAssetTx(ctx, tx, ownerEntry, draft)
+		return err
 	})
 	if err != nil {
 		return ConfigurationAsset{}, configurationFailure(err)
 	}
 	return result, nil
+}
+
+func (store *Store) createConfigurationAssetTx(ctx context.Context, tx *ent.Tx, owner *ent.User, draft ConfigurationAssetDraft) (ConfigurationAsset, error) {
+	count, err := tx.ConfigurationAsset.Query().Where(configurationasset.UserIDEQ(owner.ID)).Count(ctx)
+	if err != nil {
+		return ConfigurationAsset{}, err
+	}
+	if count >= MaxConfigurationAssets {
+		return ConfigurationAsset{}, ErrConfigurationLimit
+	}
+	now := store.state.now().UTC()
+	entry := &ent.ConfigurationAsset{PublicID: rand.Text(), UserID: owner.ID, AgentID: draft.AgentID, Kind: configurationasset.Kind(draft.Kind), Name: draft.Name, SchemaVersion: draft.SchemaVersion, Revision: 1, CreatedAt: now, UpdatedAt: now}
+	ciphertext := store.state.configurationAEAD.Seal(nil, nil, draft.Payload.data, configurationAAD(owner.UserKey, entry))
+	saved, err := tx.ConfigurationAsset.Create().SetPublicID(entry.PublicID).SetUserID(entry.UserID).SetAgentID(entry.AgentID).SetKind(entry.Kind).SetName(entry.Name).SetSchemaVersion(entry.SchemaVersion).SetRevision(entry.Revision).SetCreatedAt(now).SetUpdatedAt(now).SetCiphertext(ciphertext).Save(ctx)
+	if err != nil {
+		return ConfigurationAsset{}, err
+	}
+	return configurationMetadata(saved), nil
 }
 
 func (store *Store) ListConfigurationAssets(ctx context.Context, owner string) ([]ConfigurationAsset, error) {

@@ -1,0 +1,5 @@
+{
+  "claude": {"name":"Claude imported","provider":{"endpoint":"https://claude.example/v1","auth_mode":"api-key","models":{"default":"claude-default"}}},
+  "codex": {"name":"Codex imported","codex_provider":{"authMode":"provider-key","endpoint":"https://codex.example/v1","model":"codex-a","reasoningEffort":"low","catalog":{"models":[{"model":"codex-a","displayName":"Codex A","contextWindow":2147483647,"supportsParallelToolCalls":false,"inputModalities":["image","text"],"baseInstructions":"  synthetic\r\n\tprovider instructions  ","reasoningLevels":["high","none","low"],"defaultReasoningLevel":"low"}]}}},
+  "gemini": {"name":"Gemini imported","gemini_provider":{"authMode":"api-key","endpoint":"https://gemini.example/v1","keyTransport":"bearer","envModel":"gemini-env","settingsModel":"gemini-settings"}}
+}

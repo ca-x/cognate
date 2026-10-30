@@ -1,0 +1,7 @@
+[
+  {"agent":"claude","name":"Claude native","settings":{"env":{}},"status":"supported"},
+  {"agent":"claude","name":"Claude token","settings":{"env":{"ANTHROPIC_AUTH_TOKEN":"SYNTHETIC-PRIVATE-MARKER","ANTHROPIC_DEFAULT_HAIKU_MODEL":"haiku","ANTHROPIC_DEFAULT_SONNET_MODEL":"sonnet","ANTHROPIC_DEFAULT_OPUS_MODEL":"opus"}},"status":"supported"},
+  {"agent":"claude","name":"Claude unsupported","settings":{"env":{"ANTHROPIC_API_KEY":"SYNTHETIC-PRIVATE-MARKER","COMMAND":"SYNTHETIC-PRIVATE-MARKER"}},"status":"unsupported-field"},
+  {"agent":"codex","name":"Codex unsupported","settings":{"auth":{"access_token":"SYNTHETIC-PRIVATE-MARKER"},"config":"model = \"codex-a\""},"status":"unsupported-field"},
+  {"agent":"gemini","name":"Gemini unsupported","settings":{"env":{"GEMINI_API_KEY":"SYNTHETIC-PRIVATE-MARKER","OTHER_ENV":"SYNTHETIC-PRIVATE-MARKER"},"config":{}},"status":"unsupported-field"}
+]

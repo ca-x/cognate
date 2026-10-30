@@ -3,7 +3,9 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -105,17 +107,11 @@ func TestClientCredentialKeyReplacementMustNotBlock(test *testing.T) {
 	if err != nil {
 		test.Fatal(err)
 	}
-	deadline, cancel := context.WithTimeout(test.Context(), 5*time.Second)
-	defer cancel()
-	child := exec.CommandContext(deadline, os.Args[0], "-test.run=^TestClientCredentialKeyReplacementHelper$")
-	child.Env = append(os.Environ(), "SKILLHUB_CLIENT_KEY_REPLACEMENT_HOME="+home, "GOMAXPROCS=2")
-	output, err := child.CombinedOutput()
-	if errors.Is(deadline.Err(), context.DeadlineExceeded) {
-		test.Fatal("client key load blocked while a regular key was exchanged with a FIFO")
-	}
+	result, err := runClientKeyReplacement(test.Context(), home, "TestClientCredentialKeyReplacementHelper", "")
 	if err != nil {
-		test.Fatalf("replacement subprocess: %v; %s", err, output)
+		test.Fatalf("replacement subprocess after %d completed loads: %v", result.completed, err)
 	}
+	test.Logf("replacement completed=%d waited=%t readerJoined=%t", result.completed, result.waited, result.readerJoined)
 	for _, path := range []string{keyPath, replacementPath} {
 		after, err := os.Lstat(path)
 		if err != nil {
@@ -132,11 +128,185 @@ func TestClientCredentialKeyReplacementMustNotBlock(test *testing.T) {
 	}
 }
 
+var (
+	errReplacementNoProgress = errors.New("replacement subprocess made no completed-load progress for five seconds")
+	errReplacementProtocol   = errors.New("invalid replacement progress protocol")
+	errReplacementIncomplete = errors.New("replacement subprocess did not complete 1000 loads")
+)
+
+type clientKeyReplacementResult struct {
+	completed    uint32
+	ready        bool
+	pid          int
+	waited       bool
+	readerJoined bool
+}
+
+func runClientKeyReplacement(ctx context.Context, home, helper, mode string) (result clientKeyReplacementResult, returnedErr error) {
+	deadline, cancel := context.WithTimeout(ctx, 120*time.Second)
+	defer cancel()
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		return result, errors.New("replacement progress pipe unavailable")
+	}
+	defer reader.Close()
+	defer writer.Close()
+	child := exec.CommandContext(deadline, os.Args[0], "-test.run=^"+helper+"$")
+	child.Env = append(os.Environ(), "SKILLHUB_CLIENT_KEY_REPLACEMENT_HOME="+home, "SKILLHUB_CLIENT_KEY_REPLACEMENT_MODE="+mode, "GOMAXPROCS=2")
+	child.ExtraFiles = []*os.File{writer}
+	child.Stdout, child.Stderr = io.Discard, io.Discard
+	if err := child.Start(); err != nil {
+		return result, errors.New("replacement subprocess could not start")
+	}
+	result.pid = child.Process.Pid
+	_ = writer.Close()
+	progress := make(chan uint32)
+	processDone := make(chan struct{})
+	var workers sync.WaitGroup
+	var readErr, waitErr error
+	workers.Go(func() {
+		defer close(progress)
+		for {
+			var frame [4]byte
+			if _, readErr = io.ReadFull(reader, frame[:]); readErr != nil {
+				return
+			}
+			select {
+			case progress <- binary.BigEndian.Uint32(frame[:]):
+			case <-deadline.Done():
+				return
+			}
+		}
+	})
+	workers.Go(func() {
+		waitErr = child.Wait()
+		close(processDone)
+	})
+	defer func() {
+		cancel()
+		_ = reader.Close()
+		workers.Wait()
+		result.waited, result.readerJoined = true, true
+		if returnedErr == nil && waitErr != nil {
+			returnedErr = errors.New("replacement subprocess did not exit successfully")
+		}
+	}()
+	idle := time.NewTimer(5 * time.Second)
+	defer idle.Stop()
+	for progress != nil || processDone != nil {
+		if err := deadline.Err(); err != nil {
+			return result, err
+		}
+		select {
+		case completed, open := <-progress:
+			if !open {
+				progress = nil
+				continue
+			}
+			if completed == 0 {
+				if result.ready {
+					return result, errReplacementProtocol
+				}
+				result.ready = true
+			} else {
+				if !result.ready || completed != result.completed+1 || completed > 1000 {
+					return result, errReplacementProtocol
+				}
+				result.completed = completed
+			}
+			idle.Reset(5 * time.Second)
+		case <-processDone:
+			processDone = nil
+		case <-idle.C:
+			if err := deadline.Err(); err != nil {
+				return result, err
+			}
+			return result, errReplacementNoProgress
+		case <-deadline.Done():
+			return result, deadline.Err()
+		}
+	}
+	if !errors.Is(readErr, io.EOF) {
+		return result, errReplacementProtocol
+	}
+	if !result.ready || result.completed != 1000 {
+		return result, errReplacementIncomplete
+	}
+	return result, nil
+}
+
+func writeClientKeyReplacementProgress(test *testing.T, progress *os.File, completed uint32) {
+	test.Helper()
+	var frame [4]byte
+	binary.BigEndian.PutUint32(frame[:], completed)
+	if count, err := progress.Write(frame[:]); err != nil || count != len(frame) {
+		test.Fatal("replacement progress could not be sent")
+	}
+}
+
+func TestClientCredentialKeyReplacementMonitor(test *testing.T) {
+	for _, mode := range []string{"blocked", "duplicate-ready", "incomplete", "canceled"} {
+		test.Run(mode, func(test *testing.T) {
+			ctx, cancel := context.WithCancel(test.Context())
+			defer cancel()
+			if mode == "canceled" {
+				timer := time.AfterFunc(250*time.Millisecond, cancel)
+				defer timer.Stop()
+			}
+			result, err := runClientKeyReplacement(ctx, test.TempDir(), "TestClientCredentialKeyReplacementMonitorHelper", mode)
+			expected := errReplacementNoProgress
+			switch mode {
+			case "duplicate-ready":
+				expected = errReplacementProtocol
+			case "incomplete":
+				expected = errReplacementIncomplete
+			case "canceled":
+				expected = context.Canceled
+			}
+			if !errors.Is(err, expected) || !result.waited || !result.readerJoined || result.pid == 0 {
+				test.Fatalf("replacement monitor did not classify and join: mode=%s completed=%d error=%v", mode, result.completed, err)
+			}
+			var status unix.WaitStatus
+			if _, err := unix.Wait4(result.pid, &status, unix.WNOHANG, nil); !errors.Is(err, unix.ECHILD) {
+				test.Fatal("replacement subprocess was not reaped")
+			}
+		})
+	}
+}
+
+func TestClientCredentialKeyReplacementMonitorHelper(test *testing.T) {
+	home, mode := os.Getenv("SKILLHUB_CLIENT_KEY_REPLACEMENT_HOME"), os.Getenv("SKILLHUB_CLIENT_KEY_REPLACEMENT_MODE")
+	if home == "" || mode == "" {
+		test.Skip("isolated monitor subprocess only")
+	}
+	progress := os.NewFile(3, "replacement-progress")
+	defer progress.Close()
+	writeClientKeyReplacementProgress(test, progress, 0)
+	if mode == "duplicate-ready" {
+		writeClientKeyReplacementProgress(test, progress, 0)
+	}
+	if mode == "incomplete" {
+		writeClientKeyReplacementProgress(test, progress, 1)
+		return
+	}
+	path := filepath.Join(home, "blocked-load.fifo")
+	if err := syscall.Mkfifo(path, 0o600); err != nil {
+		test.Fatal("monitor FIFO could not be created")
+	}
+	file, err := os.Open(path)
+	if err == nil {
+		_ = file.Close()
+	}
+	test.Fatal("monitor FIFO unexpectedly returned")
+}
+
 func TestClientCredentialKeyReplacementHelper(test *testing.T) {
 	home := os.Getenv("SKILLHUB_CLIENT_KEY_REPLACEMENT_HOME")
 	if home == "" {
 		test.Skip("isolated subprocess only")
 	}
+	progress := os.NewFile(3, "replacement-progress")
+	defer progress.Close()
 	directory := filepath.Join(home, ".config", "skillhub")
 	keyPath := filepath.Join(directory, "client.key")
 	replacementPath := filepath.Join(directory, "replacement.key")
@@ -158,11 +328,13 @@ func TestClientCredentialKeyReplacementHelper(test *testing.T) {
 			test.Fatal(replacementErr)
 		}
 	}()
-	for range 1000 {
+	writeClientKeyReplacementProgress(test, progress, 0)
+	for completed := range 1000 {
 		key, err := loadClientKey(test.Context(), home)
 		if err == nil && !bytes.Equal(key, bytes.Repeat([]byte{37}, 32)) {
 			test.Error("replacement returned a different client key")
 		}
 		clear(key)
+		writeClientKeyReplacementProgress(test, progress, uint32(completed+1))
 	}
 }

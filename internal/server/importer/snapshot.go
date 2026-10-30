@@ -14,6 +14,36 @@ import (
 
 const MaxCCSwitchSnapshotBytes = 16 << 20
 
+func readSelectionSnapshot(ctx context.Context, data []byte, read func(context.Context, *sql.Conn) error) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if !validCCSwitchSnapshot(data) {
+		return ErrSelectionInvalid
+	}
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	database, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		return selectionError(ctx, err)
+	}
+	defer database.Close()
+	database.SetMaxOpenConns(1)
+	connection, err := database.Conn(ctx)
+	if err != nil {
+		return selectionError(ctx, err)
+	}
+	defer connection.Close()
+	if err := prepareCCSwitchSnapshot(ctx, connection, data); err != nil {
+		return selectionError(ctx, err)
+	}
+	var integrity string
+	if err := connection.QueryRowContext(ctx, `PRAGMA quick_check(1)`).Scan(&integrity); err != nil || integrity != "ok" {
+		return selectionError(ctx, ErrSelectionInvalid)
+	}
+	return selectionError(ctx, read(ctx, connection))
+}
+
 func PreviewCCSwitchSnapshot(ctx context.Context, data []byte) (RepositoryPreview, error) {
 	if err := ctx.Err(); err != nil {
 		return RepositoryPreview{}, err

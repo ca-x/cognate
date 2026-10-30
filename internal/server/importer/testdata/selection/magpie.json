@@ -1,0 +1,11 @@
+{
+  "skills": [
+    {"name":"review-guide","source":{"kind":"github","repo":"example/toolkit","path":"skills/review"}},
+    {"name":"local-guide","source":{"kind":"folder","path":"/SYNTHETIC-PRIVATE-MARKER"}}
+  ],
+  "mcp": [{"name":"SYNTHETIC-PRIVATE-MARKER","command":"SYNTHETIC-PRIVATE-MARKER","env":{"KEY":"SYNTHETIC-PRIVATE-MARKER"}}],
+  "instructions": {"agents":[],"sets":[{"content":"SYNTHETIC-PRIVATE-MARKER"}]},
+  "applied": {"private":"SYNTHETIC-PRIVATE-MARKER"},
+  "seenSkills": [],
+  "unknownSection": {"private":"SYNTHETIC-PRIVATE-MARKER"}
+}
