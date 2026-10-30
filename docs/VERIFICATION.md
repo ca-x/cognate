@@ -2,6 +2,16 @@
 
 本记录自 2026-10-28 开发预览阶段起按提交保留验收与失败历史，各节描述对应时间点，不是首版发布或 M2 至 M7 全部完成的声明。最新 MyGo Claude 原生配置交付见末节。权威功能范围见 `REQUIREMENTS.md`；持续进度见 `DEVELOPMENT.md`。
 
+## 2026-10-30：配置事务取消测试的清理锁竞争
+
+Build `40985001579`（源码 `671db64`）实际失败于 Gemini 日志隐私测试内的 `DROP TRIGGER` 清理步骤，二进制与 Docker jobs 因此跳过；原失败保留，不用重跑替代诊断。
+
+在 Go 1.27.3、`CGO_ENABLED=0`、隔离 HOME 下，单核调度使原 Gemini 事务取消测试重复 500 轮全部在清理处失败，1000 个 proto/JSON 子例均观察到 SQLite `SQLITE_BUSY(5)`；原 Codex 同类测试重复 10 轮的 20 个子例也在清理处失败。较高并发度下原测试可以通过，不能以一次绿色证明无竞态。
+
+`database/sql` 的取消回滚可能先将事务标为 done，再完成物理回滚；此时显式 `Rollback` 返回不证明数据库写锁已经释放。测试用于建删 trigger 的独立连接原先没有 busy timeout，可能立即与仍在回滚的连接冲突。修复仅让这两个测试连接通过 file URL 的连接级 DSN 使用 `busy_timeout(10000)`，与 Store 一致；不改生产事务、HTTP 取消、零持久化断言或隐私断言，也不忽略清理错误。
+
+同一单核条件下，候选 Gemini/Codex 事务测试各重复 100 轮通过，完整 Gemini 失败日志隐私测试重复 20 轮通过。候选完整仓库 `go test -mod=readonly ./... -count=1 -timeout=600s` 与 `go vet -mod=readonly ./...` 实际 exit0，保持默认包并行。Build 工作流新增单核定向回归（三轮），并保留原全仓测试，防止仅靠默认调度掩盖回归。以上是本地结果；后继提交的 Actions 状态须按其自身 SHA 核查，不借用旧绿色。
+
 ## 独立验收范围
 
 - Linux CLI Pack 订阅、显式同步、跨 Pack 去重与保守卸载；匿名公开 skill 安装复用内容校验，但不隐式加入订阅，不需要 token 或 client.key。

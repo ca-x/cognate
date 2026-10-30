@@ -95,6 +95,11 @@ jobs:
             find "$baseline/proto" -type f -name '*.proto' -exec sed -i 's#option go_package = "github.com/ca-x/skillhub/#option go_package = "github.com/ca-x/cognate/#g' {} +
             buf breaking --against "$baseline"
           fi
+      - name: Check single-CPU transaction cancellation cleanup
+        env:
+          CGO_ENABLED: '0'
+          GOMAXPROCS: '1'
+        run: go test -mod=readonly ./internal/server/httpapi -run '^Test(Codex|Gemini)ConfigurationSQLiteInTransactionCancel$|^TestGeminiConfigurationFailureLoggingPrivacy$' -count=3 -timeout=120s
       - run: CGO_ENABLED=0 go test ./...
       - run: CGO_ENABLED=0 go vet ./...
 

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -347,7 +348,8 @@ func TestGeminiConfigurationSQLiteInTransactionCancel(test *testing.T) {
 			}
 			path := filepath.Join(directory, "cancel.db")
 			key := []byte(strings.Repeat("q", 32))
-			database, err := sql.Open("sqlite3", path)
+			address := url.URL{Scheme: "file", Path: "/" + strings.TrimPrefix(filepath.ToSlash(path), "/"), RawQuery: url.Values{"_pragma": {"busy_timeout(10000)"}}.Encode()}
+			database, err := sql.Open("sqlite3", address.String())
 			if err != nil {
 				test.Fatal("open pure-Go SQL driver")
 			}
