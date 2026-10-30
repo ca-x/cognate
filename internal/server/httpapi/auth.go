@@ -41,6 +41,7 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
+	MCPConfiguration    *MCPConfigurationHandler
 	Logging             *logging.Manager
 	AdminUserIDs        []string
 	NativeConfiguration *nativeconsumer.Service
@@ -130,6 +131,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 		server.Any(path+"*", echo.WrapHandler(distributionRequests(options.Packs, handler)))
 	}
 	registerCatalog(server, authentication, options)
+	if options.MCPConfiguration != nil {
+		path, handler := options.MCPConfiguration.transport()
+		server.Any(path+"*", echo.WrapHandler(handler))
+	}
 	if options.WebUI != nil {
 		server.Any("/*", echo.WrapHandler(options.WebUI))
 	}

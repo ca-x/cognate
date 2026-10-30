@@ -66,6 +66,7 @@ func New() *cobra.Command {
 	root.AddCommand(newClientKeyCommand())
 	root.AddCommand(newNativeConfigurationCommand())
 	root.AddCommand(newImportCommand())
+	root.AddCommand(newMCPConfigurationCommand())
 	root.AddCommand(newInstallStatusCommand())
 	root.AddCommand(newBackupLocalCommand())
 	root.AddCommand(newBackupListCommand())

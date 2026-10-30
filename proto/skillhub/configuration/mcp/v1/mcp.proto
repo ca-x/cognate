@@ -1,0 +1,199 @@
+syntax = "proto3";
+
+package skillhub.configuration.mcp.v1;
+
+import "skillhub/configuration/v1/configuration.proto";
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/configuration/mcp/v1;mcpv1";
+
+service MCPConfigurationService {
+  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse);
+  rpc GetAsset(GetAssetRequest) returns (GetAssetResponse);
+  rpc ReadDraft(ReadDraftRequest) returns (ReadDraftResponse);
+  rpc CreateAsset(CreateAssetRequest) returns (CreateAssetResponse);
+  rpc UpdateAsset(UpdateAssetRequest) returns (UpdateAssetResponse);
+  rpc CopyAsset(CopyAssetRequest) returns (CopyAssetResponse);
+  rpc DeleteAsset(DeleteAssetRequest) returns (DeleteAssetResponse);
+  rpc Preview(PreviewRequest) returns (PreviewResponse);
+}
+
+enum Readiness {
+  READINESS_UNSPECIFIED = 0;
+  READINESS_COMPLETE = 1;
+  READINESS_NEEDS_CREDENTIAL = 2;
+}
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_UPSERT_MANAGED = 1;
+  ACTION_DISABLE_MANAGED = 2;
+}
+
+enum Warning {
+  WARNING_UNSPECIFIED = 0;
+  WARNING_INSECURE_HTTP = 1;
+  WARNING_NATIVE_NOT_QUALIFIED = 2;
+}
+
+message Document {
+  repeated Server servers = 1;
+}
+
+message Server {
+  string id = 1;
+  string name = 2;
+  optional bool enabled = 3;
+  oneof connection {
+    Stdio stdio = 4;
+    Remote http = 5;
+    Remote sse = 6;
+  }
+}
+
+message Stdio {
+  string command = 1;
+  Args args = 2;
+  NamedSlots env = 3;
+}
+
+message Args {
+  repeated Arg values = 1;
+}
+
+message Arg {
+  string id = 1;
+  string slot_ref = 2;
+}
+
+message NamedSlots {
+  repeated NamedSlot values = 1;
+}
+
+message NamedSlot {
+  string name = 1;
+  string slot_ref = 2;
+}
+
+message Remote {
+  string url = 1;
+  NamedSlots headers = 2;
+}
+
+message Draft {
+  string name = 1;
+  string agent_id = 2;
+  Document document = 3;
+}
+
+message SlotStatus {
+  string slot_id = 1;
+  optional bool present = 2;
+}
+
+message Keep {
+}
+
+message Clear {
+  optional bool confirmed = 1;
+}
+
+message SecretMutation {
+  string slot_id = 1;
+  oneof action {
+    Keep keep = 2;
+    bytes replace = 3 [debug_redact = true];
+    Clear clear = 4;
+  }
+}
+
+message View {
+  .skillhub.configuration.v1.Asset asset = 1;
+  Draft draft = 2;
+  repeated SlotStatus secrets = 3;
+  Readiness readiness = 4;
+  bool has_preserved_extras = 5;
+}
+
+message Operation {
+  string server_id = 1;
+  string native_name = 2;
+  Action action = 3;
+  Server desired = 4;
+  bool requires_managed_proof = 5;
+}
+
+message ListAssetsRequest {
+}
+
+message ListAssetsResponse {
+  repeated .skillhub.configuration.v1.Asset assets = 1;
+}
+
+message GetAssetRequest {
+  string id = 1;
+}
+
+message GetAssetResponse {
+  .skillhub.configuration.v1.Asset asset = 1;
+}
+
+message ReadDraftRequest {
+  string id = 1;
+}
+
+message ReadDraftResponse {
+  View view = 1;
+}
+
+message CreateAssetRequest {
+  Draft draft = 1;
+  repeated SecretMutation secrets = 2;
+}
+
+message CreateAssetResponse {
+  View view = 1;
+}
+
+message UpdateAssetRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+  Draft draft = 3;
+  repeated SecretMutation secrets = 4;
+}
+
+message UpdateAssetResponse {
+  View view = 1;
+}
+
+message CopyAssetRequest {
+  string id = 1;
+  int64 expected_source_revision = 2;
+  string name = 3;
+}
+
+message CopyAssetResponse {
+  View view = 1;
+}
+
+message DeleteAssetRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+}
+
+message DeleteAssetResponse {
+}
+
+message PreviewRequest {
+  string id = 1;
+  int64 expected_revision = 2;
+  Draft draft = 3;
+  repeated SecretMutation secrets = 4;
+}
+
+message PreviewResponse {
+  repeated Operation operations = 1;
+  bool can_apply = 2;
+  bool applied = 3;
+  repeated Warning warnings = 4;
+  Readiness readiness = 5;
+}

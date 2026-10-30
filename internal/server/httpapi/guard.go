@@ -114,6 +114,9 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 			if packConfigurationProcedure(request.URL.Path) {
 				maxBytes = packConfigurationMaxBytes
 			}
+			if mcpConfigurationProcedure(request.URL.Path) {
+				maxBytes = mcpConfigurationMaxBytes
+			}
 			request.Body = http.MaxBytesReader(ctx.Response(), request.Body, maxBytes)
 			return next(ctx)
 		}

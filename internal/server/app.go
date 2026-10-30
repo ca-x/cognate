@@ -56,21 +56,22 @@ type Config struct {
 }
 
 type App struct {
-	logs          *logging.Manager
-	store         *state.Store
-	handler       http.Handler
-	tlsConfig     *tls.Config
-	allowHTTP     bool
-	device        *githubauth.Service
-	oidc          *oidclogin.Manager
-	library       *library.Service
-	packs         *packs.Service
-	mcp           *mcpserver.Server
-	public        *publiccatalog.Service
-	scheduler     *scheduler.Scheduler
-	sourceRefresh *sourcerefresh.Worker
-	imports       *httpapi.ImportHandler
-	native        *nativeconsumer.Service
+	logs             *logging.Manager
+	store            *state.Store
+	handler          http.Handler
+	tlsConfig        *tls.Config
+	allowHTTP        bool
+	device           *githubauth.Service
+	oidc             *oidclogin.Manager
+	library          *library.Service
+	packs            *packs.Service
+	mcp              *mcpserver.Server
+	public           *publiccatalog.Service
+	scheduler        *scheduler.Scheduler
+	sourceRefresh    *sourcerefresh.Worker
+	imports          *httpapi.ImportHandler
+	native           *nativeconsumer.Service
+	mcpConfiguration *httpapi.MCPConfigurationHandler
 }
 
 func Open(ctx context.Context, config Config) (*App, error) {
@@ -230,6 +231,11 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 	}
 	app := &App{store: store, tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP, device: device, oidc: login, library: collection, packs: distribution, scheduler: listScheduler}
+	app.mcpConfiguration, err = httpapi.NewMCPConfigurationHandler(service, store)
+	if err != nil {
+		_ = app.Close()
+		return nil, err
+	}
 	if sourceInterval != 0 {
 		app.sourceRefresh, err = sourcerefresh.New(store, collection, sourcerefresh.Options{Interval: sourceInterval, DataDirectory: config.DataDirectory})
 		if err != nil {
@@ -274,7 +280,7 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		_ = app.Close()
 		return nil, fmt.Errorf("cannot initialize server logging")
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
+	app.handler = httpapi.NewWithOptions(service, httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
 	return app, nil
 }
 
@@ -284,6 +290,11 @@ func (app *App) Close() (result error) {
 			result = errors.Join(result, app.logs.Close())
 		}
 	}()
+	if app.mcpConfiguration != nil {
+		if err := app.mcpConfiguration.Close(); err != nil {
+			return err
+		}
+	}
 	if app.native != nil {
 		app.native.Close()
 	}
