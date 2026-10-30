@@ -1,5 +1,7 @@
 # 插件导入（开发中）
 
+2026-10-30 更新：Web 已接通 cc-switch schema 24 / Magpie 的技能、仓库与配置选择导入，见 [IMPORT-SELECTION.md](IMPORT-SELECTION.md)。三类默认不选；配置只导入当前支持的 Claude/Codex/Gemini 声明，不迁移来源秘密值，技能只保存明确绑定的服务端内容引用。本页下面的仓库预览和 CLI 描述保留各自限定范围，不代表新的三类导入已经覆盖 CLI/MyGo、完整本地内容迁移或配置自动应用。
+
 插件和内置适配器仅在服务端执行，位于 `internal/server/plugin` 和 `internal/server/importer`。CLI 与 MyGo 客户端负责上传经用户选择的导出数据、选择服务端预览结果并应用下载资源；不运行 moejs，不直接通过插件读取本地第三方应用数据库。此前实验性的 `import-preview cc-switch` 和 `import cc-switch` 客户端入口已经撤下。
 
 服务端内部支持 Linux 上 cc-switch 仓库和 skill 元数据的只读预览；另有独立的授权 SQLite 快照上传 RPC 和 Web 仓库选择入口，见 [CCSWITCH-SNAPSHOT.md](CCSWITCH-SNAPSHOT.md)。上传只进入受限内存数据库，绝不使用请求中的任意宿主路径。管理员本机路径预览仍保留原有信任检查，缺少数据库不创建；`HEAD`（不区分大小写）和空分支表示跟随仓库真实默认分支。仓库保留启用状态，skill 元数据不自动迁移为实际内容。

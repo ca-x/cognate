@@ -111,8 +111,11 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	}
 	if options.Imports != nil {
 		path, handler := importv1connect.NewImportServiceHandler(options.Imports, connect.WithReadMaxBytes(importMaxWireBytes), connect.WithSendMaxBytes(importMaxWireBytes), connect.WithCompression("gzip", nil, nil), connect.WithCodec(importCodec{name: "json"}), connect.WithCodec(importCodec{name: "proto"}), connect.WithConditionalHandlerOptions(func(spec connect.Spec) []connect.HandlerOption {
-			if spec.Procedure == importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure {
+			switch spec.Procedure {
+			case importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure, importv1connect.ImportServicePreviewImportSelectionProcedure, importv1connect.ImportServiceCommitImportSelectionProcedure:
 				return []connect.HandlerOption{connect.WithReadMaxBytes(importSnapshotMaxWireBytes)}
+			case importv1connect.ImportServiceGetImportCommitStatusProcedure:
+				return []connect.HandlerOption{connect.WithReadMaxBytes(64 << 10), connect.WithSendMaxBytes(128 << 10)}
 			}
 			return nil
 		}))

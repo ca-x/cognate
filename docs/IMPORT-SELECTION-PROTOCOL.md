@@ -1,16 +1,20 @@
 # Import selection protocol
 
 Status: protocol, strict request codecs, source projection, authenticated receipt
-transactions, and the selection controller are implemented. The controller uses
-the fixed server-side moejs adapters, repository collection, and atomic asset
-transactions. This is not yet an enabled end-to-end import feature: HTTP/App
-integration and the Web confirmation flow still require separate acceptance.
+transactions, the selection controller, HTTP/App integration and the Web
+confirmation flow are implemented. The controller uses the fixed server-side
+moejs adapters, repository collection, and atomic asset transactions. Actual
+TLS/SQLite and browser selection/commit/status flows are verified; this is not
+complete fourteen-agent, local-content migration or client application support.
+See [IMPORT-SELECTION.md](IMPORT-SELECTION.md) for the supported workflow.
 
 The two existing import RPCs and their messages remain unchanged. Three additive
 RPCs share the existing service: `PreviewImportSelection`, `CommitImportSelection`,
-and `GetImportCommitStatus`. Until the authenticated controller is connected,
-the guard rejects these methods before reading a body. No permissive legacy codec
-may decode a new selection request.
+and `GetImportCommitStatus`. The authenticated controller is connected through
+the application. Missing or ineligible configured origin rejects only the new
+methods with FailedPrecondition before reading a body; legacy constructor callers
+retain their unavailable-method behavior. No permissive legacy codec may decode
+a new selection request.
 
 ## Field ledger
 
@@ -122,8 +126,7 @@ observation within its deadline. Nonterminal receipts without a matching live
 execution are Unknown, including after restart; NotObserved is not proof that a
 concurrent Commit cannot finish. These limits are process-local, not deployment-
 wide coordination. The two legacy preview RPCs retain their existing admission
-contract. This is the approved controller contract, not a claim that the new
-RPCs are enabled.
+contract. These limits are enforced by the application-connected controller.
 
 Preview/Commit wire limit24MiB, decoded source16MiB (Magpie1MiB); preview response
 2MiB. Status request64KiB, response128KiB. Identity encoding only; authentication

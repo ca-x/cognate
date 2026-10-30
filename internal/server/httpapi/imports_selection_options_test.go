@@ -1,17 +1,73 @@
 package httpapi
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 	"strings"
 	"testing"
 
+	"connectrpc.com/connect"
 	configurationv1 "github.com/ca-x/cognate/gen/skillhub/configuration/v1"
 	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
 	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/importer"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
+
+func TestImportSelectionResponseBudgets(test *testing.T) {
+	for _, encoding := range []string{"proto", "json"} {
+		for _, shape := range []struct {
+			name    string
+			limit   int
+			message func(string) proto.Message
+		}{
+			{"preview", 2 << 20, func(value string) proto.Message {
+				return &importv1.PreviewImportSelectionResponse{Skills: []*importv1.ImportSkillCandidate{{SafeName: value}}}
+			}},
+			{"commit", 2 << 20, func(value string) proto.Message {
+				return &importv1.CommitImportSelectionResponse{Receipt: &importv1.ImportReceipt{CreatedAssets: []*configurationv1.Asset{{Name: value}}}}
+			}},
+			{"status", 128 << 10, func(value string) proto.Message {
+				return &importv1.GetImportCommitStatusResponse{Receipt: &importv1.ImportReceipt{CreatedAssets: []*configurationv1.Asset{{Name: value}}}}
+			}},
+		} {
+			test.Run(encoding+"/"+shape.name, func(test *testing.T) {
+				marshal := proto.Marshal
+				if encoding == "json" {
+					marshal = protojson.Marshal
+				}
+				for _, delta := range []int{-1, 0, 1} {
+					value := strings.Repeat("x", shape.limit-100)
+					encoded, err := marshal(shape.message(value))
+					if err != nil {
+						test.Fatal("budget fixture failed to encode")
+					}
+					value += strings.Repeat("x", shape.limit+delta-len(encoded))
+					message := shape.message(value)
+					want, err := marshal(message)
+					if err != nil || len(want) != shape.limit+delta {
+						test.Fatal("budget fixture did not hit exact wire boundary")
+					}
+					actual, err := (importCodec{name: encoding}).Marshal(message)
+					if delta <= 0 {
+						if err != nil || !bytes.Equal(actual, want) {
+							test.Fatal("in-budget response was rejected or changed")
+						}
+					} else if connect.CodeOf(err) != connect.CodeResourceExhausted || actual != nil {
+						test.Fatal("oversized response escaped its exact encoded byte budget")
+					}
+				}
+			})
+		}
+		legacy := &importv1.PreviewLibraryExportResponse{Repositories: []*importv1.RepositoryCandidate{{Repository: strings.Repeat("x", (2<<20)+100)}}}
+		if _, err := (importCodec{name: encoding}).Marshal(legacy); err != nil {
+			test.Fatal("new-response budget altered legacy codec behavior")
+		}
+	}
+}
 
 func TestImportSelectionOptionsMapping(test *testing.T) {
 	options := []*importv1.ImportCandidateOptions{

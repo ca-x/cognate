@@ -116,7 +116,18 @@ func configurationCodexView(entry configuration.EditView) (*configurationv1.Draf
 	if err != nil {
 		return nil, err
 	}
-	source := entry.CodexProvider
+	provider, err := configurationCodexProvider(entry.CodexProvider)
+	if err != nil {
+		return nil, err
+	}
+	return &configurationv1.DraftView{Asset: asset, Draft: &configurationv1.Draft{Name: asset.Name, Payload: &configurationv1.Draft_CodexProvider{CodexProvider: provider}}, Secrets: []*configurationv1.SecretStatus{{SlotId: string(configuration.CodexProviderKeySlot), Present: entry.Secrets[0].Present}}, CredentialReadiness: readiness, HasPreservedExtras: entry.HasPreservedExtras}, nil
+}
+
+func configurationCodexProvider(source *configuration.CodexProvider) (*configurationv1.CodexProvider, error) {
+	invalid := func() (*configurationv1.CodexProvider, error) { return nil, configuration.ErrUnavailable }
+	if source == nil || source.AuthMode != agentconfig.CodexProviderKeyAuth {
+		return invalid()
+	}
 	provider := &configurationv1.CodexProvider{AuthMode: configurationv1.CodexAuthMode_CODEX_AUTH_MODE_PROVIDER_KEY, Endpoint: source.Endpoint, Model: source.Model}
 	effort := func(value agentconfig.CodexReasoningEffort) *configurationv1.CodexReasoningEffort {
 		index := slices.Index(configurationCodexEfforts(), value)
@@ -167,5 +178,5 @@ func configurationCodexView(entry configuration.EditView) (*configurationv1.Draf
 			provider.Catalog.Models = append(provider.Catalog.Models, model)
 		}
 	}
-	return &configurationv1.DraftView{Asset: asset, Draft: &configurationv1.Draft{Name: asset.Name, Payload: &configurationv1.Draft_CodexProvider{CodexProvider: provider}}, Secrets: []*configurationv1.SecretStatus{{SlotId: string(configuration.CodexProviderKeySlot), Present: entry.Secrets[0].Present}}, CredentialReadiness: readiness, HasPreservedExtras: entry.HasPreservedExtras}, nil
+	return provider, nil
 }

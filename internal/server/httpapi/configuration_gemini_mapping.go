@@ -60,27 +60,17 @@ func configurationGeminiView(entry configuration.EditView) (*configurationv1.Dra
 		return invalid()
 	}
 	source := entry.GeminiProvider
-	provider := &configurationv1.GeminiProvider{Endpoint: configurationClonePointer(source.Endpoint), EnvModel: configurationClonePointer(source.EnvModel), SettingsModel: configurationClonePointer(source.SettingsModel)}
+	provider, err := configurationGeminiProvider(source)
+	if err != nil {
+		return invalid()
+	}
 	readiness := configurationv1.CredentialReadiness_CREDENTIAL_READINESS_COMPLETE
 	switch source.AuthMode {
 	case agentconfig.GeminiNativeLogin:
-		provider.AuthMode = configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_NATIVE_LOGIN
-		if source.Endpoint != nil || source.KeyTransport != nil || entry.Secrets[0].Present || entry.Readiness != configuration.CredentialComplete {
+		if entry.Secrets[0].Present || entry.Readiness != configuration.CredentialComplete {
 			return invalid()
 		}
 	case agentconfig.GeminiAPIKeyAuth:
-		provider.AuthMode = configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_API_KEY
-		if source.KeyTransport == nil {
-			return invalid()
-		}
-		switch *source.KeyTransport {
-		case agentconfig.GeminiNativeDefault:
-			provider.KeyTransport = new(configurationv1.GeminiKeyTransport_GEMINI_KEY_TRANSPORT_NATIVE_DEFAULT)
-		case agentconfig.GeminiBearer:
-			provider.KeyTransport = new(configurationv1.GeminiKeyTransport_GEMINI_KEY_TRANSPORT_BEARER)
-		default:
-			return invalid()
-		}
 		if entry.Secrets[0].Present {
 			if entry.Readiness != configuration.CredentialComplete {
 				return invalid()
@@ -99,4 +89,35 @@ func configurationGeminiView(entry configuration.EditView) (*configurationv1.Dra
 		return nil, err
 	}
 	return &configurationv1.DraftView{Asset: asset, Draft: &configurationv1.Draft{Name: asset.Name, Payload: &configurationv1.Draft_GeminiProvider{GeminiProvider: provider}}, Secrets: []*configurationv1.SecretStatus{{SlotId: string(configuration.GeminiAPIKeySlot), Present: entry.Secrets[0].Present}}, CredentialReadiness: readiness, HasPreservedExtras: entry.HasPreservedExtras}, nil
+}
+
+func configurationGeminiProvider(source *configuration.GeminiProvider) (*configurationv1.GeminiProvider, error) {
+	invalid := func() (*configurationv1.GeminiProvider, error) { return nil, configuration.ErrUnavailable }
+	if source == nil {
+		return invalid()
+	}
+	provider := &configurationv1.GeminiProvider{Endpoint: configurationClonePointer(source.Endpoint), EnvModel: configurationClonePointer(source.EnvModel), SettingsModel: configurationClonePointer(source.SettingsModel)}
+	switch source.AuthMode {
+	case agentconfig.GeminiNativeLogin:
+		if source.Endpoint != nil || source.KeyTransport != nil {
+			return invalid()
+		}
+		provider.AuthMode = configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_NATIVE_LOGIN
+	case agentconfig.GeminiAPIKeyAuth:
+		if source.KeyTransport == nil {
+			return invalid()
+		}
+		provider.AuthMode = configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_API_KEY
+		switch *source.KeyTransport {
+		case agentconfig.GeminiNativeDefault:
+			provider.KeyTransport = new(configurationv1.GeminiKeyTransport_GEMINI_KEY_TRANSPORT_NATIVE_DEFAULT)
+		case agentconfig.GeminiBearer:
+			provider.KeyTransport = new(configurationv1.GeminiKeyTransport_GEMINI_KEY_TRANSPORT_BEARER)
+		default:
+			return invalid()
+		}
+	default:
+		return invalid()
+	}
+	return provider, nil
 }

@@ -19,10 +19,23 @@ type ImportHandler struct {
 	importv1connect.UnimplementedImportServiceHandler
 	auth       *authHandler
 	collection *library.Service
+	selection  *importer.SelectionService
 	mutex      sync.Mutex
 	closed     bool
 	owners     map[string]context.CancelFunc
 	active     sync.WaitGroup
+}
+
+func NewImportHandlerWithSelection(authentication *auth.Service, collection *library.Service, selection *importer.SelectionService) (*ImportHandler, error) {
+	if selection == nil {
+		return nil, errors.New("import selection service is required")
+	}
+	handler, err := NewImportHandler(authentication, collection)
+	if err != nil {
+		return nil, err
+	}
+	handler.selection = selection
+	return handler, nil
 }
 
 func NewImportHandler(authentication *auth.Service, collection *library.Service) (*ImportHandler, error) {
@@ -39,8 +52,12 @@ func (handler *ImportHandler) Close() error {
 		cancel()
 	}
 	handler.mutex.Unlock()
+	var err error
+	if handler.selection != nil {
+		err = handler.selection.Close()
+	}
 	handler.active.Wait()
-	return nil
+	return err
 }
 
 func (handler *ImportHandler) PreviewCCSwitchSnapshot(ctx context.Context, request *connect.Request[importv1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[importv1.PreviewCCSwitchSnapshotResponse], error) {

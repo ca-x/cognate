@@ -23,6 +23,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/httpapi"
+	"github.com/ca-x/cognate/internal/server/importer"
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/logging"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
@@ -236,7 +237,12 @@ func Open(ctx context.Context, config Config) (*App, error) {
 			return nil, err
 		}
 	}
-	app.imports, err = httpapi.NewImportHandler(service, collection)
+	selection, selectionErr := importer.NewSelectionService(store, collection, service, config.PublicOrigin)
+	if selectionErr != nil {
+		_ = app.Close()
+		return nil, selectionErr
+	}
+	app.imports, err = httpapi.NewImportHandlerWithSelection(service, collection, selection)
 	if err != nil {
 		_ = app.Close()
 		return nil, err

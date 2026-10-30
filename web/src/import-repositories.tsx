@@ -1,11 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { useQueryClient } from "@tanstack/react-query"
+import { useBlocker } from "@tanstack/react-router"
+import { create } from "@bufbuild/protobuf"
 import { Code, ConnectError } from "@connectrpc/connect"
 import { FileUp } from "lucide-react"
 import { useApi } from "./api"
 import { t, formatNumber } from "./i18n"
-import { ExportFormat, type RepositoryCandidate } from "./gen/skillhub/import/v1/import_pb"
+import { ExportFormat, ImportSelectionSource, ImportReceiptPhase, SkillBindingSchema, type RepositoryCandidate, type ImportCandidateOptions } from "./gen/skillhub/import/v1/import_pb"
+import { ImportSelectionForm, ImportSelectionDiscard, type BindingChoice, type ImportSource } from "./import-selection-form"
+import { acceptSelectionReceipt, acceptSelectionStatus, acknowledgeSelection, canConfirmSelection, changeSelectionOption, chooseSelection, initialSelectionState, selectionPlan, withSelectionPreview, type SelectionPlan, type SelectionState } from "./import-selection-state"
 import { Button } from "./components/ui/button"
 import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
@@ -68,7 +72,7 @@ function readExport(file: File, signal: AbortSignal): Promise<Uint8Array> {
   })
 }
 
-export function ImportRepositories({ collectionBusy, onCollectingChange }: { collectionBusy: boolean; onCollectingChange: (collecting: boolean) => void }) {
+function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { collectionBusy: boolean; onCollectingChange: (collecting: boolean) => void }) {
   useTranslation()
   const { imports, library, session } = useApi()
   const queryClient = useQueryClient()
@@ -255,4 +259,270 @@ export function ImportRepositories({ collectionBusy, onCollectingChange }: { col
       </div>
     </div>
   </section>
+}
+
+function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLegacy }: { collectionBusy: boolean; onCollectingChange: (collecting: boolean) => void; onLegacy: () => void }) {
+  const { i18n } = useTranslation()
+  const { imports, library, session } = useApi()
+  const queryClient = useQueryClient()
+  const [source, setSource] = useState<ImportSource>("magpie")
+  const [state, updateState] = useState<SelectionState>(initialSelectionState)
+  const current = useRef(state)
+  const setState = useCallback((next: SelectionState | ((previous: SelectionState) => SelectionState)) => {
+    const value = typeof next === "function" ? next(current.current) : next
+    current.current = value
+    updateState(value)
+  }, [])
+  const file = useRef<File | null>(null)
+  const bytes = useRef<Uint8Array | null>(null)
+  const ticket = useRef<Uint8Array | null>(null)
+  const active = useRef<{ controller: AbortController; write: boolean } | null>(null)
+  const bindingRequest = useRef<AbortController | null>(null)
+  const generation = useRef(0)
+  const operation = useRef<{ id: Uint8Array; plan: SelectionPlan } | null>(null)
+  const expiry = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const discardAction = useRef<(() => void) | null>(null)
+  const [hasFile, setHasFile] = useState(false)
+  const [statusPending, setStatusPending] = useState(false)
+  const [bindingPending, setBindingPending] = useState(false)
+  const [bindingChoices, setBindingChoices] = useState<Record<string, BindingChoice[]>>({})
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const origin = window.location.origin
+  const owner = session?.userId
+  const identity = `${owner ?? ""}\u0000${session?.token ?? ""}\u0000${origin}`
+  const latestIdentity = useRef(identity)
+  const previousIdentity = useRef(identity)
+  latestIdentity.current = identity
+  const dirty = hasFile || !!state.preview || state.phase === "reading" || state.phase === "previewing" || state.phase === "committing" || state.phase === "unknown"
+  const blocker = useBlocker({ shouldBlockFn: () => dirty, withResolver: true, enableBeforeUnload: dirty })
+
+  const invalidate = useCallback(() => {
+    if (!owner) return
+    for (const key of ["configuration-assets", "library-repositories", "repository-skills", "collected-repositories"]) void queryClient.invalidateQueries({ queryKey: [key, owner] })
+  }, [owner, queryClient])
+
+  function releaseSource() {
+    file.current = null
+    bytes.current?.fill(0)
+    bytes.current = null
+    ticket.current?.fill(0)
+    ticket.current = null
+    if (expiry.current !== null) clearTimeout(expiry.current)
+    expiry.current = null
+  }
+
+  function interrupt() {
+    generation.current++
+    const uncertain = !!operation.current && (active.current?.write || current.current.phase === "committing" || current.current.phase === "unknown")
+    active.current?.controller.abort()
+    active.current = null
+    bindingRequest.current?.abort()
+    bindingRequest.current = null
+    releaseSource()
+    return uncertain
+  }
+
+  function reset() {
+    const uncertain = interrupt()
+    setHasFile(false)
+    setStatusPending(false)
+    setBindingPending(false)
+    setBindingChoices({})
+    setDiscardOpen(false)
+    discardAction.current = null
+    if (uncertain) { setState((previous) => ({ ...previous, phase: "unknown", stale: true })); invalidate() }
+    else { operation.current = null; setState(initialSelectionState()) }
+  }
+
+  useLayoutEffect(() => {
+    if (previousIdentity.current !== identity) {
+      interrupt()
+      operation.current = null
+      setState(initialSelectionState())
+      setHasFile(false)
+      setStatusPending(false)
+      setBindingPending(false)
+      setBindingChoices({})
+      setDiscardOpen(false)
+      previousIdentity.current = identity
+    } else reset()
+    return () => { interrupt(); discardAction.current = null }
+  }, [identity, i18n.resolvedLanguage])
+
+  useLayoutEffect(() => {
+    onCollectingChange(state.phase === "committing")
+    return () => onCollectingChange(false)
+  }, [state.phase, onCollectingChange])
+
+  function isCurrent(attempt: number, captured: string, controller: AbortController) {
+    return attempt === generation.current && latestIdentity.current === captured && !controller.signal.aborted
+  }
+
+  function requestReset(action: () => void) {
+    if (current.current.phase === "unknown" || current.current.phase === "committing") return
+    if (dirty) { discardAction.current = action; setDiscardOpen(true) }
+    else action()
+  }
+
+  function chooseNewFile(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0]
+    event.target.value = ""
+    if (!selected || current.current.phase === "unknown" || current.current.phase === "committing") return
+    requestReset(() => {
+      reset()
+      if (selected.size === 0 || selected.size > sourceOptions[source].maximumBytes) { setState((previous) => ({ ...previous, error: Code.ResourceExhausted })); return }
+      file.current = selected
+      setHasFile(true)
+    })
+  }
+
+  async function previewSelection() {
+    if (active.current || !session || current.current.phase === "unknown" || current.current.phase === "committing" || !file.current && !bytes.current) return
+    const controller = new AbortController()
+    active.current = { controller, write: false }
+    const attempt = ++generation.current
+    const captured = identity
+    const previous = current.current
+    bindingRequest.current?.abort()
+    bindingRequest.current = null
+    setBindingPending(false)
+    ticket.current?.fill(0)
+    ticket.current = null
+    if (expiry.current !== null) clearTimeout(expiry.current)
+    expiry.current = null
+    setState({ ...previous, phase: bytes.current ? "previewing" : "reading", stale: true, error: undefined, acknowledged: [] })
+    try {
+      if (!bytes.current) {
+        const selected = file.current!
+        file.current = null
+        const read = await readExport(selected, controller.signal)
+        if (!isCurrent(attempt, captured, controller)) { read.fill(0); return }
+        bytes.current = read
+      }
+      const raw = bytes.current
+      if (!raw.length || raw.length > sourceOptions[source].maximumBytes) throw new ConnectError("", Code.ResourceExhausted)
+      setState((value) => ({ ...value, phase: "previewing" }))
+      const response = await imports.previewImportSelection({ source: source === "magpie" ? ImportSelectionSource.MAGPIE_LIBRARY_JSON : ImportSelectionSource.CCSWITCH_SCHEMA24, sourceData: raw, options: previous.options }, { signal: controller.signal, timeoutMs: source === "magpie" ? 5000 : 15000 })
+      if (!isCurrent(attempt, captured, controller)) { response.ticket.fill(0); return }
+      let next: SelectionState
+      try { next = withSelectionPreview(previous, response) } catch (failure) { response.ticket.fill(0); throw failure }
+      ticket.current = response.ticket
+      setState(next)
+      setHasFile(true)
+      setBindingChoices({})
+      expiry.current = setTimeout(() => {
+        if (!isCurrent(attempt, captured, controller)) return
+        if (active.current?.write) return
+        reset()
+        setState((value) => ({ ...value, error: Code.FailedPrecondition }))
+      }, Math.max(0, Number(response.expiresMs - BigInt(Date.now()))))
+    } catch (failure) {
+      if (isCurrent(attempt, captured, controller)) { releaseSource(); setHasFile(false); setState({ ...initialSelectionState(), options: previous.options, error: ConnectError.from(failure).code }) }
+    } finally {
+      if (isCurrent(attempt, captured, controller)) active.current = null
+    }
+  }
+
+  function updateOption(option: ImportCandidateOptions) {
+    if (active.current || current.current.phase !== "ready") return
+    try {
+      const next = changeSelectionOption(current.current, option)
+      ticket.current?.fill(0)
+      ticket.current = null
+      setState(next)
+    } catch { setState((value) => ({ ...value, error: Code.InvalidArgument })) }
+  }
+
+  async function loadBindings(candidateId: string) {
+    if (bindingRequest.current || active.current || current.current.phase !== "ready" || !session) return
+    const skill = current.current.preview?.skills.find((candidate) => candidate.id === candidateId)
+    const hint = current.current.preview?.repositories.find((candidate) => candidate.id === skill?.repositoryCandidateId)?.hint
+    if (!skill || !hint) return
+    const controller = new AbortController()
+    bindingRequest.current = controller
+    setBindingPending(true)
+    const attempt = generation.current
+    const captured = identity
+    try {
+      const result = await library.listRepositories({}, { signal: controller.signal, timeoutMs: 15000 })
+      if (!isCurrent(attempt, captured, controller)) return
+      const matches = result.repositories.filter((entry) => entry.nameWithOwner === hint.repository && entry.branch === hint.branch)
+      const choices: BindingChoice[] = []
+      for (const repository of matches) {
+        const detail = await library.getRepository({ repositoryId: repository.id }, { signal: controller.signal, timeoutMs: 15000 })
+        if (!isCurrent(attempt, captured, controller)) return
+        if (!detail.repository || detail.repository.id !== repository.id || detail.repository.archiveHash !== repository.archiveHash) throw new ConnectError("", Code.Aborted)
+        for (const skill of detail.skills) choices.push({ label: `${skill.name} · ${skill.path}`, binding: create(SkillBindingSchema, { repository: repository.nameWithOwner, branch: repository.branch, repositoryId: repository.id, archiveHash: repository.archiveHash, skillId: skill.id, logicalPath: skill.path, contentHash: skill.contentHash }) })
+      }
+      setBindingChoices((value) => ({ ...value, [candidateId]: choices }))
+    } catch (failure) {
+      if (isCurrent(attempt, captured, controller)) setState((value) => ({ ...value, error: ConnectError.from(failure).code }))
+    } finally {
+      if (isCurrent(attempt, captured, controller)) { bindingRequest.current = null; setBindingPending(false) }
+    }
+  }
+
+  async function commitSelection() {
+    if (active.current || operation.current || collectionBusy || !session || !bytes.current || !ticket.current || current.current.phase !== "confirming" || !canConfirmSelection(current.current)) return
+    const plan = selectionPlan(current.current)
+    const id = crypto.getRandomValues(new Uint8Array(16))
+    operation.current = { id, plan }
+    const controller = new AbortController()
+    active.current = { controller, write: true }
+    const attempt = ++generation.current
+    const captured = identity
+    if (expiry.current !== null) clearTimeout(expiry.current)
+    expiry.current = null
+    setState((value) => ({ ...value, phase: "committing", error: undefined }))
+    try {
+      const response = await imports.commitImportSelection({ ticket: ticket.current, source: source === "magpie" ? ImportSelectionSource.MAGPIE_LIBRARY_JSON : ImportSelectionSource.CCSWITCH_SCHEMA24, sourceData: bytes.current, options: plan.options, operationId: id, repositoryIds: plan.repositoryIds, skillIds: plan.skillIds, configurationIds: plan.configurationIds, ackNoticeIds: plan.ackNoticeIds }, { signal: controller.signal, timeoutMs: 120000 })
+      if (!isCurrent(attempt, captured, controller)) return
+      const receipt = acceptSelectionReceipt(response.receipt, id, plan)
+      const terminal = [ImportReceiptPhase.COMPLETED, ImportReceiptPhase.PARTIAL, ImportReceiptPhase.FAILED].includes(receipt.phase)
+      setState((value) => ({ ...value, receipt, phase: terminal ? "terminal" : "unknown", stale: true }))
+    } catch (failure) {
+      if (isCurrent(attempt, captured, controller)) setState((value) => ({ ...value, phase: "unknown", stale: true, error: ConnectError.from(failure).code }))
+    } finally {
+      if (isCurrent(attempt, captured, controller)) { active.current = null; releaseSource(); setHasFile(false); invalidate() }
+    }
+  }
+
+  async function queryStatus() {
+    if (active.current || !operation.current || !session || current.current.phase !== "unknown") return
+    const controller = new AbortController()
+    active.current = { controller, write: false }
+    const attempt = ++generation.current
+    const captured = identity
+    const expected = operation.current
+    setStatusPending(true)
+    setState((value) => ({ ...value, error: undefined }))
+    try {
+      const response = await imports.getImportCommitStatus({ operationId: expected.id }, { signal: controller.signal, timeoutMs: 5000 })
+      if (!isCurrent(attempt, captured, controller)) return
+      const receipt = acceptSelectionStatus(response, expected.id, expected.plan, current.current.receipt)
+      setState((value) => ({ ...value, receipt, observation: response.observation, phase: receipt && [ImportReceiptPhase.COMPLETED, ImportReceiptPhase.PARTIAL, ImportReceiptPhase.FAILED].includes(receipt.phase) ? "terminal" : "unknown" }))
+      invalidate()
+    } catch (failure) {
+      if (isCurrent(attempt, captured, controller)) setState((value) => ({ ...value, phase: "unknown", error: ConnectError.from(failure).code }))
+    } finally {
+      if (isCurrent(attempt, captured, controller)) { active.current = null; setStatusPending(false) }
+    }
+  }
+
+  return <>
+    <ImportSelectionForm source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingPending={bindingPending}
+      onSource={(value) => requestReset(() => { reset(); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
+      onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)}
+      onConfirm={() => { if (canConfirmSelection(current.current) && !collectionBusy) setState((value) => ({ ...value, phase: "confirming" })) }} onConfirmClose={() => { if (current.current.phase === "confirming") setState((value) => ({ ...value, phase: "ready" })) }} onCommit={() => void commitSelection()}
+      onCancel={reset} onClear={() => requestReset(reset)} onStatus={() => void queryStatus()} />
+    <Button variant="ghost" className="mt-3" disabled={state.phase === "unknown" || state.phase === "committing"} onClick={() => requestReset(() => { reset(); onLegacy() })}>{t("使用旧版仅仓库收录流程")}</Button>
+    <ImportSelectionDiscard open={discardOpen || blocker.status === "blocked"} onCancel={() => { setDiscardOpen(false); discardAction.current = null; if (blocker.status === "blocked") blocker.reset() }} onDiscard={() => { const action = discardAction.current; reset(); if (blocker.status === "blocked") blocker.proceed(); else action?.() }} />
+  </>
+}
+
+export function ImportRepositories(props: { collectionBusy: boolean; onCollectingChange: (collecting: boolean) => void }) {
+  const [legacy, setLegacy] = useState(false)
+  const [legacyBusy, setLegacyBusy] = useState(false)
+  const notify = useCallback((collecting: boolean) => { setLegacyBusy(collecting); props.onCollectingChange(collecting) }, [props.onCollectingChange])
+  return legacy ? <><LegacyImportRepositories {...props} onCollectingChange={notify} /><Button className="mt-3" variant="ghost" disabled={legacyBusy} onClick={() => setLegacy(false)}>{t("切换到技能、仓库与配置三类导入")}</Button></> : <SelectionImportRepositories {...props} onLegacy={() => setLegacy(true)} />
 }
