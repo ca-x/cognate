@@ -22,6 +22,13 @@ func Execute() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	command := New()
+	if packConfigurationsInvocation(os.Args[1:]) {
+		if err := executePackConfigurations(ctx, command); err != nil {
+			packConfigurationsDiagnostic(ctx, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if clientKeyInvocation(os.Args[1:]) {
 		if executeClientKey(ctx, command) != 0 {
 			os.Exit(1)

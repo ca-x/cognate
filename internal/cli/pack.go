@@ -20,7 +20,7 @@ import (
 
 func newPackCommand() *cobra.Command {
 	command := &cobra.Command{Use: "pack", Short: "订阅、同步与移除服务端技能组合"}
-	command.AddCommand(newPackSubscribeCommand(), newPackListCommand(), newPackSyncCommand(), newPackWatchCommand(), newPackRemoveCommand())
+	command.AddCommand(newPackSubscribeCommand(), newPackListCommand(), newPackSyncCommand(), newPackWatchCommand(), newPackRemoveCommand(), newPackConfigurationCommand())
 	return command
 }
 
