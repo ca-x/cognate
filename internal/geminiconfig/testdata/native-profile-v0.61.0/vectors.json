@@ -1,0 +1,13 @@
+{
+  "status": "synthetic codec vectors only; not consumer evidence",
+  "dotenv": [
+    {"raw":"A=plain", "value":"plain"},
+    {"raw":"export A = ' space # $ = '", "value":" space # $ = "},
+    {"raw":"A=`x'y\"z` # keep", "value":"x'y\"z"},
+    {"raw":"A='literal\\n\\r'", "value":"literal\\n\\r"},
+    {"raw":"A=\"line\\nreturn\\r\"", "value":"line\nreturn\r"},
+    {"raw":"A='trailing\\'", "value":"trailing\\"}
+  ],
+  "settingsBefore":"{/*preserve*/\"model\":{\"other\":9007199254740993999,\"name\":\"old\"}}",
+  "settingsAfter":"{/*preserve*/\"model\":{\"other\":9007199254740993999,\"name\":\"new\"}}"
+}

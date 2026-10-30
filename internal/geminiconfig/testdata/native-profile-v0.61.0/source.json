@@ -1,0 +1,16 @@
+{
+  "status": "source-review-only; no qualified native profile",
+  "consumerVersion": "0.61.0",
+  "consumerRepository": "https://github.com/google-gemini/gemini-cli.git",
+  "consumerCommit": "bb523741c7429a44d03e964bc124c7c92df59d5f",
+  "consumerTree": "c4226f654bb0b35109c4f5ce34535c5addecda47",
+  "sourceEntrypoint": "packages/cli/index.ts",
+  "publishedEntrypoint": "bundle/gemini.js",
+  "cliDotenvLockVersion": "17.1.0",
+  "sdkLockVersion": "1.30.0",
+  "ccSwitchCommit": "6d6b7162f122ac0ce1356a14688c8c4f712db3c8",
+  "consumerBuilt": false,
+  "consumerExecuted": false,
+  "qualified": false,
+  "productionProfileRegistered": false
+}
