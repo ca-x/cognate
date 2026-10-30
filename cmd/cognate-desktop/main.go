@@ -11,11 +11,15 @@ import (
 	"github.com/ca-x/cognate/assets/branding"
 
 	"github.com/ca-x/cognate/internal/desktop"
+	"github.com/ca-x/cognate/internal/secretservice"
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 )
 
 func main() {
+	if code, handled := secretservice.HelperDispatch(); handled {
+		os.Exit(code)
+	}
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
