@@ -197,6 +197,30 @@ jobs:
           tags: cognate-ci:${{ matrix.arch }}
           load: true
           outputs: type=oci,dest=/tmp/cognate-${{ matrix.arch }}.tar
+      - name: Inspect final-image legal file access without business state
+        timeout-minutes: 2
+        env:
+          SMOKE_IMAGE: cognate-ci:${{ matrix.arch }}
+          SMOKE_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          root_container="cognate-legal-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SMOKE_ARCH}-metadata"
+          reader_container="cognate-legal-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SMOKE_ARCH}-reader"
+          cleanup() {
+            docker rm -f "$root_container" "$reader_container" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          echo 'Inspecting fixed public license path metadata; no key or data volume is mounted.'
+          timeout 30 docker run --rm --name "$root_container" --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges --user 0:0 --entrypoint sh \
+            "$SMOKE_IMAGE" -ec 'for path in /usr/share /usr/share/licenses /usr/share/licenses/cognate /usr/share/licenses/cognate/codex-0.166.0 /usr/share/licenses/cognate/codex-0.166.0/LICENSE; do stat -c "%a %u %g %n" "$path"; done'
+          echo 'Checking the same final-image license as unprivileged UID 10001.'
+          timeout 30 docker run --rm --name "$reader_container" --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges --user 10001:10001 \
+            -e CODEX_LICENSE_SHA256 --entrypoint sh "$SMOKE_IMAGE" \
+            -ec 'legal=/usr/share/licenses/cognate/codex-0.166.0/LICENSE; test -f "$legal"; test ! -L "$legal"; test -r "$legal"; printf "%s  %s\n" "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -'
       - name: Exercise the built container and persisted data
         timeout-minutes: 6
         env:
