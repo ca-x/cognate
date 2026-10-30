@@ -142,7 +142,7 @@ func darwinPTYRun(test *testing.T, environment []string, arguments ...string) (s
 	ctx, cancel := context.WithTimeout(test.Context(), 15*time.Second)
 	defer cancel()
 	capture := new(darwinPTYCapture)
-	shell := "printf 'COGNATE_PTY_CHILD:%s\n' \"$$\"; \"$@\"; result=$?; printf 'COGNATE_TARGET_EXIT:%s\n' \"$result\"; exit \"$result\""
+	shell := "printf '\nCOGNATE_PTY_CHILD:%s\n' \"$$\"; \"$@\"; result=$?; printf 'COGNATE_TARGET_EXIT:%s\n' \"$result\"; exit \"$result\""
 	command := exec.CommandContext(ctx, "/usr/bin/script", append([]string{"-q", "/dev/null", "/bin/sh", "-c", shell, "cognate-fixture"}, arguments...)...)
 	command.Env = environment
 	command.Stdin = strings.NewReader("")
