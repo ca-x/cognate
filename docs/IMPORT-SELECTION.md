@@ -15,6 +15,6 @@
 - Completed 表示所选仓库及最终配置/技能引用事务完成，不表示客户端已经安装或应用。Partial 可能已收录部分仓库，不能解释为整批回滚。
 - 提交后取消、断网或关闭弹窗不等于撤销。结果不确定时只查询同一操作的状态，不自动重发提交；NotObserved 也不能证明并发提交以后不会完成。
 - 文件、原始字节、预览票据与未提交选项不写入 URL、浏览器存储或 TanStack 查询缓存。切换账号、来源、语言或离开页面会取消等待并清理相应状态；内存清零不保证浏览器内部副本的安全擦除。
-- 服务端必须配置规范的 HTTPS `public-origin`，并实际提供 TLS。缺少配置时仅新三类导入 RPC 返回 FailedPrecondition，旧预览仍保留；不能用请求 Host 或转发头代替可信配置。
+- 服务端必须配置规范的 `public-origin`：生产使用 HTTPS，显式 HTTP loopback 仅供本地部署或测试。缺少配置或 origin 不合资格时，仅新三类导入 RPC 返回 FailedPrecondition，旧预览仍保留；票据只绑定已配置 origin，不能用请求 Host 或转发头代替可信配置。
 
 协议和资源限制见 [IMPORT-SELECTION-PROTOCOL.md](IMPORT-SELECTION-PROTOCOL.md)。本功能不代替 CLI/MyGo 的完整选择导入、Pack 配置附件、明确授权后的自动应用、十四类 agent 适配或完整 F6/M6 验收。
