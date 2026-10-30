@@ -1,0 +1,14 @@
+{
+ "document":{"servers":[
+  {"id":"local","name":"local","enabled":true,"stdio":{"command":"node","args":{"values":[{"id":"second","valueRef":"arg/local/second"},{"id":"first","valueRef":"arg/local/first"}]},"env":{"values":[{"name":"TOKEN","valueRef":"env/local/TOKEN"}]}}},
+  {"id":"remote","name":"remote","enabled":true,"http":{"url":"https://example.invalid/mcp","headers":{"values":[{"name":"Authorization","valueRef":"header/remote/Authorization"}]}}},
+  {"id":"legacy","name":"legacy","enabled":true,"sse":{"url":"http://localhost/sse","headers":{"values":[]}}},
+  {"id":"off","name":"off","enabled":false,"stdio":{"command":"unused","args":{"values":[]}}}
+ ]},
+ "expected":{"version":1,"target":"claude.mcp","operations":[
+  {"action":"upsert-managed-server","serverID":"local","name":"local","managedOnly":true,"stdio":{"command":"node","args":{"values":[{"id":"second","valueRef":"arg/local/second"},{"id":"first","valueRef":"arg/local/first"}]},"env":{"values":[{"name":"TOKEN","valueRef":"env/local/TOKEN"}]}}},
+  {"action":"upsert-managed-server","serverID":"remote","name":"remote","managedOnly":true,"http":{"url":"https://example.invalid/mcp","headers":{"values":[{"name":"Authorization","valueRef":"header/remote/Authorization"}]}}},
+  {"action":"upsert-managed-server","serverID":"legacy","name":"legacy","managedOnly":true,"sse":{"url":"http://localhost/sse","headers":{"values":[]}}},
+  {"action":"disable-managed-server","serverID":"off","name":"off","managedOnly":true}
+ ]}
+}

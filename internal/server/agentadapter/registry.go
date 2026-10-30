@@ -74,6 +74,9 @@ func (registry *Registry) List() []agentconfig.Descriptor {
 
 func validDefinition(definition Definition) bool {
 	manifest := definition.Manifest
+	if manifest.Target == agentconfig.ClaudeMCP {
+		return manifest.APIVersion == agentconfig.APIVersion && manifest.PluginID == agentconfig.MCPPluginID && manifest.PluginVersion == agentconfig.MCPPluginVersion && manifest.AgentID == "claude" && manifest.Format == agentconfig.JSON && len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.ClaudeMCPPlanV1 && len(definition.Module) > 0 && len(definition.Module) <= agentconfig.MaxModuleBytes
+	}
 	if manifest.APIVersion != agentconfig.APIVersion || !identifier.MatchString(manifest.PluginID) || len(manifest.PluginVersion) > 32 || !version.MatchString(manifest.PluginVersion) || len(definition.Module) > agentconfig.MaxModuleBytes {
 		return false
 	}

@@ -134,12 +134,18 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		test.Fatal(err)
 	}
 	descriptors := registry.List()
-	if len(descriptors) != 4 {
-		test.Fatalf("expected four built-in adapters, got %d", len(descriptors))
+	if len(descriptors) != 5 {
+		test.Fatalf("expected five built-in adapters, got %d", len(descriptors))
 	}
 	expected := map[string]agentconfig.Target{"claude": agentconfig.ClaudeSettings, "codex": agentconfig.CodexConfig, "gemini": agentconfig.GeminiSettings, "opencode": agentconfig.OpenCodeConfig}
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
+		if manifest.PluginID == agentconfig.MCPPluginID {
+			if manifest.APIVersion != 1 || manifest.AgentID != "claude" || manifest.PluginVersion != agentconfig.MCPPluginVersion || manifest.Target != agentconfig.ClaudeMCP || manifest.Format != agentconfig.JSON || len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.ClaudeMCPPlanV1 || len(descriptor.DefinitionDigest) != 64 {
+				test.Fatal("invalid MCP builtin metadata")
+			}
+			continue
+		}
 		expectedVersion := "1.0.0"
 		if manifest.AgentID == "claude" || manifest.AgentID == "codex" || manifest.AgentID == "gemini" {
 			expectedVersion = "1.1.0"

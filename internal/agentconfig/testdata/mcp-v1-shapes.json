@@ -1,0 +1,13 @@
+[
+ {"name":"empty","valid":true,"document":{"servers":[]}},
+ {"name":"stdio-all","valid":true,"document":{"servers":[{"id":"local","name":"local","enabled":false,"stdio":{"command":"node","args":{"values":[{"id":"second","valueRef":"arg/local/second"},{"id":"first","valueRef":"arg/local/first"}]},"env":{"values":[{"name":"TOKEN","valueRef":"env/local/TOKEN"}]}}}]}},
+ {"name":"http","valid":true,"document":{"servers":[{"id":"remote","name":"remote","enabled":true,"http":{"url":"https://example.invalid/mcp","headers":{"values":[{"name":"X-Token","valueRef":"header/remote/X-Token"}]}}}]}},
+ {"name":"sse","valid":true,"document":{"servers":[{"id":"legacy","name":"legacy","enabled":true,"sse":{"url":"http://localhost/sse"}}]}},
+ {"name":"unknown","valid":false,"document":{"servers":[],"future":false}},
+ {"name":"missing-enabled","valid":false,"document":{"servers":[{"id":"local","name":"local","stdio":{"command":"node"}}]}},
+ {"name":"mixed","valid":false,"document":{"servers":[{"id":"local","name":"local","enabled":true,"stdio":{"command":"node"},"http":{"url":"https://example.invalid"}}]}},
+ {"name":"wrong-purpose","valid":false,"document":{"servers":[{"id":"local","name":"local","enabled":true,"stdio":{"command":"node","env":{"values":[{"name":"TOKEN","valueRef":"arg/local/TOKEN"}]}}}]}},
+ {"name":"query","valid":false,"document":{"servers":[{"id":"remote","name":"remote","enabled":true,"http":{"url":"https://example.invalid?token=x"}}]}},
+ {"name":"duplicate-header","valid":false,"document":{"servers":[{"id":"remote","name":"remote","enabled":true,"http":{"url":"https://example.invalid","headers":{"values":[{"name":"X-Token","valueRef":"header/remote/X-Token"},{"name":"x-token","valueRef":"header/remote/x-token"}]}}}]}},
+ {"name":"unsupported-cwd","valid":false,"document":{"servers":[{"id":"local","name":"local","enabled":true,"stdio":{"command":"node","cwd":"/synthetic"}}]}}
+]
