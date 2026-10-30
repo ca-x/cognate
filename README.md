@@ -2,7 +2,7 @@
 
 原名 SkillHub；仓库已迁移至 `ca-x/cognate`。命名与已有数据/协议的兼容策略见 `docs/COGNATE-RENAME.md`。
 
-Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量、获授权的公开与私有 GitHub 仓库收录及来源更新，并提供 Web 面板与 Pack 分享/流式分发。Linux CLI 与 MyGo 客户端已有 Pack 订阅、跨组合去重、显式/持续同步与备份卸载；Web 支持 Claude 与 Codex 私有 provider 资产管理，MyGo 已提供 Claude provider/schema1 原生资产编辑。Claude 本机预览、批准应用、状态查询和恢复已有 CLI 与 MyGo 入口，本机操作仅支持 Linux。
+Cognate 用于聚合、分发和同步 coding agent skills。当前是开发预览：服务端已接通本地账号、OIDC、GitHub 设备授权、Lists 定时同步/增量、获授权的公开与私有 GitHub 仓库收录及来源更新，并提供 Web 面板与 Pack 分享/流式分发。Linux CLI 与 MyGo 客户端已有 Pack 订阅、跨组合去重、显式/持续同步与备份卸载；Web 支持 Claude、Codex 与 Gemini 私有 provider 资产管理，MyGo 已提供 Claude provider/schema1 原生资产编辑。Claude 本机预览、批准应用、状态查询和恢复已有 CLI 与 MyGo 入口，本机操作仅支持 Linux。Codex 与 Gemini 的服务端资产保存不表示已经支持本机应用，详见 `docs/CONFIGURATION.md`。
 
 MyGo 保存资产不应用到本机；应用须逐个批准所需凭据槽，再批准本次计划，零凭据槽也不能跳过最终确认。应用/恢复、删除和放弃草稿弹窗默认聚焦安全选项；Codex 等其它资产在 MyGo 仅显示元数据，不代表可本机应用。操作说明与不透明密码、会话和分享 token 的内存保护边界见 `docs/CONFIGURATION.md`。匿名公开目录/分类、免 token 安装、MCP token 管理及 Web 主题/中英文切换已通过各自限定范围的独立验收；证据归属见 `docs/VERIFICATION.md`。完整配置导入、配置随 Pack 分发和自动应用、完整历史与文件差异、十四类 agent 完整适配及非 Linux 配置应用仍未完成，尚未发布首个正式版本。
 

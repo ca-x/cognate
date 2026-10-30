@@ -1,6 +1,6 @@
 # Agent 适配插件边界
 
-状态：首个 bounded 切片已实现内置 Claude/Codex/Gemini 元数据 registry 与 Claude settings JSON 的纯 env additive merge。Codex/Gemini 仅 metadata，配置导入、客户端应用和恢复仍未接通。此文不代表完整 provider switch 或 cc-switch 交互已交付。
+状态：已实现内置 Claude/Codex/Gemini 元数据 registry，以及各自声明的服务端 provider 转换能力；旧 Claude env additive merge 继续保留。转换成功不等于设备已经应用。当前 Web 与客户端实际支持范围见 `CONFIGURATION.md`；配置导入、Pack 配置附件及完整 cc-switch 交互仍未接通。下文按切片记录合同，不能把较早的 metadata-only 状态当成当前全部能力。
 
 ## 分工
 
