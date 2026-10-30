@@ -39,10 +39,11 @@ type ClaudeProvider struct {
 }
 
 type Draft struct {
-	Name           string          `json:"name"`
-	Provider       ClaudeProvider  `json:"provider,omitzero"`
-	CodexProvider  *CodexProvider  `json:"codex_provider,omitzero"`
-	GeminiProvider *GeminiProvider `json:"gemini_provider,omitzero"`
+	Name             string                        `json:"name"`
+	Provider         ClaudeProvider                `json:"provider,omitzero"`
+	CodexProvider    *CodexProvider                `json:"codex_provider,omitzero"`
+	GeminiProvider   *GeminiProvider               `json:"gemini_provider,omitzero"`
+	OpenCodeProvider *agentconfig.OpenCodeProvider `json:"opencode_provider,omitzero"`
 }
 
 type GeminiProvider struct {
@@ -97,13 +98,14 @@ const (
 )
 
 type EditView struct {
-	Metadata           state.ConfigurationAsset `json:"metadata"`
-	Provider           ClaudeProvider           `json:"provider,omitzero"`
-	Secrets            []SecretStatus           `json:"secrets"`
-	Readiness          Readiness                `json:"readiness"`
-	CodexProvider      *CodexProvider           `json:"codex_provider,omitzero"`
-	GeminiProvider     *GeminiProvider          `json:"gemini_provider,omitzero"`
-	HasPreservedExtras bool                     `json:"has_preserved_extras"`
+	Metadata           state.ConfigurationAsset      `json:"metadata"`
+	Provider           ClaudeProvider                `json:"provider,omitzero"`
+	Secrets            []SecretStatus                `json:"secrets"`
+	Readiness          Readiness                     `json:"readiness"`
+	CodexProvider      *CodexProvider                `json:"codex_provider,omitzero"`
+	GeminiProvider     *GeminiProvider               `json:"gemini_provider,omitzero"`
+	OpenCodeProvider   *agentconfig.OpenCodeProvider `json:"opencode_provider,omitzero"`
+	HasPreservedExtras bool                          `json:"has_preserved_extras"`
 }
 
 type Store interface {

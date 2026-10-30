@@ -10,6 +10,11 @@ import (
 
 func configurationInput(draft *configurationv1.Draft, mutations []*configurationv1.SecretMutation) (configuration.Draft, []configuration.SecretMutation, error) {
 	if draft != nil {
+		if _, opencode := draft.Payload.(*configurationv1.Draft_OpencodeProvider); opencode {
+			return configurationOpenCodeInput(draft, mutations)
+		}
+	}
+	if draft != nil {
 		if _, gemini := draft.Payload.(*configurationv1.Draft_GeminiProvider); gemini {
 			return configurationGeminiInput(draft, mutations)
 		}
@@ -110,6 +115,9 @@ func configurationAsset(entry state.ConfigurationAsset) (*configurationv1.Asset,
 }
 
 func configurationView(entry configuration.EditView) (*configurationv1.DraftView, error) {
+	if entry.OpenCodeProvider != nil || entry.Metadata.AgentID == "opencode" {
+		return configurationOpenCodeView(entry)
+	}
 	if entry.Provider != (configuration.ClaudeProvider{}) && (entry.CodexProvider != nil || entry.GeminiProvider != nil) || entry.CodexProvider != nil && entry.GeminiProvider != nil {
 		return nil, configuration.ErrUnavailable
 	}

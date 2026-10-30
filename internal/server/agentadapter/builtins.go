@@ -19,6 +19,9 @@ var codexModule string
 //go:embed gemini.mjs
 var geminiModule string
 
+//go:embed opencode.mjs
+var opencodeModule string
+
 func Builtins() (*Registry, error) {
 	var manifests []agentconfig.Manifest
 	if json.Unmarshal(builtinManifests, &manifests, json.RejectUnknownMembers(true)) != nil {
@@ -35,6 +38,9 @@ func Builtins() (*Registry, error) {
 		}
 		if manifest.Target == agentconfig.GeminiSettings {
 			definition.Module = geminiModule
+		}
+		if manifest.Target == agentconfig.OpenCodeConfig {
+			definition.Module = opencodeModule
 		}
 		definitions = append(definitions, definition)
 	}

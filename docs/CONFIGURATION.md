@@ -2,7 +2,7 @@
 
 > 2026-10-30：Claude、Codex 与 Gemini 私有 provider 资产管理已有 Web 入口；Gemini typed API/Web 在 `184feaa` 交付。Codex 与 Gemini 尚不能本机应用。Claude 的 Linux 手动 CLI 配置工作流在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo Claude provider/schema1 原生编辑、预览、显式批准应用、状态及恢复在 `bd00bc0` 交付；本机操作仅限 Linux。其它 agent 的完整配置、完整历史/文件差异及非 Linux 配置应用仍未交付；证据与 CI 状态见 `VERIFICATION.md`。
 
-Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex 与 Gemini provider 的私有资产管理**；保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
+Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini 与 OpenCode provider 的服务端私有资产管理**；Web 专属表单目前支持前三者，OpenCode 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
 
 ## Web 使用流程
 
@@ -36,6 +36,13 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 - 编辑、放弃确认与语言切换会处理新凭据清理；真实提交之后取消请求不等于回滚。普通浏览、保存、复制或安装 skill 均不会因此应用 Gemini 配置。
 
 Gemini moejs planner 仅在服务端输出受控的双 artifact 声明；客户端不执行插件。本机双文件 codec、原生能力资格、应用及恢复仍未交付，不代表 Vertex、ADC、官方账号管理或完整十四类 agent 已支持。
+
+## OpenCode 服务端接口
+
+- 普通 ConfigurationService 已支持 OpenCode provider 的创建、元数据读取、脱敏草稿读取、更新、复制、删除与列表。V1/V2 必须明确选择，不根据 npm 字符串推断；字段保留各自协议的结构、顺序与 optional presence，包括显式 false、zero 和空容器。
+- 模型、headers、SDK options、variants、cost 与兼容性字段经独立的 typed 校验和有界递归 codec 处理。省略可选字段不等于提交空的值联合；required 值和无有效分支的联合仍拒绝。未知字段不能借编辑或复制静默丢失。
+- 凭据只由显式的受控槽操作更新，普通响应不返回秘密值；复制不复制凭据，修改及删除仍检查 owner 与 revision。npm 声明只是数据，服务端不安装或执行 SDK。
+- 固定 moejs planner 仅在服务端生成经 Go 宿主核验的 reference-only 声明，不接收真实秘密。OpenCode Web/MyGo 专属编辑器、原生文件 codec/应用/恢复、配置来源导入、持久排序以及 OMO/OMO-slim 专属配置尚未交付。此接口交付不代表 OpenCode 可在客户端应用，也不代表完整十四类 agent 已支持。
 
 ## 草稿、冲突与取消
 

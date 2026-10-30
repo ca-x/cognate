@@ -31,6 +31,9 @@ func configurationEnumWireValid(data []byte, wireType protowire.Type, field prot
 }
 
 func configurationCodexJSONValid(data []byte, descriptor protoreflect.MessageDescriptor, codex bool, depth int) bool {
+	if descriptor.FullName() == "skillhub.configuration.v1.OpenCodeProvider" {
+		return configurationOpenCodeJSONValid(data, descriptor)
+	}
 	if depth > 16 {
 		return false
 	}
@@ -44,6 +47,7 @@ func configurationCodexJSONValid(data []byte, descriptor protoreflect.MessageDes
 	if _, err := decoder.ReadToken(); err != nil {
 		return false
 	}
+	openCode, payloads := false, 0
 	for decoder.PeekKind() != '}' {
 		name, err := decoder.ReadToken()
 		if err != nil || name.Kind() != '"' {
@@ -55,6 +59,12 @@ func configurationCodexJSONValid(data []byte, descriptor protoreflect.MessageDes
 		}
 		if field == nil {
 			return false
+		}
+		if descriptor.FullName() == "skillhub.configuration.v1.Draft" {
+			if oneof := field.ContainingOneof(); oneof != nil && oneof.Name() == "payload" {
+				payloads++
+				openCode = openCode || field.Name() == "opencode_provider"
+			}
 		}
 		value, err := decoder.ReadValue()
 		if err != nil {
@@ -92,5 +102,5 @@ func configurationCodexJSONValid(data []byte, descriptor protoreflect.MessageDes
 		return false
 	}
 	_, err := decoder.ReadToken()
-	return err == io.EOF
+	return err == io.EOF && (!openCode || payloads == 1)
 }

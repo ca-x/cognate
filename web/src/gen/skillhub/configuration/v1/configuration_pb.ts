@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/configuration/v1/configuration.proto.
  */
 export const file_skillhub_configuration_v1_configuration: GenFile = /*@__PURE__*/
-  fileDesc("Ci1za2lsbGh1Yi9jb25maWd1cmF0aW9uL3YxL2NvbmZpZ3VyYXRpb24ucHJvdG8SGXNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEiwwEKBUFzc2V0EgoKAmlkGAEgASgJEhAKCGFnZW50X2lkGAIgASgJEjIKBGtpbmQYAyABKA4yJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0S2luZBIMCgRuYW1lGAQgASgJEhYKDnNjaGVtYV92ZXJzaW9uGAUgASgNEhAKCHJldmlzaW9uGAYgASgDEhcKD2NyZWF0ZWRfYXRfdW5peBgHIAEoAxIXCg91cGRhdGVkX2F0X3VuaXgYCCABKAMilgEKDENsYXVkZU1vZGVscxIaCg1kZWZhdWx0X21vZGVsGAEgASgJSACIAQESEgoFaGFpa3UYAiABKAlIAYgBARITCgZzb25uZXQYAyABKAlIAogBARIRCgRvcHVzGAQgASgJSAOIAQFCEAoOX2RlZmF1bHRfbW9kZWxCCAoGX2hhaWt1QgkKB19zb25uZXRCBwoFX29wdXMiqwEKDkNsYXVkZVByb3ZpZGVyEhUKCGVuZHBvaW50GAEgASgJSACIAQESPAoJYXV0aF9tb2RlGAIgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DbGF1ZGVBdXRoTW9kZRI3CgZtb2RlbHMYAyABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZU1vZGVsc0ILCglfZW5kcG9pbnQiSwoPQ29kZXhNb2RhbGl0aWVzEjgKBnZhbHVlcxgBIAMoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhNb2RhbGl0eSJXChRDb2RleFJlYXNvbmluZ0xldmVscxI/CgZ2YWx1ZXMYASADKA4yLy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4UmVhc29uaW5nRWZmb3J0IoQEChFDb2RleENhdGFsb2dNb2RlbBINCgVtb2RlbBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIbCg5jb250ZXh0X3dpbmRvdxgDIAEoBEgBiAEBEikKHHN1cHBvcnRzX3BhcmFsbGVsX3Rvb2xfY2FsbHMYBCABKAhIAogBARJEChBpbnB1dF9tb2RhbGl0aWVzGAUgASgLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleE1vZGFsaXRpZXMSHgoRYmFzZV9pbnN0cnVjdGlvbnMYBiABKAlIA4gBARJJChByZWFzb25pbmdfbGV2ZWxzGAcgASgLMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0xldmVscxJVChdkZWZhdWx0X3JlYXNvbmluZ19sZXZlbBgIIAEoDjIvLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhSZWFzb25pbmdFZmZvcnRIBIgBAUIPCg1fZGlzcGxheV9uYW1lQhEKD19jb250ZXh0X3dpbmRvd0IfCh1fc3VwcG9ydHNfcGFyYWxsZWxfdG9vbF9jYWxsc0IUChJfYmFzZV9pbnN0cnVjdGlvbnNCGgoYX2RlZmF1bHRfcmVhc29uaW5nX2xldmVsIkwKDENvZGV4Q2F0YWxvZxI8CgZtb2RlbHMYASADKAsyLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ01vZGVsIowCCg1Db2RleFByb3ZpZGVyEjsKCWF1dGhfbW9kZRgBIAEoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhBdXRoTW9kZRIQCghlbmRwb2ludBgCIAEoCRINCgVtb2RlbBgDIAEoCRJOChByZWFzb25pbmdfZWZmb3J0GAQgASgOMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0VmZm9ydEgAiAEBEjgKB2NhdGFsb2cYBSABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ0ITChFfcmVhc29uaW5nX2VmZm9ydCKlAgoOR2VtaW5pUHJvdmlkZXISPAoJYXV0aF9tb2RlGAEgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5HZW1pbmlBdXRoTW9kZRIVCghlbmRwb2ludBgCIAEoCUgAiAEBEkkKDWtleV90cmFuc3BvcnQYAyABKA4yLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkdlbWluaUtleVRyYW5zcG9ydEgBiAEBEhYKCWVudl9tb2RlbBgEIAEoCUgCiAEBEhsKDnNldHRpbmdzX21vZGVsGAUgASgJSAOIAQFCCwoJX2VuZHBvaW50QhAKDl9rZXlfdHJhbnNwb3J0QgwKCl9lbnZfbW9kZWxCEQoPX3NldHRpbmdzX21vZGVsIvABCgVEcmFmdBIMCgRuYW1lGAEgASgJEkQKD2NsYXVkZV9wcm92aWRlchgCIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ2xhdWRlUHJvdmlkZXJIABJCCg5jb2RleF9wcm92aWRlchgDIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhQcm92aWRlckgAEkQKD2dlbWluaV9wcm92aWRlchgEIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2VtaW5pUHJvdmlkZXJIAEIJCgdwYXlsb2FkIjAKDFNlY3JldFN0YXR1cxIPCgdzbG90X2lkGAEgASgJEg8KB3ByZXNlbnQYAiABKAgiDAoKS2VlcFNlY3JldCINCgtDbGVhclNlY3JldCKzAQoOU2VjcmV0TXV0YXRpb24SDwoHc2xvdF9pZBgBIAEoCRI1CgRrZWVwGAIgASgLMiUuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5LZWVwU2VjcmV0SAASFgoHcmVwbGFjZRgDIAEoCUIDgAEBSAASNwoFY2xlYXIYBCABKAsyJi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsZWFyU2VjcmV0SABCCAoGYWN0aW9uIpMCCglEcmFmdFZpZXcSLwoFYXNzZXQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ei8KBWRyYWZ0GAIgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI4CgdzZWNyZXRzGAMgAygLMicuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRTdGF0dXMSTAoUY3JlZGVudGlhbF9yZWFkaW5lc3MYBCABKA4yLi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWRlbnRpYWxSZWFkaW5lc3MSHAoUaGFzX3ByZXNlcnZlZF9leHRyYXMYBSABKAgiEwoRTGlzdEFzc2V0c1JlcXVlc3QiRgoSTGlzdEFzc2V0c1Jlc3BvbnNlEjAKBmFzc2V0cxgBIAMoCzIgLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQXNzZXQiHQoPR2V0QXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJIkMKEEdldEFzc2V0UmVzcG9uc2USLwoFYXNzZXQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ih4KEFJlYWREcmFmdFJlcXVlc3QSCgoCaWQYASABKAkiRwoRUmVhZERyYWZ0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IoEBChJDcmVhdGVBc3NldFJlcXVlc3QSLwoFZHJhZnQYASABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjoKB3NlY3JldHMYAiADKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlNlY3JldE11dGF0aW9uIkkKE0NyZWF0ZUFzc2V0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IqgBChJVcGRhdGVBc3NldFJlcXVlc3QSCgoCaWQYASABKAkSGQoRZXhwZWN0ZWRfcmV2aXNpb24YAiABKAMSLwoFZHJhZnQYAyABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjoKB3NlY3JldHMYBCADKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlNlY3JldE11dGF0aW9uIkkKE1VwZGF0ZUFzc2V0UmVzcG9uc2USMgoEdmlldxgBIAEoCzIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRHJhZnRWaWV3IlUKEENvcHlBc3NldFJlcXVlc3QSEQoJc291cmNlX2lkGAEgASgJEiAKGGV4cGVjdGVkX3NvdXJjZV9yZXZpc2lvbhgCIAEoAxIMCgRuYW1lGAMgASgJIkcKEUNvcHlBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyI7ChJEZWxldGVBc3NldFJlcXVlc3QSCgoCaWQYASABKAkSGQoRZXhwZWN0ZWRfcmV2aXNpb24YAiABKAMiFQoTRGVsZXRlQXNzZXRSZXNwb25zZSqkAQoJQXNzZXRLaW5kEhoKFkFTU0VUX0tJTkRfVU5TUEVDSUZJRUQQABIXChNBU1NFVF9LSU5EX1BST1ZJREVSEAESEgoOQVNTRVRfS0lORF9NQ1AQAhIVChFBU1NFVF9LSU5EX1BST01QVBADEh0KGUFTU0VUX0tJTkRfQUdFTlRfU0VUVElOR1MQBBIYChRBU1NFVF9LSU5EX1dPUktTUEFDRRAFKpQBCg5DbGF1ZGVBdXRoTW9kZRIgChxDTEFVREVfQVVUSF9NT0RFX1VOU1BFQ0lGSUVEEAASIQodQ0xBVURFX0FVVEhfTU9ERV9OQVRJVkVfTE9HSU4QARIcChhDTEFVREVfQVVUSF9NT0RFX0FQSV9LRVkQAhIfChtDTEFVREVfQVVUSF9NT0RFX0FVVEhfVE9LRU4QAypSCg1Db2RleEF1dGhNb2RlEh8KG0NPREVYX0FVVEhfTU9ERV9VTlNQRUNJRklFRBAAEiAKHENPREVYX0FVVEhfTU9ERV9QUk9WSURFUl9LRVkQASpzCg5HZW1pbmlBdXRoTW9kZRIgChxHRU1JTklfQVVUSF9NT0RFX1VOU1BFQ0lGSUVEEAASIQodR0VNSU5JX0FVVEhfTU9ERV9OQVRJVkVfTE9HSU4QARIcChhHRU1JTklfQVVUSF9NT0RFX0FQSV9LRVkQAiqEAQoSR2VtaW5pS2V5VHJhbnNwb3J0EiQKIEdFTUlOSV9LRVlfVFJBTlNQT1JUX1VOU1BFQ0lGSUVEEAASJwojR0VNSU5JX0tFWV9UUkFOU1BPUlRfTkFUSVZFX0RFRkFVTFQQARIfChtHRU1JTklfS0VZX1RSQU5TUE9SVF9CRUFSRVIQAiqpAgoUQ29kZXhSZWFzb25pbmdFZmZvcnQSJgoiQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9VTlNQRUNJRklFRBAAEh8KG0NPREVYX1JFQVNPTklOR19FRkZPUlRfTk9ORRABEiIKHkNPREVYX1JFQVNPTklOR19FRkZPUlRfTUlOSU1BTBACEh4KGkNPREVYX1JFQVNPTklOR19FRkZPUlRfTE9XEAMSIQodQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9NRURJVU0QBBIfChtDT0RFWF9SRUFTT05JTkdfRUZGT1JUX0hJR0gQBRIgChxDT0RFWF9SRUFTT05JTkdfRUZGT1JUX1hISUdIEAYSHgoaQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9NQVgQBypiCg1Db2RleE1vZGFsaXR5Eh4KGkNPREVYX01PREFMSVRZX1VOU1BFQ0lGSUVEEAASFwoTQ09ERVhfTU9EQUxJVFlfVEVYVBABEhgKFENPREVYX01PREFMSVRZX0lNQUdFEAIqiQEKE0NyZWRlbnRpYWxSZWFkaW5lc3MSJAogQ1JFREVOVElBTF9SRUFESU5FU1NfVU5TUEVDSUZJRUQQABIhCh1DUkVERU5USUFMX1JFQURJTkVTU19DT01QTEVURRABEikKJUNSRURFTlRJQUxfUkVBRElORVNTX05FRURTX0NSRURFTlRJQUwQAjKABgoUQ29uZmlndXJhdGlvblNlcnZpY2USaQoKTGlzdEFzc2V0cxIsLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuTGlzdEFzc2V0c1JlcXVlc3QaLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkxpc3RBc3NldHNSZXNwb25zZRJjCghHZXRBc3NldBIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2V0QXNzZXRSZXF1ZXN0Gisuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5HZXRBc3NldFJlc3BvbnNlEmYKCVJlYWREcmFmdBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuUmVhZERyYWZ0UmVzcG9uc2USbAoLQ3JlYXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWF0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ3JlYXRlQXNzZXRSZXNwb25zZRJsCgtVcGRhdGVBc3NldBItLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuVXBkYXRlQXNzZXRSZXF1ZXN0Gi4uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5VcGRhdGVBc3NldFJlc3BvbnNlEmYKCUNvcHlBc3NldBIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVxdWVzdBosLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29weUFzc2V0UmVzcG9uc2USbAoLRGVsZXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRlbGV0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuRGVsZXRlQXNzZXRSZXNwb25zZUJHWkVnaXRodWIuY29tL2NhLXgvY29nbmF0ZS9nZW4vc2tpbGxodWIvY29uZmlndXJhdGlvbi92MTtjb25maWd1cmF0aW9udjFiBnByb3RvMw");
+  fileDesc("Ci1za2lsbGh1Yi9jb25maWd1cmF0aW9uL3YxL2NvbmZpZ3VyYXRpb24ucHJvdG8SGXNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEiwwEKBUFzc2V0EgoKAmlkGAEgASgJEhAKCGFnZW50X2lkGAIgASgJEjIKBGtpbmQYAyABKA4yJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0S2luZBIMCgRuYW1lGAQgASgJEhYKDnNjaGVtYV92ZXJzaW9uGAUgASgNEhAKCHJldmlzaW9uGAYgASgDEhcKD2NyZWF0ZWRfYXRfdW5peBgHIAEoAxIXCg91cGRhdGVkX2F0X3VuaXgYCCABKAMilgEKDENsYXVkZU1vZGVscxIaCg1kZWZhdWx0X21vZGVsGAEgASgJSACIAQESEgoFaGFpa3UYAiABKAlIAYgBARITCgZzb25uZXQYAyABKAlIAogBARIRCgRvcHVzGAQgASgJSAOIAQFCEAoOX2RlZmF1bHRfbW9kZWxCCAoGX2hhaWt1QgkKB19zb25uZXRCBwoFX29wdXMiqwEKDkNsYXVkZVByb3ZpZGVyEhUKCGVuZHBvaW50GAEgASgJSACIAQESPAoJYXV0aF9tb2RlGAIgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DbGF1ZGVBdXRoTW9kZRI3CgZtb2RlbHMYAyABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZU1vZGVsc0ILCglfZW5kcG9pbnQiSwoPQ29kZXhNb2RhbGl0aWVzEjgKBnZhbHVlcxgBIAMoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhNb2RhbGl0eSJXChRDb2RleFJlYXNvbmluZ0xldmVscxI/CgZ2YWx1ZXMYASADKA4yLy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4UmVhc29uaW5nRWZmb3J0IoQEChFDb2RleENhdGFsb2dNb2RlbBINCgVtb2RlbBgBIAEoCRIZCgxkaXNwbGF5X25hbWUYAiABKAlIAIgBARIbCg5jb250ZXh0X3dpbmRvdxgDIAEoBEgBiAEBEikKHHN1cHBvcnRzX3BhcmFsbGVsX3Rvb2xfY2FsbHMYBCABKAhIAogBARJEChBpbnB1dF9tb2RhbGl0aWVzGAUgASgLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleE1vZGFsaXRpZXMSHgoRYmFzZV9pbnN0cnVjdGlvbnMYBiABKAlIA4gBARJJChByZWFzb25pbmdfbGV2ZWxzGAcgASgLMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0xldmVscxJVChdkZWZhdWx0X3JlYXNvbmluZ19sZXZlbBgIIAEoDjIvLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhSZWFzb25pbmdFZmZvcnRIBIgBAUIPCg1fZGlzcGxheV9uYW1lQhEKD19jb250ZXh0X3dpbmRvd0IfCh1fc3VwcG9ydHNfcGFyYWxsZWxfdG9vbF9jYWxsc0IUChJfYmFzZV9pbnN0cnVjdGlvbnNCGgoYX2RlZmF1bHRfcmVhc29uaW5nX2xldmVsIkwKDENvZGV4Q2F0YWxvZxI8CgZtb2RlbHMYASADKAsyLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ01vZGVsIowCCg1Db2RleFByb3ZpZGVyEjsKCWF1dGhfbW9kZRgBIAEoDjIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhBdXRoTW9kZRIQCghlbmRwb2ludBgCIAEoCRINCgVtb2RlbBgDIAEoCRJOChByZWFzb25pbmdfZWZmb3J0GAQgASgOMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Db2RleFJlYXNvbmluZ0VmZm9ydEgAiAEBEjgKB2NhdGFsb2cYBSABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvZGV4Q2F0YWxvZ0ITChFfcmVhc29uaW5nX2VmZm9ydCKlAgoOR2VtaW5pUHJvdmlkZXISPAoJYXV0aF9tb2RlGAEgASgOMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5HZW1pbmlBdXRoTW9kZRIVCghlbmRwb2ludBgCIAEoCUgAiAEBEkkKDWtleV90cmFuc3BvcnQYAyABKA4yLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkdlbWluaUtleVRyYW5zcG9ydEgBiAEBEhYKCWVudl9tb2RlbBgEIAEoCUgCiAEBEhsKDnNldHRpbmdzX21vZGVsGAUgASgJSAOIAQFCCwoJX2VuZHBvaW50QhAKDl9rZXlfdHJhbnNwb3J0QgwKCl9lbnZfbW9kZWxCEQoPX3NldHRpbmdzX21vZGVsIroCCgVEcmFmdBIMCgRuYW1lGAEgASgJEkQKD2NsYXVkZV9wcm92aWRlchgCIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ2xhdWRlUHJvdmlkZXJIABJCCg5jb2RleF9wcm92aWRlchgDIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ29kZXhQcm92aWRlckgAEkQKD2dlbWluaV9wcm92aWRlchgEIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2VtaW5pUHJvdmlkZXJIABJIChFvcGVuY29kZV9wcm92aWRlchgFIAEoCzIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVQcm92aWRlckgAQgkKB3BheWxvYWQiMAoMU2VjcmV0U3RhdHVzEg8KB3Nsb3RfaWQYASABKAkSDwoHcHJlc2VudBgCIAEoCCIMCgpLZWVwU2VjcmV0Ig0KC0NsZWFyU2VjcmV0IrMBCg5TZWNyZXRNdXRhdGlvbhIPCgdzbG90X2lkGAEgASgJEjUKBGtlZXAYAiABKAsyJS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLktlZXBTZWNyZXRIABIWCgdyZXBsYWNlGAMgASgJQgOAAQFIABI3CgVjbGVhchgEIAEoCzImLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ2xlYXJTZWNyZXRIAEIICgZhY3Rpb24ikwIKCURyYWZ0VmlldxIvCgVhc3NldBgBIAEoCzIgLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQXNzZXQSLwoFZHJhZnQYAiABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjgKB3NlY3JldHMYAyADKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlNlY3JldFN0YXR1cxJMChRjcmVkZW50aWFsX3JlYWRpbmVzcxgEIAEoDjIuLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQ3JlZGVudGlhbFJlYWRpbmVzcxIcChRoYXNfcHJlc2VydmVkX2V4dHJhcxgFIAEoCCITChFMaXN0QXNzZXRzUmVxdWVzdCKbAQoQT3BlbkNvZGVQcm92aWRlchITCgtwcm92aWRlcl9pZBgBIAEoCRIzCgJ2MRgCIAEoCzIlLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWMUgAEjMKAnYyGAMgASgLMiUuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVYySABCCAoGZm9ybWF0IvkBCg1PcGVuQ29kZVZhbHVlEg4KBG51bGwYASABKAhIABIRCgdib29sZWFuGAIgASgISAASEAoGbnVtYmVyGAMgASgJSAASFgoHbGl0ZXJhbBgEIAEoCUIDgAEBSAASOQoFYXJyYXkYBSABKAsyKC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlQXJyYXlIABI7CgZvYmplY3QYBiABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0SAASGgoQc2VjcmV0X3JlZmVyZW5jZRgHIAEoCUgAQgcKBXZhbHVlIkkKDU9wZW5Db2RlQXJyYXkSOAoGdmFsdWVzGAEgAygLMiguc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVZhbHVlIrMBCg5PcGVuQ29kZU9iamVjdBJHCgdlbnRyaWVzGAEgAygLMjYuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU9iamVjdC5FbnRyaWVzRW50cnkaWAoMRW50cmllc0VudHJ5EgsKA2tleRgBIAEoCRI3CgV2YWx1ZRgCIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWYWx1ZToCOAEiIQoPT3BlbkNvZGVTdHJpbmdzEg4KBnZhbHVlcxgBIAMoCSKLAQoPT3BlbkNvZGVIZWFkZXJzEkgKB2VudHJpZXMYASADKAsyNy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlSGVhZGVycy5FbnRyaWVzRW50cnkaLgoMRW50cmllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiuQEKEE9wZW5Db2RlVjFNb2RlbHMSSQoHZW50cmllcxgBIAMoCzI4LnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWMU1vZGVscy5FbnRyaWVzRW50cnkaWgoMRW50cmllc0VudHJ5EgsKA2tleRgBIAEoCRI5CgV2YWx1ZRgCIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWMU1vZGVsOgI4ASK5AQoQT3BlbkNvZGVWMk1vZGVscxJJCgdlbnRyaWVzGAEgAygLMjguc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVYyTW9kZWxzLkVudHJpZXNFbnRyeRpaCgxFbnRyaWVzRW50cnkSCwoDa2V5GAEgASgJEjkKBXZhbHVlGAIgASgLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVYyTW9kZWw6AjgBIv0BCgpPcGVuQ29kZVYxEhAKA25wbRgBIAEoCUgAiAEBEhEKBG5hbWUYAiABKAlIAYgBARI9CgdvcHRpb25zGAMgASgLMiwuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVYxT3B0aW9ucxI7CgZtb2RlbHMYBCABKAsyKy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlVjFNb2RlbHMSPQoKZXh0ZW5zaW9ucxgFIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3RCBgoEX25wbUIHCgVfbmFtZSLVAQoRT3BlbkNvZGVWMU9wdGlvbnMSFQoIYmFzZV91cmwYASABKAlIAIgBARIUCgdhcGlfa2V5GAIgASgJSAGIAQESOwoHaGVhZGVycxgDIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVIZWFkZXJzEj0KCmV4dGVuc2lvbnMYBCABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QgsKCV9iYXNlX3VybEIKCghfYXBpX2tleSLVAwoPT3BlbkNvZGVWMU1vZGVsEhEKBG5hbWUYASABKAlIAIgBARI3CgVsaW1pdBgCIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVMaW1pdBI6CgdvcHRpb25zGAMgASgLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU9iamVjdBJBCgptb2RhbGl0aWVzGAQgASgLMi0uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU1vZGFsaXRpZXMSOgoIdGhpbmtpbmcYBSABKAsyKC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlVmFsdWUSNgoEY29zdBgGIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWYWx1ZRI7Cgh2YXJpYW50cxgHIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3QSPQoKZXh0ZW5zaW9ucxgIIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3RCBwoFX25hbWUirgEKDU9wZW5Db2RlTGltaXQSFAoHY29udGV4dBgBIAEoCUgAiAEBEhIKBWlucHV0GAIgASgJSAGIAQESEwoGb3V0cHV0GAMgASgJSAKIAQESPQoKZXh0ZW5zaW9ucxgEIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3RCCgoIX2NvbnRleHRCCAoGX2lucHV0QgkKB19vdXRwdXQiygEKEk9wZW5Db2RlTW9kYWxpdGllcxI5CgVpbnB1dBgBIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVTdHJpbmdzEjoKBm91dHB1dBgCIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVTdHJpbmdzEj0KCmV4dGVuc2lvbnMYAyABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0ItoDCgpPcGVuQ29kZVYyEhQKB3BhY2thZ2UYASABKAlIAIgBARIRCgRuYW1lGAIgASgJSAGIAQESFgoJY2Fub25pY2FsGAMgASgJSAKIAQESNwoDZW52GAQgASgLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVN0cmluZ3MSPQoIc2V0dGluZ3MYBSABKAsyKy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlU2V0dGluZ3MSOwoHaGVhZGVycxgGIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVIZWFkZXJzEjcKBGJvZHkYByABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0EjsKBm1vZGVscxgIIAEoCzIrLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVWMk1vZGVscxI9CgpleHRlbnNpb25zGAkgASgLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU9iamVjdEIKCghfcGFja2FnZUIHCgVfbmFtZUIMCgpfY2Fub25pY2FsIqUCChBPcGVuQ29kZVNldHRpbmdzEjsKB3RpbWVvdXQYASABKAsyKi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlVGltZW91dBIaCg1jaHVua190aW1lb3V0GAIgASgJSACIAQESQQoKY29tcGFjdGlvbhgDIAEoCzItLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVDb21wYWN0aW9uEhYKCXRyYW5zcG9ydBgEIAEoCUgBiAEBEj0KCmV4dGVuc2lvbnMYBSABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QhAKDl9jaHVua190aW1lb3V0QgwKCl90cmFuc3BvcnQiQAoPT3BlbkNvZGVUaW1lb3V0EhAKBm51bWJlchgBIAEoCUgAEhIKCGRpc2FibGVkGAIgASgISABCBwoFdmFsdWUiYQoST3BlbkNvZGVDb21wYWN0aW9uEgwKBHR5cGUYASABKAkSPQoKZXh0ZW5zaW9ucxgCIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3QimQEKFU9wZW5Db2RlTW9kZWxTZXR0aW5ncxJBCgpjb21wYWN0aW9uGAEgASgLMi0uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZUNvbXBhY3Rpb24SPQoKZXh0ZW5zaW9ucxgCIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3Qi8AUKD09wZW5Db2RlVjJNb2RlbBIVCghtb2RlbF9pZBgBIAEoCUgAiAEBEhMKBmZhbWlseRgCIAEoCUgBiAEBEhEKBG5hbWUYAyABKAlIAogBARIUCgdwYWNrYWdlGAQgASgJSAOIAQESFQoIZGlzYWJsZWQYBSABKAhIBIgBARJCCghzZXR0aW5ncxgGIAEoCzIwLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVNb2RlbFNldHRpbmdzEjsKB2hlYWRlcnMYByABKAsyKi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlSGVhZGVycxI3CgRib2R5GAggASgLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU9iamVjdBJHCg1jb21wYXRpYmlsaXR5GAkgASgLMjAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZUNvbXBhdGliaWxpdHkSRQoMY2FwYWJpbGl0aWVzGAogASgLMi8uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZUNhcGFiaWxpdGllcxI3CgVsaW1pdBgLIAEoCzIoLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVMaW1pdBI2CgRjb3N0GAwgASgLMiguc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZUNvc3RzEj0KCHZhcmlhbnRzGA0gASgLMisuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVZhcmlhbnRzEj0KCmV4dGVuc2lvbnMYDiABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QgsKCV9tb2RlbF9pZEIJCgdfZmFtaWx5QgcKBV9uYW1lQgoKCF9wYWNrYWdlQgsKCV9kaXNhYmxlZCKWAgoPT3BlbkNvZGVWYXJpYW50EgoKAmlkGAEgASgJEkIKCHNldHRpbmdzGAIgASgLMjAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU1vZGVsU2V0dGluZ3MSOwoHaGVhZGVycxgDIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVIZWFkZXJzEjcKBGJvZHkYBCABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0Ej0KCmV4dGVuc2lvbnMYBSABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0Ik4KEE9wZW5Db2RlVmFyaWFudHMSOgoGdmFsdWVzGAEgAygLMiouc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZVZhcmlhbnQi0wMKFU9wZW5Db2RlQ29tcGF0aWJpbGl0eRJBCg9yZWFzb25pbmdfZmllbGQYASABKAsyKC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlVmFsdWUSHgoRcmVxdWlyZV9yZWFzb25pbmcYAiABKAhIAIgBARIdChBtYXhfdG9rZW5zX2ZpZWxkGAMgASgJSAGIAQESIgoVcmVxdWlyZV9maW5pc2hfcmVhc29uGAQgASgISAKIAQESKQoccmVxdWlyZV9hc3Npc3RhbnRfYWZ0ZXJfdG9vbBgFIAEoCEgDiAEBEiYKGXN1cHBvcnRzX3Byb21wdF9jYWNoZV9rZXkYBiABKAhIBIgBARI9CgpleHRlbnNpb25zGAcgASgLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZU9iamVjdEIUChJfcmVxdWlyZV9yZWFzb25pbmdCEwoRX21heF90b2tlbnNfZmllbGRCGAoWX3JlcXVpcmVfZmluaXNoX3JlYXNvbkIfCh1fcmVxdWlyZV9hc3Npc3RhbnRfYWZ0ZXJfdG9vbEIcChpfc3VwcG9ydHNfcHJvbXB0X2NhY2hlX2tleSLqAQoUT3BlbkNvZGVDYXBhYmlsaXRpZXMSEgoFdG9vbHMYASABKAhIAIgBARI5CgVpbnB1dBgCIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVTdHJpbmdzEjoKBm91dHB1dBgDIAEoCzIqLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVTdHJpbmdzEj0KCmV4dGVuc2lvbnMYBCABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QggKBl90b29scyKRAQoNT3BlbkNvZGVDb3N0cxI5CgZzaW5nbGUYASABKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlQ29zdEgAEjwKBXRpZXJzGAIgASgLMisuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5PcGVuQ29kZUNvc3RMaXN0SABCBwoFc2hhcGUiSwoQT3BlbkNvZGVDb3N0TGlzdBI3CgZ2YWx1ZXMYASADKAsyJy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlQ29zdCKDAgoMT3BlbkNvZGVDb3N0EhIKBWlucHV0GAEgASgJSACIAQESEwoGb3V0cHV0GAIgASgJSAGIAQESOwoFY2FjaGUYAyABKAsyLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlQ2FjaGVDb3N0EjkKBHRpZXIYBCABKAsyKy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlQ29zdFRpZXISPQoKZXh0ZW5zaW9ucxgFIAEoCzIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuT3BlbkNvZGVPYmplY3RCCAoGX2lucHV0QgkKB19vdXRwdXQijAEKEU9wZW5Db2RlQ2FjaGVDb3N0EhEKBHJlYWQYASABKAlIAIgBARISCgV3cml0ZRgCIAEoCUgBiAEBEj0KCmV4dGVuc2lvbnMYAyABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QgcKBV9yZWFkQggKBl93cml0ZSJ7ChBPcGVuQ29kZUNvc3RUaWVyEgwKBHR5cGUYASABKAkSEQoEc2l6ZRgCIAEoCUgAiAEBEj0KCmV4dGVuc2lvbnMYAyABKAsyKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLk9wZW5Db2RlT2JqZWN0QgcKBV9zaXplIkYKEkxpc3RBc3NldHNSZXNwb25zZRIwCgZhc3NldHMYASADKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkFzc2V0Ih0KD0dldEFzc2V0UmVxdWVzdBIKCgJpZBgBIAEoCSJDChBHZXRBc3NldFJlc3BvbnNlEi8KBWFzc2V0GAEgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Bc3NldCIeChBSZWFkRHJhZnRSZXF1ZXN0EgoKAmlkGAEgASgJIkcKEVJlYWREcmFmdFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyKBAQoSQ3JlYXRlQXNzZXRSZXF1ZXN0Ei8KBWRyYWZ0GAEgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI6CgdzZWNyZXRzGAIgAygLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRNdXRhdGlvbiJJChNDcmVhdGVBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyKoAQoSVXBkYXRlQXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAIgASgDEi8KBWRyYWZ0GAMgASgLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdBI6CgdzZWNyZXRzGAQgAygLMikuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5TZWNyZXRNdXRhdGlvbiJJChNVcGRhdGVBc3NldFJlc3BvbnNlEjIKBHZpZXcYASABKAsyJC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0VmlldyJVChBDb3B5QXNzZXRSZXF1ZXN0EhEKCXNvdXJjZV9pZBgBIAEoCRIgChhleHBlY3RlZF9zb3VyY2VfcmV2aXNpb24YAiABKAMSDAoEbmFtZRgDIAEoCSJHChFDb3B5QXNzZXRSZXNwb25zZRIyCgR2aWV3GAEgASgLMiQuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EcmFmdFZpZXciOwoSRGVsZXRlQXNzZXRSZXF1ZXN0EgoKAmlkGAEgASgJEhkKEWV4cGVjdGVkX3JldmlzaW9uGAIgASgDIhUKE0RlbGV0ZUFzc2V0UmVzcG9uc2UqpAEKCUFzc2V0S2luZBIaChZBU1NFVF9LSU5EX1VOU1BFQ0lGSUVEEAASFwoTQVNTRVRfS0lORF9QUk9WSURFUhABEhIKDkFTU0VUX0tJTkRfTUNQEAISFQoRQVNTRVRfS0lORF9QUk9NUFQQAxIdChlBU1NFVF9LSU5EX0FHRU5UX1NFVFRJTkdTEAQSGAoUQVNTRVRfS0lORF9XT1JLU1BBQ0UQBSqUAQoOQ2xhdWRlQXV0aE1vZGUSIAocQ0xBVURFX0FVVEhfTU9ERV9VTlNQRUNJRklFRBAAEiEKHUNMQVVERV9BVVRIX01PREVfTkFUSVZFX0xPR0lOEAESHAoYQ0xBVURFX0FVVEhfTU9ERV9BUElfS0VZEAISHwobQ0xBVURFX0FVVEhfTU9ERV9BVVRIX1RPS0VOEAMqUgoNQ29kZXhBdXRoTW9kZRIfChtDT0RFWF9BVVRIX01PREVfVU5TUEVDSUZJRUQQABIgChxDT0RFWF9BVVRIX01PREVfUFJPVklERVJfS0VZEAEqcwoOR2VtaW5pQXV0aE1vZGUSIAocR0VNSU5JX0FVVEhfTU9ERV9VTlNQRUNJRklFRBAAEiEKHUdFTUlOSV9BVVRIX01PREVfTkFUSVZFX0xPR0lOEAESHAoYR0VNSU5JX0FVVEhfTU9ERV9BUElfS0VZEAIqhAEKEkdlbWluaUtleVRyYW5zcG9ydBIkCiBHRU1JTklfS0VZX1RSQU5TUE9SVF9VTlNQRUNJRklFRBAAEicKI0dFTUlOSV9LRVlfVFJBTlNQT1JUX05BVElWRV9ERUZBVUxUEAESHwobR0VNSU5JX0tFWV9UUkFOU1BPUlRfQkVBUkVSEAIqqQIKFENvZGV4UmVhc29uaW5nRWZmb3J0EiYKIkNPREVYX1JFQVNPTklOR19FRkZPUlRfVU5TUEVDSUZJRUQQABIfChtDT0RFWF9SRUFTT05JTkdfRUZGT1JUX05PTkUQARIiCh5DT0RFWF9SRUFTT05JTkdfRUZGT1JUX01JTklNQUwQAhIeChpDT0RFWF9SRUFTT05JTkdfRUZGT1JUX0xPVxADEiEKHUNPREVYX1JFQVNPTklOR19FRkZPUlRfTUVESVVNEAQSHwobQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9ISUdIEAUSIAocQ09ERVhfUkVBU09OSU5HX0VGRk9SVF9YSElHSBAGEh4KGkNPREVYX1JFQVNPTklOR19FRkZPUlRfTUFYEAcqYgoNQ29kZXhNb2RhbGl0eRIeChpDT0RFWF9NT0RBTElUWV9VTlNQRUNJRklFRBAAEhcKE0NPREVYX01PREFMSVRZX1RFWFQQARIYChRDT0RFWF9NT0RBTElUWV9JTUFHRRACKokBChNDcmVkZW50aWFsUmVhZGluZXNzEiQKIENSRURFTlRJQUxfUkVBRElORVNTX1VOU1BFQ0lGSUVEEAASIQodQ1JFREVOVElBTF9SRUFESU5FU1NfQ09NUExFVEUQARIpCiVDUkVERU5USUFMX1JFQURJTkVTU19ORUVEU19DUkVERU5USUFMEAIygAYKFENvbmZpZ3VyYXRpb25TZXJ2aWNlEmkKCkxpc3RBc3NldHMSLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkxpc3RBc3NldHNSZXF1ZXN0Gi0uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5MaXN0QXNzZXRzUmVzcG9uc2USYwoIR2V0QXNzZXQSKi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkdldEFzc2V0UmVxdWVzdBorLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2V0QXNzZXRSZXNwb25zZRJmCglSZWFkRHJhZnQSKy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlJlYWREcmFmdFJlcXVlc3QaLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlJlYWREcmFmdFJlc3BvbnNlEmwKC0NyZWF0ZUFzc2V0Ei0uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5DcmVhdGVBc3NldFJlcXVlc3QaLi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNyZWF0ZUFzc2V0UmVzcG9uc2USbAoLVXBkYXRlQXNzZXQSLS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLlVwZGF0ZUFzc2V0UmVxdWVzdBouLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuVXBkYXRlQXNzZXRSZXNwb25zZRJmCglDb3B5QXNzZXQSKy5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvcHlBc3NldFJlcXVlc3QaLC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNvcHlBc3NldFJlc3BvbnNlEmwKC0RlbGV0ZUFzc2V0Ei0uc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5EZWxldGVBc3NldFJlcXVlc3QaLi5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRlbGV0ZUFzc2V0UmVzcG9uc2VCR1pFZ2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL2NvbmZpZ3VyYXRpb24vdjE7Y29uZmlndXJhdGlvbnYxYgZwcm90bzM");
 
 /**
  * @generated from message skillhub.configuration.v1.Asset
@@ -330,6 +330,12 @@ export type Draft = Message<"skillhub.configuration.v1.Draft"> & {
      */
     value: GeminiProvider;
     case: "geminiProvider";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeProvider opencode_provider = 5;
+     */
+    value: OpenCodeProvider;
+    case: "opencodeProvider";
   } | { case: undefined; value?: undefined };
 };
 
@@ -479,6 +485,900 @@ export const ListAssetsRequestSchema: GenMessage<ListAssetsRequest> = /*@__PURE_
   messageDesc(file_skillhub_configuration_v1_configuration, 15);
 
 /**
+ * @generated from message skillhub.configuration.v1.OpenCodeProvider
+ */
+export type OpenCodeProvider = Message<"skillhub.configuration.v1.OpenCodeProvider"> & {
+  /**
+   * @generated from field: string provider_id = 1;
+   */
+  providerId: string;
+
+  /**
+   * @generated from oneof skillhub.configuration.v1.OpenCodeProvider.format
+   */
+  format: {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeV1 v1 = 2;
+     */
+    value: OpenCodeV1;
+    case: "v1";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeV2 v2 = 3;
+     */
+    value: OpenCodeV2;
+    case: "v2";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeProvider.
+ * Use `create(OpenCodeProviderSchema)` to create a new message.
+ */
+export const OpenCodeProviderSchema: GenMessage<OpenCodeProvider> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 16);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeValue
+ */
+export type OpenCodeValue = Message<"skillhub.configuration.v1.OpenCodeValue"> & {
+  /**
+   * @generated from oneof skillhub.configuration.v1.OpenCodeValue.value
+   */
+  value: {
+    /**
+     * @generated from field: bool null = 1;
+     */
+    value: boolean;
+    case: "null";
+  } | {
+    /**
+     * @generated from field: bool boolean = 2;
+     */
+    value: boolean;
+    case: "boolean";
+  } | {
+    /**
+     * @generated from field: string number = 3;
+     */
+    value: string;
+    case: "number";
+  } | {
+    /**
+     * @generated from field: string literal = 4;
+     */
+    value: string;
+    case: "literal";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeArray array = 5;
+     */
+    value: OpenCodeArray;
+    case: "array";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeObject object = 6;
+     */
+    value: OpenCodeObject;
+    case: "object";
+  } | {
+    /**
+     * @generated from field: string secret_reference = 7;
+     */
+    value: string;
+    case: "secretReference";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeValue.
+ * Use `create(OpenCodeValueSchema)` to create a new message.
+ */
+export const OpenCodeValueSchema: GenMessage<OpenCodeValue> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 17);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeArray
+ */
+export type OpenCodeArray = Message<"skillhub.configuration.v1.OpenCodeArray"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.OpenCodeValue values = 1;
+   */
+  values: OpenCodeValue[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeArray.
+ * Use `create(OpenCodeArraySchema)` to create a new message.
+ */
+export const OpenCodeArraySchema: GenMessage<OpenCodeArray> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 18);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeObject
+ */
+export type OpenCodeObject = Message<"skillhub.configuration.v1.OpenCodeObject"> & {
+  /**
+   * @generated from field: map<string, skillhub.configuration.v1.OpenCodeValue> entries = 1;
+   */
+  entries: { [key: string]: OpenCodeValue };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeObject.
+ * Use `create(OpenCodeObjectSchema)` to create a new message.
+ */
+export const OpenCodeObjectSchema: GenMessage<OpenCodeObject> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 19);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeStrings
+ */
+export type OpenCodeStrings = Message<"skillhub.configuration.v1.OpenCodeStrings"> & {
+  /**
+   * @generated from field: repeated string values = 1;
+   */
+  values: string[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeStrings.
+ * Use `create(OpenCodeStringsSchema)` to create a new message.
+ */
+export const OpenCodeStringsSchema: GenMessage<OpenCodeStrings> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 20);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeHeaders
+ */
+export type OpenCodeHeaders = Message<"skillhub.configuration.v1.OpenCodeHeaders"> & {
+  /**
+   * @generated from field: map<string, string> entries = 1;
+   */
+  entries: { [key: string]: string };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeHeaders.
+ * Use `create(OpenCodeHeadersSchema)` to create a new message.
+ */
+export const OpenCodeHeadersSchema: GenMessage<OpenCodeHeaders> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 21);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV1Models
+ */
+export type OpenCodeV1Models = Message<"skillhub.configuration.v1.OpenCodeV1Models"> & {
+  /**
+   * @generated from field: map<string, skillhub.configuration.v1.OpenCodeV1Model> entries = 1;
+   */
+  entries: { [key: string]: OpenCodeV1Model };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV1Models.
+ * Use `create(OpenCodeV1ModelsSchema)` to create a new message.
+ */
+export const OpenCodeV1ModelsSchema: GenMessage<OpenCodeV1Models> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 22);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV2Models
+ */
+export type OpenCodeV2Models = Message<"skillhub.configuration.v1.OpenCodeV2Models"> & {
+  /**
+   * @generated from field: map<string, skillhub.configuration.v1.OpenCodeV2Model> entries = 1;
+   */
+  entries: { [key: string]: OpenCodeV2Model };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV2Models.
+ * Use `create(OpenCodeV2ModelsSchema)` to create a new message.
+ */
+export const OpenCodeV2ModelsSchema: GenMessage<OpenCodeV2Models> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 23);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV1
+ */
+export type OpenCodeV1 = Message<"skillhub.configuration.v1.OpenCodeV1"> & {
+  /**
+   * @generated from field: optional string npm = 1;
+   */
+  npm?: string | undefined;
+
+  /**
+   * @generated from field: optional string name = 2;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeV1Options options = 3;
+   */
+  options?: OpenCodeV1Options | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeV1Models models = 4;
+   */
+  models?: OpenCodeV1Models | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 5;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV1.
+ * Use `create(OpenCodeV1Schema)` to create a new message.
+ */
+export const OpenCodeV1Schema: GenMessage<OpenCodeV1> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 24);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV1Options
+ */
+export type OpenCodeV1Options = Message<"skillhub.configuration.v1.OpenCodeV1Options"> & {
+  /**
+   * @generated from field: optional string base_url = 1;
+   */
+  baseUrl?: string | undefined;
+
+  /**
+   * @generated from field: optional string api_key = 2;
+   */
+  apiKey?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeHeaders headers = 3;
+   */
+  headers?: OpenCodeHeaders | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 4;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV1Options.
+ * Use `create(OpenCodeV1OptionsSchema)` to create a new message.
+ */
+export const OpenCodeV1OptionsSchema: GenMessage<OpenCodeV1Options> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 25);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV1Model
+ */
+export type OpenCodeV1Model = Message<"skillhub.configuration.v1.OpenCodeV1Model"> & {
+  /**
+   * @generated from field: optional string name = 1;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeLimit limit = 2;
+   */
+  limit?: OpenCodeLimit | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject options = 3;
+   */
+  options?: OpenCodeObject | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeModalities modalities = 4;
+   */
+  modalities?: OpenCodeModalities | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeValue thinking = 5;
+   */
+  thinking?: OpenCodeValue | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeValue cost = 6;
+   */
+  cost?: OpenCodeValue | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject variants = 7;
+   */
+  variants?: OpenCodeObject | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 8;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV1Model.
+ * Use `create(OpenCodeV1ModelSchema)` to create a new message.
+ */
+export const OpenCodeV1ModelSchema: GenMessage<OpenCodeV1Model> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 26);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeLimit
+ */
+export type OpenCodeLimit = Message<"skillhub.configuration.v1.OpenCodeLimit"> & {
+  /**
+   * @generated from field: optional string context = 1;
+   */
+  context?: string | undefined;
+
+  /**
+   * @generated from field: optional string input = 2;
+   */
+  input?: string | undefined;
+
+  /**
+   * @generated from field: optional string output = 3;
+   */
+  output?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 4;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeLimit.
+ * Use `create(OpenCodeLimitSchema)` to create a new message.
+ */
+export const OpenCodeLimitSchema: GenMessage<OpenCodeLimit> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 27);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeModalities
+ */
+export type OpenCodeModalities = Message<"skillhub.configuration.v1.OpenCodeModalities"> & {
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeStrings input = 1;
+   */
+  input?: OpenCodeStrings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeStrings output = 2;
+   */
+  output?: OpenCodeStrings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 3;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeModalities.
+ * Use `create(OpenCodeModalitiesSchema)` to create a new message.
+ */
+export const OpenCodeModalitiesSchema: GenMessage<OpenCodeModalities> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 28);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV2
+ */
+export type OpenCodeV2 = Message<"skillhub.configuration.v1.OpenCodeV2"> & {
+  /**
+   * @generated from field: optional string package = 1;
+   */
+  package?: string | undefined;
+
+  /**
+   * @generated from field: optional string name = 2;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: optional string canonical = 3;
+   */
+  canonical?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeStrings env = 4;
+   */
+  env?: OpenCodeStrings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeSettings settings = 5;
+   */
+  settings?: OpenCodeSettings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeHeaders headers = 6;
+   */
+  headers?: OpenCodeHeaders | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject body = 7;
+   */
+  body?: OpenCodeObject | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeV2Models models = 8;
+   */
+  models?: OpenCodeV2Models | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 9;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV2.
+ * Use `create(OpenCodeV2Schema)` to create a new message.
+ */
+export const OpenCodeV2Schema: GenMessage<OpenCodeV2> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 29);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeSettings
+ */
+export type OpenCodeSettings = Message<"skillhub.configuration.v1.OpenCodeSettings"> & {
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeTimeout timeout = 1;
+   */
+  timeout?: OpenCodeTimeout | undefined;
+
+  /**
+   * @generated from field: optional string chunk_timeout = 2;
+   */
+  chunkTimeout?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCompaction compaction = 3;
+   */
+  compaction?: OpenCodeCompaction | undefined;
+
+  /**
+   * @generated from field: optional string transport = 4;
+   */
+  transport?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 5;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeSettings.
+ * Use `create(OpenCodeSettingsSchema)` to create a new message.
+ */
+export const OpenCodeSettingsSchema: GenMessage<OpenCodeSettings> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 30);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeTimeout
+ */
+export type OpenCodeTimeout = Message<"skillhub.configuration.v1.OpenCodeTimeout"> & {
+  /**
+   * @generated from oneof skillhub.configuration.v1.OpenCodeTimeout.value
+   */
+  value: {
+    /**
+     * @generated from field: string number = 1;
+     */
+    value: string;
+    case: "number";
+  } | {
+    /**
+     * @generated from field: bool disabled = 2;
+     */
+    value: boolean;
+    case: "disabled";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeTimeout.
+ * Use `create(OpenCodeTimeoutSchema)` to create a new message.
+ */
+export const OpenCodeTimeoutSchema: GenMessage<OpenCodeTimeout> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 31);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCompaction
+ */
+export type OpenCodeCompaction = Message<"skillhub.configuration.v1.OpenCodeCompaction"> & {
+  /**
+   * @generated from field: string type = 1;
+   */
+  type: string;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 2;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCompaction.
+ * Use `create(OpenCodeCompactionSchema)` to create a new message.
+ */
+export const OpenCodeCompactionSchema: GenMessage<OpenCodeCompaction> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 32);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeModelSettings
+ */
+export type OpenCodeModelSettings = Message<"skillhub.configuration.v1.OpenCodeModelSettings"> & {
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCompaction compaction = 1;
+   */
+  compaction?: OpenCodeCompaction | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 2;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeModelSettings.
+ * Use `create(OpenCodeModelSettingsSchema)` to create a new message.
+ */
+export const OpenCodeModelSettingsSchema: GenMessage<OpenCodeModelSettings> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 33);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeV2Model
+ */
+export type OpenCodeV2Model = Message<"skillhub.configuration.v1.OpenCodeV2Model"> & {
+  /**
+   * @generated from field: optional string model_id = 1;
+   */
+  modelId?: string | undefined;
+
+  /**
+   * @generated from field: optional string family = 2;
+   */
+  family?: string | undefined;
+
+  /**
+   * @generated from field: optional string name = 3;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from field: optional string package = 4;
+   */
+  package?: string | undefined;
+
+  /**
+   * @generated from field: optional bool disabled = 5;
+   */
+  disabled?: boolean | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeModelSettings settings = 6;
+   */
+  settings?: OpenCodeModelSettings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeHeaders headers = 7;
+   */
+  headers?: OpenCodeHeaders | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject body = 8;
+   */
+  body?: OpenCodeObject | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCompatibility compatibility = 9;
+   */
+  compatibility?: OpenCodeCompatibility | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCapabilities capabilities = 10;
+   */
+  capabilities?: OpenCodeCapabilities | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeLimit limit = 11;
+   */
+  limit?: OpenCodeLimit | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCosts cost = 12;
+   */
+  cost?: OpenCodeCosts | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeVariants variants = 13;
+   */
+  variants?: OpenCodeVariants | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 14;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeV2Model.
+ * Use `create(OpenCodeV2ModelSchema)` to create a new message.
+ */
+export const OpenCodeV2ModelSchema: GenMessage<OpenCodeV2Model> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 34);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeVariant
+ */
+export type OpenCodeVariant = Message<"skillhub.configuration.v1.OpenCodeVariant"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeModelSettings settings = 2;
+   */
+  settings?: OpenCodeModelSettings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeHeaders headers = 3;
+   */
+  headers?: OpenCodeHeaders | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject body = 4;
+   */
+  body?: OpenCodeObject | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 5;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeVariant.
+ * Use `create(OpenCodeVariantSchema)` to create a new message.
+ */
+export const OpenCodeVariantSchema: GenMessage<OpenCodeVariant> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 35);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeVariants
+ */
+export type OpenCodeVariants = Message<"skillhub.configuration.v1.OpenCodeVariants"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.OpenCodeVariant values = 1;
+   */
+  values: OpenCodeVariant[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeVariants.
+ * Use `create(OpenCodeVariantsSchema)` to create a new message.
+ */
+export const OpenCodeVariantsSchema: GenMessage<OpenCodeVariants> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 36);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCompatibility
+ */
+export type OpenCodeCompatibility = Message<"skillhub.configuration.v1.OpenCodeCompatibility"> & {
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeValue reasoning_field = 1;
+   */
+  reasoningField?: OpenCodeValue | undefined;
+
+  /**
+   * @generated from field: optional bool require_reasoning = 2;
+   */
+  requireReasoning?: boolean | undefined;
+
+  /**
+   * @generated from field: optional string max_tokens_field = 3;
+   */
+  maxTokensField?: string | undefined;
+
+  /**
+   * @generated from field: optional bool require_finish_reason = 4;
+   */
+  requireFinishReason?: boolean | undefined;
+
+  /**
+   * @generated from field: optional bool require_assistant_after_tool = 5;
+   */
+  requireAssistantAfterTool?: boolean | undefined;
+
+  /**
+   * @generated from field: optional bool supports_prompt_cache_key = 6;
+   */
+  supportsPromptCacheKey?: boolean | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 7;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCompatibility.
+ * Use `create(OpenCodeCompatibilitySchema)` to create a new message.
+ */
+export const OpenCodeCompatibilitySchema: GenMessage<OpenCodeCompatibility> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 37);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCapabilities
+ */
+export type OpenCodeCapabilities = Message<"skillhub.configuration.v1.OpenCodeCapabilities"> & {
+  /**
+   * @generated from field: optional bool tools = 1;
+   */
+  tools?: boolean | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeStrings input = 2;
+   */
+  input?: OpenCodeStrings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeStrings output = 3;
+   */
+  output?: OpenCodeStrings | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 4;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCapabilities.
+ * Use `create(OpenCodeCapabilitiesSchema)` to create a new message.
+ */
+export const OpenCodeCapabilitiesSchema: GenMessage<OpenCodeCapabilities> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 38);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCosts
+ */
+export type OpenCodeCosts = Message<"skillhub.configuration.v1.OpenCodeCosts"> & {
+  /**
+   * @generated from oneof skillhub.configuration.v1.OpenCodeCosts.shape
+   */
+  shape: {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeCost single = 1;
+     */
+    value: OpenCodeCost;
+    case: "single";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.OpenCodeCostList tiers = 2;
+     */
+    value: OpenCodeCostList;
+    case: "tiers";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCosts.
+ * Use `create(OpenCodeCostsSchema)` to create a new message.
+ */
+export const OpenCodeCostsSchema: GenMessage<OpenCodeCosts> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 39);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCostList
+ */
+export type OpenCodeCostList = Message<"skillhub.configuration.v1.OpenCodeCostList"> & {
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.OpenCodeCost values = 1;
+   */
+  values: OpenCodeCost[];
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCostList.
+ * Use `create(OpenCodeCostListSchema)` to create a new message.
+ */
+export const OpenCodeCostListSchema: GenMessage<OpenCodeCostList> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 40);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCost
+ */
+export type OpenCodeCost = Message<"skillhub.configuration.v1.OpenCodeCost"> & {
+  /**
+   * @generated from field: optional string input = 1;
+   */
+  input?: string | undefined;
+
+  /**
+   * @generated from field: optional string output = 2;
+   */
+  output?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCacheCost cache = 3;
+   */
+  cache?: OpenCodeCacheCost | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeCostTier tier = 4;
+   */
+  tier?: OpenCodeCostTier | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 5;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCost.
+ * Use `create(OpenCodeCostSchema)` to create a new message.
+ */
+export const OpenCodeCostSchema: GenMessage<OpenCodeCost> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 41);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCacheCost
+ */
+export type OpenCodeCacheCost = Message<"skillhub.configuration.v1.OpenCodeCacheCost"> & {
+  /**
+   * @generated from field: optional string read = 1;
+   */
+  read?: string | undefined;
+
+  /**
+   * @generated from field: optional string write = 2;
+   */
+  write?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 3;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCacheCost.
+ * Use `create(OpenCodeCacheCostSchema)` to create a new message.
+ */
+export const OpenCodeCacheCostSchema: GenMessage<OpenCodeCacheCost> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 42);
+
+/**
+ * @generated from message skillhub.configuration.v1.OpenCodeCostTier
+ */
+export type OpenCodeCostTier = Message<"skillhub.configuration.v1.OpenCodeCostTier"> & {
+  /**
+   * @generated from field: string type = 1;
+   */
+  type: string;
+
+  /**
+   * @generated from field: optional string size = 2;
+   */
+  size?: string | undefined;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.OpenCodeObject extensions = 3;
+   */
+  extensions?: OpenCodeObject | undefined;
+};
+
+/**
+ * Describes the message skillhub.configuration.v1.OpenCodeCostTier.
+ * Use `create(OpenCodeCostTierSchema)` to create a new message.
+ */
+export const OpenCodeCostTierSchema: GenMessage<OpenCodeCostTier> = /*@__PURE__*/
+  messageDesc(file_skillhub_configuration_v1_configuration, 43);
+
+/**
  * @generated from message skillhub.configuration.v1.ListAssetsResponse
  */
 export type ListAssetsResponse = Message<"skillhub.configuration.v1.ListAssetsResponse"> & {
@@ -493,7 +1393,7 @@ export type ListAssetsResponse = Message<"skillhub.configuration.v1.ListAssetsRe
  * Use `create(ListAssetsResponseSchema)` to create a new message.
  */
 export const ListAssetsResponseSchema: GenMessage<ListAssetsResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 16);
+  messageDesc(file_skillhub_configuration_v1_configuration, 44);
 
 /**
  * @generated from message skillhub.configuration.v1.GetAssetRequest
@@ -510,7 +1410,7 @@ export type GetAssetRequest = Message<"skillhub.configuration.v1.GetAssetRequest
  * Use `create(GetAssetRequestSchema)` to create a new message.
  */
 export const GetAssetRequestSchema: GenMessage<GetAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 17);
+  messageDesc(file_skillhub_configuration_v1_configuration, 45);
 
 /**
  * @generated from message skillhub.configuration.v1.GetAssetResponse
@@ -527,7 +1427,7 @@ export type GetAssetResponse = Message<"skillhub.configuration.v1.GetAssetRespon
  * Use `create(GetAssetResponseSchema)` to create a new message.
  */
 export const GetAssetResponseSchema: GenMessage<GetAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 18);
+  messageDesc(file_skillhub_configuration_v1_configuration, 46);
 
 /**
  * @generated from message skillhub.configuration.v1.ReadDraftRequest
@@ -544,7 +1444,7 @@ export type ReadDraftRequest = Message<"skillhub.configuration.v1.ReadDraftReque
  * Use `create(ReadDraftRequestSchema)` to create a new message.
  */
 export const ReadDraftRequestSchema: GenMessage<ReadDraftRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 19);
+  messageDesc(file_skillhub_configuration_v1_configuration, 47);
 
 /**
  * @generated from message skillhub.configuration.v1.ReadDraftResponse
@@ -561,7 +1461,7 @@ export type ReadDraftResponse = Message<"skillhub.configuration.v1.ReadDraftResp
  * Use `create(ReadDraftResponseSchema)` to create a new message.
  */
 export const ReadDraftResponseSchema: GenMessage<ReadDraftResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 20);
+  messageDesc(file_skillhub_configuration_v1_configuration, 48);
 
 /**
  * @generated from message skillhub.configuration.v1.CreateAssetRequest
@@ -583,7 +1483,7 @@ export type CreateAssetRequest = Message<"skillhub.configuration.v1.CreateAssetR
  * Use `create(CreateAssetRequestSchema)` to create a new message.
  */
 export const CreateAssetRequestSchema: GenMessage<CreateAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 21);
+  messageDesc(file_skillhub_configuration_v1_configuration, 49);
 
 /**
  * @generated from message skillhub.configuration.v1.CreateAssetResponse
@@ -600,7 +1500,7 @@ export type CreateAssetResponse = Message<"skillhub.configuration.v1.CreateAsset
  * Use `create(CreateAssetResponseSchema)` to create a new message.
  */
 export const CreateAssetResponseSchema: GenMessage<CreateAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 22);
+  messageDesc(file_skillhub_configuration_v1_configuration, 50);
 
 /**
  * @generated from message skillhub.configuration.v1.UpdateAssetRequest
@@ -632,7 +1532,7 @@ export type UpdateAssetRequest = Message<"skillhub.configuration.v1.UpdateAssetR
  * Use `create(UpdateAssetRequestSchema)` to create a new message.
  */
 export const UpdateAssetRequestSchema: GenMessage<UpdateAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 23);
+  messageDesc(file_skillhub_configuration_v1_configuration, 51);
 
 /**
  * @generated from message skillhub.configuration.v1.UpdateAssetResponse
@@ -649,7 +1549,7 @@ export type UpdateAssetResponse = Message<"skillhub.configuration.v1.UpdateAsset
  * Use `create(UpdateAssetResponseSchema)` to create a new message.
  */
 export const UpdateAssetResponseSchema: GenMessage<UpdateAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 24);
+  messageDesc(file_skillhub_configuration_v1_configuration, 52);
 
 /**
  * @generated from message skillhub.configuration.v1.CopyAssetRequest
@@ -676,7 +1576,7 @@ export type CopyAssetRequest = Message<"skillhub.configuration.v1.CopyAssetReque
  * Use `create(CopyAssetRequestSchema)` to create a new message.
  */
 export const CopyAssetRequestSchema: GenMessage<CopyAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 25);
+  messageDesc(file_skillhub_configuration_v1_configuration, 53);
 
 /**
  * @generated from message skillhub.configuration.v1.CopyAssetResponse
@@ -693,7 +1593,7 @@ export type CopyAssetResponse = Message<"skillhub.configuration.v1.CopyAssetResp
  * Use `create(CopyAssetResponseSchema)` to create a new message.
  */
 export const CopyAssetResponseSchema: GenMessage<CopyAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 26);
+  messageDesc(file_skillhub_configuration_v1_configuration, 54);
 
 /**
  * @generated from message skillhub.configuration.v1.DeleteAssetRequest
@@ -715,7 +1615,7 @@ export type DeleteAssetRequest = Message<"skillhub.configuration.v1.DeleteAssetR
  * Use `create(DeleteAssetRequestSchema)` to create a new message.
  */
 export const DeleteAssetRequestSchema: GenMessage<DeleteAssetRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 27);
+  messageDesc(file_skillhub_configuration_v1_configuration, 55);
 
 /**
  * @generated from message skillhub.configuration.v1.DeleteAssetResponse
@@ -728,7 +1628,7 @@ export type DeleteAssetResponse = Message<"skillhub.configuration.v1.DeleteAsset
  * Use `create(DeleteAssetResponseSchema)` to create a new message.
  */
 export const DeleteAssetResponseSchema: GenMessage<DeleteAssetResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_configuration_v1_configuration, 28);
+  messageDesc(file_skillhub_configuration_v1_configuration, 56);
 
 /**
  * @generated from enum skillhub.configuration.v1.AssetKind

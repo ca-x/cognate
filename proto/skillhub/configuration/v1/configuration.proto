@@ -139,6 +139,7 @@ message Draft {
     ClaudeProvider claude_provider = 2;
     CodexProvider codex_provider = 3;
     GeminiProvider gemini_provider = 4;
+    OpenCodeProvider opencode_provider = 5;
   }
 }
 
@@ -168,6 +169,202 @@ message DraftView {
 }
 
 message ListAssetsRequest {}
+message OpenCodeProvider {
+  string provider_id = 1;
+  oneof format {
+    OpenCodeV1 v1 = 2;
+    OpenCodeV2 v2 = 3;
+  }
+}
+
+message OpenCodeValue {
+  oneof value {
+    bool null = 1;
+    bool boolean = 2;
+    string number = 3;
+    string literal = 4 [debug_redact = true];
+    OpenCodeArray array = 5;
+    OpenCodeObject object = 6;
+    string secret_reference = 7;
+  }
+}
+
+message OpenCodeArray {
+  repeated OpenCodeValue values = 1;
+}
+
+message OpenCodeObject {
+  map<string, OpenCodeValue> entries = 1;
+}
+
+message OpenCodeStrings {
+  repeated string values = 1;
+}
+
+message OpenCodeHeaders {
+  map<string, string> entries = 1;
+}
+
+message OpenCodeV1Models {
+  map<string, OpenCodeV1Model> entries = 1;
+}
+
+message OpenCodeV2Models {
+  map<string, OpenCodeV2Model> entries = 1;
+}
+
+message OpenCodeV1 {
+  optional string npm = 1;
+  optional string name = 2;
+  OpenCodeV1Options options = 3;
+  OpenCodeV1Models models = 4;
+  OpenCodeObject extensions = 5;
+}
+
+message OpenCodeV1Options {
+  optional string base_url = 1;
+  optional string api_key = 2;
+  OpenCodeHeaders headers = 3;
+  OpenCodeObject extensions = 4;
+}
+
+message OpenCodeV1Model {
+  optional string name = 1;
+  OpenCodeLimit limit = 2;
+  OpenCodeObject options = 3;
+  OpenCodeModalities modalities = 4;
+  OpenCodeValue thinking = 5;
+  OpenCodeValue cost = 6;
+  OpenCodeObject variants = 7;
+  OpenCodeObject extensions = 8;
+}
+
+message OpenCodeLimit {
+  optional string context = 1;
+  optional string input = 2;
+  optional string output = 3;
+  OpenCodeObject extensions = 4;
+}
+
+message OpenCodeModalities {
+  OpenCodeStrings input = 1;
+  OpenCodeStrings output = 2;
+  OpenCodeObject extensions = 3;
+}
+
+message OpenCodeV2 {
+  optional string package = 1;
+  optional string name = 2;
+  optional string canonical = 3;
+  OpenCodeStrings env = 4;
+  OpenCodeSettings settings = 5;
+  OpenCodeHeaders headers = 6;
+  OpenCodeObject body = 7;
+  OpenCodeV2Models models = 8;
+  OpenCodeObject extensions = 9;
+}
+
+message OpenCodeSettings {
+  OpenCodeTimeout timeout = 1;
+  optional string chunk_timeout = 2;
+  OpenCodeCompaction compaction = 3;
+  optional string transport = 4;
+  OpenCodeObject extensions = 5;
+}
+
+message OpenCodeTimeout {
+  oneof value {
+    string number = 1;
+    bool disabled = 2;
+  }
+}
+
+message OpenCodeCompaction {
+  string type = 1;
+  OpenCodeObject extensions = 2;
+}
+
+message OpenCodeModelSettings {
+  OpenCodeCompaction compaction = 1;
+  OpenCodeObject extensions = 2;
+}
+
+message OpenCodeV2Model {
+  optional string model_id = 1;
+  optional string family = 2;
+  optional string name = 3;
+  optional string package = 4;
+  optional bool disabled = 5;
+  OpenCodeModelSettings settings = 6;
+  OpenCodeHeaders headers = 7;
+  OpenCodeObject body = 8;
+  OpenCodeCompatibility compatibility = 9;
+  OpenCodeCapabilities capabilities = 10;
+  OpenCodeLimit limit = 11;
+  OpenCodeCosts cost = 12;
+  OpenCodeVariants variants = 13;
+  OpenCodeObject extensions = 14;
+}
+
+message OpenCodeVariant {
+  string id = 1;
+  OpenCodeModelSettings settings = 2;
+  OpenCodeHeaders headers = 3;
+  OpenCodeObject body = 4;
+  OpenCodeObject extensions = 5;
+}
+
+message OpenCodeVariants {
+  repeated OpenCodeVariant values = 1;
+}
+
+message OpenCodeCompatibility {
+  OpenCodeValue reasoning_field = 1;
+  optional bool require_reasoning = 2;
+  optional string max_tokens_field = 3;
+  optional bool require_finish_reason = 4;
+  optional bool require_assistant_after_tool = 5;
+  optional bool supports_prompt_cache_key = 6;
+  OpenCodeObject extensions = 7;
+}
+
+message OpenCodeCapabilities {
+  optional bool tools = 1;
+  OpenCodeStrings input = 2;
+  OpenCodeStrings output = 3;
+  OpenCodeObject extensions = 4;
+}
+
+message OpenCodeCosts {
+  oneof shape {
+    OpenCodeCost single = 1;
+    OpenCodeCostList tiers = 2;
+  }
+}
+
+message OpenCodeCostList {
+  repeated OpenCodeCost values = 1;
+}
+
+message OpenCodeCost {
+  optional string input = 1;
+  optional string output = 2;
+  OpenCodeCacheCost cache = 3;
+  OpenCodeCostTier tier = 4;
+  OpenCodeObject extensions = 5;
+}
+
+message OpenCodeCacheCost {
+  optional string read = 1;
+  optional string write = 2;
+  OpenCodeObject extensions = 3;
+}
+
+message OpenCodeCostTier {
+  string type = 1;
+  optional string size = 2;
+  OpenCodeObject extensions = 3;
+}
 message ListAssetsResponse {
   repeated Asset assets = 1;
 }

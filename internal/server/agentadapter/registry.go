@@ -77,12 +77,15 @@ func validDefinition(definition Definition) bool {
 	if manifest.APIVersion != agentconfig.APIVersion || !identifier.MatchString(manifest.PluginID) || len(manifest.PluginVersion) > 32 || !version.MatchString(manifest.PluginVersion) || len(definition.Module) > agentconfig.MaxModuleBytes {
 		return false
 	}
-	validTarget := manifest.AgentID == "claude" && manifest.Target == agentconfig.ClaudeSettings && manifest.Format == agentconfig.JSON || manifest.AgentID == "codex" && manifest.Target == agentconfig.CodexConfig && manifest.Format == agentconfig.TOML || manifest.AgentID == "gemini" && manifest.Target == agentconfig.GeminiSettings && manifest.Format == agentconfig.JSON
+	validTarget := manifest.AgentID == "claude" && manifest.Target == agentconfig.ClaudeSettings && manifest.Format == agentconfig.JSON || manifest.AgentID == "codex" && manifest.Target == agentconfig.CodexConfig && manifest.Format == agentconfig.TOML || manifest.AgentID == "gemini" && manifest.Target == agentconfig.GeminiSettings && manifest.Format == agentconfig.JSON || manifest.AgentID == "opencode" && manifest.Target == agentconfig.OpenCodeConfig && manifest.Format == agentconfig.JSON
 	if !validTarget {
 		return false
 	}
 	if len(manifest.Capabilities) == 0 {
 		return definition.Module == ""
+	}
+	if manifest.Target == agentconfig.OpenCodeConfig {
+		return len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.OpenCodeProviderPlanV1 && len(definition.Module) > 0
 	}
 	if manifest.Target == agentconfig.GeminiSettings {
 		return len(manifest.Capabilities) == 1 && manifest.Capabilities[0] == agentconfig.GeminiProviderPlanV1 && len(definition.Module) > 0

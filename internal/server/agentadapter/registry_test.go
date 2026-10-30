@@ -134,10 +134,10 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		test.Fatal(err)
 	}
 	descriptors := registry.List()
-	if len(descriptors) != 3 {
-		test.Fatalf("expected three built-in adapters, got %d", len(descriptors))
+	if len(descriptors) != 4 {
+		test.Fatalf("expected four built-in adapters, got %d", len(descriptors))
 	}
-	expected := map[string]agentconfig.Target{"claude": agentconfig.ClaudeSettings, "codex": agentconfig.CodexConfig, "gemini": agentconfig.GeminiSettings}
+	expected := map[string]agentconfig.Target{"claude": agentconfig.ClaudeSettings, "codex": agentconfig.CodexConfig, "gemini": agentconfig.GeminiSettings, "opencode": agentconfig.OpenCodeConfig}
 	for _, descriptor := range descriptors {
 		manifest := descriptor.Manifest
 		expectedVersion := "1.0.0"
@@ -156,6 +156,9 @@ func TestBuiltinRegistryListsVersionedTargets(test *testing.T) {
 		}
 		if manifest.AgentID == "gemini" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.GeminiProviderPlanV1) {
 			test.Fatal("Gemini must declare only its planner capability")
+		}
+		if manifest.AgentID == "opencode" && (len(manifest.Capabilities) != 1 || manifest.Capabilities[0] != agentconfig.OpenCodeProviderPlanV1) {
+			test.Fatal("OpenCode must declare only its planner capability")
 		}
 	}
 	if len(expected) != 0 {

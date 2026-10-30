@@ -48,12 +48,14 @@ func (codec configurationCodec) Unmarshal(data []byte, value any) error {
 		if !configurationCodexJSONValid(data, message.ProtoReflect().Descriptor(), false, 0) {
 			return invalid()
 		}
-		err = (protojson.UnmarshalOptions{RecursionLimit: 16}).Unmarshal(data, message)
+		limit := configurationOpenCodeRecursionLimit(data, message.ProtoReflect().Descriptor(), true)
+		err = (protojson.UnmarshalOptions{RecursionLimit: limit}).Unmarshal(data, message)
 	} else {
 		if !configurationWireValid(data, message.ProtoReflect().Descriptor(), 0) {
 			return invalid()
 		}
-		err = (proto.UnmarshalOptions{RecursionLimit: 16}).Unmarshal(data, message)
+		limit := configurationOpenCodeRecursionLimit(data, message.ProtoReflect().Descriptor(), false)
+		err = (proto.UnmarshalOptions{RecursionLimit: limit}).Unmarshal(data, message)
 	}
 	if err != nil || !configurationMessageValid(message.ProtoReflect()) {
 		return invalid()
@@ -62,6 +64,9 @@ func (codec configurationCodec) Unmarshal(data []byte, value any) error {
 }
 
 func configurationMessageValid(message protoreflect.Message) bool {
+	if message.Descriptor().FullName() == "skillhub.configuration.v1.OpenCodeProvider" {
+		return configurationOpenCodeMessageValid(message)
+	}
 	valid := len(message.GetUnknown()) == 0
 	message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
 		check := func(value protoreflect.Value) bool {
@@ -86,6 +91,9 @@ func configurationMessageValid(message protoreflect.Message) bool {
 }
 
 func configurationWireValid(data []byte, descriptor protoreflect.MessageDescriptor, depth int) bool {
+	if descriptor.FullName() == "skillhub.configuration.v1.OpenCodeProvider" {
+		return configurationOpenCodeWireValid(data, descriptor)
+	}
 	if depth > 16 {
 		return false
 	}

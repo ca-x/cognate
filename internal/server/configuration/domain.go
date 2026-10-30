@@ -35,12 +35,15 @@ func (service *Service) load(ctx context.Context, owner, id string) (state.Confi
 }
 
 func (service *Service) Edit(ctx context.Context, owner, id string) (EditView, error) {
-	metadata, payload, err := service.loadEditable(ctx, owner, id)
+	metadata, payload, err := service.loadProviderEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
 	}
 	if metadata.AgentID == "gemini" {
 		return geminiEdit(ctx, metadata, payload)
+	}
+	if metadata.AgentID == "opencode" {
+		return openCodeEdit(ctx, metadata, payload)
 	}
 	if metadata.AgentID == "codex" {
 		return codexEdit(metadata, payload)
@@ -57,12 +60,15 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if expectedRevision < 1 || expectedRevision == math.MaxInt64 {
 		return EditView{}, ErrInvalid
 	}
-	metadata, payload, err := service.loadEditable(ctx, owner, id)
+	metadata, payload, err := service.loadProviderEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
 	}
 	if metadata.Revision != expectedRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "opencode" {
+		return service.updateOpenCode(ctx, owner, metadata, payload, input, mutations)
 	}
 	if metadata.AgentID == "gemini" {
 		return service.updateGemini(ctx, owner, metadata, payload, input, mutations)
@@ -70,7 +76,7 @@ func (service *Service) Update(ctx context.Context, owner, id string, expectedRe
 	if metadata.AgentID == "codex" {
 		return service.updateCodex(ctx, owner, metadata, payload, input, mutations)
 	}
-	if input.CodexProvider != nil || input.GeminiProvider != nil {
+	if input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil {
 		return EditView{}, ErrInvalid
 	}
 	_, current, err := decodeEnvelope(payload)
@@ -108,12 +114,22 @@ func (service *Service) Copy(ctx context.Context, owner, id string, expectedSour
 	if expectedSourceRevision < 1 {
 		return EditView{}, ErrInvalid
 	}
-	metadata, payload, err := service.loadEditable(ctx, owner, id)
+	metadata, payload, err := service.loadProviderEditable(ctx, owner, id)
 	if err != nil {
 		return EditView{}, err
 	}
 	if metadata.Revision != expectedSourceRevision {
 		return EditView{}, ErrConflict
+	}
+	if metadata.AgentID == "opencode" {
+		view, err := openCodeEdit(ctx, metadata, payload)
+		if err != nil {
+			return EditView{}, err
+		}
+		if view.HasPreservedExtras {
+			return EditView{}, ErrUnsupported
+		}
+		return service.Create(ctx, owner, Draft{Name: name, OpenCodeProvider: view.OpenCodeProvider}, nil)
 	}
 	if metadata.AgentID == "gemini" {
 		view, err := geminiEdit(ctx, metadata, payload)
@@ -238,6 +254,17 @@ func normalizeDraft(input Draft) (Draft, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	if !validText(input.Name, 128) {
 		return Draft{}, ErrInvalid
+	}
+	if input.OpenCodeProvider != nil {
+		if input.Provider != (ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil {
+			return Draft{}, ErrInvalid
+		}
+		provider, err := cloneOpenCodeProvider(*input.OpenCodeProvider)
+		if err != nil {
+			return Draft{}, err
+		}
+		input.OpenCodeProvider = &provider
+		return input, nil
 	}
 	if input.GeminiProvider != nil {
 		if input.CodexProvider != nil || input.Provider != (ClaudeProvider{}) {
@@ -422,6 +449,14 @@ func (service *Service) Create(ctx context.Context, owner string, input Draft, m
 	input, err := normalizeDraft(input)
 	if err != nil {
 		return EditView{}, err
+	}
+	if input.OpenCodeProvider != nil {
+		secrets, err := mergeOpenCodeSecrets(nil, *input.OpenCodeProvider, mutations, true)
+		if err != nil {
+			return EditView{}, err
+		}
+		defer secrets.clear()
+		return service.createOpenCode(ctx, owner, input, secrets)
 	}
 	if input.GeminiProvider != nil {
 		secret, err := mergeGeminiSecret(Secret{}, mutations, true)
