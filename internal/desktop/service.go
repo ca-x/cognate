@@ -202,6 +202,9 @@ func (service *Service) openPackManager(ctx context.Context) (*subscription.Mana
 }
 
 func (service *Service) InitializeClientKey(ctx context.Context) error {
+	if runtime.GOOS != "linux" {
+		return clientkey.ErrUnsupported
+	}
 	return clientkey.Initialize(ctx, service.Home)
 }
 

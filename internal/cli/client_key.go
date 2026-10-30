@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -14,6 +15,9 @@ import (
 )
 
 func loadClientKey(ctx context.Context, home string) ([]byte, error) {
+	if runtime.GOOS != "linux" {
+		return nil, clientkey.ErrUnsupported
+	}
 	return clientkey.LoadExisting(ctx, home)
 }
 
@@ -38,6 +42,9 @@ func newClientKeyCommand() *cobra.Command {
 		RunE: func(command *cobra.Command, _ []string) (returnedError error) {
 			if timeout <= 0 || timeout > 2*time.Minute {
 				return clientkey.ErrUnavailable
+			}
+			if runtime.GOOS != "linux" {
+				return clientkey.ErrUnsupported
 			}
 			ctx, cancel := context.WithTimeout(command.Context(), timeout)
 			defer cancel()
