@@ -406,7 +406,21 @@ func checkProvider(ctx context.Context, images LocalImages, declaration agentcon
 			return ProviderPlan{}, err
 		}
 	}
-	if declaration.ReasoningEffort == nil {
+	if profile.id == Native0166EffectiveProfileID {
+		finalCatalog := catalog
+		explicit := declaration.Catalog != nil
+		if !explicit {
+			_, explicit = document.lookup("model_catalog_json")
+			finalCatalog = values[2].get[imageData]().body
+		}
+		model, err := resolveEffective0166(ctx, profile, declaration.Model, explicit, finalCatalog)
+		if err != nil {
+			return ProviderPlan{}, err
+		}
+		if model.lite {
+			return ProviderPlan{}, ErrUnsupportedNativeProfile
+		}
+	} else if declaration.ReasoningEffort == nil {
 		if retained, exists := document.lookup("model_reasoning_effort"); exists {
 			finalCatalog, err := readJSON(ctx, catalog)
 			if err != nil {

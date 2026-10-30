@@ -37,10 +37,11 @@ type nativeProfile struct {
 	ignoredModel       []string
 	efforts            []agentconfig.CodexReasoningEffort
 	descriptions       map[agentconfig.CodexReasoningEffort]string
+	modelSemantics     [32]byte
 }
 
 func approvedProfile(id string) (nativeProfile, bool) {
-	for _, profile := range [...]nativeProfile{native0166Profile()} {
+	for _, profile := range [...]nativeProfile{native0166Profile(), native0166EffectiveProfile()} {
 		if profile.id == id {
 			return profile, true
 		}
@@ -51,6 +52,11 @@ func approvedProfile(id string) (nativeProfile, bool) {
 func validateProfile(ctx context.Context, profile nativeProfile) error {
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+	if profile.id == Native0166EffectiveProfileID || profile.modelSemantics != [32]byte{} {
+		if err := validateEffective0166Profile(ctx, profile); err != nil {
+			return err
+		}
 	}
 	if !validModelID(profile.id) || profile.dialect != "toml-1.1" || profile.defaultStore < File || profile.defaultStore > Auto || profile.parallel != parallelCatalog && profile.parallel != parallelAlwaysOn || !profile.legacyInstructions || !profile.relativeCatalog || !profile.bearerPrecedence {
 		return ErrUnsupportedNativeProfile
@@ -264,7 +270,7 @@ func validateLocal(ctx context.Context, document *tomlDocument, catalog LocalIma
 	if declaration.ReasoningEffort == nil {
 		if value, exists := document.lookup("model_reasoning_effort"); exists {
 			effort := agentconfig.CodexReasoningEffort(value.(string))
-			if declaration.Catalog == nil || !slices.Contains(profile.efforts, effort) {
+			if declaration.Catalog == nil && profile.id != Native0166EffectiveProfileID || !slices.Contains(profile.efforts, effort) {
 				return ErrOwnershipConflict
 			}
 		}
@@ -314,5 +320,11 @@ func profileDigest(profile nativeProfile) [32]byte {
 		Descriptions map[agentconfig.CodexReasoningEffort]string
 	}{profile.id, profile.dialect, profile.defaultStore, profile.parallel, [3]bool{profile.legacyInstructions, profile.relativeCatalog, profile.bearerPrecedence}, profileTemplateDigest(profile),
 		[2][]string{profile.requiredRoot, profile.requiredModel}, [4][]string{profile.ignoredRoot, profile.ignoredProvider, profile.ignoredCatalogRoot, profile.ignoredModel}, profile.efforts, profile.descriptions}, json.Deterministic(true))
-	return sha256.Sum256(raw)
+	legacy := sha256.Sum256(raw)
+	if profile.modelSemantics == [32]byte{} {
+		return legacy
+	}
+	bound := append([]byte("cognate.codex.effective-profile.v2\x00"), legacy[:]...)
+	bound = append(bound, profile.modelSemantics[:]...)
+	return sha256.Sum256(bound)
 }

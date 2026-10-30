@@ -18,6 +18,31 @@ const Native0166ProfileID = "codex-0.166.0-linux-amd64-full-responses-v1"
 
 const Native0166ExecutableSHA256 = "b8a11fedf24b2dfb59a70c9e52b030f9a508dcd49cd2dd0d41956f4c785156b8"
 
+const Native0166EffectiveProfileID = "codex-0.166.0-linux-amd64-full-responses-effective-v2"
+
+func native0166EffectiveProfile() nativeProfile {
+	profile := native0166Profile()
+	profile.id = Native0166EffectiveProfileID
+	profile.modelSemantics = sha256.Sum256([]byte(native0166EffectiveSource))
+	return profile
+}
+
+func Native0166EffectiveManifest() (id string, manifest, profile, template [32]byte) {
+	data := native0166EffectiveProfile()
+	profile, template = profileDigest(data), profileTemplateDigest(data)
+	raw, _ := json.Marshal(struct {
+		ID         string
+		Source     string
+		Executable string
+		Profile    [32]byte
+		Template   [32]byte
+		Launch     string
+		Metadata   [32]byte
+		Semantics  string
+	}{data.id, "6ff1e1ca3b30fc8b914720681fcf5fe62e95f856", Native0166ExecutableSHA256, profile, template, "direct-app-server-env-cleared-file-auth-config-read-v1", data.modelSemantics, "effective-model-info-pass-through-7-v2"}, json.Deterministic(true))
+	return data.id, sha256.Sum256(raw), profile, template
+}
+
 func native0166Profile() nativeProfile {
 	efforts := []agentconfig.CodexReasoningEffort{"none", "minimal", "low", "medium", "high", "xhigh", "max"}
 	descriptions := make(map[agentconfig.CodexReasoningEffort]string, len(efforts))

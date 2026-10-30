@@ -4,12 +4,29 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json/v2"
 	"errors"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestNative0166EffectiveTuple(test *testing.T) {
+	for _, scenario := range []struct {
+		manifest func() (string, [32]byte, [32]byte, [32]byte)
+		id       string
+		wanted   [3]string
+	}{
+		{Native0166Manifest, Native0166ProfileID, [3]string{"48e7d6b81c0fd2e223297af2109e2def5d02319bc9811fa4ceee6c6c06c1d1be", "e8907ff47efec51937f7157a5e1d5f90d1b1c3d9b9cb07e3c5b43fbf7cf2c1ee", "3dcb5a25097379f27a103690d56b0e182f557ef26da2753742f6147384dbe515"}},
+		{Native0166EffectiveManifest, Native0166EffectiveProfileID, [3]string{"990ba16b7312c7cd41dc52f1c7a2dc4f2f916c4dbe52c25a2ef6dde90da586bb", "c044cdc06b1e4817e548ac71aa40ca63115578ac82d9ef76d4d6677ee5fb3161", "3dcb5a25097379f27a103690d56b0e182f557ef26da2753742f6147384dbe515"}},
+	} {
+		identifier, manifest, profile, template := scenario.manifest()
+		if identifier != scenario.id || hex.EncodeToString(manifest[:]) != scenario.wanted[0] || hex.EncodeToString(profile[:]) != scenario.wanted[1] || hex.EncodeToString(template[:]) != scenario.wanted[2] {
+			test.Fatal("profile tuple changed from approved deterministic identity proposal")
+		}
+	}
+}
 
 func TestNative0166LayerWitnessClosure(test *testing.T) {
 	const original = `{"layers":[{"name":{"type":"user","file":"/synthetic/.codex/config.toml"},"config":{"model":"synthetic"},"version":"user-version"},{"name":{"type":"system","file":"/etc/codex/config.toml"},"config":{},"version":"system-version"}]}`

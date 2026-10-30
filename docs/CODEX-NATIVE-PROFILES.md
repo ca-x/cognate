@@ -37,3 +37,19 @@ AlwaysOn 遇有效本地 Lite 模式必须拒绝；未知启动参数、其它�
 固定 native loader 会将相对 catalog 路径规范化；观察器只对 B 已支持的固定相对 `cognate-model-catalog.json` 按具体 user config 目录生成期望值，逐层语义比对仍拒绝其它路径或未解析结果，不另造配置合并。候选 template 的新增固定值须绑定 manifest 独立核证；Q1 的旧 native 证据不自动证明候选所有新值。独立真实规格验收前不得登记生产 profile、称 Applied 资格已完成或把私有 fixture 当真实端到端交付。
 
 非 Linux 仍 failclosed；跨编译不代表运行支持。CLI/MyGo 后续应用、C2、完整 D 与全部十四 agent 首发范围不因本片改变。
+
+## Effective ModelInfo v2 私有 codec 候选
+
+`Native0166EffectiveManifest()` 与旧 v1 accessor 分开；v1 ID、四项摘要、模板/golden 与原准入语义保留。v2 ID 为 `codex-0.166.0-linux-amd64-full-responses-effective-v2`，ProfileDigest 域分离绑定固定 source.json 原字节，TemplateDigest 仍为原显式目录模板摘要。完整 pinned metadata/prompt 和 Apache+NOTICE 原文位于 `internal/codexconfig/testdata/native-0.166.0/`，不依赖运行时下载或调用者提供模型能力。
+
+v2 仅从同一 Check 捕获/最终目录快照解析实际所选模型：无有效目录指针时用固定 bundled longest-prefix/受限单 namespace 匹配，显式或保留目录只 exact-match，miss 沿 native fallback。effective Lite 在返回 plan/读取所选秘密之前拒绝；已有 retained ownership/legacy false 冲突不放宽。七个合法资产 root effort 值均原样保留/传递，不按 advertised levels 再设人为 fence；根缺省沿 native default，不填目录、不把 model/list 的 none 投影写回根。
+
+这是纯 codec 候选，不是新生产 profile 登记、D/C2/CLI 应用闭环或 Binary redistribution READY。后继 D preflight2 与 C2 admission helper/test2 各须具名授权/独审，消费同一获批 v2 tuple 并拒绝混合身份。真实 consumer 的40 POST/逐字默认指令/presence 资格仍须另经实际运行与非作者核验。含这些上游数据的公开二进制、OCI、desktop 分发须先完成完整可读 license/notice 的实际打包验收；仅内嵌或 source.json 标签不构成该验收。
+
+### 2026-10-31：v2 codec 与限定消费者证据已验收
+
+上述候选阶段的消费者待办已由新源码绑定的 42 次实际 POST 补足，并经非作者限定核验；不继承旧 40 次运行的证书。源码包 SHA256 为 `4ccccfb5a833ccef8b4c5aa7a6c94268b7406f94464fe35502e831a781081c48`，独审报告 SHA256 为 `7af47f82252df888aa4f59023736846b4330e46abe752f6fe920857494539a62`。selected Full 行必须具备可用的 canonical 或 legacy 指令字符串；空串合法、canonical 优先，双缺失在选取秘密前拒绝且无 plan，不填默认文本。两个合法空串案例的实际请求都不发出 base-prefix item，而非发出空文本、null 或替代模板；其它 developer 上下文仍可存在。
+
+资格仅限既定 v2 tuple、固定 Linux/amd64 ELF、受控隔离的 Missing/API/fresh synthetic OAuth 与 loopback TLS。42 次完成均由 collector 确认，随后主动 kill 并 Wait(-9)，不是 native 优雅退出 0；独审核验这些新执行证据，没有冒称自己重跑全部 42 次。旧 REJECT 和失败探针保留。v1 accessor/摘要/语义不变；D/C2 helper 迁移、生产登记、官方账号刷新、实际业务端点、其它平台、完整客户端与首发资格仍未完成。默认资格表继续为空，不能仅凭本节启用应用；对应提交的实际打包与 CI 结果须单独核对。
+
+固定上游 `prompt.md` 第 151 行的末尾空格属于已核验原始字节，随源摘要保留，不做自动排版或 trim；它不是本项目手写 Go 的格式约定。

@@ -1,5 +1,15 @@
 # 开发预览验证
 
+## 2026-10-31：Codex effective ModelInfo v2 codec
+
+独立接受精确 source11 后继，源码包 SHA256 `4ccccfb5a833ccef8b4c5aa7a6c94268b7406f94464fe35502e831a781081c48`，报告 SHA256 `7af47f82252df888aa4f59023736846b4330e46abe752f6fe920857494539a62`。原 selected-instructions finding 仅在该后继的限定范围关闭；原 REJECT、旧 40 次与原反例保留。独审实际执行 codec 212 PASS、零 FAIL/SKIP，并核验新冻结的 42 个真实 POST/completed、主动 kill+Wait(-9)、TLS worker join 与 source/tuple/ELF 绑定，没有冒称重跑 42 次。两个合法空串补充案例通过存在性、完整文本和精确 item ID 证明 base-prefix 不发出，不与 absent/null 或默认文本混淆。
+
+主线程从当前主线组合已签收的 Codex CLI 与 v2 codec，代码/数据十叶（包括先前已交付且不重复修改的 LICENSE）与接受输入逐 SHA256 一致；profile 文档保留原文后仅追加限定验收状态。完整组合全仓测试退出 0：7,114 个含包及子用例 PASS、47 个测试包、130 个显式条件用例 SKIP，另 78 个无测试包，零 FAIL。全仓 vet、module verify 与六平台乘 CLI/server 的十二项 CGO0 Go1.27.3 构建及元数据检查通过；当前主树所有实现逐叶与该组合相同，仅需求和阶段文档有增补。独立 codec/消费者证据不替代 D/C2 helper 迁移或生产 profile 登记，默认门仍关闭。
+
+主线程最初在 Git-free 审查目录尝试导出主线，因错误 cwd 未生成源码；该 setup 失败保留，随后显式从固定主仓提交导出，未计为产品 RED 或通过结果。完整测试使用复用的精确 Web embed 产物，无新 Web/browser 运行声明；后继提交实际 CI 和产物仍须各自读回。
+
+暂存后的 whitespace 检查仅报告固定上游 `testdata/native-0.166.0/prompt.md:151` 的原始末尾空格；保留其已签收 SHA256，不以 trim 改写消费者模板证据。排除该单一原始数据叶后，其余暂存差异检查通过，不新增通用忽略规则。
+
 ## 2026-10-31：Codex CLI 显式编排与原操作确认
 
 原 Q4 独审发现恢复的同终端复核遗漏 source operation，保持原 REJECT 和普通 RED；后继仅修改原五路径内的三叶，明确显示原操作与新计划并维持最终确认绑定新计划。原字节不变的真实 main/App/TLS/SQLite/native/PTY 探针转绿；独立回退旧 renderer 或错误确认原操作的编译负控均普通 RED，恢复原后继通过。修复独审报告 SHA256 `160a38cb554471aff2360c4a57a6e1c96b0c3f432a1892e4494ad5091ef40e6e`，仅关闭该后继的同终端身份显示问题，不改旧失败历史。
