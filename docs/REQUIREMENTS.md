@@ -100,6 +100,7 @@
 5. **去重**：跨 pack / 跨仓库重合 skill 按 `slug + content hash` 判重，同一 skill 只装一份、只更新一次。
 
 - 实现补记（2026-10-28）：已接入用户隔离的 Pack CRUD、revision CAS、跨仓库选择与安装别名，以及 Web 管理、分享创建/列表/撤销和服务端 Connect manifest/二进制流。单用户最多 100 个 Pack，每 Pack 1–256 个技能选择；同别名不同内容拒绝保存，manifest 对同别名相同内容稳定去重。Linux 客户端订阅/安装/跨 Pack 去重、显式同步及备份卸载的限定范围已通过独立复验，见 `CLIENT-SUBSCRIPTIONS.md`；源自动更新、持续客户端调度与客户端配置附件仍待完成，不算 F5 或前端全部完成。
+- 实现补记（2026-10-30，仅配置附件存储层）：已通过独立验收的 owner-only Store 支持每 Pack 最多 16 条有序配置版本引用、Pack/附件组双 revision CAS、旧技能更新保留附件，以及被引用配置的事务内删除保护；配置更新后引用明确变为 stale，不自动追随新版本。读取只返回引用元数据，不复制配置内容或密钥，MCP 上下文不能访问。全部已登记目标仍为 NativeUnavailable；本片不包含附件 RPC/Web/MyGo、配置消费或授权自动应用，也不代表 F5/F12 或正式发布完成。
 - 分享编码决策：`shp1.` 加严格规范化的 base64url；二进制包含版本、随机分享 ID、32 字节随机 nonce、签发/过期秒数与 HMAC-SHA256。签名 key 通过外部主密钥的独立 HKDF 域派生，服务端只存完整 token 的 SHA256 和有效期/撤销状态。token 仅创建时返回一次，不进入 URL、日志或浏览器持久存储；可长期有效或最长 366 天。分享读取当前 Pack，下载绑定当时的 revision/成员/content hash，并在每块发送前重新核验数据库授权。已发送字节无法收回；检查与实际发送间仍有竞态窗口。详细协议见 `PACK-DISTRIBUTION.md`。
 
 ### F6 插件导入系统（moejs）

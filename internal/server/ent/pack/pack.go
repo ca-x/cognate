@@ -24,6 +24,8 @@ const (
 	FieldDescription = "description"
 	// FieldRevision holds the string denoting the revision field in the database.
 	FieldRevision = "revision"
+	// FieldConfigurationRevision holds the string denoting the configuration_revision field in the database.
+	FieldConfigurationRevision = "configuration_revision"
 	// FieldItemCount holds the string denoting the item_count field in the database.
 	FieldItemCount = "item_count"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -36,6 +38,8 @@ const (
 	EdgeItems = "items"
 	// EdgeShares holds the string denoting the shares edge name in mutations.
 	EdgeShares = "shares"
+	// EdgeConfigurationAttachments holds the string denoting the configuration_attachments edge name in mutations.
+	EdgeConfigurationAttachments = "configuration_attachments"
 	// Table holds the table name of the pack in the database.
 	Table = "packs"
 	// UserTable is the table that holds the user relation/edge.
@@ -59,6 +63,13 @@ const (
 	SharesInverseTable = "pack_shares"
 	// SharesColumn is the table column denoting the shares relation/edge.
 	SharesColumn = "pack_id"
+	// ConfigurationAttachmentsTable is the table that holds the configuration_attachments relation/edge.
+	ConfigurationAttachmentsTable = "pack_configuration_attachments"
+	// ConfigurationAttachmentsInverseTable is the table name for the PackConfigurationAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "packconfigurationattachment" package.
+	ConfigurationAttachmentsInverseTable = "pack_configuration_attachments"
+	// ConfigurationAttachmentsColumn is the table column denoting the configuration_attachments relation/edge.
+	ConfigurationAttachmentsColumn = "pack_id"
 )
 
 // Columns holds all SQL columns for pack fields.
@@ -69,6 +80,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldRevision,
+	FieldConfigurationRevision,
 	FieldItemCount,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -95,6 +107,10 @@ var (
 	DefaultRevision int64
 	// RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
 	RevisionValidator func(int64) error
+	// DefaultConfigurationRevision holds the default value on creation for the "configuration_revision" field.
+	DefaultConfigurationRevision int64
+	// ConfigurationRevisionValidator is a validator for the "configuration_revision" field. It is called by the builders before save.
+	ConfigurationRevisionValidator func(int64) error
 	// ItemCountValidator is a validator for the "item_count" field. It is called by the builders before save.
 	ItemCountValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -134,6 +150,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByRevision orders the results by the revision field.
 func ByRevision(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRevision, opts...).ToFunc()
+}
+
+// ByConfigurationRevision orders the results by the configuration_revision field.
+func ByConfigurationRevision(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfigurationRevision, opts...).ToFunc()
 }
 
 // ByItemCount orders the results by the item_count field.
@@ -185,6 +206,20 @@ func ByShares(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSharesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByConfigurationAttachmentsCount orders the results by configuration_attachments count.
+func ByConfigurationAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfigurationAttachmentsStep(), opts...)
+	}
+}
+
+// ByConfigurationAttachments orders the results by configuration_attachments terms.
+func ByConfigurationAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfigurationAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -204,5 +239,12 @@ func newSharesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SharesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SharesTable, SharesColumn),
+	)
+}
+func newConfigurationAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfigurationAttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAttachmentsTable, ConfigurationAttachmentsColumn),
 	)
 }

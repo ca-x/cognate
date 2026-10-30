@@ -33,6 +33,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
@@ -82,6 +83,8 @@ type Client struct {
 	OIDCIdentity *OIDCIdentityClient
 	// Pack is the client for interacting with the Pack builders.
 	Pack *PackClient
+	// PackConfigurationAttachment is the client for interacting with the PackConfigurationAttachment builders.
+	PackConfigurationAttachment *PackConfigurationAttachmentClient
 	// PackItem is the client for interacting with the PackItem builders.
 	PackItem *PackItemClient
 	// PackShare is the client for interacting with the PackShare builders.
@@ -123,6 +126,7 @@ func (c *Client) init() {
 	c.NativeMaterializationGrant = NewNativeMaterializationGrantClient(c.config)
 	c.OIDCIdentity = NewOIDCIdentityClient(c.config)
 	c.Pack = NewPackClient(c.config)
+	c.PackConfigurationAttachment = NewPackConfigurationAttachmentClient(c.config)
 	c.PackItem = NewPackItemClient(c.config)
 	c.PackShare = NewPackShareClient(c.config)
 	c.RepositoryPrivateHistory = NewRepositoryPrivateHistoryClient(c.config)
@@ -219,32 +223,33 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                        ctx,
-		config:                     cfg,
-		Category:                   NewCategoryClient(cfg),
-		CollectedRepository:        NewCollectedRepositoryClient(cfg),
-		CollectedSkill:             NewCollectedSkillClient(cfg),
-		ConfigurationAsset:         NewConfigurationAssetClient(cfg),
-		GitHubCredential:           NewGitHubCredentialClient(cfg),
-		GitHubList:                 NewGitHubListClient(cfg),
-		GitHubMembership:           NewGitHubMembershipClient(cfg),
-		GitHubRepository:           NewGitHubRepositoryClient(cfg),
-		ImportReceipt:              NewImportReceiptClient(cfg),
-		LocalAccount:               NewLocalAccountClient(cfg),
-		MCPAudit:                   NewMCPAuditClient(cfg),
-		MCPCredential:              NewMCPCredentialClient(cfg),
-		NativeApplyPreparation:     NewNativeApplyPreparationClient(cfg),
-		NativeConsumerChallenge:    NewNativeConsumerChallengeClient(cfg),
-		NativeConsumerSession:      NewNativeConsumerSessionClient(cfg),
-		NativeMaterializationGrant: NewNativeMaterializationGrantClient(cfg),
-		OIDCIdentity:               NewOIDCIdentityClient(cfg),
-		Pack:                       NewPackClient(cfg),
-		PackItem:                   NewPackItemClient(cfg),
-		PackShare:                  NewPackShareClient(cfg),
-		RepositoryPrivateHistory:   NewRepositoryPrivateHistoryClient(cfg),
-		ServerMetadata:             NewServerMetadataClient(cfg),
-		Session:                    NewSessionClient(cfg),
-		User:                       NewUserClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		Category:                    NewCategoryClient(cfg),
+		CollectedRepository:         NewCollectedRepositoryClient(cfg),
+		CollectedSkill:              NewCollectedSkillClient(cfg),
+		ConfigurationAsset:          NewConfigurationAssetClient(cfg),
+		GitHubCredential:            NewGitHubCredentialClient(cfg),
+		GitHubList:                  NewGitHubListClient(cfg),
+		GitHubMembership:            NewGitHubMembershipClient(cfg),
+		GitHubRepository:            NewGitHubRepositoryClient(cfg),
+		ImportReceipt:               NewImportReceiptClient(cfg),
+		LocalAccount:                NewLocalAccountClient(cfg),
+		MCPAudit:                    NewMCPAuditClient(cfg),
+		MCPCredential:               NewMCPCredentialClient(cfg),
+		NativeApplyPreparation:      NewNativeApplyPreparationClient(cfg),
+		NativeConsumerChallenge:     NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:       NewNativeConsumerSessionClient(cfg),
+		NativeMaterializationGrant:  NewNativeMaterializationGrantClient(cfg),
+		OIDCIdentity:                NewOIDCIdentityClient(cfg),
+		Pack:                        NewPackClient(cfg),
+		PackConfigurationAttachment: NewPackConfigurationAttachmentClient(cfg),
+		PackItem:                    NewPackItemClient(cfg),
+		PackShare:                   NewPackShareClient(cfg),
+		RepositoryPrivateHistory:    NewRepositoryPrivateHistoryClient(cfg),
+		ServerMetadata:              NewServerMetadataClient(cfg),
+		Session:                     NewSessionClient(cfg),
+		User:                        NewUserClient(cfg),
 	}, nil
 }
 
@@ -262,32 +267,33 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                        ctx,
-		config:                     cfg,
-		Category:                   NewCategoryClient(cfg),
-		CollectedRepository:        NewCollectedRepositoryClient(cfg),
-		CollectedSkill:             NewCollectedSkillClient(cfg),
-		ConfigurationAsset:         NewConfigurationAssetClient(cfg),
-		GitHubCredential:           NewGitHubCredentialClient(cfg),
-		GitHubList:                 NewGitHubListClient(cfg),
-		GitHubMembership:           NewGitHubMembershipClient(cfg),
-		GitHubRepository:           NewGitHubRepositoryClient(cfg),
-		ImportReceipt:              NewImportReceiptClient(cfg),
-		LocalAccount:               NewLocalAccountClient(cfg),
-		MCPAudit:                   NewMCPAuditClient(cfg),
-		MCPCredential:              NewMCPCredentialClient(cfg),
-		NativeApplyPreparation:     NewNativeApplyPreparationClient(cfg),
-		NativeConsumerChallenge:    NewNativeConsumerChallengeClient(cfg),
-		NativeConsumerSession:      NewNativeConsumerSessionClient(cfg),
-		NativeMaterializationGrant: NewNativeMaterializationGrantClient(cfg),
-		OIDCIdentity:               NewOIDCIdentityClient(cfg),
-		Pack:                       NewPackClient(cfg),
-		PackItem:                   NewPackItemClient(cfg),
-		PackShare:                  NewPackShareClient(cfg),
-		RepositoryPrivateHistory:   NewRepositoryPrivateHistoryClient(cfg),
-		ServerMetadata:             NewServerMetadataClient(cfg),
-		Session:                    NewSessionClient(cfg),
-		User:                       NewUserClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		Category:                    NewCategoryClient(cfg),
+		CollectedRepository:         NewCollectedRepositoryClient(cfg),
+		CollectedSkill:              NewCollectedSkillClient(cfg),
+		ConfigurationAsset:          NewConfigurationAssetClient(cfg),
+		GitHubCredential:            NewGitHubCredentialClient(cfg),
+		GitHubList:                  NewGitHubListClient(cfg),
+		GitHubMembership:            NewGitHubMembershipClient(cfg),
+		GitHubRepository:            NewGitHubRepositoryClient(cfg),
+		ImportReceipt:               NewImportReceiptClient(cfg),
+		LocalAccount:                NewLocalAccountClient(cfg),
+		MCPAudit:                    NewMCPAuditClient(cfg),
+		MCPCredential:               NewMCPCredentialClient(cfg),
+		NativeApplyPreparation:      NewNativeApplyPreparationClient(cfg),
+		NativeConsumerChallenge:     NewNativeConsumerChallengeClient(cfg),
+		NativeConsumerSession:       NewNativeConsumerSessionClient(cfg),
+		NativeMaterializationGrant:  NewNativeMaterializationGrantClient(cfg),
+		OIDCIdentity:                NewOIDCIdentityClient(cfg),
+		Pack:                        NewPackClient(cfg),
+		PackConfigurationAttachment: NewPackConfigurationAttachmentClient(cfg),
+		PackItem:                    NewPackItemClient(cfg),
+		PackShare:                   NewPackShareClient(cfg),
+		RepositoryPrivateHistory:    NewRepositoryPrivateHistoryClient(cfg),
+		ServerMetadata:              NewServerMetadataClient(cfg),
+		Session:                     NewSessionClient(cfg),
+		User:                        NewUserClient(cfg),
 	}, nil
 }
 
@@ -321,7 +327,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
 		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
 		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
-		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
+		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Use(hooks...)
@@ -336,7 +343,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
 		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
 		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
-		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
+		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
+		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -382,6 +390,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OIDCIdentity.mutate(ctx, m)
 	case *PackMutation:
 		return c.Pack.mutate(ctx, m)
+	case *PackConfigurationAttachmentMutation:
+		return c.PackConfigurationAttachment.mutate(ctx, m)
 	case *PackItemMutation:
 		return c.PackItem.mutate(ctx, m)
 	case *PackShareMutation:
@@ -1027,6 +1037,22 @@ func (c *ConfigurationAssetClient) QueryUser(_m *ConfigurationAsset) *UserQuery 
 			sqlgraph.From(configurationasset.Table, configurationasset.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, configurationasset.UserTable, configurationasset.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPackAttachments queries the pack_attachments edge of a ConfigurationAsset.
+func (c *ConfigurationAssetClient) QueryPackAttachments(_m *ConfigurationAsset) *PackConfigurationAttachmentQuery {
+	query := (&PackConfigurationAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configurationasset.Table, configurationasset.FieldID, id),
+			sqlgraph.To(packconfigurationattachment.Table, packconfigurationattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, configurationasset.PackAttachmentsTable, configurationasset.PackAttachmentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3344,6 +3370,22 @@ func (c *PackClient) QueryShares(_m *Pack) *PackShareQuery {
 	return query
 }
 
+// QueryConfigurationAttachments queries the configuration_attachments edge of a Pack.
+func (c *PackClient) QueryConfigurationAttachments(_m *Pack) *PackConfigurationAttachmentQuery {
+	query := (&PackConfigurationAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pack.Table, pack.FieldID, id),
+			sqlgraph.To(packconfigurationattachment.Table, packconfigurationattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, pack.ConfigurationAttachmentsTable, pack.ConfigurationAttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PackClient) Hooks() []Hook {
 	return c.hooks.Pack
@@ -3366,6 +3408,171 @@ func (c *PackClient) mutate(ctx context.Context, m *PackMutation) (Value, error)
 		return (&PackDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Pack mutation op: %q", m.Op())
+	}
+}
+
+// PackConfigurationAttachmentClient is a client for the PackConfigurationAttachment schema.
+type PackConfigurationAttachmentClient struct {
+	config
+}
+
+// NewPackConfigurationAttachmentClient returns a client for the PackConfigurationAttachment from the given config.
+func NewPackConfigurationAttachmentClient(c config) *PackConfigurationAttachmentClient {
+	return &PackConfigurationAttachmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `packconfigurationattachment.Hooks(f(g(h())))`.
+func (c *PackConfigurationAttachmentClient) Use(hooks ...Hook) {
+	c.hooks.PackConfigurationAttachment = append(c.hooks.PackConfigurationAttachment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `packconfigurationattachment.Intercept(f(g(h())))`.
+func (c *PackConfigurationAttachmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PackConfigurationAttachment = append(c.inters.PackConfigurationAttachment, interceptors...)
+}
+
+// Create returns a builder for creating a PackConfigurationAttachment entity.
+func (c *PackConfigurationAttachmentClient) Create() *PackConfigurationAttachmentCreate {
+	mutation := newPackConfigurationAttachmentMutation(c.config, OpCreate)
+	return &PackConfigurationAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PackConfigurationAttachment entities.
+func (c *PackConfigurationAttachmentClient) CreateBulk(builders ...*PackConfigurationAttachmentCreate) *PackConfigurationAttachmentCreateBulk {
+	return &PackConfigurationAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PackConfigurationAttachmentClient) MapCreateBulk(slice any, setFunc func(*PackConfigurationAttachmentCreate, int)) *PackConfigurationAttachmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PackConfigurationAttachmentCreateBulk{err: fmt.Errorf("calling to PackConfigurationAttachmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PackConfigurationAttachmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PackConfigurationAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PackConfigurationAttachment.
+func (c *PackConfigurationAttachmentClient) Update() *PackConfigurationAttachmentUpdate {
+	mutation := newPackConfigurationAttachmentMutation(c.config, OpUpdate)
+	return &PackConfigurationAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PackConfigurationAttachmentClient) UpdateOne(_m *PackConfigurationAttachment) *PackConfigurationAttachmentUpdateOne {
+	mutation := newPackConfigurationAttachmentMutation(c.config, OpUpdateOne, withPackConfigurationAttachment(_m))
+	return &PackConfigurationAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PackConfigurationAttachmentClient) UpdateOneID(id int) *PackConfigurationAttachmentUpdateOne {
+	mutation := newPackConfigurationAttachmentMutation(c.config, OpUpdateOne, withPackConfigurationAttachmentID(id))
+	return &PackConfigurationAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PackConfigurationAttachment.
+func (c *PackConfigurationAttachmentClient) Delete() *PackConfigurationAttachmentDelete {
+	mutation := newPackConfigurationAttachmentMutation(c.config, OpDelete)
+	return &PackConfigurationAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PackConfigurationAttachmentClient) DeleteOne(_m *PackConfigurationAttachment) *PackConfigurationAttachmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PackConfigurationAttachmentClient) DeleteOneID(id int) *PackConfigurationAttachmentDeleteOne {
+	builder := c.Delete().Where(packconfigurationattachment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PackConfigurationAttachmentDeleteOne{builder}
+}
+
+// Query returns a query builder for PackConfigurationAttachment.
+func (c *PackConfigurationAttachmentClient) Query() *PackConfigurationAttachmentQuery {
+	return &PackConfigurationAttachmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePackConfigurationAttachment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PackConfigurationAttachment entity by its id.
+func (c *PackConfigurationAttachmentClient) Get(ctx context.Context, id int) (*PackConfigurationAttachment, error) {
+	return c.Query().Where(packconfigurationattachment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PackConfigurationAttachmentClient) GetX(ctx context.Context, id int) *PackConfigurationAttachment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPack queries the pack edge of a PackConfigurationAttachment.
+func (c *PackConfigurationAttachmentClient) QueryPack(_m *PackConfigurationAttachment) *PackQuery {
+	query := (&PackClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(packconfigurationattachment.Table, packconfigurationattachment.FieldID, id),
+			sqlgraph.To(pack.Table, pack.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, packconfigurationattachment.PackTable, packconfigurationattachment.PackColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfigurationAsset queries the configuration_asset edge of a PackConfigurationAttachment.
+func (c *PackConfigurationAttachmentClient) QueryConfigurationAsset(_m *PackConfigurationAttachment) *ConfigurationAssetQuery {
+	query := (&ConfigurationAssetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(packconfigurationattachment.Table, packconfigurationattachment.FieldID, id),
+			sqlgraph.To(configurationasset.Table, configurationasset.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, packconfigurationattachment.ConfigurationAssetTable, packconfigurationattachment.ConfigurationAssetColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PackConfigurationAttachmentClient) Hooks() []Hook {
+	return c.hooks.PackConfigurationAttachment
+}
+
+// Interceptors returns the client interceptors.
+func (c *PackConfigurationAttachmentClient) Interceptors() []Interceptor {
+	return c.inters.PackConfigurationAttachment
+}
+
+func (c *PackConfigurationAttachmentClient) mutate(ctx context.Context, m *PackConfigurationAttachmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PackConfigurationAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PackConfigurationAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PackConfigurationAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PackConfigurationAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PackConfigurationAttachment mutation op: %q", m.Op())
 	}
 }
 
@@ -4558,15 +4765,15 @@ type (
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
 		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
 		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
-		OIDCIdentity, Pack, PackItem, PackShare, RepositoryPrivateHistory,
-		ServerMetadata, Session, User []ent.Hook
+		OIDCIdentity, Pack, PackConfigurationAttachment, PackItem, PackShare,
+		RepositoryPrivateHistory, ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
 		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
 		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
 		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
-		OIDCIdentity, Pack, PackItem, PackShare, RepositoryPrivateHistory,
-		ServerMetadata, Session, User []ent.Interceptor
+		OIDCIdentity, Pack, PackConfigurationAttachment, PackItem, PackShare,
+		RepositoryPrivateHistory, ServerMetadata, Session, User []ent.Interceptor
 	}
 )

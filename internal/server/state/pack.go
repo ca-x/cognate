@@ -14,6 +14,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedrepository"
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/skill"
@@ -225,6 +226,9 @@ func (store *Store) DeletePack(ctx context.Context, userKey, id string, expected
 		return err
 	}
 	if _, err := tx.PackShare.Delete().Where(packshare.PackIDEQ(entry.ID)).Exec(ctx); err != nil {
+		return err
+	}
+	if _, err := tx.PackConfigurationAttachment.Delete().Where(packconfigurationattachment.PackIDEQ(entry.ID)).Exec(ctx); err != nil {
 		return err
 	}
 	if _, err := tx.PackItem.Delete().Where(packitem.PackIDEQ(entry.ID)).Exec(ctx); err != nil {

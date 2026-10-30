@@ -60,6 +60,9 @@ type OIDCIdentity func(*sql.Selector)
 // Pack is the predicate function for pack builders.
 type Pack func(*sql.Selector)
 
+// PackConfigurationAttachment is the predicate function for packconfigurationattachment builders.
+type PackConfigurationAttachment func(*sql.Selector)
+
 // PackItem is the predicate function for packitem builders.
 type PackItem func(*sql.Selector)
 

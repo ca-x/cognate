@@ -28,6 +28,8 @@ type Pack struct {
 	Description string `json:"description,omitempty"`
 	// Revision holds the value of the "revision" field.
 	Revision int64 `json:"revision,omitempty"`
+	// ConfigurationRevision holds the value of the "configuration_revision" field.
+	ConfigurationRevision int64 `json:"configuration_revision,omitempty"`
 	// ItemCount holds the value of the "item_count" field.
 	ItemCount int `json:"item_count,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -48,9 +50,11 @@ type PackEdges struct {
 	Items []*PackItem `json:"items,omitempty"`
 	// Shares holds the value of the shares edge.
 	Shares []*PackShare `json:"shares,omitempty"`
+	// ConfigurationAttachments holds the value of the configuration_attachments edge.
+	ConfigurationAttachments []*PackConfigurationAttachment `json:"configuration_attachments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -82,12 +86,21 @@ func (e PackEdges) SharesOrErr() ([]*PackShare, error) {
 	return nil, &NotLoadedError{edge: "shares"}
 }
 
+// ConfigurationAttachmentsOrErr returns the ConfigurationAttachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e PackEdges) ConfigurationAttachmentsOrErr() ([]*PackConfigurationAttachment, error) {
+	if e.loadedTypes[3] {
+		return e.ConfigurationAttachments, nil
+	}
+	return nil, &NotLoadedError{edge: "configuration_attachments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Pack) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pack.FieldID, pack.FieldUserID, pack.FieldRevision, pack.FieldItemCount:
+		case pack.FieldID, pack.FieldUserID, pack.FieldRevision, pack.FieldConfigurationRevision, pack.FieldItemCount:
 			values[i] = new(sql.NullInt64)
 		case pack.FieldPublicID, pack.FieldName, pack.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -144,6 +157,12 @@ func (_m *Pack) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Revision = value.Int64
 			}
+		case pack.FieldConfigurationRevision:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field configuration_revision", values[i])
+			} else if value.Valid {
+				_m.ConfigurationRevision = value.Int64
+			}
 		case pack.FieldItemCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field item_count", values[i])
@@ -190,6 +209,11 @@ func (_m *Pack) QueryShares() *PackShareQuery {
 	return NewPackClient(_m.config).QueryShares(_m)
 }
 
+// QueryConfigurationAttachments queries the "configuration_attachments" edge of the Pack entity.
+func (_m *Pack) QueryConfigurationAttachments() *PackConfigurationAttachmentQuery {
+	return NewPackClient(_m.config).QueryConfigurationAttachments(_m)
+}
+
 // Update returns a builder for updating this Pack.
 // Note that you need to call Pack.Unwrap() before calling this method if this Pack
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -227,6 +251,9 @@ func (_m *Pack) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("revision=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Revision))
+	builder.WriteString(", ")
+	builder.WriteString("configuration_revision=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ConfigurationRevision))
 	builder.WriteString(", ")
 	builder.WriteString("item_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ItemCount))

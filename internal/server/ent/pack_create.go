@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -65,6 +66,20 @@ func (_c *PackCreate) SetRevision(v int64) *PackCreate {
 func (_c *PackCreate) SetNillableRevision(v *int64) *PackCreate {
 	if v != nil {
 		_c.SetRevision(*v)
+	}
+	return _c
+}
+
+// SetConfigurationRevision sets the "configuration_revision" field.
+func (_c *PackCreate) SetConfigurationRevision(v int64) *PackCreate {
+	_c.mutation.SetConfigurationRevision(v)
+	return _c
+}
+
+// SetNillableConfigurationRevision sets the "configuration_revision" field if the given value is not nil.
+func (_c *PackCreate) SetNillableConfigurationRevision(v *int64) *PackCreate {
+	if v != nil {
+		_c.SetConfigurationRevision(*v)
 	}
 	return _c
 }
@@ -138,6 +153,21 @@ func (_c *PackCreate) AddShares(v ...*PackShare) *PackCreate {
 	return _c.AddShareIDs(ids...)
 }
 
+// AddConfigurationAttachmentIDs adds the "configuration_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (_c *PackCreate) AddConfigurationAttachmentIDs(ids ...int) *PackCreate {
+	_c.mutation.AddConfigurationAttachmentIDs(ids...)
+	return _c
+}
+
+// AddConfigurationAttachments adds the "configuration_attachments" edges to the PackConfigurationAttachment entity.
+func (_c *PackCreate) AddConfigurationAttachments(v ...*PackConfigurationAttachment) *PackCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfigurationAttachmentIDs(ids...)
+}
+
 // Mutation returns the PackMutation object of the builder.
 func (_c *PackCreate) Mutation() *PackMutation {
 	return _c.mutation
@@ -181,6 +211,10 @@ func (_c *PackCreate) defaults() {
 		v := pack.DefaultRevision
 		_c.mutation.SetRevision(v)
 	}
+	if _, ok := _c.mutation.ConfigurationRevision(); !ok {
+		v := pack.DefaultConfigurationRevision
+		_c.mutation.SetConfigurationRevision(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := pack.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -221,6 +255,14 @@ func (_c *PackCreate) check() error {
 	if v, ok := _c.mutation.Revision(); ok {
 		if err := pack.RevisionValidator(v); err != nil {
 			return &ValidationError{Name: "revision", err: fmt.Errorf(`ent: validator failed for field "Pack.revision": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ConfigurationRevision(); !ok {
+		return &ValidationError{Name: "configuration_revision", err: errors.New(`ent: missing required field "Pack.configuration_revision"`)}
+	}
+	if v, ok := _c.mutation.ConfigurationRevision(); ok {
+		if err := pack.ConfigurationRevisionValidator(v); err != nil {
+			return &ValidationError{Name: "configuration_revision", err: fmt.Errorf(`ent: validator failed for field "Pack.configuration_revision": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.ItemCount(); !ok {
@@ -282,6 +324,10 @@ func (_c *PackCreate) createSpec() (*Pack, *sqlgraph.CreateSpec) {
 		_spec.SetField(pack.FieldRevision, field.TypeInt64, value)
 		_node.Revision = value
 	}
+	if value, ok := _c.mutation.ConfigurationRevision(); ok {
+		_spec.SetField(pack.FieldConfigurationRevision, field.TypeInt64, value)
+		_node.ConfigurationRevision = value
+	}
 	if value, ok := _c.mutation.ItemCount(); ok {
 		_spec.SetField(pack.FieldItemCount, field.TypeInt, value)
 		_node.ItemCount = value
@@ -336,6 +382,22 @@ func (_c *PackCreate) createSpec() (*Pack, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(packshare.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfigurationAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pack.ConfigurationAttachmentsTable,
+			Columns: []string{pack.ConfigurationAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -20,6 +20,7 @@ import (
 
 	"github.com/ca-x/cognate/internal/server/ent"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
@@ -136,7 +137,7 @@ func configurationFailure(err error) error {
 	if err == nil {
 		return nil
 	}
-	for _, known := range []error{ErrConfigurationInvalid, ErrConfigurationNotFound, ErrConfigurationConflict, ErrConfigurationLimit} {
+	for _, known := range []error{ErrConfigurationInvalid, ErrConfigurationNotFound, ErrConfigurationConflict, ErrConfigurationLimit, ErrConfigurationInUse} {
 		if errors.Is(err, known) {
 			return known
 		}
@@ -295,6 +296,13 @@ func (store *Store) DeleteConfigurationAsset(ctx context.Context, owner, id stri
 		}
 		if entry.Revision != expectedRevision {
 			return ErrConfigurationConflict
+		}
+		inUse, err := tx.PackConfigurationAttachment.Query().Where(packconfigurationattachment.HasConfigurationAssetWith(configurationasset.PublicIDEQ(id))).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if inUse {
+			return ErrConfigurationInUse
 		}
 		count, err := tx.ConfigurationAsset.Delete().Where(configurationasset.PublicIDEQ(id), configurationasset.RevisionEQ(expectedRevision), configurationasset.HasUserWith(user.UserKeyEQ(owner))).Exec(ctx)
 		if err != nil {

@@ -25,7 +25,10 @@ func (ConfigurationAsset) Fields() []ent.Field {
 }
 
 func (ConfigurationAsset) Edges() []ent.Edge {
-	return []ent.Edge{edge.From("user", User.Type).Ref("configuration_assets").Field("user_id").Unique().Required().Immutable()}
+	return []ent.Edge{
+		edge.From("user", User.Type).Ref("configuration_assets").Field("user_id").Unique().Required().Immutable(),
+		edge.To("pack_attachments", PackConfigurationAttachment.Type),
+	}
 }
 
 func (ConfigurationAsset) Indexes() []ent.Index {

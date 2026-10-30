@@ -225,6 +225,18 @@ func (f PackFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PackMutation", m)
 }
 
+// The PackConfigurationAttachmentFunc type is an adapter to allow the use of ordinary
+// function as PackConfigurationAttachment mutator.
+type PackConfigurationAttachmentFunc func(context.Context, *ent.PackConfigurationAttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PackConfigurationAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PackConfigurationAttachmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PackConfigurationAttachmentMutation", m)
+}
+
 // The PackItemFunc type is an adapter to allow the use of ordinary
 // function as PackItem mutator.
 type PackItemFunc func(context.Context, *ent.PackItemMutation) (ent.Value, error)

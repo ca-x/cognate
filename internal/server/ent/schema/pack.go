@@ -18,6 +18,7 @@ func (Pack) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("description").Default(""),
 		field.Int64("revision").Positive().Default(1),
+		field.Int64("configuration_revision").Positive().Default(1),
 		field.Int("item_count").Positive(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now),
@@ -29,6 +30,7 @@ func (Pack) Edges() []ent.Edge {
 		edge.From("user", User.Type).Ref("packs").Field("user_id").Unique().Required().Immutable(),
 		edge.To("items", PackItem.Type),
 		edge.To("shares", PackShare.Type),
+		edge.To("configuration_attachments", PackConfigurationAttachment.Type),
 	}
 }
 

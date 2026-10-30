@@ -36,6 +36,8 @@ const (
 	FieldCiphertext = "ciphertext"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgePackAttachments holds the string denoting the pack_attachments edge name in mutations.
+	EdgePackAttachments = "pack_attachments"
 	// Table holds the table name of the configurationasset in the database.
 	Table = "configuration_assets"
 	// UserTable is the table that holds the user relation/edge.
@@ -45,6 +47,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// PackAttachmentsTable is the table that holds the pack_attachments relation/edge.
+	PackAttachmentsTable = "pack_configuration_attachments"
+	// PackAttachmentsInverseTable is the table name for the PackConfigurationAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "packconfigurationattachment" package.
+	PackAttachmentsInverseTable = "pack_configuration_attachments"
+	// PackAttachmentsColumn is the table column denoting the pack_attachments relation/edge.
+	PackAttachmentsColumn = "configuration_asset_id"
 )
 
 // Columns holds all SQL columns for configurationasset fields.
@@ -174,10 +183,31 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPackAttachmentsCount orders the results by pack_attachments count.
+func ByPackAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPackAttachmentsStep(), opts...)
+	}
+}
+
+// ByPackAttachments orders the results by pack_attachments terms.
+func ByPackAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPackAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newPackAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PackAttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PackAttachmentsTable, PackAttachmentsColumn),
 	)
 }

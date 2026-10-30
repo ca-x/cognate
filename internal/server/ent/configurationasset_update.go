@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
 )
 
@@ -104,9 +105,45 @@ func (_u *ConfigurationAssetUpdate) SetCiphertext(v []byte) *ConfigurationAssetU
 	return _u
 }
 
+// AddPackAttachmentIDs adds the "pack_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (_u *ConfigurationAssetUpdate) AddPackAttachmentIDs(ids ...int) *ConfigurationAssetUpdate {
+	_u.mutation.AddPackAttachmentIDs(ids...)
+	return _u
+}
+
+// AddPackAttachments adds the "pack_attachments" edges to the PackConfigurationAttachment entity.
+func (_u *ConfigurationAssetUpdate) AddPackAttachments(v ...*PackConfigurationAttachment) *ConfigurationAssetUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPackAttachmentIDs(ids...)
+}
+
 // Mutation returns the ConfigurationAssetMutation object of the builder.
 func (_u *ConfigurationAssetUpdate) Mutation() *ConfigurationAssetMutation {
 	return _u.mutation
+}
+
+// ClearPackAttachments clears all "pack_attachments" edges to the PackConfigurationAttachment entity.
+func (_u *ConfigurationAssetUpdate) ClearPackAttachments() *ConfigurationAssetUpdate {
+	_u.mutation.ClearPackAttachments()
+	return _u
+}
+
+// RemovePackAttachmentIDs removes the "pack_attachments" edge to PackConfigurationAttachment entities by IDs.
+func (_u *ConfigurationAssetUpdate) RemovePackAttachmentIDs(ids ...int) *ConfigurationAssetUpdate {
+	_u.mutation.RemovePackAttachmentIDs(ids...)
+	return _u
+}
+
+// RemovePackAttachments removes "pack_attachments" edges to PackConfigurationAttachment entities.
+func (_u *ConfigurationAssetUpdate) RemovePackAttachments(v ...*PackConfigurationAttachment) *ConfigurationAssetUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePackAttachmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -196,6 +233,51 @@ func (_u *ConfigurationAssetUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.Ciphertext(); ok {
 		_spec.SetField(configurationasset.FieldCiphertext, field.TypeBytes, value)
+	}
+	if _u.mutation.PackAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPackAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.PackAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PackAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -293,9 +375,45 @@ func (_u *ConfigurationAssetUpdateOne) SetCiphertext(v []byte) *ConfigurationAss
 	return _u
 }
 
+// AddPackAttachmentIDs adds the "pack_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (_u *ConfigurationAssetUpdateOne) AddPackAttachmentIDs(ids ...int) *ConfigurationAssetUpdateOne {
+	_u.mutation.AddPackAttachmentIDs(ids...)
+	return _u
+}
+
+// AddPackAttachments adds the "pack_attachments" edges to the PackConfigurationAttachment entity.
+func (_u *ConfigurationAssetUpdateOne) AddPackAttachments(v ...*PackConfigurationAttachment) *ConfigurationAssetUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPackAttachmentIDs(ids...)
+}
+
 // Mutation returns the ConfigurationAssetMutation object of the builder.
 func (_u *ConfigurationAssetUpdateOne) Mutation() *ConfigurationAssetMutation {
 	return _u.mutation
+}
+
+// ClearPackAttachments clears all "pack_attachments" edges to the PackConfigurationAttachment entity.
+func (_u *ConfigurationAssetUpdateOne) ClearPackAttachments() *ConfigurationAssetUpdateOne {
+	_u.mutation.ClearPackAttachments()
+	return _u
+}
+
+// RemovePackAttachmentIDs removes the "pack_attachments" edge to PackConfigurationAttachment entities by IDs.
+func (_u *ConfigurationAssetUpdateOne) RemovePackAttachmentIDs(ids ...int) *ConfigurationAssetUpdateOne {
+	_u.mutation.RemovePackAttachmentIDs(ids...)
+	return _u
+}
+
+// RemovePackAttachments removes "pack_attachments" edges to PackConfigurationAttachment entities.
+func (_u *ConfigurationAssetUpdateOne) RemovePackAttachments(v ...*PackConfigurationAttachment) *ConfigurationAssetUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePackAttachmentIDs(ids...)
 }
 
 // Where appends a list predicates to the ConfigurationAssetUpdate builder.
@@ -415,6 +533,51 @@ func (_u *ConfigurationAssetUpdateOne) sqlSave(ctx context.Context) (_node *Conf
 	}
 	if value, ok := _u.mutation.Ciphertext(); ok {
 		_spec.SetField(configurationasset.FieldCiphertext, field.TypeBytes, value)
+	}
+	if _u.mutation.PackAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPackAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.PackAttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PackAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &ConfigurationAsset{config: _u.config}
 	_spec.Assign = _node.assignValues

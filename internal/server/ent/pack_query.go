@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
@@ -22,13 +23,14 @@ import (
 // PackQuery is the builder for querying Pack entities.
 type PackQuery struct {
 	config
-	ctx        *QueryContext
-	order      []pack.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Pack
-	withUser   *UserQuery
-	withItems  *PackItemQuery
-	withShares *PackShareQuery
+	ctx                          *QueryContext
+	order                        []pack.OrderOption
+	inters                       []Interceptor
+	predicates                   []predicate.Pack
+	withUser                     *UserQuery
+	withItems                    *PackItemQuery
+	withShares                   *PackShareQuery
+	withConfigurationAttachments *PackConfigurationAttachmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (_q *PackQuery) QueryShares() *PackShareQuery {
 			sqlgraph.From(pack.Table, pack.FieldID, selector),
 			sqlgraph.To(packshare.Table, packshare.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, pack.SharesTable, pack.SharesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfigurationAttachments chains the current query on the "configuration_attachments" edge.
+func (_q *PackQuery) QueryConfigurationAttachments() *PackConfigurationAttachmentQuery {
+	query := (&PackConfigurationAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pack.Table, pack.FieldID, selector),
+			sqlgraph.To(packconfigurationattachment.Table, packconfigurationattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, pack.ConfigurationAttachmentsTable, pack.ConfigurationAttachmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +342,15 @@ func (_q *PackQuery) Clone() *PackQuery {
 		return nil
 	}
 	return &PackQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]pack.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Pack{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withItems:  _q.withItems.Clone(),
-		withShares: _q.withShares.Clone(),
+		config:                       _q.config,
+		ctx:                          _q.ctx.Clone(),
+		order:                        append([]pack.OrderOption{}, _q.order...),
+		inters:                       append([]Interceptor{}, _q.inters...),
+		predicates:                   append([]predicate.Pack{}, _q.predicates...),
+		withUser:                     _q.withUser.Clone(),
+		withItems:                    _q.withItems.Clone(),
+		withShares:                   _q.withShares.Clone(),
+		withConfigurationAttachments: _q.withConfigurationAttachments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -362,6 +387,17 @@ func (_q *PackQuery) WithShares(opts ...func(*PackShareQuery)) *PackQuery {
 		opt(query)
 	}
 	_q.withShares = query
+	return _q
+}
+
+// WithConfigurationAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "configuration_attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PackQuery) WithConfigurationAttachments(opts ...func(*PackConfigurationAttachmentQuery)) *PackQuery {
+	query := (&PackConfigurationAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfigurationAttachments = query
 	return _q
 }
 
@@ -443,10 +479,11 @@ func (_q *PackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pack, e
 	var (
 		nodes       = []*Pack{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withItems != nil,
 			_q.withShares != nil,
+			_q.withConfigurationAttachments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -484,6 +521,15 @@ func (_q *PackQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pack, e
 		if err := _q.loadShares(ctx, query, nodes,
 			func(n *Pack) { n.Edges.Shares = []*PackShare{} },
 			func(n *Pack, e *PackShare) { n.Edges.Shares = append(n.Edges.Shares, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfigurationAttachments; query != nil {
+		if err := _q.loadConfigurationAttachments(ctx, query, nodes,
+			func(n *Pack) { n.Edges.ConfigurationAttachments = []*PackConfigurationAttachment{} },
+			func(n *Pack, e *PackConfigurationAttachment) {
+				n.Edges.ConfigurationAttachments = append(n.Edges.ConfigurationAttachments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -564,6 +610,36 @@ func (_q *PackQuery) loadShares(ctx context.Context, query *PackShareQuery, node
 	}
 	query.Where(predicate.PackShare(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(pack.SharesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PackID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "pack_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PackQuery) loadConfigurationAttachments(ctx context.Context, query *PackConfigurationAttachmentQuery, nodes []*Pack, init func(*Pack), assign func(*Pack, *PackConfigurationAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Pack)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(packconfigurationattachment.FieldPackID)
+	}
+	query.Where(predicate.PackConfigurationAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(pack.ConfigurationAttachmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
 
@@ -92,6 +93,21 @@ func (_c *ConfigurationAssetCreate) SetCiphertext(v []byte) *ConfigurationAssetC
 // SetUser sets the "user" edge to the User entity.
 func (_c *ConfigurationAssetCreate) SetUser(v *User) *ConfigurationAssetCreate {
 	return _c.SetUserID(v.ID)
+}
+
+// AddPackAttachmentIDs adds the "pack_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (_c *ConfigurationAssetCreate) AddPackAttachmentIDs(ids ...int) *ConfigurationAssetCreate {
+	_c.mutation.AddPackAttachmentIDs(ids...)
+	return _c
+}
+
+// AddPackAttachments adds the "pack_attachments" edges to the PackConfigurationAttachment entity.
+func (_c *ConfigurationAssetCreate) AddPackAttachments(v ...*PackConfigurationAttachment) *ConfigurationAssetCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPackAttachmentIDs(ids...)
 }
 
 // Mutation returns the ConfigurationAssetMutation object of the builder.
@@ -282,6 +298,22 @@ func (_c *ConfigurationAssetCreate) createSpec() (*ConfigurationAsset, *sqlgraph
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PackAttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   configurationasset.PackAttachmentsTable,
+			Columns: []string{configurationasset.PackAttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(packconfigurationattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

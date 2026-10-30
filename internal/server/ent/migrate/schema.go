@@ -646,6 +646,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "revision", Type: field.TypeInt64, Default: 1},
+		{Name: "configuration_revision", Type: field.TypeInt64, Default: 1},
 		{Name: "item_count", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -659,7 +660,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "packs_users_packs",
-				Columns:    []*schema.Column{PacksColumns[8]},
+				Columns:    []*schema.Column{PacksColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -668,7 +669,54 @@ var (
 			{
 				Name:    "pack_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{PacksColumns[8]},
+				Columns: []*schema.Column{PacksColumns[9]},
+			},
+		},
+	}
+	// PackConfigurationAttachmentsColumns holds the columns for the "pack_configuration_attachments" table.
+	PackConfigurationAttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true},
+		{Name: "asset_revision", Type: field.TypeInt64},
+		{Name: "target_id", Type: field.TypeString, Size: 96},
+		{Name: "ordinal", Type: field.TypeInt},
+		{Name: "configuration_asset_id", Type: field.TypeInt},
+		{Name: "pack_id", Type: field.TypeInt},
+	}
+	// PackConfigurationAttachmentsTable holds the schema information for the "pack_configuration_attachments" table.
+	PackConfigurationAttachmentsTable = &schema.Table{
+		Name:       "pack_configuration_attachments",
+		Columns:    PackConfigurationAttachmentsColumns,
+		PrimaryKey: []*schema.Column{PackConfigurationAttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pack_configuration_attachments_configuration_assets_pack_attachments",
+				Columns:    []*schema.Column{PackConfigurationAttachmentsColumns[5]},
+				RefColumns: []*schema.Column{ConfigurationAssetsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "pack_configuration_attachments_packs_configuration_attachments",
+				Columns:    []*schema.Column{PackConfigurationAttachmentsColumns[6]},
+				RefColumns: []*schema.Column{PacksColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "packconfigurationattachment_pack_id_configuration_asset_id_target_id",
+				Unique:  true,
+				Columns: []*schema.Column{PackConfigurationAttachmentsColumns[6], PackConfigurationAttachmentsColumns[5], PackConfigurationAttachmentsColumns[3]},
+			},
+			{
+				Name:    "packconfigurationattachment_pack_id_ordinal",
+				Unique:  true,
+				Columns: []*schema.Column{PackConfigurationAttachmentsColumns[6], PackConfigurationAttachmentsColumns[4]},
+			},
+			{
+				Name:    "packconfigurationattachment_configuration_asset_id",
+				Unique:  false,
+				Columns: []*schema.Column{PackConfigurationAttachmentsColumns[5]},
 			},
 		},
 	}
@@ -855,6 +903,7 @@ var (
 		NativeMaterializationGrantsTable,
 		OidcIdentitiesTable,
 		PacksTable,
+		PackConfigurationAttachmentsTable,
 		PackItemsTable,
 		PackSharesTable,
 		RepositoryPrivateHistoriesTable,
@@ -890,6 +939,8 @@ func init() {
 	NativeMaterializationGrantsTable.ForeignKeys[2].RefTable = UsersTable
 	OidcIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	PacksTable.ForeignKeys[0].RefTable = UsersTable
+	PackConfigurationAttachmentsTable.ForeignKeys[0].RefTable = ConfigurationAssetsTable
+	PackConfigurationAttachmentsTable.ForeignKeys[1].RefTable = PacksTable
 	PackItemsTable.ForeignKeys[0].RefTable = CollectedSkillsTable
 	PackItemsTable.ForeignKeys[1].RefTable = PacksTable
 	PackSharesTable.ForeignKeys[0].RefTable = PacksTable

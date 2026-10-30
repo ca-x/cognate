@@ -23,6 +23,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
@@ -1050,18 +1051,70 @@ func init() {
 	pack.DefaultRevision = packDescRevision.Default.(int64)
 	// pack.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
 	pack.RevisionValidator = packDescRevision.Validators[0].(func(int64) error)
+	// packDescConfigurationRevision is the schema descriptor for configuration_revision field.
+	packDescConfigurationRevision := packFields[5].Descriptor()
+	// pack.DefaultConfigurationRevision holds the default value on creation for the configuration_revision field.
+	pack.DefaultConfigurationRevision = packDescConfigurationRevision.Default.(int64)
+	// pack.ConfigurationRevisionValidator is a validator for the "configuration_revision" field. It is called by the builders before save.
+	pack.ConfigurationRevisionValidator = packDescConfigurationRevision.Validators[0].(func(int64) error)
 	// packDescItemCount is the schema descriptor for item_count field.
-	packDescItemCount := packFields[5].Descriptor()
+	packDescItemCount := packFields[6].Descriptor()
 	// pack.ItemCountValidator is a validator for the "item_count" field. It is called by the builders before save.
 	pack.ItemCountValidator = packDescItemCount.Validators[0].(func(int) error)
 	// packDescCreatedAt is the schema descriptor for created_at field.
-	packDescCreatedAt := packFields[6].Descriptor()
+	packDescCreatedAt := packFields[7].Descriptor()
 	// pack.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pack.DefaultCreatedAt = packDescCreatedAt.Default.(func() time.Time)
 	// packDescUpdatedAt is the schema descriptor for updated_at field.
-	packDescUpdatedAt := packFields[7].Descriptor()
+	packDescUpdatedAt := packFields[8].Descriptor()
 	// pack.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	pack.DefaultUpdatedAt = packDescUpdatedAt.Default.(func() time.Time)
+	packconfigurationattachmentFields := schema.PackConfigurationAttachment{}.Fields()
+	_ = packconfigurationattachmentFields
+	// packconfigurationattachmentDescPublicID is the schema descriptor for public_id field.
+	packconfigurationattachmentDescPublicID := packconfigurationattachmentFields[0].Descriptor()
+	// packconfigurationattachment.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	packconfigurationattachment.PublicIDValidator = packconfigurationattachmentDescPublicID.Validators[0].(func(string) error)
+	// packconfigurationattachmentDescAssetRevision is the schema descriptor for asset_revision field.
+	packconfigurationattachmentDescAssetRevision := packconfigurationattachmentFields[3].Descriptor()
+	// packconfigurationattachment.AssetRevisionValidator is a validator for the "asset_revision" field. It is called by the builders before save.
+	packconfigurationattachment.AssetRevisionValidator = packconfigurationattachmentDescAssetRevision.Validators[0].(func(int64) error)
+	// packconfigurationattachmentDescTargetID is the schema descriptor for target_id field.
+	packconfigurationattachmentDescTargetID := packconfigurationattachmentFields[4].Descriptor()
+	// packconfigurationattachment.TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
+	packconfigurationattachment.TargetIDValidator = func() func(string) error {
+		validators := packconfigurationattachmentDescTargetID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(target_id string) error {
+			for _, fn := range fns {
+				if err := fn(target_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// packconfigurationattachmentDescOrdinal is the schema descriptor for ordinal field.
+	packconfigurationattachmentDescOrdinal := packconfigurationattachmentFields[5].Descriptor()
+	// packconfigurationattachment.OrdinalValidator is a validator for the "ordinal" field. It is called by the builders before save.
+	packconfigurationattachment.OrdinalValidator = func() func(int) error {
+		validators := packconfigurationattachmentDescOrdinal.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(ordinal int) error {
+			for _, fn := range fns {
+				if err := fn(ordinal); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	packitemFields := schema.PackItem{}.Fields()
 	_ = packitemFields
 	// packitemDescSlug is the schema descriptor for slug field.

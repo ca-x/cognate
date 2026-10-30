@@ -48,6 +48,8 @@ type Tx struct {
 	OIDCIdentity *OIDCIdentityClient
 	// Pack is the client for interacting with the Pack builders.
 	Pack *PackClient
+	// PackConfigurationAttachment is the client for interacting with the PackConfigurationAttachment builders.
+	PackConfigurationAttachment *PackConfigurationAttachmentClient
 	// PackItem is the client for interacting with the PackItem builders.
 	PackItem *PackItemClient
 	// PackShare is the client for interacting with the PackShare builders.
@@ -209,6 +211,7 @@ func (tx *Tx) init() {
 	tx.NativeMaterializationGrant = NewNativeMaterializationGrantClient(tx.config)
 	tx.OIDCIdentity = NewOIDCIdentityClient(tx.config)
 	tx.Pack = NewPackClient(tx.config)
+	tx.PackConfigurationAttachment = NewPackConfigurationAttachmentClient(tx.config)
 	tx.PackItem = NewPackItemClient(tx.config)
 	tx.PackShare = NewPackShareClient(tx.config)
 	tx.RepositoryPrivateHistory = NewRepositoryPrivateHistoryClient(tx.config)

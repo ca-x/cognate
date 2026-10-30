@@ -80,6 +80,11 @@ func Revision(v int64) predicate.Pack {
 	return predicate.Pack(sql.FieldEQ(FieldRevision, v))
 }
 
+// ConfigurationRevision applies equality check predicate on the "configuration_revision" field. It's identical to ConfigurationRevisionEQ.
+func ConfigurationRevision(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldEQ(FieldConfigurationRevision, v))
+}
+
 // ItemCount applies equality check predicate on the "item_count" field. It's identical to ItemCountEQ.
 func ItemCount(v int) predicate.Pack {
 	return predicate.Pack(sql.FieldEQ(FieldItemCount, v))
@@ -350,6 +355,46 @@ func RevisionLTE(v int64) predicate.Pack {
 	return predicate.Pack(sql.FieldLTE(FieldRevision, v))
 }
 
+// ConfigurationRevisionEQ applies the EQ predicate on the "configuration_revision" field.
+func ConfigurationRevisionEQ(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldEQ(FieldConfigurationRevision, v))
+}
+
+// ConfigurationRevisionNEQ applies the NEQ predicate on the "configuration_revision" field.
+func ConfigurationRevisionNEQ(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldNEQ(FieldConfigurationRevision, v))
+}
+
+// ConfigurationRevisionIn applies the In predicate on the "configuration_revision" field.
+func ConfigurationRevisionIn(vs ...int64) predicate.Pack {
+	return predicate.Pack(sql.FieldIn(FieldConfigurationRevision, vs...))
+}
+
+// ConfigurationRevisionNotIn applies the NotIn predicate on the "configuration_revision" field.
+func ConfigurationRevisionNotIn(vs ...int64) predicate.Pack {
+	return predicate.Pack(sql.FieldNotIn(FieldConfigurationRevision, vs...))
+}
+
+// ConfigurationRevisionGT applies the GT predicate on the "configuration_revision" field.
+func ConfigurationRevisionGT(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldGT(FieldConfigurationRevision, v))
+}
+
+// ConfigurationRevisionGTE applies the GTE predicate on the "configuration_revision" field.
+func ConfigurationRevisionGTE(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldGTE(FieldConfigurationRevision, v))
+}
+
+// ConfigurationRevisionLT applies the LT predicate on the "configuration_revision" field.
+func ConfigurationRevisionLT(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldLT(FieldConfigurationRevision, v))
+}
+
+// ConfigurationRevisionLTE applies the LTE predicate on the "configuration_revision" field.
+func ConfigurationRevisionLTE(v int64) predicate.Pack {
+	return predicate.Pack(sql.FieldLTE(FieldConfigurationRevision, v))
+}
+
 // ItemCountEQ applies the EQ predicate on the "item_count" field.
 func ItemCountEQ(v int) predicate.Pack {
 	return predicate.Pack(sql.FieldEQ(FieldItemCount, v))
@@ -531,6 +576,29 @@ func HasShares() predicate.Pack {
 func HasSharesWith(preds ...predicate.PackShare) predicate.Pack {
 	return predicate.Pack(func(s *sql.Selector) {
 		step := newSharesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConfigurationAttachments applies the HasEdge predicate on the "configuration_attachments" edge.
+func HasConfigurationAttachments() predicate.Pack {
+	return predicate.Pack(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAttachmentsTable, ConfigurationAttachmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfigurationAttachmentsWith applies the HasEdge predicate on the "configuration_attachments" edge with a given conditions (other predicates).
+func HasConfigurationAttachmentsWith(preds ...predicate.PackConfigurationAttachment) predicate.Pack {
+	return predicate.Pack(func(s *sql.Selector) {
+		step := newConfigurationAttachmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -48,9 +48,11 @@ type ConfigurationAsset struct {
 type ConfigurationAssetEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// PackAttachments holds the value of the pack_attachments edge.
+	PackAttachments []*PackConfigurationAttachment `json:"pack_attachments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -62,6 +64,15 @@ func (e ConfigurationAssetEdges) UserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
+}
+
+// PackAttachmentsOrErr returns the PackAttachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e ConfigurationAssetEdges) PackAttachmentsOrErr() ([]*PackConfigurationAttachment, error) {
+	if e.loadedTypes[1] {
+		return e.PackAttachments, nil
+	}
+	return nil, &NotLoadedError{edge: "pack_attachments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -174,6 +185,11 @@ func (_m *ConfigurationAsset) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the ConfigurationAsset entity.
 func (_m *ConfigurationAsset) QueryUser() *UserQuery {
 	return NewConfigurationAssetClient(_m.config).QueryUser(_m)
+}
+
+// QueryPackAttachments queries the "pack_attachments" edge of the ConfigurationAsset entity.
+func (_m *ConfigurationAsset) QueryPackAttachments() *PackConfigurationAttachmentQuery {
+	return NewConfigurationAssetClient(_m.config).QueryPackAttachments(_m)
 }
 
 // Update returns a builder for updating this ConfigurationAsset.

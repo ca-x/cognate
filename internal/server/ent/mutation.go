@@ -29,6 +29,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/nativematerializationgrant"
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
+	"github.com/ca-x/cognate/internal/server/ent/packconfigurationattachment"
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
@@ -47,30 +48,31 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCategory                   = "Category"
-	TypeCollectedRepository        = "CollectedRepository"
-	TypeCollectedSkill             = "CollectedSkill"
-	TypeConfigurationAsset         = "ConfigurationAsset"
-	TypeGitHubCredential           = "GitHubCredential"
-	TypeGitHubList                 = "GitHubList"
-	TypeGitHubMembership           = "GitHubMembership"
-	TypeGitHubRepository           = "GitHubRepository"
-	TypeImportReceipt              = "ImportReceipt"
-	TypeLocalAccount               = "LocalAccount"
-	TypeMCPAudit                   = "MCPAudit"
-	TypeMCPCredential              = "MCPCredential"
-	TypeNativeApplyPreparation     = "NativeApplyPreparation"
-	TypeNativeConsumerChallenge    = "NativeConsumerChallenge"
-	TypeNativeConsumerSession      = "NativeConsumerSession"
-	TypeNativeMaterializationGrant = "NativeMaterializationGrant"
-	TypeOIDCIdentity               = "OIDCIdentity"
-	TypePack                       = "Pack"
-	TypePackItem                   = "PackItem"
-	TypePackShare                  = "PackShare"
-	TypeRepositoryPrivateHistory   = "RepositoryPrivateHistory"
-	TypeServerMetadata             = "ServerMetadata"
-	TypeSession                    = "Session"
-	TypeUser                       = "User"
+	TypeCategory                    = "Category"
+	TypeCollectedRepository         = "CollectedRepository"
+	TypeCollectedSkill              = "CollectedSkill"
+	TypeConfigurationAsset          = "ConfigurationAsset"
+	TypeGitHubCredential            = "GitHubCredential"
+	TypeGitHubList                  = "GitHubList"
+	TypeGitHubMembership            = "GitHubMembership"
+	TypeGitHubRepository            = "GitHubRepository"
+	TypeImportReceipt               = "ImportReceipt"
+	TypeLocalAccount                = "LocalAccount"
+	TypeMCPAudit                    = "MCPAudit"
+	TypeMCPCredential               = "MCPCredential"
+	TypeNativeApplyPreparation      = "NativeApplyPreparation"
+	TypeNativeConsumerChallenge     = "NativeConsumerChallenge"
+	TypeNativeConsumerSession       = "NativeConsumerSession"
+	TypeNativeMaterializationGrant  = "NativeMaterializationGrant"
+	TypeOIDCIdentity                = "OIDCIdentity"
+	TypePack                        = "Pack"
+	TypePackConfigurationAttachment = "PackConfigurationAttachment"
+	TypePackItem                    = "PackItem"
+	TypePackShare                   = "PackShare"
+	TypeRepositoryPrivateHistory    = "RepositoryPrivateHistory"
+	TypeServerMetadata              = "ServerMetadata"
+	TypeSession                     = "Session"
+	TypeUser                        = "User"
 )
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
@@ -2634,26 +2636,29 @@ func (m *CollectedSkillMutation) ResetEdge(name string) error {
 // ConfigurationAssetMutation represents an operation that mutates the ConfigurationAsset nodes in the graph.
 type ConfigurationAssetMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	public_id         *string
-	agent_id          *string
-	kind              *configurationasset.Kind
-	name              *string
-	schema_version    *int
-	addschema_version *int
-	revision          *int64
-	addrevision       *int64
-	created_at        *time.Time
-	updated_at        *time.Time
-	ciphertext        *[]byte
-	clearedFields     map[string]struct{}
-	user              *int
-	cleareduser       bool
-	done              bool
-	oldValue          func(context.Context) (*ConfigurationAsset, error)
-	predicates        []predicate.ConfigurationAsset
+	op                      Op
+	typ                     string
+	id                      *int
+	public_id               *string
+	agent_id                *string
+	kind                    *configurationasset.Kind
+	name                    *string
+	schema_version          *int
+	addschema_version       *int
+	revision                *int64
+	addrevision             *int64
+	created_at              *time.Time
+	updated_at              *time.Time
+	ciphertext              *[]byte
+	clearedFields           map[string]struct{}
+	user                    *int
+	cleareduser             bool
+	pack_attachments        map[int]struct{}
+	removedpack_attachments map[int]struct{}
+	clearedpack_attachments bool
+	done                    bool
+	oldValue                func(context.Context) (*ConfigurationAsset, error)
+	predicates              []predicate.ConfigurationAsset
 }
 
 var _ ent.Mutation = (*ConfigurationAssetMutation)(nil)
@@ -3181,6 +3186,60 @@ func (m *ConfigurationAssetMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddPackAttachmentIDs adds the "pack_attachments" edge to the PackConfigurationAttachment entity by ids.
+func (m *ConfigurationAssetMutation) AddPackAttachmentIDs(ids ...int) {
+	if m.pack_attachments == nil {
+		m.pack_attachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.pack_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPackAttachments clears the "pack_attachments" edge to the PackConfigurationAttachment entity.
+func (m *ConfigurationAssetMutation) ClearPackAttachments() {
+	m.clearedpack_attachments = true
+}
+
+// PackAttachmentsCleared reports if the "pack_attachments" edge to the PackConfigurationAttachment entity was cleared.
+func (m *ConfigurationAssetMutation) PackAttachmentsCleared() bool {
+	return m.clearedpack_attachments
+}
+
+// RemovePackAttachmentIDs removes the "pack_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (m *ConfigurationAssetMutation) RemovePackAttachmentIDs(ids ...int) {
+	if m.removedpack_attachments == nil {
+		m.removedpack_attachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.pack_attachments, ids[i])
+		m.removedpack_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPackAttachments returns the removed IDs of the "pack_attachments" edge to the PackConfigurationAttachment entity.
+func (m *ConfigurationAssetMutation) RemovedPackAttachmentsIDs() (ids []int) {
+	for id := range m.removedpack_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PackAttachmentsIDs returns the "pack_attachments" edge IDs in the mutation.
+func (m *ConfigurationAssetMutation) PackAttachmentsIDs() (ids []int) {
+	for id := range m.pack_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPackAttachments resets all changes to the "pack_attachments" edge.
+func (m *ConfigurationAssetMutation) ResetPackAttachments() {
+	m.pack_attachments = nil
+	m.clearedpack_attachments = false
+	m.removedpack_attachments = nil
+}
+
 // Where appends a list predicates to the ConfigurationAssetMutation builder.
 func (m *ConfigurationAssetMutation) Where(ps ...predicate.ConfigurationAsset) {
 	m.predicates = append(m.predicates, ps...)
@@ -3494,9 +3553,12 @@ func (m *ConfigurationAssetMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ConfigurationAssetMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, configurationasset.EdgeUser)
+	}
+	if m.pack_attachments != nil {
+		edges = append(edges, configurationasset.EdgePackAttachments)
 	}
 	return edges
 }
@@ -3509,27 +3571,47 @@ func (m *ConfigurationAssetMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case configurationasset.EdgePackAttachments:
+		ids := make([]ent.Value, 0, len(m.pack_attachments))
+		for id := range m.pack_attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ConfigurationAssetMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedpack_attachments != nil {
+		edges = append(edges, configurationasset.EdgePackAttachments)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ConfigurationAssetMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case configurationasset.EdgePackAttachments:
+		ids := make([]ent.Value, 0, len(m.removedpack_attachments))
+		for id := range m.removedpack_attachments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ConfigurationAssetMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, configurationasset.EdgeUser)
+	}
+	if m.clearedpack_attachments {
+		edges = append(edges, configurationasset.EdgePackAttachments)
 	}
 	return edges
 }
@@ -3540,6 +3622,8 @@ func (m *ConfigurationAssetMutation) EdgeCleared(name string) bool {
 	switch name {
 	case configurationasset.EdgeUser:
 		return m.cleareduser
+	case configurationasset.EdgePackAttachments:
+		return m.clearedpack_attachments
 	}
 	return false
 }
@@ -3561,6 +3645,9 @@ func (m *ConfigurationAssetMutation) ResetEdge(name string) error {
 	switch name {
 	case configurationasset.EdgeUser:
 		m.ResetUser()
+		return nil
+	case configurationasset.EdgePackAttachments:
+		m.ResetPackAttachments()
 		return nil
 	}
 	return fmt.Errorf("unknown ConfigurationAsset edge %s", name)
@@ -15804,30 +15891,35 @@ func (m *OIDCIdentityMutation) ResetEdge(name string) error {
 // PackMutation represents an operation that mutates the Pack nodes in the graph.
 type PackMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	public_id     *string
-	name          *string
-	description   *string
-	revision      *int64
-	addrevision   *int64
-	item_count    *int
-	additem_count *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	items         map[int]struct{}
-	removeditems  map[int]struct{}
-	cleareditems  bool
-	shares        map[int]struct{}
-	removedshares map[int]struct{}
-	clearedshares bool
-	done          bool
-	oldValue      func(context.Context) (*Pack, error)
-	predicates    []predicate.Pack
+	op                               Op
+	typ                              string
+	id                               *int
+	public_id                        *string
+	name                             *string
+	description                      *string
+	revision                         *int64
+	addrevision                      *int64
+	configuration_revision           *int64
+	addconfiguration_revision        *int64
+	item_count                       *int
+	additem_count                    *int
+	created_at                       *time.Time
+	updated_at                       *time.Time
+	clearedFields                    map[string]struct{}
+	user                             *int
+	cleareduser                      bool
+	items                            map[int]struct{}
+	removeditems                     map[int]struct{}
+	cleareditems                     bool
+	shares                           map[int]struct{}
+	removedshares                    map[int]struct{}
+	clearedshares                    bool
+	configuration_attachments        map[int]struct{}
+	removedconfiguration_attachments map[int]struct{}
+	clearedconfiguration_attachments bool
+	done                             bool
+	oldValue                         func(context.Context) (*Pack, error)
+	predicates                       []predicate.Pack
 }
 
 var _ ent.Mutation = (*PackMutation)(nil)
@@ -16128,6 +16220,62 @@ func (m *PackMutation) ResetRevision() {
 	m.addrevision = nil
 }
 
+// SetConfigurationRevision sets the "configuration_revision" field.
+func (m *PackMutation) SetConfigurationRevision(i int64) {
+	m.configuration_revision = &i
+	m.addconfiguration_revision = nil
+}
+
+// ConfigurationRevision returns the value of the "configuration_revision" field in the mutation.
+func (m *PackMutation) ConfigurationRevision() (r int64, exists bool) {
+	v := m.configuration_revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfigurationRevision returns the old "configuration_revision" field's value of the Pack entity.
+// If the Pack object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackMutation) OldConfigurationRevision(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfigurationRevision is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfigurationRevision requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfigurationRevision: %w", err)
+	}
+	return oldValue.ConfigurationRevision, nil
+}
+
+// AddConfigurationRevision adds i to the "configuration_revision" field.
+func (m *PackMutation) AddConfigurationRevision(i int64) {
+	if m.addconfiguration_revision != nil {
+		*m.addconfiguration_revision += i
+	} else {
+		m.addconfiguration_revision = &i
+	}
+}
+
+// AddedConfigurationRevision returns the value that was added to the "configuration_revision" field in this mutation.
+func (m *PackMutation) AddedConfigurationRevision() (r int64, exists bool) {
+	v := m.addconfiguration_revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetConfigurationRevision resets all changes to the "configuration_revision" field.
+func (m *PackMutation) ResetConfigurationRevision() {
+	m.configuration_revision = nil
+	m.addconfiguration_revision = nil
+}
+
 // SetItemCount sets the "item_count" field.
 func (m *PackMutation) SetItemCount(i int) {
 	m.item_count = &i
@@ -16391,6 +16539,60 @@ func (m *PackMutation) ResetShares() {
 	m.removedshares = nil
 }
 
+// AddConfigurationAttachmentIDs adds the "configuration_attachments" edge to the PackConfigurationAttachment entity by ids.
+func (m *PackMutation) AddConfigurationAttachmentIDs(ids ...int) {
+	if m.configuration_attachments == nil {
+		m.configuration_attachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.configuration_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearConfigurationAttachments clears the "configuration_attachments" edge to the PackConfigurationAttachment entity.
+func (m *PackMutation) ClearConfigurationAttachments() {
+	m.clearedconfiguration_attachments = true
+}
+
+// ConfigurationAttachmentsCleared reports if the "configuration_attachments" edge to the PackConfigurationAttachment entity was cleared.
+func (m *PackMutation) ConfigurationAttachmentsCleared() bool {
+	return m.clearedconfiguration_attachments
+}
+
+// RemoveConfigurationAttachmentIDs removes the "configuration_attachments" edge to the PackConfigurationAttachment entity by IDs.
+func (m *PackMutation) RemoveConfigurationAttachmentIDs(ids ...int) {
+	if m.removedconfiguration_attachments == nil {
+		m.removedconfiguration_attachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.configuration_attachments, ids[i])
+		m.removedconfiguration_attachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedConfigurationAttachments returns the removed IDs of the "configuration_attachments" edge to the PackConfigurationAttachment entity.
+func (m *PackMutation) RemovedConfigurationAttachmentsIDs() (ids []int) {
+	for id := range m.removedconfiguration_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ConfigurationAttachmentsIDs returns the "configuration_attachments" edge IDs in the mutation.
+func (m *PackMutation) ConfigurationAttachmentsIDs() (ids []int) {
+	for id := range m.configuration_attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetConfigurationAttachments resets all changes to the "configuration_attachments" edge.
+func (m *PackMutation) ResetConfigurationAttachments() {
+	m.configuration_attachments = nil
+	m.clearedconfiguration_attachments = false
+	m.removedconfiguration_attachments = nil
+}
+
 // Where appends a list predicates to the PackMutation builder.
 func (m *PackMutation) Where(ps ...predicate.Pack) {
 	m.predicates = append(m.predicates, ps...)
@@ -16425,7 +16627,7 @@ func (m *PackMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PackMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.public_id != nil {
 		fields = append(fields, pack.FieldPublicID)
 	}
@@ -16440,6 +16642,9 @@ func (m *PackMutation) Fields() []string {
 	}
 	if m.revision != nil {
 		fields = append(fields, pack.FieldRevision)
+	}
+	if m.configuration_revision != nil {
+		fields = append(fields, pack.FieldConfigurationRevision)
 	}
 	if m.item_count != nil {
 		fields = append(fields, pack.FieldItemCount)
@@ -16468,6 +16673,8 @@ func (m *PackMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case pack.FieldRevision:
 		return m.Revision()
+	case pack.FieldConfigurationRevision:
+		return m.ConfigurationRevision()
 	case pack.FieldItemCount:
 		return m.ItemCount()
 	case pack.FieldCreatedAt:
@@ -16493,6 +16700,8 @@ func (m *PackMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDescription(ctx)
 	case pack.FieldRevision:
 		return m.OldRevision(ctx)
+	case pack.FieldConfigurationRevision:
+		return m.OldConfigurationRevision(ctx)
 	case pack.FieldItemCount:
 		return m.OldItemCount(ctx)
 	case pack.FieldCreatedAt:
@@ -16543,6 +16752,13 @@ func (m *PackMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRevision(v)
 		return nil
+	case pack.FieldConfigurationRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfigurationRevision(v)
+		return nil
 	case pack.FieldItemCount:
 		v, ok := value.(int)
 		if !ok {
@@ -16575,6 +16791,9 @@ func (m *PackMutation) AddedFields() []string {
 	if m.addrevision != nil {
 		fields = append(fields, pack.FieldRevision)
 	}
+	if m.addconfiguration_revision != nil {
+		fields = append(fields, pack.FieldConfigurationRevision)
+	}
 	if m.additem_count != nil {
 		fields = append(fields, pack.FieldItemCount)
 	}
@@ -16588,6 +16807,8 @@ func (m *PackMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case pack.FieldRevision:
 		return m.AddedRevision()
+	case pack.FieldConfigurationRevision:
+		return m.AddedConfigurationRevision()
 	case pack.FieldItemCount:
 		return m.AddedItemCount()
 	}
@@ -16605,6 +16826,13 @@ func (m *PackMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRevision(v)
+		return nil
+	case pack.FieldConfigurationRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddConfigurationRevision(v)
 		return nil
 	case pack.FieldItemCount:
 		v, ok := value.(int)
@@ -16655,6 +16883,9 @@ func (m *PackMutation) ResetField(name string) error {
 	case pack.FieldRevision:
 		m.ResetRevision()
 		return nil
+	case pack.FieldConfigurationRevision:
+		m.ResetConfigurationRevision()
+		return nil
 	case pack.FieldItemCount:
 		m.ResetItemCount()
 		return nil
@@ -16670,7 +16901,7 @@ func (m *PackMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PackMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, pack.EdgeUser)
 	}
@@ -16679,6 +16910,9 @@ func (m *PackMutation) AddedEdges() []string {
 	}
 	if m.shares != nil {
 		edges = append(edges, pack.EdgeShares)
+	}
+	if m.configuration_attachments != nil {
+		edges = append(edges, pack.EdgeConfigurationAttachments)
 	}
 	return edges
 }
@@ -16703,18 +16937,27 @@ func (m *PackMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case pack.EdgeConfigurationAttachments:
+		ids := make([]ent.Value, 0, len(m.configuration_attachments))
+		for id := range m.configuration_attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PackMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removeditems != nil {
 		edges = append(edges, pack.EdgeItems)
 	}
 	if m.removedshares != nil {
 		edges = append(edges, pack.EdgeShares)
+	}
+	if m.removedconfiguration_attachments != nil {
+		edges = append(edges, pack.EdgeConfigurationAttachments)
 	}
 	return edges
 }
@@ -16735,13 +16978,19 @@ func (m *PackMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case pack.EdgeConfigurationAttachments:
+		ids := make([]ent.Value, 0, len(m.removedconfiguration_attachments))
+		for id := range m.removedconfiguration_attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PackMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, pack.EdgeUser)
 	}
@@ -16750,6 +16999,9 @@ func (m *PackMutation) ClearedEdges() []string {
 	}
 	if m.clearedshares {
 		edges = append(edges, pack.EdgeShares)
+	}
+	if m.clearedconfiguration_attachments {
+		edges = append(edges, pack.EdgeConfigurationAttachments)
 	}
 	return edges
 }
@@ -16764,6 +17016,8 @@ func (m *PackMutation) EdgeCleared(name string) bool {
 		return m.cleareditems
 	case pack.EdgeShares:
 		return m.clearedshares
+	case pack.EdgeConfigurationAttachments:
+		return m.clearedconfiguration_attachments
 	}
 	return false
 }
@@ -16792,8 +17046,776 @@ func (m *PackMutation) ResetEdge(name string) error {
 	case pack.EdgeShares:
 		m.ResetShares()
 		return nil
+	case pack.EdgeConfigurationAttachments:
+		m.ResetConfigurationAttachments()
+		return nil
 	}
 	return fmt.Errorf("unknown Pack edge %s", name)
+}
+
+// PackConfigurationAttachmentMutation represents an operation that mutates the PackConfigurationAttachment nodes in the graph.
+type PackConfigurationAttachmentMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *int
+	public_id                  *string
+	asset_revision             *int64
+	addasset_revision          *int64
+	target_id                  *string
+	ordinal                    *int
+	addordinal                 *int
+	clearedFields              map[string]struct{}
+	pack                       *int
+	clearedpack                bool
+	configuration_asset        *int
+	clearedconfiguration_asset bool
+	done                       bool
+	oldValue                   func(context.Context) (*PackConfigurationAttachment, error)
+	predicates                 []predicate.PackConfigurationAttachment
+}
+
+var _ ent.Mutation = (*PackConfigurationAttachmentMutation)(nil)
+
+// packconfigurationattachmentOption allows management of the mutation configuration using functional options.
+type packconfigurationattachmentOption func(*PackConfigurationAttachmentMutation)
+
+// newPackConfigurationAttachmentMutation creates new mutation for the PackConfigurationAttachment entity.
+func newPackConfigurationAttachmentMutation(c config, op Op, opts ...packconfigurationattachmentOption) *PackConfigurationAttachmentMutation {
+	m := &PackConfigurationAttachmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePackConfigurationAttachment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPackConfigurationAttachmentID sets the ID field of the mutation.
+func withPackConfigurationAttachmentID(id int) packconfigurationattachmentOption {
+	return func(m *PackConfigurationAttachmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PackConfigurationAttachment
+		)
+		m.oldValue = func(ctx context.Context) (*PackConfigurationAttachment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PackConfigurationAttachment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPackConfigurationAttachment sets the old PackConfigurationAttachment of the mutation.
+func withPackConfigurationAttachment(node *PackConfigurationAttachment) packconfigurationattachmentOption {
+	return func(m *PackConfigurationAttachmentMutation) {
+		m.oldValue = func(context.Context) (*PackConfigurationAttachment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PackConfigurationAttachmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PackConfigurationAttachmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PackConfigurationAttachmentMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PackConfigurationAttachmentMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PackConfigurationAttachment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPublicID sets the "public_id" field.
+func (m *PackConfigurationAttachmentMutation) SetPublicID(s string) {
+	m.public_id = &s
+}
+
+// PublicID returns the value of the "public_id" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) PublicID() (r string, exists bool) {
+	v := m.public_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicID returns the old "public_id" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldPublicID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicID: %w", err)
+	}
+	return oldValue.PublicID, nil
+}
+
+// ResetPublicID resets all changes to the "public_id" field.
+func (m *PackConfigurationAttachmentMutation) ResetPublicID() {
+	m.public_id = nil
+}
+
+// SetPackID sets the "pack_id" field.
+func (m *PackConfigurationAttachmentMutation) SetPackID(i int) {
+	m.pack = &i
+}
+
+// PackID returns the value of the "pack_id" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) PackID() (r int, exists bool) {
+	v := m.pack
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackID returns the old "pack_id" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldPackID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackID: %w", err)
+	}
+	return oldValue.PackID, nil
+}
+
+// ResetPackID resets all changes to the "pack_id" field.
+func (m *PackConfigurationAttachmentMutation) ResetPackID() {
+	m.pack = nil
+}
+
+// SetConfigurationAssetID sets the "configuration_asset_id" field.
+func (m *PackConfigurationAttachmentMutation) SetConfigurationAssetID(i int) {
+	m.configuration_asset = &i
+}
+
+// ConfigurationAssetID returns the value of the "configuration_asset_id" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) ConfigurationAssetID() (r int, exists bool) {
+	v := m.configuration_asset
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfigurationAssetID returns the old "configuration_asset_id" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldConfigurationAssetID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfigurationAssetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfigurationAssetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfigurationAssetID: %w", err)
+	}
+	return oldValue.ConfigurationAssetID, nil
+}
+
+// ResetConfigurationAssetID resets all changes to the "configuration_asset_id" field.
+func (m *PackConfigurationAttachmentMutation) ResetConfigurationAssetID() {
+	m.configuration_asset = nil
+}
+
+// SetAssetRevision sets the "asset_revision" field.
+func (m *PackConfigurationAttachmentMutation) SetAssetRevision(i int64) {
+	m.asset_revision = &i
+	m.addasset_revision = nil
+}
+
+// AssetRevision returns the value of the "asset_revision" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) AssetRevision() (r int64, exists bool) {
+	v := m.asset_revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssetRevision returns the old "asset_revision" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldAssetRevision(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssetRevision is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssetRevision requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssetRevision: %w", err)
+	}
+	return oldValue.AssetRevision, nil
+}
+
+// AddAssetRevision adds i to the "asset_revision" field.
+func (m *PackConfigurationAttachmentMutation) AddAssetRevision(i int64) {
+	if m.addasset_revision != nil {
+		*m.addasset_revision += i
+	} else {
+		m.addasset_revision = &i
+	}
+}
+
+// AddedAssetRevision returns the value that was added to the "asset_revision" field in this mutation.
+func (m *PackConfigurationAttachmentMutation) AddedAssetRevision() (r int64, exists bool) {
+	v := m.addasset_revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAssetRevision resets all changes to the "asset_revision" field.
+func (m *PackConfigurationAttachmentMutation) ResetAssetRevision() {
+	m.asset_revision = nil
+	m.addasset_revision = nil
+}
+
+// SetTargetID sets the "target_id" field.
+func (m *PackConfigurationAttachmentMutation) SetTargetID(s string) {
+	m.target_id = &s
+}
+
+// TargetID returns the value of the "target_id" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) TargetID() (r string, exists bool) {
+	v := m.target_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetID returns the old "target_id" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldTargetID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
+	}
+	return oldValue.TargetID, nil
+}
+
+// ResetTargetID resets all changes to the "target_id" field.
+func (m *PackConfigurationAttachmentMutation) ResetTargetID() {
+	m.target_id = nil
+}
+
+// SetOrdinal sets the "ordinal" field.
+func (m *PackConfigurationAttachmentMutation) SetOrdinal(i int) {
+	m.ordinal = &i
+	m.addordinal = nil
+}
+
+// Ordinal returns the value of the "ordinal" field in the mutation.
+func (m *PackConfigurationAttachmentMutation) Ordinal() (r int, exists bool) {
+	v := m.ordinal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrdinal returns the old "ordinal" field's value of the PackConfigurationAttachment entity.
+// If the PackConfigurationAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PackConfigurationAttachmentMutation) OldOrdinal(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrdinal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrdinal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrdinal: %w", err)
+	}
+	return oldValue.Ordinal, nil
+}
+
+// AddOrdinal adds i to the "ordinal" field.
+func (m *PackConfigurationAttachmentMutation) AddOrdinal(i int) {
+	if m.addordinal != nil {
+		*m.addordinal += i
+	} else {
+		m.addordinal = &i
+	}
+}
+
+// AddedOrdinal returns the value that was added to the "ordinal" field in this mutation.
+func (m *PackConfigurationAttachmentMutation) AddedOrdinal() (r int, exists bool) {
+	v := m.addordinal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrdinal resets all changes to the "ordinal" field.
+func (m *PackConfigurationAttachmentMutation) ResetOrdinal() {
+	m.ordinal = nil
+	m.addordinal = nil
+}
+
+// ClearPack clears the "pack" edge to the Pack entity.
+func (m *PackConfigurationAttachmentMutation) ClearPack() {
+	m.clearedpack = true
+	m.clearedFields[packconfigurationattachment.FieldPackID] = struct{}{}
+}
+
+// PackCleared reports if the "pack" edge to the Pack entity was cleared.
+func (m *PackConfigurationAttachmentMutation) PackCleared() bool {
+	return m.clearedpack
+}
+
+// PackIDs returns the "pack" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackID instead. It exists only for internal usage by the builders.
+func (m *PackConfigurationAttachmentMutation) PackIDs() (ids []int) {
+	if id := m.pack; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPack resets all changes to the "pack" edge.
+func (m *PackConfigurationAttachmentMutation) ResetPack() {
+	m.pack = nil
+	m.clearedpack = false
+}
+
+// ClearConfigurationAsset clears the "configuration_asset" edge to the ConfigurationAsset entity.
+func (m *PackConfigurationAttachmentMutation) ClearConfigurationAsset() {
+	m.clearedconfiguration_asset = true
+	m.clearedFields[packconfigurationattachment.FieldConfigurationAssetID] = struct{}{}
+}
+
+// ConfigurationAssetCleared reports if the "configuration_asset" edge to the ConfigurationAsset entity was cleared.
+func (m *PackConfigurationAttachmentMutation) ConfigurationAssetCleared() bool {
+	return m.clearedconfiguration_asset
+}
+
+// ConfigurationAssetIDs returns the "configuration_asset" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ConfigurationAssetID instead. It exists only for internal usage by the builders.
+func (m *PackConfigurationAttachmentMutation) ConfigurationAssetIDs() (ids []int) {
+	if id := m.configuration_asset; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetConfigurationAsset resets all changes to the "configuration_asset" edge.
+func (m *PackConfigurationAttachmentMutation) ResetConfigurationAsset() {
+	m.configuration_asset = nil
+	m.clearedconfiguration_asset = false
+}
+
+// Where appends a list predicates to the PackConfigurationAttachmentMutation builder.
+func (m *PackConfigurationAttachmentMutation) Where(ps ...predicate.PackConfigurationAttachment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PackConfigurationAttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PackConfigurationAttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PackConfigurationAttachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PackConfigurationAttachmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PackConfigurationAttachmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PackConfigurationAttachment).
+func (m *PackConfigurationAttachmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PackConfigurationAttachmentMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.public_id != nil {
+		fields = append(fields, packconfigurationattachment.FieldPublicID)
+	}
+	if m.pack != nil {
+		fields = append(fields, packconfigurationattachment.FieldPackID)
+	}
+	if m.configuration_asset != nil {
+		fields = append(fields, packconfigurationattachment.FieldConfigurationAssetID)
+	}
+	if m.asset_revision != nil {
+		fields = append(fields, packconfigurationattachment.FieldAssetRevision)
+	}
+	if m.target_id != nil {
+		fields = append(fields, packconfigurationattachment.FieldTargetID)
+	}
+	if m.ordinal != nil {
+		fields = append(fields, packconfigurationattachment.FieldOrdinal)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PackConfigurationAttachmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case packconfigurationattachment.FieldPublicID:
+		return m.PublicID()
+	case packconfigurationattachment.FieldPackID:
+		return m.PackID()
+	case packconfigurationattachment.FieldConfigurationAssetID:
+		return m.ConfigurationAssetID()
+	case packconfigurationattachment.FieldAssetRevision:
+		return m.AssetRevision()
+	case packconfigurationattachment.FieldTargetID:
+		return m.TargetID()
+	case packconfigurationattachment.FieldOrdinal:
+		return m.Ordinal()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PackConfigurationAttachmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case packconfigurationattachment.FieldPublicID:
+		return m.OldPublicID(ctx)
+	case packconfigurationattachment.FieldPackID:
+		return m.OldPackID(ctx)
+	case packconfigurationattachment.FieldConfigurationAssetID:
+		return m.OldConfigurationAssetID(ctx)
+	case packconfigurationattachment.FieldAssetRevision:
+		return m.OldAssetRevision(ctx)
+	case packconfigurationattachment.FieldTargetID:
+		return m.OldTargetID(ctx)
+	case packconfigurationattachment.FieldOrdinal:
+		return m.OldOrdinal(ctx)
+	}
+	return nil, fmt.Errorf("unknown PackConfigurationAttachment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PackConfigurationAttachmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case packconfigurationattachment.FieldPublicID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicID(v)
+		return nil
+	case packconfigurationattachment.FieldPackID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackID(v)
+		return nil
+	case packconfigurationattachment.FieldConfigurationAssetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfigurationAssetID(v)
+		return nil
+	case packconfigurationattachment.FieldAssetRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssetRevision(v)
+		return nil
+	case packconfigurationattachment.FieldTargetID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetID(v)
+		return nil
+	case packconfigurationattachment.FieldOrdinal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrdinal(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PackConfigurationAttachment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PackConfigurationAttachmentMutation) AddedFields() []string {
+	var fields []string
+	if m.addasset_revision != nil {
+		fields = append(fields, packconfigurationattachment.FieldAssetRevision)
+	}
+	if m.addordinal != nil {
+		fields = append(fields, packconfigurationattachment.FieldOrdinal)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PackConfigurationAttachmentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case packconfigurationattachment.FieldAssetRevision:
+		return m.AddedAssetRevision()
+	case packconfigurationattachment.FieldOrdinal:
+		return m.AddedOrdinal()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PackConfigurationAttachmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case packconfigurationattachment.FieldAssetRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAssetRevision(v)
+		return nil
+	case packconfigurationattachment.FieldOrdinal:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrdinal(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PackConfigurationAttachment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PackConfigurationAttachmentMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PackConfigurationAttachmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PackConfigurationAttachmentMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PackConfigurationAttachment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PackConfigurationAttachmentMutation) ResetField(name string) error {
+	switch name {
+	case packconfigurationattachment.FieldPublicID:
+		m.ResetPublicID()
+		return nil
+	case packconfigurationattachment.FieldPackID:
+		m.ResetPackID()
+		return nil
+	case packconfigurationattachment.FieldConfigurationAssetID:
+		m.ResetConfigurationAssetID()
+		return nil
+	case packconfigurationattachment.FieldAssetRevision:
+		m.ResetAssetRevision()
+		return nil
+	case packconfigurationattachment.FieldTargetID:
+		m.ResetTargetID()
+		return nil
+	case packconfigurationattachment.FieldOrdinal:
+		m.ResetOrdinal()
+		return nil
+	}
+	return fmt.Errorf("unknown PackConfigurationAttachment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PackConfigurationAttachmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.pack != nil {
+		edges = append(edges, packconfigurationattachment.EdgePack)
+	}
+	if m.configuration_asset != nil {
+		edges = append(edges, packconfigurationattachment.EdgeConfigurationAsset)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PackConfigurationAttachmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case packconfigurationattachment.EdgePack:
+		if id := m.pack; id != nil {
+			return []ent.Value{*id}
+		}
+	case packconfigurationattachment.EdgeConfigurationAsset:
+		if id := m.configuration_asset; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PackConfigurationAttachmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PackConfigurationAttachmentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PackConfigurationAttachmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedpack {
+		edges = append(edges, packconfigurationattachment.EdgePack)
+	}
+	if m.clearedconfiguration_asset {
+		edges = append(edges, packconfigurationattachment.EdgeConfigurationAsset)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PackConfigurationAttachmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case packconfigurationattachment.EdgePack:
+		return m.clearedpack
+	case packconfigurationattachment.EdgeConfigurationAsset:
+		return m.clearedconfiguration_asset
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PackConfigurationAttachmentMutation) ClearEdge(name string) error {
+	switch name {
+	case packconfigurationattachment.EdgePack:
+		m.ClearPack()
+		return nil
+	case packconfigurationattachment.EdgeConfigurationAsset:
+		m.ClearConfigurationAsset()
+		return nil
+	}
+	return fmt.Errorf("unknown PackConfigurationAttachment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PackConfigurationAttachmentMutation) ResetEdge(name string) error {
+	switch name {
+	case packconfigurationattachment.EdgePack:
+		m.ResetPack()
+		return nil
+	case packconfigurationattachment.EdgeConfigurationAsset:
+		m.ResetConfigurationAsset()
+		return nil
+	}
+	return fmt.Errorf("unknown PackConfigurationAttachment edge %s", name)
 }
 
 // PackItemMutation represents an operation that mutates the PackItem nodes in the graph.

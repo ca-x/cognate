@@ -558,6 +558,29 @@ func HasUserWith(preds ...predicate.User) predicate.ConfigurationAsset {
 	})
 }
 
+// HasPackAttachments applies the HasEdge predicate on the "pack_attachments" edge.
+func HasPackAttachments() predicate.ConfigurationAsset {
+	return predicate.ConfigurationAsset(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PackAttachmentsTable, PackAttachmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPackAttachmentsWith applies the HasEdge predicate on the "pack_attachments" edge with a given conditions (other predicates).
+func HasPackAttachmentsWith(preds ...predicate.PackConfigurationAttachment) predicate.ConfigurationAsset {
+	return predicate.ConfigurationAsset(func(s *sql.Selector) {
+		step := newPackAttachmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ConfigurationAsset) predicate.ConfigurationAsset {
 	return predicate.ConfigurationAsset(sql.AndPredicates(predicates...))
