@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：Grok Build 类型化 Connect API
+
+精确八个手写路径和两个正常 Buf 生成路径已获非作者 Spec/Quality 独立签收；报告 SHA256 `b031c4a5b6ed3108436b50f12a138284073875c76547660b466064230dec9f18`，输入源码包 SHA256 `fc609b234cca605f6a61a38fc36835dc6d291314b4ab50e8dad1d1fb0e95a680`。独立真实 App/TLS、第二物理 SQLite、protobuf/protoJSON 验证覆盖所有者/Origin 隔离、凭据及未来字段、CAS、复制、完整旧 descriptor 保全与关闭；四个可编译负控均普通断言失败，原源码恢复通过。独立冻结片测试 66 PASS、邻接 219 PASS、独立探针 16 PASS，均零 FAIL/SKIP；Buf 双模板全部 35 生成叶一致、仅两个生成差异，lint/breaking、Web build、vet/module verify 退出 0。
+
+主线程在不可变最终实现组合中全仓测试退出 0：7,044 个含包及子用例 PASS，47 个测试包、110 个显式用例/helper/platform SKIP，另 78 个无测试包；零 FAIL。全仓 vet、module verify、六平台乘 CLI/server 的十二项 CGO0 Go1.27.3 构建及元数据检查通过。该固定组合与合入主树的实现逐叶一致，仅 Docker、workflow 和阶段文档不同；主树十个接口叶 SHA256 与独立签收一致，生成文件由正常 Buf 再生，不手工编辑。
+
+原旧 schema 的创建请求 400、`envKey:null` 被接受为 200 和 Gemini 当前 union 个数断言的普通 RED 均保留；后两者分别以既有 strict codec 的 Grok 分支和新增字段标签断言修复，不放宽预算或旧字段语义。所有者接口不代表 Grok Web/CLI 编辑器、导入、本机 TOML 写入、消费者资格或完整十四 agent/F12。Docker 实跑按各提交的新 CI 另核，旧失败不追溯改绿。
+
 ## 2026-10-31：Grok Build 加密资产域
 
 独立签收精确八个领域层路径，沿用既有 Store 加密/AAD、单快照读取、所有者隔离、revision CAS、总配额和排序事务，无 schema/module/native 登记变更。非作者独审实际执行领域/adapter 回归、独立 SQLite/moejs 探针和四个可编译负控，Spec/Quality 均接受，零未关闭 finding；报告 SHA256 为 `40c4ddc9d8187c8a1c0af3224a3a46c506aea082432e4926f34906e082642305`。

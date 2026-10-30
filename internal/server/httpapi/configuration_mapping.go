@@ -10,6 +10,11 @@ import (
 
 func configurationInput(draft *configurationv1.Draft, mutations []*configurationv1.SecretMutation) (configuration.Draft, []configuration.SecretMutation, error) {
 	if draft != nil {
+		if _, grokbuild := draft.Payload.(*configurationv1.Draft_GrokbuildProvider); grokbuild {
+			return configurationGrokBuildInput(draft, mutations)
+		}
+	}
+	if draft != nil {
 		if _, opencode := draft.Payload.(*configurationv1.Draft_OpencodeProvider); opencode {
 			return configurationOpenCodeInput(draft, mutations)
 		}
@@ -115,6 +120,9 @@ func configurationAsset(entry state.ConfigurationAsset) (*configurationv1.Asset,
 }
 
 func configurationView(entry configuration.EditView) (*configurationv1.DraftView, error) {
+	if entry.GrokBuildProvider != nil || entry.Metadata.AgentID == "grokbuild" {
+		return configurationGrokBuildView(entry)
+	}
 	if entry.OpenCodeProvider != nil || entry.Metadata.AgentID == "opencode" {
 		return configurationOpenCodeView(entry)
 	}

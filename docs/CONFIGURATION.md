@@ -2,11 +2,11 @@
 
 > 2026-10-30：Claude、Codex 与 Gemini 私有 provider 资产管理已有 Web 入口；Gemini typed API/Web 在 `184feaa` 交付。Codex 与 Gemini 尚不能本机应用。Claude 的 Linux 手动 CLI 配置工作流在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo Claude provider/schema1 原生编辑、预览、显式批准应用、状态及恢复在 `bd00bc0` 交付；本机操作仅限 Linux。其它 agent 的完整配置、完整历史/文件差异及非 Linux 配置应用仍未交付；证据与 CI 状态见 `VERIFICATION.md`。
 
-Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini 与 OpenCode provider 的服务端私有资产管理**；Web 专属表单目前支持前三者，OpenCode 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
+Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini、OpenCode 与 Grok Build provider 的服务端私有资产管理**；Web 专属表单目前支持前三者，OpenCode 与 Grok Build 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
 
 ## Web 使用流程
 
-Grok Build 已有服务端加密资产领域层，尚未接入公开 RPC 或专属 Web/CLI 编辑器。支持 native-login 和 custom-model，保留独立的本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名；真实密钥单独加密，不进入 provider DTO 或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。保存、读取和服务端规划都不代表本机已应用。
+Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC，尚无专属 Web/CLI 编辑器或本机应用。`Draft.grokbuild_provider` 使用独立的 native-login/custom-model 模式；custom model 保留本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名。context window 为 int64，JSON 使用十进制字符串，范围为 1 至 9007199254740991；env 名 absent 与空串不同，显式 null 或空串拒绝。只允许单个 `grokbuild.api-key` SecretMutation，密钥不进入 provider DTO、读取响应或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。未知持久化字段只读，不能借更新或复制丢失；排序继续只读取元数据。保存、读取和服务端规划都不代表本机已应用。
 
 登录后从“AI 配置”进入，或直接访问 `/configuration`。列表只读取当前账号的元数据；点击编辑后才读取脱敏草稿。当前不提供通用 raw JSON 编辑或原文凭据查看。
 

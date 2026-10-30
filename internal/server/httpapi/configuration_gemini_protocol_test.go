@@ -88,7 +88,7 @@ func TestGeminiConfigurationProtocolDescriptor(test *testing.T) {
 		}
 	}
 	draft := file.Messages().ByName("Draft")
-	if draft.Fields().ByName("claude_provider").Number() != 2 || draft.Fields().ByName("codex_provider").Number() != 3 || draft.Fields().ByName("gemini_provider").Number() != 4 || draft.Fields().ByName("opencode_provider").Number() != 5 || draft.Oneofs().ByName("payload").Fields().Len() != 4 || file.Services().Get(0).Methods().Len() != 9 {
+	if draft.Fields().ByName("claude_provider").Number() != 2 || draft.Fields().ByName("codex_provider").Number() != 3 || draft.Fields().ByName("gemini_provider").Number() != 4 || draft.Fields().ByName("opencode_provider").Number() != 5 || draft.Fields().ByName("grokbuild_provider").Number() != 6 || draft.Oneofs().ByName("payload").Fields().Len() != 5 || file.Services().Get(0).Methods().Len() != 9 {
 		test.Fatal("legacy draft or RPC contract changed")
 	}
 	for _, expected := range []struct {

@@ -70,7 +70,7 @@ func configurationCodexJSONValid(data []byte, descriptor protoreflect.MessageDes
 		if err != nil {
 			return false
 		}
-		inside := codex || field.FullName() == "skillhub.configuration.v1.Draft.codex_provider" || field.FullName() == "skillhub.configuration.v1.Draft.gemini_provider"
+		inside := codex || field.FullName() == "skillhub.configuration.v1.Draft.codex_provider" || field.FullName() == "skillhub.configuration.v1.Draft.gemini_provider" || field.FullName() == "skillhub.configuration.v1.Draft.grokbuild_provider"
 		if value.Kind() == 'n' {
 			if inside {
 				return false

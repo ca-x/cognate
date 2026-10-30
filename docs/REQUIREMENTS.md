@@ -174,6 +174,7 @@
 - 编排补记（2026-10-31，仅 Codex 共用客户端内核）：新增类型化应用、状态、恢复、还原、消费前放弃与未发布退役入口，复用既有观察/授权/消费及单引擎生命周期，不执行客户端插件。人机审批接收安全副本，准确批准原凭据槽并最终确认；Unknown 不重放，消费成功后本地失败不冒称未消费。状态可收敛真实本地日志；恢复等动作需要新计划和新审批。该范围已通过真实隔离消费者与 App/TLS/SQLite 的独立验收，但生产 profile 仍未登记，普通应用在任何路径或 RPC 操作前拒绝；尚不代表 CLI 控制终端、MyGo 接线、完整消费者资格或 F12 已完成。
 - Grok Build 补记（2026-10-31，仅服务端类型化 planner）：官方 native-login 与 custom-model 分开声明，本地 profile 不混作上游 model；保留受支持的 endpoint/name/backend/context window，并支持 API key 存在性和环境变量名共存。真实秘密不传入 moejs，宿主独立核对完整输出与槽位。该片已通过独立验收，不执行本机 TOML 写入或任意旧默认表删除，尚不包含 Grok Build 加密资产、RPC/编辑器或本机应用；完整十四类 agent/F12 义务不缩减。
 - Grok Build 后续补记（2026-10-31，仅服务端加密资产域）：已独立验收所有者私有资产 CRUD、单快照读取与 revision CAS、无密钥复制、凭据 Keep/Replace/Clear、缺凭据草稿及环境变量名引用。切换 native-login 时，若仍有密钥，必须同次 CAS 显式 Clear；未知持久化字段保留且只读，不能通过更新或复制丢弃。Desired 从实际加密快照推导密钥存在状态，再接入服务端 moejs；不读取环境变量值、不执行端点探测或本机写入。总配额 250 和十四 agent 元数据排序契约不变；RPC/编辑器、客户端接线与本机应用仍待后续交付。
+- Grok Build 接口补记（2026-10-31，仅所有者 RPC）：已独立验收既有 ConfigurationService 九个 RPC 的 Grok 类型化扩展，包括 CRUD、无密钥复制和完整排序 CAS，支持 protobuf 与严格 protoJSON。仅追加 Draft payload 字段 6，旧字段标签和 RPC 保持；null/重复别名/未知枚举或字段拒绝，不能伪造密钥存在状态。沿用会话/Origin 隔离、请求预算与生命周期，不新增 native 资格。专属 Web/CLI 编辑器、来源配置导入和本机应用仍未由该接口片完成。
 
 - 实现补记（2026-10-30，仅 Claude MCP 连接配置领域层）：已通过独立验收的服务端私有配置资产支持 stdio、HTTP、SSE 三类完整有序声明、显式启停、凭据引用和加密存储、所有者隔离、版本 CAS、无密钥复制及只读预览。服务端 moejs 仅接收声明与凭据存在状态，其完整结果由 Go 独立校验；删除旧引用须在同次 CAS 中明确确认清除。有效但含 query 的远程 URL 整项返回 Unsupported，不删参数或放行。此处管理的是 agent 使用的 MCP 连接配置，不是 F10 的网站 MCP 管理 token；本片尚不提供连接配置 RPC/Web/MyGo 管理、外部 MCP 连接或设备应用，不代表 F12 或正式发布完成。
 

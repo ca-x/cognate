@@ -49,6 +49,12 @@ enum GeminiKeyTransport {
   GEMINI_KEY_TRANSPORT_BEARER = 2;
 }
 
+enum GrokBuildMode {
+  GROK_BUILD_MODE_UNSPECIFIED = 0;
+  GROK_BUILD_MODE_NATIVE_LOGIN = 1;
+  GROK_BUILD_MODE_CUSTOM_MODEL = 2;
+}
+
 enum CodexReasoningEffort {
   CODEX_REASONING_EFFORT_UNSPECIFIED = 0;
   CODEX_REASONING_EFFORT_NONE = 1;
@@ -142,7 +148,23 @@ message Draft {
     CodexProvider codex_provider = 3;
     GeminiProvider gemini_provider = 4;
     OpenCodeProvider opencode_provider = 5;
+    GrokBuildProvider grokbuild_provider = 6;
   }
+}
+
+message GrokBuildModel {
+  string profile = 1;
+  string upstream_model = 2;
+  string endpoint = 3;
+  string name = 4;
+  string api_backend = 5;
+  int64 context_window = 6;
+  optional string env_key = 7;
+}
+
+message GrokBuildProvider {
+  GrokBuildMode mode = 1;
+  GrokBuildModel model = 2;
 }
 
 message SecretStatus {
