@@ -1,8 +1,10 @@
 # Import selection protocol
 
-Status: G0 protocol prerequisite, not a working import feature. The complete flow
-must still implement snapshot projection, selection, authenticated receipts,
-repository collection, asset transactions, and the Web confirmation flow.
+Status: protocol, strict request codecs, source projection, authenticated receipt
+transactions, and the selection controller are implemented. The controller uses
+the fixed server-side moejs adapters, repository collection, and atomic asset
+transactions. This is not yet an enabled end-to-end import feature: HTTP/App
+integration and the Web confirmation flow still require separate acceptance.
 
 The two existing import RPCs and their messages remain unchanged. Three additive
 RPCs share the existing service: `PreviewImportSelection`, `CommitImportSelection`,
@@ -94,8 +96,11 @@ to a restart. Revision is positive (default1). Phase is reserved/collecting/comp
 partial/failed, without a successful default. created_at is immutable, updated_at
 is required. Ciphertext is nonempty and Sensitive; fixed immutable charge=131072.
 No source, ticket, Draft, credential or preview is persisted. Runtime quotas and
-AEAD AAD enforcement belong to the subsequent state transaction implementation,
-not to the existence of this schema.
+AEAD AAD enforcement are implemented by the receipt state transactions, not by
+the existence of this schema alone. The controller binds source, adapter/host,
+projection, options and current-owner resolution to the preview ticket before
+reserving execution. Repeating an operation observes its durable receipt without
+repeating repository downloads or applying assets again.
 
 ## Limits and compatibility
 
