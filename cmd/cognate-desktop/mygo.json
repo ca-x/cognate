@@ -6,6 +6,7 @@
   "main": ".",
   "icon": "../../assets/branding/client.png",
   "out": "../../dist/desktop",
+  "resources": ["../../internal/codexconfig/testdata/native-0.166.0/LICENSE"],
   "linux": {
     "webview": false,
     "categories": ["Development", "Utility"],

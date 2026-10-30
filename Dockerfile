@@ -22,6 +22,7 @@ RUN apk add --no-cache ca-certificates git
 RUN mkdir /data && chmod 700 /data && chown 10001:10001 /data
 COPY --from=build /out/cognate /usr/local/bin/cognate
 COPY --from=build /out/cognate-server /usr/local/bin/cognate-server
+COPY --from=build --chmod=0644 /src/internal/codexconfig/testdata/native-0.166.0/LICENSE /usr/share/licenses/cognate/codex-0.166.0/LICENSE
 USER 10001:10001
 EXPOSE 8080
 ENTRYPOINT ["cognate-server"]

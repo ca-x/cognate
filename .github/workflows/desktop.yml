@@ -11,6 +11,7 @@ on:
       - 'internal/install/**'
       - 'internal/state/**'
       - 'assets/branding/**'
+      - 'internal/codexconfig/testdata/native-0.166.0/LICENSE'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/desktop.yml'
@@ -33,6 +34,8 @@ permissions:
 env:
   CGO_ENABLED: '0'
   GOTOOLCHAIN: local
+  CODEX_LICENSE_SOURCE: internal/codexconfig/testdata/native-0.166.0/LICENSE
+  CODEX_LICENSE_SHA256: 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6
 
 jobs:
   verify:
@@ -42,6 +45,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
+      - name: Verify Codex legal input
+        run: |
+          test -f "$CODEX_LICENSE_SOURCE"
+          test ! -L "$CODEX_LICENSE_SOURCE"
+          printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
       - name: Native text and GTK runtime
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-0t64 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libepoxy0 libgl1-mesa-dri fonts-noto-cjk xvfb xauth
       - name: Headless native HTTP integration tests
@@ -63,6 +71,8 @@ jobs:
               test ! -s dist/cross/cgo-check.txt
             done
           done
+          cp "$CODEX_LICENSE_SOURCE" dist/cross/LICENSE
+          cmp "$CODEX_LICENSE_SOURCE" dist/cross/LICENSE
           go list -deps ./cmd/cognate-desktop > dist/cross/dependencies.txt
           if grep -E '^github[.]com/(ca-x/cognate/internal/(server|cli)|MoeForge/moejs|spf13/cobra)(/|$)' dist/cross/dependencies.txt; then exit 1; fi
       - name: Real native window smoke (no installation)
@@ -79,6 +89,21 @@ jobs:
         with:
           name: desktop-verification
           path: dist/
+      - uses: actions/download-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: desktop-verification
+          path: ${{ runner.temp }}/cognate-desktop-legal
+      - name: Verify uploaded cross-build license payload
+        timeout-minutes: 2
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/cognate-desktop-legal
+        run: |
+          set -euo pipefail
+          legal="$ARTIFACT_DIR/cross/LICENSE"
+          test -f "$legal"
+          test ! -L "$legal"
+          printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -
 
   package:
     needs: verify
@@ -95,6 +120,12 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+          GIT_CONFIG_KEY_1: core.eol
+          GIT_CONFIG_VALUE_1: lf
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
@@ -109,6 +140,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python=python3
+          if ! command -v "$python" >/dev/null; then python=python; fi
+          "$python" - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import stat
+          legal = pathlib.Path(os.environ["CODEX_LICENSE_SOURCE"])
+          if not stat.S_ISREG(legal.lstat().st_mode) or hashlib.sha256(legal.read_bytes()).hexdigest() != os.environ["CODEX_LICENSE_SHA256"]:
+              raise SystemExit("Codex legal input rejected")
+          PY
           go tool mygo build -platform '${{ matrix.platform }}/amd64,${{ matrix.platform }}/arm64' -sign '-' -skip-notarize -o "$GITHUB_WORKSPACE/dist/desktop" cmd/cognate-desktop
       - name: Verify packaged Go and source identities
         shell: bash
@@ -160,6 +202,113 @@ jobs:
             test -n "$(find dist/desktop -type f -name "*-linux-$arch.tar.gz" -print -quit)"
           done
           test -n "$(find dist/desktop -type f -name '*.deb' -print -quit)"
+      - name: Verify actual packaged Codex license payloads
+        timeout-minutes: 8
+        shell: bash
+        env:
+          PACKAGE_PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          python=python3
+          if ! command -v "$python" >/dev/null; then python=python; fi
+          "$python" - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import shutil
+          import stat
+          import subprocess
+          import tarfile
+          import tempfile
+          import threading
+
+          expected = os.environ["CODEX_LICENSE_SHA256"]
+          canonical = pathlib.Path(os.environ["CODEX_LICENSE_SOURCE"])
+          if not stat.S_ISREG(canonical.lstat().st_mode):
+              raise SystemExit("Codex legal input is not a regular file")
+          original = canonical.read_bytes()
+          if hashlib.sha256(original).hexdigest() != expected:
+              raise SystemExit("Codex legal input hash rejected")
+
+          def verify_bytes(body):
+              if len(body) != len(original) or hashlib.sha256(body).hexdigest() != expected:
+                  raise SystemExit("Packaged Codex LICENSE or NOTICE differs")
+
+          def verify_file(path):
+              if not stat.S_ISREG(path.lstat().st_mode):
+                  raise SystemExit("Packaged Codex legal file is not regular")
+              with path.open("rb") as stream:
+                  verify_bytes(stream.read(len(original) + 1))
+
+          def one_file(directory, pattern):
+              matches = list(directory.glob(pattern))
+              if len(matches) != 1 or not stat.S_ISREG(matches[0].lstat().st_mode):
+                  raise SystemExit("Expected exactly one regular native package")
+              return matches[0]
+
+          def verify_tar(archive, target):
+              found = 0
+              for entry in archive:
+                  if entry.name not in (target, "./" + target):
+                      continue
+                  if not entry.isfile() or entry.size != len(original):
+                      raise SystemExit("Archive legal member rejected")
+                  with archive.extractfile(entry) as stream:
+                      verify_bytes(stream.read(len(original) + 1))
+                  found += 1
+              if found != 1:
+                  raise SystemExit("Archive must contain exactly one Codex legal member")
+
+          platform = os.environ["PACKAGE_PLATFORM"]
+          if platform not in ("linux", "darwin", "windows"):
+              raise SystemExit("Unknown package platform")
+          root = pathlib.Path("dist/desktop")
+          for arch in ("amd64", "arm64"):
+              directory = root / (platform + "-" + arch)
+              if platform == "linux":
+                  verify_file(directory / "LICENSE")
+                  package = one_file(directory, "*-linux-" + arch + ".tar.gz")
+                  with tarfile.open(package, "r|gz") as archive:
+                      verify_tar(archive, "LICENSE")
+                  package = one_file(directory, "*.deb")
+                  process = subprocess.Popen(["ar", "p", str(package), "data.tar.gz"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                  deadline = threading.Timer(30, process.kill)
+                  deadline.start()
+                  try:
+                      with tarfile.open(fileobj=process.stdout, mode="r|gz") as archive:
+                          verify_tar(archive, "opt/cognate-desktop/LICENSE")
+                      while process.stdout.read(65536):
+                          pass
+                      if process.wait(timeout=30) != 0:
+                          raise SystemExit("Debian legal payload extraction failed")
+                  finally:
+                      deadline.cancel()
+                      deadline.join()
+                      process.stdout.close()
+                      if process.poll() is None:
+                          process.kill()
+                      process.wait(timeout=30)
+              elif platform == "windows":
+                  verify_file(directory / "LICENSE")
+                  extractor = shutil.which("7z")
+                  if extractor is None:
+                      raise SystemExit("7z is required to verify the actual NSIS payload")
+                  package = one_file(directory, "*-setup-*-" + arch + ".exe")
+                  result = subprocess.run([extractor, "x", "-so", "-bsp0", str(package), "LICENSE"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=60, check=True)
+                  verify_bytes(result.stdout)
+              else:
+                  verify_file(directory / "Cognate.app/Contents/Resources/LICENSE")
+                  package = one_file(directory, "*-" + arch + ".dmg")
+                  with tempfile.TemporaryDirectory(prefix="cognate-legal-", dir=os.environ["RUNNER_TEMP"]) as temporary:
+                      mount = pathlib.Path(temporary) / "mounted"
+                      mount.mkdir()
+                      try:
+                          subprocess.run(["hdiutil", "attach", "-readonly", "-nobrowse", "-noautoopen", "-mountpoint", str(mount), str(package)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60, check=True)
+                          verify_file(mount / "Cognate.app/Contents/Resources/LICENSE")
+                      finally:
+                          subprocess.run(["hdiutil", "detach", str(mount)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60, check=True)
+              print("Codex LICENSE+NOTICE verified:", platform, arch)
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-${{ matrix.platform }}-unsigned

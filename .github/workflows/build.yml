@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+env:
+  CODEX_LICENSE_SOURCE: internal/codexconfig/testdata/native-0.166.0/LICENSE
+  CODEX_LICENSE_SHA256: 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,6 +27,11 @@ jobs:
           node-version: '26'
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Verify readable Codex license input
+        run: |
+          test -f "$CODEX_LICENSE_SOURCE"
+          test ! -L "$CODEX_LICENSE_SOURCE"
+          printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
       - name: Install private Secret Service test dependencies
         run: |
           sudo apt-get update
@@ -131,6 +140,7 @@ jobs:
           GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: '0'
         run: |
+          set -euo pipefail
           mkdir -p dist
           name="cognate-${GOOS}-${GOARCH}"
           if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
@@ -138,11 +148,36 @@ jobs:
           name="cognate-server-${GOOS}-${GOARCH}"
           if [ "$GOOS" = windows ]; then name="${name}.exe"; fi
           go build -trimpath -o "dist/$name" ./cmd/cognate-server
+          test -f "$CODEX_LICENSE_SOURCE"
+          test ! -L "$CODEX_LICENSE_SOURCE"
+          printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
+          cp "$CODEX_LICENSE_SOURCE" dist/CODEX-0.166.0-LICENSE.txt
       - uses: actions/upload-artifact@v4
         with:
           name: cognate-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/*
           if-no-files-found: error
+      - uses: actions/download-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: cognate-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/cognate-binary-legal
+      - name: Verify uploaded binary license payload
+        timeout-minutes: 2
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/cognate-binary-legal
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          suffix=''
+          if [ "$GOOS" = windows ]; then suffix='.exe'; fi
+          test -f "$ARTIFACT_DIR/cognate-$GOOS-$GOARCH$suffix"
+          test -f "$ARTIFACT_DIR/cognate-server-$GOOS-$GOARCH$suffix"
+          legal="$ARTIFACT_DIR/CODEX-0.166.0-LICENSE.txt"
+          test -f "$legal"
+          test ! -L "$legal"
+          printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -
 
   docker:
     needs: test
@@ -211,6 +246,7 @@ jobs:
           }
           wait_for_health
           docker exec "$container" sh -ec 'test "$(id -u)" = 10001; test "$(stat -c %a /data)" = 700; test -f /data/server.db; wget -q -O /dev/null http://127.0.0.1:8080/'
+          docker exec -e CODEX_LICENSE_SHA256 "$container" sh -ec 'legal=/usr/share/licenses/cognate/codex-0.166.0/LICENSE; test -f "$legal"; test ! -L "$legal"; test -r "$legal"; printf "%s  %s\n" "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -'
           docker exec "$container" cognate --help >/dev/null
           docker stop --time 30 "$container" >/dev/null
           test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
