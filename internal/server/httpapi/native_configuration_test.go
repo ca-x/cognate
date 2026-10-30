@@ -175,8 +175,28 @@ func TestNativeHTTPTransportRejectionAndNoStore(test *testing.T) {
 	}
 }
 
+type nativeAdmissionObservedBody struct {
+	io.ReadCloser
+	once     sync.Once
+	observed chan<- struct{}
+}
+
+func (body *nativeAdmissionObservedBody) Read(data []byte) (int, error) {
+	count, err := body.ReadCloser.Read(data)
+	if count > 0 {
+		body.once.Do(func() { body.observed <- struct{}{} })
+	}
+	return count, err
+}
+
 func TestNativeHTTPEightRealBlockedBodiesCancelAndDrain(test *testing.T) {
-	fixture := newNativeHTTPFixture(test)
+	observed := make(chan struct{}, 8)
+	fixture := newNativeHTTPFixture(test, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			request.Body = &nativeAdmissionObservedBody{ReadCloser: request.Body, observed: observed}
+			next.ServeHTTP(writer, request)
+		})
+	})
 	var connections []net.Conn
 	defer func() {
 		for _, connection := range connections {
@@ -195,16 +215,14 @@ func TestNativeHTTPEightRealBlockedBodiesCancelAndDrain(test *testing.T) {
 			test.Fatal(err)
 		}
 	}
-	deadline := time.Now().Add(5 * time.Second)
-	for {
-		err := fixture.service.Call(test.Context(), func(context.Context) error { return nil })
-		if errors.Is(err, state.ErrNativeQuota) {
-			break
+	deadline := time.NewTimer(5 * time.Second)
+	defer deadline.Stop()
+	for range 8 {
+		select {
+		case <-observed:
+		case <-deadline.C:
+			test.Fatal("eight actual request bodies did not start under admission")
 		}
-		if time.Now().After(deadline) {
-			test.Fatal("eight slow bodies were not charged before decode")
-		}
-		time.Sleep(time.Millisecond)
 	}
 	request, _ := http.NewRequestWithContext(test.Context(), http.MethodPost, fixture.endpoint.URL+nativeServicePath+"PrepareNativeApply", strings.NewReader("X"))
 	request.Header.Set("Content-Type", "application/proto")
