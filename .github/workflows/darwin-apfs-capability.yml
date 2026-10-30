@@ -90,7 +90,7 @@ jobs:
                               result["class"] = category
                   return dict(result, role=role, stage=stage, output_role=output_role), output + errors if stage in {"help", "manual"} else output
               return run
-          def document_contract(documents):
+          def document_contract(documents, observation=None):
               candidates = {}
               for source, text in documents.items():
                   if source not in {"hdiutil-create-help", "hdiutil-manual"} or len(text) > 262144:
@@ -118,7 +118,13 @@ jobs:
                           if indent <= blocked_indent and re.fullmatch(r"(?:description|commands|subcommands):?", stripped, re.I):
                               blocked_indent = None
                           continue
+                      if observation is not None:
+                          observation["create_hint"] |= re.match(r"create\b", stripped, re.I) is not None
+                          observation["fs_hint"] |= in_create and re.match(r"-fs\b", stripped) is not None
+                          observation["list_hint"] |= in_fs and re.match(r"(?:supported|valid)\s+filesystems\b", stripped, re.I) is not None
                       if create_indent is None and re.match(r"(?:synopsis|usage|notes?)\b", stripped, re.I):
+                          if observation is not None:
+                              observation["section_reset"] = True
                           in_create, blocked_indent = False, indent
                           continue
                       heading = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*)(?:\s+(.*))?", stripped)
@@ -128,32 +134,50 @@ jobs:
                                                                            "eject", "burn", "imageinfo", "checksum", "segment"})
                       if command and heading.group(1).lower() == "create":
                           if create_indent is not None:
+                              if observation is not None:
+                                  observation["section_reset"] = True
                               break
+                          if observation is not None:
+                              observation["create_heading"] = True
                           in_create, in_fs, in_list = True, False, False
                           create_indent, option_indent = indent, None
                           continue
                       if command or re.match(r"(?:examples?|usage|synopsis|description|notes?|see also|caveats?|diagnostics)\b", stripped, re.I):
                           if in_create or re.match(r"examples?\b", stripped, re.I):
+                              if observation is not None:
+                                  observation["section_reset"] = True
                               break
                           continue
                       if not in_create:
                           continue
                       if stripped and create_indent is not None and indent <= create_indent:
+                          if observation is not None:
+                              observation["section_reset"] = True
                           break
                       if re.match(r"-[A-Za-z]", stripped):
                           if option_indent is None:
                               option_indent = indent
                           in_fs = indent == option_indent and re.fullmatch(r"-fs\s+(?:filesystem|<filesystem>|fsname|<fsname>)", stripped) is not None
+                          if observation is not None:
+                              observation["fs_option"] |= in_fs
                           in_list, row_indent = False, None
                           continue
                       if in_fs and stripped in {"Supported filesystems:", "Valid filesystems:"} and indent >= option_indent:
+                          if observation is not None:
+                              observation["support_list"] = True
                           in_list, list_indent, row_indent = True, indent, None
                           continue
                       if re.fullmatch(r"[A-Za-z][A-Za-z0-9 _/-]{0,79}:?", stripped) and stripped.endswith(":"):
+                          if observation is not None:
+                              observation["section_reset"] = True
                           break
                       if stripped and option_indent is not None and indent <= option_indent and not in_list:
+                          if observation is not None:
+                              observation["section_reset"] = True
                           break
                       if in_list and (not stripped or indent < list_indent or row_indent is not None and indent != row_indent):
+                          if observation is not None:
+                              observation["section_reset"] = True
                           in_fs, in_list = False, False
                           continue
                       if in_list:
@@ -161,18 +185,79 @@ jobs:
                                                r'(?::\s*|\s*:\s*|\s*=\s*| {2,})'
                                                r'(.{1,128}?)\s*', line)
                           if match is None:
+                              if observation is not None:
+                                  observation["section_reset"] = True
                               if stripped and indent <= option_indent:
                                   break
                               in_fs, in_list = False, False
                               continue
                           row_indent = indent
                           if re.fullmatch(r'(?:[Cc]ase-sensitive APFS|APFS \([Cc]ase-sensitive\))\.?', match.group(3)):
+                              if observation is not None:
+                                  observation["sensitive_rows"] = min(255, observation["sensitive_rows"] + 1)
+                                  observation["count_limited"] |= observation["sensitive_rows"] == 255
                               selector = match.group(1) or match.group(2)
                               candidates.setdefault(selector, set()).add(source)
+              if observation is not None:
+                  observation["distinct_selectors"] = min(2, len(candidates))
+                  observation["count_limited"] |= len(candidates) > 2
+                  observation["selector_class"] = (next(iter(candidates)) if next(iter(candidates)) in {"APFS", "APFSX"}
+                                                   else "other") if len(candidates) == 1 else "none"
               if len(candidates) != 1:
                   return {"classification": "contract-ambiguous" if candidates else "contract-unproven", "selector": "", "sources": []}
               selector, sources = next(iter(candidates.items()))
               return {"classification": "contract-confirmed", "selector": selector, "sources": sorted(sources)}
+
+          def diagnostic_record(source, status):
+              return {"source": source, "status": status, "reason": "not-scanned", "create_heading": False,
+                      "fs_option": False, "support_list": False, "section_reset": False, "sensitive_rows": 0,
+                      "distinct_selectors": 0, "selector_class": "none", "count_limited": status == "scan-limit"}
+
+          def document_diagnostic(source, output):
+              try:
+                  if len(output) > 262144:
+                      return diagnostic_record(source, "scan-limit")
+                  try:
+                      text = output.decode("ascii")
+                  except UnicodeDecodeError:
+                      return diagnostic_record(source, "non-ascii")
+                  for unused in range(8):
+                      cleaned = re.sub(r"[^\n]\x08", "", text)
+                      if cleaned == text:
+                          break
+                      text = cleaned
+                  text = text.replace("\r\n", "\n").replace("\f", "\n")
+                  if any(ord(character) < 32 and character not in "\n\t" or ord(character) > 126 for character in text):
+                      return diagnostic_record(source, "invalid-controls")
+                  if len(text.splitlines()) > 4096:
+                      return diagnostic_record(source, "scan-limit")
+                  observation = diagnostic_record(source, "observed")
+                  observation.update({"create_hint": False, "fs_hint": False, "list_hint": False})
+                  document_contract({"hdiutil-create-help" if source == "help" else "hdiutil-manual": text}, observation)
+                  if observation["distinct_selectors"]:
+                      reason = "shape-present" if observation["distinct_selectors"] == 1 else "sensitive-row-ambiguous"
+                  elif not observation["create_heading"] and observation["create_hint"]:
+                      reason = "create-heading-unrecognized"
+                  elif not observation["fs_option"] and observation["fs_hint"]:
+                      reason = "fs-option-unrecognized"
+                  elif not observation["support_list"] and observation["list_hint"]:
+                      reason = "support-list-unrecognized"
+                  elif observation["section_reset"]:
+                      reason = "section-reset"
+                  elif not observation["create_heading"] and source != "help":
+                      reason = "create-heading-unrecognized" if observation["create_hint"] else "create-context-missing"
+                  elif not observation["fs_option"]:
+                      reason = "fs-option-unrecognized" if observation["fs_hint"] else "fs-option-missing"
+                  elif not observation["support_list"]:
+                      reason = "support-list-unrecognized" if observation["list_hint"] else "support-list-missing"
+                  else:
+                      reason = "sensitive-row-missing"
+                  observation["reason"] = reason
+                  for key in ["create_hint", "fs_hint", "list_hint"]:
+                      del observation[key]
+                  return observation
+              except Exception:
+                  return diagnostic_record(source, "diagnostic-failed")
           def sample_originals(root, runner):
               events = []
               for role, selector, output_role in [("sensitive", "APFSX", "insensitive"), ("insensitive", "APFS", "sensitive")]:
@@ -254,6 +339,7 @@ jobs:
 
           def experiment(work, runner, mounted=os.path.ismount, remover=shutil.rmtree):
               events = []
+              document_diagnostics = []
               contract = {"classification": "contract-unproven", "selector": "", "sources": []}
               candidate = {"attempted": False, "classification": "not-attempted", "apfs_identity": False, "case_sensitive": False}
               state = {"attach_started": False, "attach_confirmed": False}
@@ -269,6 +355,7 @@ jobs:
                       event, output = runner(command, "document", stage, "none", timeout=10, limit=262144)
                       events.append(event)
                       if event["class"] == "success":
+                          document_diagnostics.append(document_diagnostic(stage, output))
                           try:
                               documents[source] = output.decode("ascii")
                           except UnicodeDecodeError:
@@ -309,7 +396,15 @@ jobs:
               failed = (controller_failed or cleanup["failed"] or contract["classification"] != "contract-confirmed"
                         or candidate["classification"] != "validated" or any(event["class"] != "success" for event in events))
               return {"phase": "native-capability-experiment-not-product", "events": events, "contract": contract,
+                      "document_diagnostics": document_diagnostics,
                       "candidate": candidate, "cleanup": cleanup, "controller_failed": controller_failed, "failed": failed}
+
+          def receipt_projection(report):
+              contract = report["contract"]
+              selector = contract["selector"]
+              selector_class = selector if selector in {"APFS", "APFSX"} else "other" if selector else "none"
+              return dict(report, contract={"classification": contract["classification"], "selector_class": selector_class,
+                                            "sources": list(contract["sources"])})
 
           def main():
               os.umask(0o077)
@@ -328,7 +423,7 @@ jobs:
               report = experiment(work, native_runner(environment))
               report["context"] = {"run": int(os.environ["GITHUB_RUN_ID"]), "attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
                                    "commit": os.environ["GITHUB_SHA"], "target": "macos-15-arm64-darwin24"}
-              (outer / "result.json").write_text(json.dumps(report, sort_keys=True) + "\n")
+              (outer / "result.json").write_text(json.dumps(receipt_projection(report), sort_keys=True) + "\n")
               if report["failed"]:
                   raise ValueError
 
@@ -368,8 +463,52 @@ jobs:
               if not condition:
                   raise ValueError
 
+          def valid_diagnostics(records, events):
+              require(type(records) is list and len(records) <= 2)
+              expected = [event["stage"] for event in events[2:4] if event["class"] == "success"]
+              require(len(records) == len(expected))
+              for record, source in zip(records, expected):
+                  fields(record, "source status reason create_heading fs_option support_list section_reset sensitive_rows distinct_selectors selector_class count_limited")
+                  require(record["source"] == source)
+                  require(record["status"] in {"observed", "non-ascii", "invalid-controls", "scan-limit", "diagnostic-failed"})
+                  require(record["reason"] in {"shape-present", "create-context-missing", "create-heading-unrecognized",
+                                               "fs-option-missing", "fs-option-unrecognized", "support-list-missing",
+                                               "support-list-unrecognized", "sensitive-row-missing", "sensitive-row-ambiguous",
+                                               "section-reset", "not-scanned"})
+                  require(all(type(record[key]) is bool for key in ["create_heading", "fs_option", "support_list", "section_reset", "count_limited"]))
+                  require(type(record["sensitive_rows"]) is int and 0 <= record["sensitive_rows"] <= 255)
+                  require(type(record["distinct_selectors"]) is int and 0 <= record["distinct_selectors"] <= 2)
+                  require(record["selector_class"] in {"APFS", "APFSX", "other", "none"})
+                  if record["status"] != "observed":
+                      require(record["reason"] == "not-scanned" and record["selector_class"] == "none")
+                      require(not any(record[key] for key in ["create_heading", "fs_option", "support_list", "section_reset",
+                                                             "sensitive_rows", "distinct_selectors"]))
+                      require(record["count_limited"] == (record["status"] == "scan-limit"))
+                      continue
+                  require(record["reason"] != "not-scanned")
+                  require(not record["count_limited"] or record["sensitive_rows"] == 255 or record["distinct_selectors"] == 2)
+                  require(record["sensitive_rows"] >= record["distinct_selectors"])
+                  require(not record["fs_option"] or record["create_heading"] or source == "help")
+                  require(not record["support_list"] or record["fs_option"])
+                  require(not record["sensitive_rows"] or record["support_list"])
+                  require((record["selector_class"] != "none") == (record["distinct_selectors"] == 1))
+                  if record["distinct_selectors"]:
+                      require(record["reason"] == ("shape-present" if record["distinct_selectors"] == 1 else "sensitive-row-ambiguous"))
+                  elif record["reason"] == "section-reset":
+                      require(record["section_reset"])
+                  elif record["reason"] == "create-heading-unrecognized":
+                      require(not record["create_heading"])
+                  elif record["reason"] == "create-context-missing":
+                      require(source == "manual" and not record["create_heading"])
+                  elif record["reason"] in {"fs-option-missing", "fs-option-unrecognized"}:
+                      require(not record["fs_option"])
+                  elif record["reason"] in {"support-list-missing", "support-list-unrecognized"}:
+                      require(record["fs_option"] and not record["support_list"])
+                  else:
+                      require(record["reason"] == "sensitive-row-missing" and record["support_list"])
+
           def valid_report(report):
-              fields(report, "phase events contract candidate cleanup controller_failed failed context")
+              fields(report, "phase events contract candidate cleanup controller_failed failed context document_diagnostics")
               require(report["phase"] == "native-capability-experiment-not-product")
               require(type(report["controller_failed"]) is bool and type(report["failed"]) is bool)
               context = report["context"]
@@ -407,21 +546,21 @@ jobs:
               require(tail == expected[:len(tail)])
               for index in range(5, 4 + len(tail)):
                   require(events[index - 1]["class"] == "success")
+              valid_diagnostics(report["document_diagnostics"], events)
               contract = report["contract"]
-              fields(contract, "classification selector sources")
+              fields(contract, "classification selector_class sources")
               require(type(contract["sources"]) is list and len(contract["sources"]) <= 2)
-              require(type(contract["selector"]) is str)
+              require(type(contract["selector_class"]) is str)
               confirmed = contract["classification"] == "contract-confirmed"
               if confirmed:
-                  require(re.fullmatch(r"[A-Za-z][A-Za-z0-9 +()-]{0,63}", contract["selector"]) is not None)
-                  require(contract["selector"] == contract["selector"].strip() and bool(contract["sources"]))
+                  require(contract["selector_class"] in {"APFS", "APFSX", "other"} and bool(contract["sources"]))
                   require(contract["sources"] == sorted(set(contract["sources"])))
                   for source in contract["sources"]:
                       require(source in {"hdiutil-create-help", "hdiutil-manual"})
                       require(events[2 if source == "hdiutil-create-help" else 3]["class"] == "success")
               else:
                   require(contract["classification"] in {"contract-unproven", "contract-ambiguous"})
-                  require(contract["selector"] == "" and contract["sources"] == [])
+                  require(contract["selector_class"] == "none" and contract["sources"] == [])
               candidate = report["candidate"]
               fields(candidate, "attempted classification apfs_identity case_sensitive")
               require(all(type(candidate[key]) is bool for key in ["attempted", "apfs_identity", "case_sensitive"]))
