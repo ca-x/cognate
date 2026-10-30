@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package skillhub.pack.configuration.v1;
+
+import "skillhub/configuration/v1/configuration.proto";
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/pack/configuration/v1;packconfigurationv1";
+
+service PackConfigurationService {
+  rpc GetAttachments(GetAttachmentsRequest) returns (GetAttachmentsResponse);
+  rpc ReplaceAttachments(ReplaceAttachmentsRequest) returns (ReplaceAttachmentsResponse);
+}
+
+enum AttachmentState {
+  ATTACHMENT_STATE_UNSPECIFIED = 0;
+  ATTACHMENT_STATE_CURRENT = 1;
+  ATTACHMENT_STATE_STALE = 2;
+  ATTACHMENT_STATE_UNSUPPORTED = 3;
+}
+
+enum AttachmentFailureReason {
+  ATTACHMENT_FAILURE_REASON_UNSPECIFIED = 0;
+  ATTACHMENT_FAILURE_REASON_ASSET_IN_USE = 1;
+}
+
+message GetAttachmentsRequest {
+  string pack_id = 1;
+}
+
+message AttachmentReference {
+  string asset_id = 1;
+  int64 expected_asset_revision = 2;
+  string target_id = 3;
+}
+
+message ReplaceAttachmentsRequest {
+  string pack_id = 1;
+  int64 expected_pack_revision = 2;
+  int64 expected_configuration_revision = 3;
+  repeated AttachmentReference references = 4;
+}
+
+message AttachmentEntry {
+  string attachment_id = 1;
+  string asset_id = 2;
+  int64 asset_revision = 3;
+  string agent_id = 4;
+  skillhub.configuration.v1.AssetKind kind = 5;
+  uint32 schema_version = 6;
+  string target_id = 7;
+  uint32 ordinal = 8;
+  AttachmentState state = 9;
+}
+
+message AttachmentSnapshot {
+  string pack_id = 1;
+  int64 pack_revision = 2;
+  int64 configuration_revision = 3;
+  repeated AttachmentEntry entries = 4;
+  bytes snapshot_digest = 5;
+}
+
+message GetAttachmentsResponse {
+  AttachmentSnapshot snapshot = 1;
+}
+
+message ReplaceAttachmentsResponse {
+  AttachmentSnapshot snapshot = 1;
+}
+
+message AttachmentFailure {
+  AttachmentFailureReason reason = 1;
+}

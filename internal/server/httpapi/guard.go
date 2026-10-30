@@ -109,6 +109,9 @@ func guardRequests(publicOrigin string) echo.MiddlewareFunc {
 			if request.URL.Path == packv1connect.PackServiceCreatePackProcedure || request.URL.Path == packv1connect.PackServiceUpdatePackProcedure {
 				maxBytes = 64 << 10
 			}
+			if packConfigurationProcedure(request.URL.Path) {
+				maxBytes = packConfigurationMaxBytes
+			}
 			request.Body = http.MaxBytesReader(ctx.Response(), request.Body, maxBytes)
 			return next(ctx)
 		}

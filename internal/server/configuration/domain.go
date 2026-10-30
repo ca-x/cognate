@@ -242,6 +242,7 @@ func failure(ctx context.Context, err error) error {
 		{context.Canceled, context.Canceled}, {context.DeadlineExceeded, context.DeadlineExceeded},
 		{state.ErrConfigurationInvalid, ErrInvalid}, {state.ErrConfigurationNotFound, ErrNotFound},
 		{state.ErrConfigurationConflict, ErrConflict}, {state.ErrConfigurationLimit, ErrLimit},
+		{state.ErrConfigurationInUse, ErrInUse},
 	} {
 		if errors.Is(err, known.source) {
 			return known.target

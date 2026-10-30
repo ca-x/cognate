@@ -10,6 +10,7 @@ import (
 	"connectrpc.com/connect"
 	configurationv1 "github.com/ca-x/cognate/gen/skillhub/configuration/v1"
 	"github.com/ca-x/cognate/gen/skillhub/configuration/v1/configurationv1connect"
+	packconfigurationv1 "github.com/ca-x/cognate/gen/skillhub/pack/configuration/v1"
 	"github.com/ca-x/cognate/internal/server/configuration"
 )
 
@@ -152,6 +153,15 @@ func (handler *configurationHandler) localCall[Response any](ctx context.Context
 func configurationError(ctx context.Context, err error) error {
 	if canceled := contextError(ctx, err); canceled != nil {
 		return canceled
+	}
+	if errors.Is(err, configuration.ErrInUse) {
+		failure := connect.NewError(connect.CodeFailedPrecondition, configuration.ErrInUse)
+		detail, err := connect.NewErrorDetail(&packconfigurationv1.AttachmentFailure{Reason: packconfigurationv1.AttachmentFailureReason_ATTACHMENT_FAILURE_REASON_ASSET_IN_USE})
+		if err != nil {
+			return connect.NewError(connect.CodeInternal, configuration.ErrUnavailable)
+		}
+		failure.AddDetail(detail)
+		return failure
 	}
 	for _, mapping := range []struct {
 		err  error

@@ -122,7 +122,9 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 		server.Any(path+"*", echo.WrapHandler(options.Imports.Guard(handler)))
 	}
 	if options.Packs != nil && options.Store != nil {
-		path, handler := packv1connect.NewPackServiceHandler(&packHandler{auth: authentication, store: options.Store, service: options.Packs}, connect.WithReadMaxBytes(64<<10), connect.WithSendMaxBytes(8<<20))
+		path, handler := packConfigurationTransport(&packConfigurationHandler{auth: authentication, store: options.Store, service: options.Packs})
+		server.Any(path+"*", echo.WrapHandler(handler))
+		path, handler = packv1connect.NewPackServiceHandler(&packHandler{auth: authentication, store: options.Store, service: options.Packs}, connect.WithReadMaxBytes(64<<10), connect.WithSendMaxBytes(8<<20))
 		server.Any(path+"*", echo.WrapHandler(handler))
 		path, handler = packv1connect.NewDistributionServiceHandler(&distributionHandler{service: options.Packs}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(8<<20), connect.WithInterceptors(distributionDeadlines{}))
 		server.Any(path+"*", echo.WrapHandler(distributionRequests(options.Packs, handler)))

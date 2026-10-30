@@ -13,6 +13,7 @@ var (
 	ErrUnsupported = errors.New("unsupported typed configuration")
 	ErrNotFound    = errors.New("configuration not found")
 	ErrConflict    = errors.New("configuration revision changed")
+	ErrInUse       = errors.New("configuration asset in use")
 	ErrLimit       = errors.New("configuration capacity exhausted")
 	ErrUnavailable = errors.New("configuration unavailable")
 )

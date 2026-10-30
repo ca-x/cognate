@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"context"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"sync"
@@ -13,6 +15,21 @@ import (
 	"github.com/ca-x/cognate/internal/server/state"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+func TestConfigurationInUseErrorIsFiniteAndCancellable(test *testing.T) {
+	err := configurationError(test.Context(), fmt.Errorf("private-inuse-canary: %w", configuration.ErrInUse))
+	if connect.CodeOf(err) != connect.CodeFailedPrecondition || strings.Contains(err.Error(), "private-inuse-canary") {
+		test.Fatal("InUse mapping leaked or lost classification")
+	}
+	ctx, cancel := context.WithCancel(test.Context())
+	cancel()
+	if connect.CodeOf(configurationError(ctx, configuration.ErrInUse)) != connect.CodeCanceled {
+		test.Fatal("InUse hid cancellation")
+	}
+	if connect.CodeOf(configurationError(test.Context(), fmt.Errorf("private-inuse-canary"))) != connect.CodeInternal {
+		test.Fatal("unknown error became determinate InUse")
+	}
+}
 
 func configurationRequest[Message any](message *Message, token string) *connect.Request[Message] {
 	request := connect.NewRequest(message)
