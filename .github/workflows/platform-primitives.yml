@@ -307,6 +307,77 @@ jobs:
                   return [json.loads(line, object_pairs_hook=unique) for line in lines]
               except Exception:
                   return []
+          def pty_details_valid(details):
+              fields = {"schema", "test_name", "script_terminal", "script_exit_known", "script_exit",
+                        "script_signal", "capture", "child_marker", "target_marker", "eot_prefix"}
+              if type(details) is not dict or set(details) != fields:
+                  return False
+              if (type(details["schema"]) is not int or details["schema"] != 1
+                      or details["test_name"] != "TestDarwinPTYExecutionPrerequisites"
+                      or type(details["script_exit_known"]) is not bool
+                      or type(details["script_exit"]) is not int or not 0 <= details["script_exit"] <= 255):
+                  return False
+              enums = {
+                  "script_terminal": {"unknown", "exited", "signaled", "launch-failed"},
+                  "script_signal": {"unknown", "hup", "int", "quit", "kill", "term", "other"},
+                  "capture": {"empty", "nonempty"},
+                  "child_marker": {"absent", "anchored-invalid", "anchored-valid", "nonanchored-only"},
+                  "target_marker": {"absent", "anchored-invalid", "anchored-negative", "anchored-nonnegative", "duplicate", "nonanchored-only"},
+                  "eot_prefix": {"absent", "fixed-caret-D", "unknown"},
+              }
+              if any(type(details[key]) is not str or details[key] not in values for key, values in enums.items()):
+                  return False
+              if details["script_terminal"] == "exited":
+                  if not details["script_exit_known"] or details["script_signal"] != "unknown":
+                      return False
+              elif details["script_exit_known"] or details["script_exit"] != 0:
+                  return False
+              if (details["script_terminal"] == "signaled") != (details["script_signal"] != "unknown"):
+                  return False
+              if details["capture"] == "empty" and any(details[key] != "absent" for key in ["child_marker", "target_marker", "eot_prefix"]):
+                  return False
+              return True
+          def pty_diagnostic_events(events):
+              def unique(pairs):
+                  result = {}
+                  for key, value in pairs:
+                      if key in result:
+                          raise ValueError("duplicate diagnostic field")
+                      result[key] = value
+                  return result
+              if type(events) is not list or not 1 <= len(events) <= 16:
+                  raise ValueError("missing diagnostic")
+              found = []
+              for index, event in enumerate(events):
+                  if type(event) is not dict:
+                      raise ValueError("invalid diagnostic event")
+                  output = event.get("Output", "")
+                  if type(output) is not str:
+                      raise ValueError("invalid diagnostic output")
+                  if "DARWIN_PTY_DIAGNOSTIC" not in output:
+                      continue
+                  if (set(event) - {"Time", "Action", "Package", "Test", "Elapsed", "Output"}
+                          or event.get("Action") != "output"
+                          or event.get("Package") != "github.com/ca-x/cognate/internal/cli"
+                          or event.get("Test") != "TestDarwinPTYExecutionPrerequisites"
+                          or len(output.encode()) > 1024):
+                      raise ValueError("invalid diagnostic identity")
+                  if "Elapsed" in event and (type(event["Elapsed"]) not in (int, float) or not 0 <= event["Elapsed"] < 1000):
+                      raise ValueError("invalid diagnostic elapsed")
+                  if "Time" in event and (type(event["Time"]) is not str or not re.fullmatch(
+                          r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})", event["Time"])):
+                      raise ValueError("invalid diagnostic time")
+                  match = re.fullmatch(r"    platform_output_darwin_test\.go:120: DARWIN_PTY_DIAGNOSTIC ([^\n]+)\n", output)
+                  if match is None:
+                      raise ValueError("invalid diagnostic source")
+                  details = json.loads(match[1], object_pairs_hook=unique)
+                  if not pty_details_valid(details):
+                      raise ValueError("invalid diagnostic details")
+                  found.append((index, details))
+              if len(found) != 1 or found[0][0] != 3:
+                  raise ValueError("missing or duplicate diagnostic")
+              index, details = found[0]
+              return events[:index] + events[index + 1:], details
           def capability_failure(name, events):
               try:
                   package, filename, prefix, messages = capability_sources[name]
@@ -459,8 +530,19 @@ jobs:
                           events.append(json.loads(line))
               finally:
                   if diagnostic is not None:
+                      observed = capability_events(path)
+                      if name == "TestDarwinPTYExecutionPrerequisites":
+                          try:
+                              observed, details = pty_diagnostic_events(observed)
+                              diagnostic["pty_details"] = details
+                              events = observed
+                          except Exception:
+                              diagnostic.pop("pty_details", None)
+                              diagnostic["failure_class"] = "unknown"
+                              observed = []
+                              events = []
                       if diagnostic["failure_class"] == "unknown" and diagnostic["exit_known"] and diagnostic["exit"] != 0:
-                          diagnostic["failure_class"] = capability_failure(name, capability_events(path))
+                          diagnostic["failure_class"] = capability_failure(name, observed)
                       write_capability_diagnostics()
               classify(package, name, expected, events, code)
               receipts.append({"test": name, "raw_exit": code,
@@ -692,6 +774,36 @@ jobs:
                       result[key] = value
                   return result
               return json.loads(data, object_pairs_hook=unique)
+          def pty_details_valid(details):
+              fields = {"schema", "test_name", "script_terminal", "script_exit_known", "script_exit",
+                        "script_signal", "capture", "child_marker", "target_marker", "eot_prefix"}
+              if type(details) is not dict or set(details) != fields:
+                  return False
+              if (type(details["schema"]) is not int or details["schema"] != 1
+                      or details["test_name"] != "TestDarwinPTYExecutionPrerequisites"
+                      or type(details["script_exit_known"]) is not bool
+                      or type(details["script_exit"]) is not int or not 0 <= details["script_exit"] <= 255):
+                  return False
+              enums = {
+                  "script_terminal": {"unknown", "exited", "signaled", "launch-failed"},
+                  "script_signal": {"unknown", "hup", "int", "quit", "kill", "term", "other"},
+                  "capture": {"empty", "nonempty"},
+                  "child_marker": {"absent", "anchored-invalid", "anchored-valid", "nonanchored-only"},
+                  "target_marker": {"absent", "anchored-invalid", "anchored-negative", "anchored-nonnegative", "duplicate", "nonanchored-only"},
+                  "eot_prefix": {"absent", "fixed-caret-D", "unknown"},
+              }
+              if any(type(details[key]) is not str or details[key] not in values for key, values in enums.items()):
+                  return False
+              if details["script_terminal"] == "exited":
+                  if not details["script_exit_known"] or details["script_signal"] != "unknown":
+                      return False
+              elif details["script_exit_known"] or details["script_exit"] != 0:
+                  return False
+              if (details["script_terminal"] == "signaled") != (details["script_signal"] != "unknown"):
+                  return False
+              if details["capture"] == "empty" and any(details[key] != "absent" for key in ["child_marker", "target_marker", "eot_prefix"]):
+                  return False
+              return True
           def capability_receipt():
               unknown = {"schema": 1, "records": [
                   {"test_name": name, "attempted": False, "exit_known": False, "exit": 0,
@@ -704,7 +816,9 @@ jobs:
                           or type(parsed["records"]) is not list or len(parsed["records"]) != 2):
                       return unknown
                   for index, (record, name) in enumerate(zip(parsed["records"], names[:2])):
-                      if type(record) is not dict or set(record) != {"test_name", "attempted", "exit_known", "exit", "timeout", "failure_class"}:
+                      if type(record) is not dict or set(record) - {"pty_details"} != {"test_name", "attempted", "exit_known", "exit", "timeout", "failure_class"}:
+                          return unknown
+                      if "pty_details" in record and (index != 1 or record["attempted"] is not True or not pty_details_valid(record["pty_details"])):
                           return unknown
                       if record["test_name"] != name or any(type(record[key]) is not bool for key in ["attempted", "exit_known", "timeout"]):
                           return unknown
@@ -866,6 +980,8 @@ jobs:
                           for index, name in enumerate(names)]
               if json.loads(payloads["observation.json"]) != expected:
                   raise ValueError("unclassified evidence")
+              if "pty_details" not in capability_receipt()["records"][1]:
+                  raise ValueError("missing closed PTY diagnostic")
               for receipt in expected:
                   if payloads[receipt["test"] + ".exit"] != (str(receipt["raw_exit"]) + "\n").encode():
                       raise ValueError("invalid raw exit receipt")

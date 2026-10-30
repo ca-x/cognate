@@ -5,6 +5,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
@@ -25,6 +26,98 @@ type darwinPTYCapture struct {
 	mutex sync.Mutex
 	data  []byte
 	child atomic.Int64
+}
+
+type darwinPTYDiagnostic struct {
+	Schema          int    `json:"schema"`
+	TestName        string `json:"test_name"`
+	ScriptTerminal  string `json:"script_terminal"`
+	ScriptExitKnown bool   `json:"script_exit_known"`
+	ScriptExit      int    `json:"script_exit"`
+	ScriptSignal    string `json:"script_signal"`
+	Capture         string `json:"capture"`
+	ChildMarker     string `json:"child_marker"`
+	TargetMarker    string `json:"target_marker"`
+	EOTPrefix       string `json:"eot_prefix"`
+}
+
+func darwinPTYDetails(state *os.ProcessState, runError error, output string) darwinPTYDiagnostic {
+	details := darwinPTYDiagnostic{Schema: 1, TestName: "TestDarwinPTYExecutionPrerequisites", ScriptTerminal: "unknown", ScriptSignal: "unknown", Capture: "empty", ChildMarker: "absent", TargetMarker: "absent", EOTPrefix: "absent"}
+	if state != nil {
+		if status, ok := state.Sys().(syscall.WaitStatus); ok && status.Signaled() {
+			details.ScriptTerminal = "signaled"
+			switch status.Signal() {
+			case syscall.SIGHUP:
+				details.ScriptSignal = "hup"
+			case syscall.SIGINT:
+				details.ScriptSignal = "int"
+			case syscall.SIGQUIT:
+				details.ScriptSignal = "quit"
+			case syscall.SIGKILL:
+				details.ScriptSignal = "kill"
+			case syscall.SIGTERM:
+				details.ScriptSignal = "term"
+			default:
+				details.ScriptSignal = "other"
+			}
+		} else if code := state.ExitCode(); code >= 0 && code <= 255 {
+			details.ScriptTerminal = "exited"
+			details.ScriptExitKnown = true
+			details.ScriptExit = code
+		}
+	} else if runError != nil {
+		details.ScriptTerminal = "launch-failed"
+	}
+	if output != "" {
+		details.Capture = "nonempty"
+	}
+	if strings.HasPrefix(output, "^D") {
+		details.EOTPrefix = "fixed-caret-D"
+	} else if strings.HasPrefix(output, "\x04") {
+		details.EOTPrefix = "unknown"
+	}
+	if strings.Contains(output, "COGNATE_PTY_CHILD:") {
+		details.ChildMarker = "nonanchored-only"
+	}
+	if strings.Contains(output, "COGNATE_TARGET_EXIT:") {
+		details.TargetMarker = "nonanchored-only"
+	}
+	targets := 0
+	for line := range strings.SplitSeq(output, "\n") {
+		if value, found := strings.CutPrefix(strings.TrimSpace(line), "COGNATE_PTY_CHILD:"); found {
+			if details.ChildMarker != "anchored-valid" {
+				details.ChildMarker = "anchored-invalid"
+			}
+			if child, err := strconv.ParseInt(value, 10, 32); err == nil && child > 1 {
+				details.ChildMarker = "anchored-valid"
+			}
+		}
+		if value, found := strings.CutPrefix(strings.TrimSpace(line), "COGNATE_TARGET_EXIT:"); found {
+			targets++
+			details.TargetMarker = "anchored-invalid"
+			if code, err := strconv.Atoi(value); err == nil {
+				details.TargetMarker = "anchored-nonnegative"
+				if code < 0 {
+					details.TargetMarker = "anchored-negative"
+				}
+			}
+		}
+	}
+	if targets > 1 {
+		details.TargetMarker = "duplicate"
+	}
+	return details
+}
+
+func darwinPTYLogDiagnostic(test *testing.T, command *exec.Cmd, runError error, capture *darwinPTYCapture) {
+	if test.Name() != "TestDarwinPTYExecutionPrerequisites" {
+		return
+	}
+	capture.mutex.Lock()
+	details := darwinPTYDetails(command.ProcessState, runError, string(capture.data))
+	capture.mutex.Unlock()
+	encoded, _ := json.Marshal(details)
+	test.Logf("DARWIN_PTY_DIAGNOSTIC %s", encoded)
 }
 
 func (capture *darwinPTYCapture) Write(data []byte) (int, error) {
@@ -65,6 +158,7 @@ func darwinPTYRun(test *testing.T, environment []string, arguments ...string) (s
 		return command.Process.Kill()
 	}
 	err := command.Run()
+	darwinPTYLogDiagnostic(test, command, err, capture)
 	if ctx.Err() != nil || errors.Is(err, exec.ErrWaitDelay) {
 		test.Fatal("DARWIN_INFRA PTY child deadline or incomplete drain")
 	}
