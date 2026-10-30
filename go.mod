@@ -20,6 +20,7 @@ require (
 	github.com/lib-x/entsqlite v0.2.6
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/pelletier/go-toml/v2 v2.4.3
+	github.com/secure-io/sio-go v0.3.1
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/crypto v0.58.0
