@@ -4,13 +4,15 @@
 
 import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Asset, AssetKind, ClaudeAuthMode, Draft, GeminiAuthMode, GeminiKeyTransport } from "../../configuration/v1/configuration_pb";
+import { file_skillhub_configuration_v1_configuration } from "../../configuration/v1/configuration_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file skillhub/import/v1/import.proto.
  */
 export const file_skillhub_import_v1_import: GenFile = /*@__PURE__*/
-  fileDesc("Ch9za2lsbGh1Yi9pbXBvcnQvdjEvaW1wb3J0LnByb3RvEhJza2lsbGh1Yi5pbXBvcnQudjEiZAobUHJldmlld0xpYnJhcnlFeHBvcnRSZXF1ZXN0EjAKBmZvcm1hdBgBIAEoDjIgLnNraWxsaHViLmltcG9ydC52MS5FeHBvcnRGb3JtYXQSEwoLZXhwb3J0X2RhdGEYAiABKAwiiQEKE1JlcG9zaXRvcnlDYW5kaWRhdGUSEgoKcmVwb3NpdG9yeRgBIAEoCRIOCgZicmFuY2gYAiABKAkSHgoWZXhpc3RpbmdfcmVwb3NpdG9yeV9pZBgDIAEoCRIbCg5zb3VyY2VfZW5hYmxlZBgEIAEoCEgAiAEBQhEKD19zb3VyY2VfZW5hYmxlZCJ9ChxQcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlEj0KDHJlcG9zaXRvcmllcxgBIAMoCzInLnNraWxsaHViLmltcG9ydC52MS5SZXBvc2l0b3J5Q2FuZGlkYXRlEh4KFnJlZmVyZW5jZWRfc2tpbGxfY291bnQYAiABKA0iNwoeUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXF1ZXN0EhUKDXNuYXBzaG90X2RhdGEYASABKAwiYAofUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXNwb25zZRI9CgxyZXBvc2l0b3JpZXMYASADKAsyJy5za2lsbGh1Yi5pbXBvcnQudjEuUmVwb3NpdG9yeUNhbmRpZGF0ZSpUCgxFeHBvcnRGb3JtYXQSHQoZRVhQT1JUX0ZPUk1BVF9VTlNQRUNJRklFRBAAEiUKIUVYUE9SVF9GT1JNQVRfTUFHUElFX0xJQlJBUllfSlNPThABMo8CCg1JbXBvcnRTZXJ2aWNlEnkKFFByZXZpZXdMaWJyYXJ5RXhwb3J0Ei8uc2tpbGxodWIuaW1wb3J0LnYxLlByZXZpZXdMaWJyYXJ5RXhwb3J0UmVxdWVzdBowLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlEoIBChdQcmV2aWV3Q0NTd2l0Y2hTbmFwc2hvdBIyLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3Q0NTd2l0Y2hTbmFwc2hvdFJlcXVlc3QaMy5za2lsbGh1Yi5pbXBvcnQudjEuUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXNwb25zZUI5WjdnaXRodWIuY29tL2NhLXgvY29nbmF0ZS9nZW4vc2tpbGxodWIvaW1wb3J0L3YxO2ltcG9ydHYxYgZwcm90bzM");
+  fileDesc("Ch9za2lsbGh1Yi9pbXBvcnQvdjEvaW1wb3J0LnByb3RvEhJza2lsbGh1Yi5pbXBvcnQudjEiZAobUHJldmlld0xpYnJhcnlFeHBvcnRSZXF1ZXN0EjAKBmZvcm1hdBgBIAEoDjIgLnNraWxsaHViLmltcG9ydC52MS5FeHBvcnRGb3JtYXQSEwoLZXhwb3J0X2RhdGEYAiABKAwiiQEKE1JlcG9zaXRvcnlDYW5kaWRhdGUSEgoKcmVwb3NpdG9yeRgBIAEoCRIOCgZicmFuY2gYAiABKAkSHgoWZXhpc3RpbmdfcmVwb3NpdG9yeV9pZBgDIAEoCRIbCg5zb3VyY2VfZW5hYmxlZBgEIAEoCEgAiAEBQhEKD19zb3VyY2VfZW5hYmxlZCJ9ChxQcmV2aWV3TGlicmFyeUV4cG9ydFJlc3BvbnNlEj0KDHJlcG9zaXRvcmllcxgBIAMoCzInLnNraWxsaHViLmltcG9ydC52MS5SZXBvc2l0b3J5Q2FuZGlkYXRlEh4KFnJlZmVyZW5jZWRfc2tpbGxfY291bnQYAiABKA0iNwoeUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXF1ZXN0EhUKDXNuYXBzaG90X2RhdGEYASABKAwiYAofUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXNwb25zZRI9CgxyZXBvc2l0b3JpZXMYASADKAsyJy5za2lsbGh1Yi5pbXBvcnQudjEuUmVwb3NpdG9yeUNhbmRpZGF0ZSKxAQodUHJldmlld0ltcG9ydFNlbGVjdGlvblJlcXVlc3QSOQoGc291cmNlGAEgASgOMikuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydFNlbGVjdGlvblNvdXJjZRIYCgtzb3VyY2VfZGF0YRgCIAEoDEIDgAEBEjsKB29wdGlvbnMYAyADKAsyKi5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0Q2FuZGlkYXRlT3B0aW9ucyKEAwoWSW1wb3J0Q2FuZGlkYXRlT3B0aW9ucxIUCgxjYW5kaWRhdGVfaWQYASABKAkSEQoEbmFtZRgCIAEoCUgBiAEBEkUKEGNsYXVkZV9hdXRoX21vZGUYAyABKA4yKS5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkNsYXVkZUF1dGhNb2RlSAASRQoQZ2VtaW5pX2F1dGhfbW9kZRgEIAEoDjIpLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2VtaW5pQXV0aE1vZGVIABJQChRnZW1pbmlfa2V5X3RyYW5zcG9ydBgFIAEoDjItLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuR2VtaW5pS2V5VHJhbnNwb3J0SAKIAQESNwoNc2tpbGxfYmluZGluZxgGIAEoCzIgLnNraWxsaHViLmltcG9ydC52MS5Ta2lsbEJpbmRpbmdCBgoEYXV0aEIHCgVfbmFtZUIXChVfZ2VtaW5pX2tleV90cmFuc3BvcnQixQIKHlByZXZpZXdJbXBvcnRTZWxlY3Rpb25SZXNwb25zZRITCgZ0aWNrZXQYASABKAxCA4ABARISCgpleHBpcmVzX21zGAIgASgDEkMKDHJlcG9zaXRvcmllcxgDIAMoCzItLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnRSZXBvc2l0b3J5Q2FuZGlkYXRlEjgKBnNraWxscxgEIAMoCzIoLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnRTa2lsbENhbmRpZGF0ZRJICg5jb25maWd1cmF0aW9ucxgFIAMoCzIwLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnRDb25maWd1cmF0aW9uQ2FuZGlkYXRlEjEKB25vdGljZXMYBiADKAsyIC5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0Tm90aWNlIpkBChlJbXBvcnRSZXBvc2l0b3J5Q2FuZGlkYXRlEgoKAmlkGAEgASgJEjUKBGhpbnQYAiABKAsyJy5za2lsbGh1Yi5pbXBvcnQudjEuUmVwb3NpdG9yeUNhbmRpZGF0ZRI5CgZzdGF0dXMYAyABKA4yKS5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0Q2FuZGlkYXRlU3RhdHVzIvcBChRJbXBvcnRTa2lsbENhbmRpZGF0ZRIKCgJpZBgBIAEoCRIRCglzYWZlX25hbWUYAiABKAkSHwoXcmVwb3NpdG9yeV9jYW5kaWRhdGVfaWQYAyABKAkSOQoGc3RhdHVzGAQgASgOMikuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydENhbmRpZGF0ZVN0YXR1cxIxCgdiaW5kaW5nGAUgASgLMiAuc2tpbGxodWIuaW1wb3J0LnYxLlNraWxsQmluZGluZxIxCgdub3RpY2VzGAYgAygLMiAuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydE5vdGljZSKdAQoMU2tpbGxCaW5kaW5nEhUKDXJlcG9zaXRvcnlfaWQYASABKAkSFAoMYXJjaGl2ZV9oYXNoGAIgASgJEhAKCHNraWxsX2lkGAMgASgJEhQKDGxvZ2ljYWxfcGF0aBgEIAEoCRIUCgxjb250ZW50X2hhc2gYBSABKAkSEgoKcmVwb3NpdG9yeRgGIAEoCRIOCgZicmFuY2gYByABKAki7AIKHEltcG9ydENvbmZpZ3VyYXRpb25DYW5kaWRhdGUSCgoCaWQYASABKAkSFgoOa25vd25fYWdlbnRfaWQYAiABKAkSMgoEa2luZBgDIAEoDjIkLnNraWxsaHViLmNvbmZpZ3VyYXRpb24udjEuQXNzZXRLaW5kEjkKBnN0YXR1cxgEIAEoDjIpLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnRDYW5kaWRhdGVTdGF0dXMSLwoFZHJhZnQYBSABKAsyIC5za2lsbGh1Yi5jb25maWd1cmF0aW9uLnYxLkRyYWZ0EjEKB25vdGljZXMYBiADKAsyIC5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0Tm90aWNlEkIKEGNyZWRlbnRpYWxfc2xvdHMYByADKAsyKC5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0Q3JlZGVudGlhbFNsb3QSEQoJc2FmZV9uYW1lGAggASgJIjgKFEltcG9ydENyZWRlbnRpYWxTbG90Eg8KB3Nsb3RfaWQYASABKAkSDwoHcHJlc2VudBgCIAEoCCJdCgxJbXBvcnROb3RpY2USCgoCaWQYASABKAkSMgoEY29kZRgCIAEoDjIkLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnROb3RpY2VDb2RlEg0KBWNvdW50GAMgASgNIrkCChxDb21taXRJbXBvcnRTZWxlY3Rpb25SZXF1ZXN0EhMKBnRpY2tldBgBIAEoDEIDgAEBEjkKBnNvdXJjZRgCIAEoDjIpLnNraWxsaHViLmltcG9ydC52MS5JbXBvcnRTZWxlY3Rpb25Tb3VyY2USGAoLc291cmNlX2RhdGEYAyABKAxCA4ABARI7CgdvcHRpb25zGAQgAygLMiouc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydENhbmRpZGF0ZU9wdGlvbnMSFAoMb3BlcmF0aW9uX2lkGAUgASgMEhYKDnJlcG9zaXRvcnlfaWRzGAYgAygJEhEKCXNraWxsX2lkcxgHIAMoCRIZChFjb25maWd1cmF0aW9uX2lkcxgIIAMoCRIWCg5hY2tfbm90aWNlX2lkcxgJIAMoCSJTCh1Db21taXRJbXBvcnRTZWxlY3Rpb25SZXNwb25zZRIyCgdyZWNlaXB0GAEgASgLMiEuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydFJlY2VpcHQiNAocR2V0SW1wb3J0Q29tbWl0U3RhdHVzUmVxdWVzdBIUCgxvcGVyYXRpb25faWQYASABKAwilQEKHUdldEltcG9ydENvbW1pdFN0YXR1c1Jlc3BvbnNlEkAKC29ic2VydmF0aW9uGAEgASgOMisuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydENvbW1pdE9ic2VydmF0aW9uEjIKB3JlY2VpcHQYAiABKAsyIS5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0UmVjZWlwdCLoAgoNSW1wb3J0UmVjZWlwdBIUCgxvcGVyYXRpb25faWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSNQoFcGhhc2UYAyABKA4yJi5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0UmVjZWlwdFBoYXNlEkgKE3JlcG9zaXRvcnlfb3V0Y29tZXMYBCADKAsyKy5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0UmVwb3NpdG9yeU91dGNvbWUSQQoXc2VsZWN0ZWRfc2tpbGxfYmluZGluZ3MYBSADKAsyIC5za2lsbGh1Yi5pbXBvcnQudjEuU2tpbGxCaW5kaW5nEjgKDmNyZWF0ZWRfYXNzZXRzGAYgAygLMiAuc2tpbGxodWIuY29uZmlndXJhdGlvbi52MS5Bc3NldBIxCgdub3RpY2VzGAcgAygLMiAuc2tpbGxodWIuaW1wb3J0LnYxLkltcG9ydE5vdGljZSKcAQoXSW1wb3J0UmVwb3NpdG9yeU91dGNvbWUSFAoMY2FuZGlkYXRlX2lkGAEgASgJEj0KBGNvZGUYAiABKA4yLy5za2lsbGh1Yi5pbXBvcnQudjEuSW1wb3J0UmVwb3NpdG9yeU91dGNvbWVDb2RlEhoKDXJlcG9zaXRvcnlfaWQYAyABKAlIAIgBAUIQCg5fcmVwb3NpdG9yeV9pZCpUCgxFeHBvcnRGb3JtYXQSHQoZRVhQT1JUX0ZPUk1BVF9VTlNQRUNJRklFRBAAEiUKIUVYUE9SVF9GT1JNQVRfTUFHUElFX0xJQlJBUllfSlNPThABKqABChVJbXBvcnRTZWxlY3Rpb25Tb3VyY2USJwojSU1QT1JUX1NFTEVDVElPTl9TT1VSQ0VfVU5TUEVDSUZJRUQQABItCilJTVBPUlRfU0VMRUNUSU9OX1NPVVJDRV9DQ1NXSVRDSF9TQ0hFTUEyNBABEi8KK0lNUE9SVF9TRUxFQ1RJT05fU09VUkNFX01BR1BJRV9MSUJSQVJZX0pTT04QAiqhAwoVSW1wb3J0Q2FuZGlkYXRlU3RhdHVzEicKI0lNUE9SVF9DQU5ESURBVEVfU1RBVFVTX1VOU1BFQ0lGSUVEEAASIQodSU1QT1JUX0NBTkRJREFURV9TVEFUVVNfUkVBRFkQARIoCiRJTVBPUlRfQ0FORElEQVRFX1NUQVRVU19ORUVEU19DSE9JQ0UQAhIzCi9JTVBPUlRfQ0FORElEQVRFX1NUQVRVU19ORUVEU19SRVBPU0lUT1JZX0lNUE9SVBADEiYKIklNUE9SVF9DQU5ESURBVEVfU1RBVFVTX1VOUkVTT0xWRUQQBBItCilJTVBPUlRfQ0FORElEQVRFX1NUQVRVU19VTlNVUFBPUlRFRF9BR0VOVBAFEiwKKElNUE9SVF9DQU5ESURBVEVfU1RBVFVTX1VOU1VQUE9SVEVEX0tJTkQQBhItCilJTVBPUlRfQ0FORElEQVRFX1NUQVRVU19VTlNVUFBPUlRFRF9GSUVMRBAHEikKJUlNUE9SVF9DQU5ESURBVEVfU1RBVFVTX05BTUVfQ09ORkxJQ1QQCCqrAgoQSW1wb3J0Tm90aWNlQ29kZRIiCh5JTVBPUlRfTk9USUNFX0NPREVfVU5TUEVDSUZJRUQQABIqCiZJTVBPUlRfTk9USUNFX0NPREVfQ1JFREVOVElBTFNfT01JVFRFRBABEigKJElNUE9SVF9OT1RJQ0VfQ09ERV9NRVRBREFUQV9FWENMVURFRBACEjEKLUlNUE9SVF9OT1RJQ0VfQ09ERV9PVEhFUl9TT1VSQ0VfREFUQV9FWENMVURFRBADEjIKLklNUE9SVF9OT1RJQ0VfQ09ERV9TT1VSQ0VfQ09OVEVOVF9OT1RfQ09NUEFSRUQQBBI2CjJJTVBPUlRfTk9USUNFX0NPREVfVU5LTk9XTl9TT1VSQ0VfU0VDVElPTl9FWENMVURFRBAFKukBChJJbXBvcnRSZWNlaXB0UGhhc2USJAogSU1QT1JUX1JFQ0VJUFRfUEhBU0VfVU5TUEVDSUZJRUQQABIhCh1JTVBPUlRfUkVDRUlQVF9QSEFTRV9SRVNFUlZFRBABEiMKH0lNUE9SVF9SRUNFSVBUX1BIQVNFX0NPTExFQ1RJTkcQAhIiCh5JTVBPUlRfUkVDRUlQVF9QSEFTRV9DT01QTEVURUQQAxIgChxJTVBPUlRfUkVDRUlQVF9QSEFTRV9QQVJUSUFMEAQSHwobSU1QT1JUX1JFQ0VJUFRfUEhBU0VfRkFJTEVEEAUq6gEKF0ltcG9ydENvbW1pdE9ic2VydmF0aW9uEikKJUlNUE9SVF9DT01NSVRfT0JTRVJWQVRJT05fVU5TUEVDSUZJRUQQABIqCiZJTVBPUlRfQ09NTUlUX09CU0VSVkFUSU9OX05PVF9PQlNFUlZFRBABEikKJUlNUE9SVF9DT01NSVRfT0JTRVJWQVRJT05fSU5fUFJPR1JFU1MQAhIlCiFJTVBPUlRfQ09NTUlUX09CU0VSVkFUSU9OX1VOS05PV04QAxImCiJJTVBPUlRfQ09NTUlUX09CU0VSVkFUSU9OX1RFUk1JTkFMEAQq3wMKG0ltcG9ydFJlcG9zaXRvcnlPdXRjb21lQ29kZRIuCipJTVBPUlRfUkVQT1NJVE9SWV9PVVRDT01FX0NPREVfVU5TUEVDSUZJRUQQABIsCihJTVBPUlRfUkVQT1NJVE9SWV9PVVRDT01FX0NPREVfQ09MTEVDVEVEEAESNAowSU1QT1JUX1JFUE9TSVRPUllfT1VUQ09NRV9DT0RFX0FMUkVBRFlfQ09MTEVDVEVEEAISMAosSU1QT1JUX1JFUE9TSVRPUllfT1VUQ09NRV9DT0RFX05PVF9BVFRFTVBURUQQAxIsCihJTVBPUlRfUkVQT1NJVE9SWV9PVVRDT01FX0NPREVfQ0FOQ0VMTEVEEAQSNQoxSU1QT1JUX1JFUE9TSVRPUllfT1VUQ09NRV9DT0RFX0FVVEhPUklaQVRJT05fTE9TVBAFEjIKLklNUE9SVF9SRVBPU0lUT1JZX09VVENPTUVfQ09ERV9TT1VSQ0VfUkVKRUNURUQQBhI1CjFJTVBPUlRfUkVQT1NJVE9SWV9PVVRDT01FX0NPREVfQ0FQQUNJVFlfRVhIQVVTVEVEEAcSKgomSU1QT1JUX1JFUE9TSVRPUllfT1VUQ09NRV9DT0RFX1VOS05PV04QCDKMBQoNSW1wb3J0U2VydmljZRJ5ChRQcmV2aWV3TGlicmFyeUV4cG9ydBIvLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3TGlicmFyeUV4cG9ydFJlcXVlc3QaMC5za2lsbGh1Yi5pbXBvcnQudjEuUHJldmlld0xpYnJhcnlFeHBvcnRSZXNwb25zZRKCAQoXUHJldmlld0NDU3dpdGNoU25hcHNob3QSMi5za2lsbGh1Yi5pbXBvcnQudjEuUHJldmlld0NDU3dpdGNoU25hcHNob3RSZXF1ZXN0GjMuc2tpbGxodWIuaW1wb3J0LnYxLlByZXZpZXdDQ1N3aXRjaFNuYXBzaG90UmVzcG9uc2USfwoWUHJldmlld0ltcG9ydFNlbGVjdGlvbhIxLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3SW1wb3J0U2VsZWN0aW9uUmVxdWVzdBoyLnNraWxsaHViLmltcG9ydC52MS5QcmV2aWV3SW1wb3J0U2VsZWN0aW9uUmVzcG9uc2USfAoVQ29tbWl0SW1wb3J0U2VsZWN0aW9uEjAuc2tpbGxodWIuaW1wb3J0LnYxLkNvbW1pdEltcG9ydFNlbGVjdGlvblJlcXVlc3QaMS5za2lsbGh1Yi5pbXBvcnQudjEuQ29tbWl0SW1wb3J0U2VsZWN0aW9uUmVzcG9uc2USfAoVR2V0SW1wb3J0Q29tbWl0U3RhdHVzEjAuc2tpbGxodWIuaW1wb3J0LnYxLkdldEltcG9ydENvbW1pdFN0YXR1c1JlcXVlc3QaMS5za2lsbGh1Yi5pbXBvcnQudjEuR2V0SW1wb3J0Q29tbWl0U3RhdHVzUmVzcG9uc2VCOVo3Z2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL2ltcG9ydC92MTtpbXBvcnR2MWIGcHJvdG8z", [file_skillhub_configuration_v1_configuration]);
 
 /**
  * @generated from message skillhub.import.v1.PreviewLibraryExportRequest
@@ -123,6 +125,528 @@ export const PreviewCCSwitchSnapshotResponseSchema: GenMessage<PreviewCCSwitchSn
   messageDesc(file_skillhub_import_v1_import, 4);
 
 /**
+ * @generated from message skillhub.import.v1.PreviewImportSelectionRequest
+ */
+export type PreviewImportSelectionRequest = Message<"skillhub.import.v1.PreviewImportSelectionRequest"> & {
+  /**
+   * @generated from field: skillhub.import.v1.ImportSelectionSource source = 1;
+   */
+  source: ImportSelectionSource;
+
+  /**
+   * @generated from field: bytes source_data = 2;
+   */
+  sourceData: Uint8Array;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportCandidateOptions options = 3;
+   */
+  options: ImportCandidateOptions[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.PreviewImportSelectionRequest.
+ * Use `create(PreviewImportSelectionRequestSchema)` to create a new message.
+ */
+export const PreviewImportSelectionRequestSchema: GenMessage<PreviewImportSelectionRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 5);
+
+/**
+ * @generated from message skillhub.import.v1.ImportCandidateOptions
+ */
+export type ImportCandidateOptions = Message<"skillhub.import.v1.ImportCandidateOptions"> & {
+  /**
+   * @generated from field: string candidate_id = 1;
+   */
+  candidateId: string;
+
+  /**
+   * @generated from field: optional string name = 2;
+   */
+  name?: string | undefined;
+
+  /**
+   * @generated from oneof skillhub.import.v1.ImportCandidateOptions.auth
+   */
+  auth: {
+    /**
+     * @generated from field: skillhub.configuration.v1.ClaudeAuthMode claude_auth_mode = 3;
+     */
+    value: ClaudeAuthMode;
+    case: "claudeAuthMode";
+  } | {
+    /**
+     * @generated from field: skillhub.configuration.v1.GeminiAuthMode gemini_auth_mode = 4;
+     */
+    value: GeminiAuthMode;
+    case: "geminiAuthMode";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * @generated from field: optional skillhub.configuration.v1.GeminiKeyTransport gemini_key_transport = 5;
+   */
+  geminiKeyTransport?: GeminiKeyTransport | undefined;
+
+  /**
+   * @generated from field: skillhub.import.v1.SkillBinding skill_binding = 6;
+   */
+  skillBinding?: SkillBinding | undefined;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportCandidateOptions.
+ * Use `create(ImportCandidateOptionsSchema)` to create a new message.
+ */
+export const ImportCandidateOptionsSchema: GenMessage<ImportCandidateOptions> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 6);
+
+/**
+ * @generated from message skillhub.import.v1.PreviewImportSelectionResponse
+ */
+export type PreviewImportSelectionResponse = Message<"skillhub.import.v1.PreviewImportSelectionResponse"> & {
+  /**
+   * @generated from field: bytes ticket = 1;
+   */
+  ticket: Uint8Array;
+
+  /**
+   * @generated from field: int64 expires_ms = 2;
+   */
+  expiresMs: bigint;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportRepositoryCandidate repositories = 3;
+   */
+  repositories: ImportRepositoryCandidate[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportSkillCandidate skills = 4;
+   */
+  skills: ImportSkillCandidate[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportConfigurationCandidate configurations = 5;
+   */
+  configurations: ImportConfigurationCandidate[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportNotice notices = 6;
+   */
+  notices: ImportNotice[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.PreviewImportSelectionResponse.
+ * Use `create(PreviewImportSelectionResponseSchema)` to create a new message.
+ */
+export const PreviewImportSelectionResponseSchema: GenMessage<PreviewImportSelectionResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 7);
+
+/**
+ * @generated from message skillhub.import.v1.ImportRepositoryCandidate
+ */
+export type ImportRepositoryCandidate = Message<"skillhub.import.v1.ImportRepositoryCandidate"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: skillhub.import.v1.RepositoryCandidate hint = 2;
+   */
+  hint?: RepositoryCandidate | undefined;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportCandidateStatus status = 3;
+   */
+  status: ImportCandidateStatus;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportRepositoryCandidate.
+ * Use `create(ImportRepositoryCandidateSchema)` to create a new message.
+ */
+export const ImportRepositoryCandidateSchema: GenMessage<ImportRepositoryCandidate> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 8);
+
+/**
+ * @generated from message skillhub.import.v1.ImportSkillCandidate
+ */
+export type ImportSkillCandidate = Message<"skillhub.import.v1.ImportSkillCandidate"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string safe_name = 2;
+   */
+  safeName: string;
+
+  /**
+   * @generated from field: string repository_candidate_id = 3;
+   */
+  repositoryCandidateId: string;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportCandidateStatus status = 4;
+   */
+  status: ImportCandidateStatus;
+
+  /**
+   * @generated from field: skillhub.import.v1.SkillBinding binding = 5;
+   */
+  binding?: SkillBinding | undefined;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportNotice notices = 6;
+   */
+  notices: ImportNotice[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportSkillCandidate.
+ * Use `create(ImportSkillCandidateSchema)` to create a new message.
+ */
+export const ImportSkillCandidateSchema: GenMessage<ImportSkillCandidate> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 9);
+
+/**
+ * @generated from message skillhub.import.v1.SkillBinding
+ */
+export type SkillBinding = Message<"skillhub.import.v1.SkillBinding"> & {
+  /**
+   * @generated from field: string repository_id = 1;
+   */
+  repositoryId: string;
+
+  /**
+   * @generated from field: string archive_hash = 2;
+   */
+  archiveHash: string;
+
+  /**
+   * @generated from field: string skill_id = 3;
+   */
+  skillId: string;
+
+  /**
+   * @generated from field: string logical_path = 4;
+   */
+  logicalPath: string;
+
+  /**
+   * @generated from field: string content_hash = 5;
+   */
+  contentHash: string;
+
+  /**
+   * @generated from field: string repository = 6;
+   */
+  repository: string;
+
+  /**
+   * @generated from field: string branch = 7;
+   */
+  branch: string;
+};
+
+/**
+ * Describes the message skillhub.import.v1.SkillBinding.
+ * Use `create(SkillBindingSchema)` to create a new message.
+ */
+export const SkillBindingSchema: GenMessage<SkillBinding> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 10);
+
+/**
+ * @generated from message skillhub.import.v1.ImportConfigurationCandidate
+ */
+export type ImportConfigurationCandidate = Message<"skillhub.import.v1.ImportConfigurationCandidate"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string known_agent_id = 2;
+   */
+  knownAgentId: string;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.AssetKind kind = 3;
+   */
+  kind: AssetKind;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportCandidateStatus status = 4;
+   */
+  status: ImportCandidateStatus;
+
+  /**
+   * @generated from field: skillhub.configuration.v1.Draft draft = 5;
+   */
+  draft?: Draft | undefined;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportNotice notices = 6;
+   */
+  notices: ImportNotice[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportCredentialSlot credential_slots = 7;
+   */
+  credentialSlots: ImportCredentialSlot[];
+
+  /**
+   * @generated from field: string safe_name = 8;
+   */
+  safeName: string;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportConfigurationCandidate.
+ * Use `create(ImportConfigurationCandidateSchema)` to create a new message.
+ */
+export const ImportConfigurationCandidateSchema: GenMessage<ImportConfigurationCandidate> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 11);
+
+/**
+ * @generated from message skillhub.import.v1.ImportCredentialSlot
+ */
+export type ImportCredentialSlot = Message<"skillhub.import.v1.ImportCredentialSlot"> & {
+  /**
+   * @generated from field: string slot_id = 1;
+   */
+  slotId: string;
+
+  /**
+   * @generated from field: bool present = 2;
+   */
+  present: boolean;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportCredentialSlot.
+ * Use `create(ImportCredentialSlotSchema)` to create a new message.
+ */
+export const ImportCredentialSlotSchema: GenMessage<ImportCredentialSlot> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 12);
+
+/**
+ * @generated from message skillhub.import.v1.ImportNotice
+ */
+export type ImportNotice = Message<"skillhub.import.v1.ImportNotice"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportNoticeCode code = 2;
+   */
+  code: ImportNoticeCode;
+
+  /**
+   * @generated from field: uint32 count = 3;
+   */
+  count: number;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportNotice.
+ * Use `create(ImportNoticeSchema)` to create a new message.
+ */
+export const ImportNoticeSchema: GenMessage<ImportNotice> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 13);
+
+/**
+ * @generated from message skillhub.import.v1.CommitImportSelectionRequest
+ */
+export type CommitImportSelectionRequest = Message<"skillhub.import.v1.CommitImportSelectionRequest"> & {
+  /**
+   * @generated from field: bytes ticket = 1;
+   */
+  ticket: Uint8Array;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportSelectionSource source = 2;
+   */
+  source: ImportSelectionSource;
+
+  /**
+   * @generated from field: bytes source_data = 3;
+   */
+  sourceData: Uint8Array;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportCandidateOptions options = 4;
+   */
+  options: ImportCandidateOptions[];
+
+  /**
+   * @generated from field: bytes operation_id = 5;
+   */
+  operationId: Uint8Array;
+
+  /**
+   * @generated from field: repeated string repository_ids = 6;
+   */
+  repositoryIds: string[];
+
+  /**
+   * @generated from field: repeated string skill_ids = 7;
+   */
+  skillIds: string[];
+
+  /**
+   * @generated from field: repeated string configuration_ids = 8;
+   */
+  configurationIds: string[];
+
+  /**
+   * @generated from field: repeated string ack_notice_ids = 9;
+   */
+  ackNoticeIds: string[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.CommitImportSelectionRequest.
+ * Use `create(CommitImportSelectionRequestSchema)` to create a new message.
+ */
+export const CommitImportSelectionRequestSchema: GenMessage<CommitImportSelectionRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 14);
+
+/**
+ * @generated from message skillhub.import.v1.CommitImportSelectionResponse
+ */
+export type CommitImportSelectionResponse = Message<"skillhub.import.v1.CommitImportSelectionResponse"> & {
+  /**
+   * @generated from field: skillhub.import.v1.ImportReceipt receipt = 1;
+   */
+  receipt?: ImportReceipt | undefined;
+};
+
+/**
+ * Describes the message skillhub.import.v1.CommitImportSelectionResponse.
+ * Use `create(CommitImportSelectionResponseSchema)` to create a new message.
+ */
+export const CommitImportSelectionResponseSchema: GenMessage<CommitImportSelectionResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 15);
+
+/**
+ * @generated from message skillhub.import.v1.GetImportCommitStatusRequest
+ */
+export type GetImportCommitStatusRequest = Message<"skillhub.import.v1.GetImportCommitStatusRequest"> & {
+  /**
+   * @generated from field: bytes operation_id = 1;
+   */
+  operationId: Uint8Array;
+};
+
+/**
+ * Describes the message skillhub.import.v1.GetImportCommitStatusRequest.
+ * Use `create(GetImportCommitStatusRequestSchema)` to create a new message.
+ */
+export const GetImportCommitStatusRequestSchema: GenMessage<GetImportCommitStatusRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 16);
+
+/**
+ * @generated from message skillhub.import.v1.GetImportCommitStatusResponse
+ */
+export type GetImportCommitStatusResponse = Message<"skillhub.import.v1.GetImportCommitStatusResponse"> & {
+  /**
+   * @generated from field: skillhub.import.v1.ImportCommitObservation observation = 1;
+   */
+  observation: ImportCommitObservation;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportReceipt receipt = 2;
+   */
+  receipt?: ImportReceipt | undefined;
+};
+
+/**
+ * Describes the message skillhub.import.v1.GetImportCommitStatusResponse.
+ * Use `create(GetImportCommitStatusResponseSchema)` to create a new message.
+ */
+export const GetImportCommitStatusResponseSchema: GenMessage<GetImportCommitStatusResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 17);
+
+/**
+ * @generated from message skillhub.import.v1.ImportReceipt
+ */
+export type ImportReceipt = Message<"skillhub.import.v1.ImportReceipt"> & {
+  /**
+   * @generated from field: bytes operation_id = 1;
+   */
+  operationId: Uint8Array;
+
+  /**
+   * @generated from field: int64 revision = 2;
+   */
+  revision: bigint;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportReceiptPhase phase = 3;
+   */
+  phase: ImportReceiptPhase;
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportRepositoryOutcome repository_outcomes = 4;
+   */
+  repositoryOutcomes: ImportRepositoryOutcome[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.SkillBinding selected_skill_bindings = 5;
+   */
+  selectedSkillBindings: SkillBinding[];
+
+  /**
+   * @generated from field: repeated skillhub.configuration.v1.Asset created_assets = 6;
+   */
+  createdAssets: Asset[];
+
+  /**
+   * @generated from field: repeated skillhub.import.v1.ImportNotice notices = 7;
+   */
+  notices: ImportNotice[];
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportReceipt.
+ * Use `create(ImportReceiptSchema)` to create a new message.
+ */
+export const ImportReceiptSchema: GenMessage<ImportReceipt> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 18);
+
+/**
+ * @generated from message skillhub.import.v1.ImportRepositoryOutcome
+ */
+export type ImportRepositoryOutcome = Message<"skillhub.import.v1.ImportRepositoryOutcome"> & {
+  /**
+   * @generated from field: string candidate_id = 1;
+   */
+  candidateId: string;
+
+  /**
+   * @generated from field: skillhub.import.v1.ImportRepositoryOutcomeCode code = 2;
+   */
+  code: ImportRepositoryOutcomeCode;
+
+  /**
+   * @generated from field: optional string repository_id = 3;
+   */
+  repositoryId?: string | undefined;
+};
+
+/**
+ * Describes the message skillhub.import.v1.ImportRepositoryOutcome.
+ * Use `create(ImportRepositoryOutcomeSchema)` to create a new message.
+ */
+export const ImportRepositoryOutcomeSchema: GenMessage<ImportRepositoryOutcome> = /*@__PURE__*/
+  messageDesc(file_skillhub_import_v1_import, 19);
+
+/**
  * @generated from enum skillhub.import.v1.ExportFormat
  */
 export enum ExportFormat {
@@ -144,6 +668,262 @@ export const ExportFormatSchema: GenEnum<ExportFormat> = /*@__PURE__*/
   enumDesc(file_skillhub_import_v1_import, 0);
 
 /**
+ * @generated from enum skillhub.import.v1.ImportSelectionSource
+ */
+export enum ImportSelectionSource {
+  /**
+   * @generated from enum value: IMPORT_SELECTION_SOURCE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24 = 1;
+   */
+  CCSWITCH_SCHEMA24 = 1,
+
+  /**
+   * @generated from enum value: IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON = 2;
+   */
+  MAGPIE_LIBRARY_JSON = 2,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportSelectionSource.
+ */
+export const ImportSelectionSourceSchema: GenEnum<ImportSelectionSource> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 1);
+
+/**
+ * @generated from enum skillhub.import.v1.ImportCandidateStatus
+ */
+export enum ImportCandidateStatus {
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_READY = 1;
+   */
+  READY = 1,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE = 2;
+   */
+  NEEDS_CHOICE = 2,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT = 3;
+   */
+  NEEDS_REPOSITORY_IMPORT = 3,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_UNRESOLVED = 4;
+   */
+  UNRESOLVED = 4,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT = 5;
+   */
+  UNSUPPORTED_AGENT = 5,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND = 6;
+   */
+  UNSUPPORTED_KIND = 6,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD = 7;
+   */
+  UNSUPPORTED_FIELD = 7,
+
+  /**
+   * @generated from enum value: IMPORT_CANDIDATE_STATUS_NAME_CONFLICT = 8;
+   */
+  NAME_CONFLICT = 8,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportCandidateStatus.
+ */
+export const ImportCandidateStatusSchema: GenEnum<ImportCandidateStatus> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 2);
+
+/**
+ * @generated from enum skillhub.import.v1.ImportNoticeCode
+ */
+export enum ImportNoticeCode {
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED = 1;
+   */
+  CREDENTIALS_OMITTED = 1,
+
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_METADATA_EXCLUDED = 2;
+   */
+  METADATA_EXCLUDED = 2,
+
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED = 3;
+   */
+  OTHER_SOURCE_DATA_EXCLUDED = 3,
+
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED = 4;
+   */
+  SOURCE_CONTENT_NOT_COMPARED = 4,
+
+  /**
+   * @generated from enum value: IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED = 5;
+   */
+  UNKNOWN_SOURCE_SECTION_EXCLUDED = 5,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportNoticeCode.
+ */
+export const ImportNoticeCodeSchema: GenEnum<ImportNoticeCode> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 3);
+
+/**
+ * @generated from enum skillhub.import.v1.ImportReceiptPhase
+ */
+export enum ImportReceiptPhase {
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_RESERVED = 1;
+   */
+  RESERVED = 1,
+
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_COLLECTING = 2;
+   */
+  COLLECTING = 2,
+
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_COMPLETED = 3;
+   */
+  COMPLETED = 3,
+
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_PARTIAL = 4;
+   */
+  PARTIAL = 4,
+
+  /**
+   * @generated from enum value: IMPORT_RECEIPT_PHASE_FAILED = 5;
+   */
+  FAILED = 5,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportReceiptPhase.
+ */
+export const ImportReceiptPhaseSchema: GenEnum<ImportReceiptPhase> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 4);
+
+/**
+ * @generated from enum skillhub.import.v1.ImportCommitObservation
+ */
+export enum ImportCommitObservation {
+  /**
+   * @generated from enum value: IMPORT_COMMIT_OBSERVATION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED = 1;
+   */
+  NOT_OBSERVED = 1,
+
+  /**
+   * @generated from enum value: IMPORT_COMMIT_OBSERVATION_IN_PROGRESS = 2;
+   */
+  IN_PROGRESS = 2,
+
+  /**
+   * @generated from enum value: IMPORT_COMMIT_OBSERVATION_UNKNOWN = 3;
+   */
+  UNKNOWN = 3,
+
+  /**
+   * @generated from enum value: IMPORT_COMMIT_OBSERVATION_TERMINAL = 4;
+   */
+  TERMINAL = 4,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportCommitObservation.
+ */
+export const ImportCommitObservationSchema: GenEnum<ImportCommitObservation> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 5);
+
+/**
+ * @generated from enum skillhub.import.v1.ImportRepositoryOutcomeCode
+ */
+export enum ImportRepositoryOutcomeCode {
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED = 1;
+   */
+  COLLECTED = 1,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED = 2;
+   */
+  ALREADY_COLLECTED = 2,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED = 3;
+   */
+  NOT_ATTEMPTED = 3,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED = 4;
+   */
+  CANCELLED = 4,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST = 5;
+   */
+  AUTHORIZATION_LOST = 5,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED = 6;
+   */
+  SOURCE_REJECTED = 6,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED = 7;
+   */
+  CAPACITY_EXHAUSTED = 7,
+
+  /**
+   * @generated from enum value: IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN = 8;
+   */
+  UNKNOWN = 8,
+}
+
+/**
+ * Describes the enum skillhub.import.v1.ImportRepositoryOutcomeCode.
+ */
+export const ImportRepositoryOutcomeCodeSchema: GenEnum<ImportRepositoryOutcomeCode> = /*@__PURE__*/
+  enumDesc(file_skillhub_import_v1_import, 6);
+
+/**
  * @generated from service skillhub.import.v1.ImportService
  */
 export const ImportService: GenService<{
@@ -162,6 +942,30 @@ export const ImportService: GenService<{
     methodKind: "unary";
     input: typeof PreviewCCSwitchSnapshotRequestSchema;
     output: typeof PreviewCCSwitchSnapshotResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.import.v1.ImportService.PreviewImportSelection
+   */
+  previewImportSelection: {
+    methodKind: "unary";
+    input: typeof PreviewImportSelectionRequestSchema;
+    output: typeof PreviewImportSelectionResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.import.v1.ImportService.CommitImportSelection
+   */
+  commitImportSelection: {
+    methodKind: "unary";
+    input: typeof CommitImportSelectionRequestSchema;
+    output: typeof CommitImportSelectionResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.import.v1.ImportService.GetImportCommitStatus
+   */
+  getImportCommitStatus: {
+    methodKind: "unary";
+    input: typeof GetImportCommitStatusRequestSchema;
+    output: typeof GetImportCommitStatusResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_skillhub_import_v1_import, 0);

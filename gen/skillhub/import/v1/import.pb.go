@@ -7,6 +7,7 @@
 package importv1
 
 import (
+	v1 "github.com/ca-x/cognate/gen/skillhub/configuration/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -65,6 +66,360 @@ func (x ExportFormat) Number() protoreflect.EnumNumber {
 // Deprecated: Use ExportFormat.Descriptor instead.
 func (ExportFormat) EnumDescriptor() ([]byte, []int) {
 	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{0}
+}
+
+type ImportSelectionSource int32
+
+const (
+	ImportSelectionSource_IMPORT_SELECTION_SOURCE_UNSPECIFIED         ImportSelectionSource = 0
+	ImportSelectionSource_IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24   ImportSelectionSource = 1
+	ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON ImportSelectionSource = 2
+)
+
+// Enum value maps for ImportSelectionSource.
+var (
+	ImportSelectionSource_name = map[int32]string{
+		0: "IMPORT_SELECTION_SOURCE_UNSPECIFIED",
+		1: "IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24",
+		2: "IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON",
+	}
+	ImportSelectionSource_value = map[string]int32{
+		"IMPORT_SELECTION_SOURCE_UNSPECIFIED":         0,
+		"IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24":   1,
+		"IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON": 2,
+	}
+)
+
+func (x ImportSelectionSource) Enum() *ImportSelectionSource {
+	p := new(ImportSelectionSource)
+	*p = x
+	return p
+}
+
+func (x ImportSelectionSource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportSelectionSource) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[1].Descriptor()
+}
+
+func (ImportSelectionSource) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[1]
+}
+
+func (x ImportSelectionSource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportSelectionSource.Descriptor instead.
+func (ImportSelectionSource) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{1}
+}
+
+type ImportCandidateStatus int32
+
+const (
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSPECIFIED             ImportCandidateStatus = 0
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_READY                   ImportCandidateStatus = 1
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE            ImportCandidateStatus = 2
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT ImportCandidateStatus = 3
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNRESOLVED              ImportCandidateStatus = 4
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT       ImportCandidateStatus = 5
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND        ImportCandidateStatus = 6
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD       ImportCandidateStatus = 7
+	ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_NAME_CONFLICT           ImportCandidateStatus = 8
+)
+
+// Enum value maps for ImportCandidateStatus.
+var (
+	ImportCandidateStatus_name = map[int32]string{
+		0: "IMPORT_CANDIDATE_STATUS_UNSPECIFIED",
+		1: "IMPORT_CANDIDATE_STATUS_READY",
+		2: "IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE",
+		3: "IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT",
+		4: "IMPORT_CANDIDATE_STATUS_UNRESOLVED",
+		5: "IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT",
+		6: "IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND",
+		7: "IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD",
+		8: "IMPORT_CANDIDATE_STATUS_NAME_CONFLICT",
+	}
+	ImportCandidateStatus_value = map[string]int32{
+		"IMPORT_CANDIDATE_STATUS_UNSPECIFIED":             0,
+		"IMPORT_CANDIDATE_STATUS_READY":                   1,
+		"IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE":            2,
+		"IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT": 3,
+		"IMPORT_CANDIDATE_STATUS_UNRESOLVED":              4,
+		"IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT":       5,
+		"IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND":        6,
+		"IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD":       7,
+		"IMPORT_CANDIDATE_STATUS_NAME_CONFLICT":           8,
+	}
+)
+
+func (x ImportCandidateStatus) Enum() *ImportCandidateStatus {
+	p := new(ImportCandidateStatus)
+	*p = x
+	return p
+}
+
+func (x ImportCandidateStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportCandidateStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[2].Descriptor()
+}
+
+func (ImportCandidateStatus) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[2]
+}
+
+func (x ImportCandidateStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportCandidateStatus.Descriptor instead.
+func (ImportCandidateStatus) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{2}
+}
+
+type ImportNoticeCode int32
+
+const (
+	ImportNoticeCode_IMPORT_NOTICE_CODE_UNSPECIFIED                     ImportNoticeCode = 0
+	ImportNoticeCode_IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED             ImportNoticeCode = 1
+	ImportNoticeCode_IMPORT_NOTICE_CODE_METADATA_EXCLUDED               ImportNoticeCode = 2
+	ImportNoticeCode_IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED      ImportNoticeCode = 3
+	ImportNoticeCode_IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED     ImportNoticeCode = 4
+	ImportNoticeCode_IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED ImportNoticeCode = 5
+)
+
+// Enum value maps for ImportNoticeCode.
+var (
+	ImportNoticeCode_name = map[int32]string{
+		0: "IMPORT_NOTICE_CODE_UNSPECIFIED",
+		1: "IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED",
+		2: "IMPORT_NOTICE_CODE_METADATA_EXCLUDED",
+		3: "IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED",
+		4: "IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED",
+		5: "IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED",
+	}
+	ImportNoticeCode_value = map[string]int32{
+		"IMPORT_NOTICE_CODE_UNSPECIFIED":                     0,
+		"IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED":             1,
+		"IMPORT_NOTICE_CODE_METADATA_EXCLUDED":               2,
+		"IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED":      3,
+		"IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED":     4,
+		"IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED": 5,
+	}
+)
+
+func (x ImportNoticeCode) Enum() *ImportNoticeCode {
+	p := new(ImportNoticeCode)
+	*p = x
+	return p
+}
+
+func (x ImportNoticeCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportNoticeCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[3].Descriptor()
+}
+
+func (ImportNoticeCode) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[3]
+}
+
+func (x ImportNoticeCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportNoticeCode.Descriptor instead.
+func (ImportNoticeCode) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{3}
+}
+
+type ImportReceiptPhase int32
+
+const (
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_UNSPECIFIED ImportReceiptPhase = 0
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_RESERVED    ImportReceiptPhase = 1
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_COLLECTING  ImportReceiptPhase = 2
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_COMPLETED   ImportReceiptPhase = 3
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_PARTIAL     ImportReceiptPhase = 4
+	ImportReceiptPhase_IMPORT_RECEIPT_PHASE_FAILED      ImportReceiptPhase = 5
+)
+
+// Enum value maps for ImportReceiptPhase.
+var (
+	ImportReceiptPhase_name = map[int32]string{
+		0: "IMPORT_RECEIPT_PHASE_UNSPECIFIED",
+		1: "IMPORT_RECEIPT_PHASE_RESERVED",
+		2: "IMPORT_RECEIPT_PHASE_COLLECTING",
+		3: "IMPORT_RECEIPT_PHASE_COMPLETED",
+		4: "IMPORT_RECEIPT_PHASE_PARTIAL",
+		5: "IMPORT_RECEIPT_PHASE_FAILED",
+	}
+	ImportReceiptPhase_value = map[string]int32{
+		"IMPORT_RECEIPT_PHASE_UNSPECIFIED": 0,
+		"IMPORT_RECEIPT_PHASE_RESERVED":    1,
+		"IMPORT_RECEIPT_PHASE_COLLECTING":  2,
+		"IMPORT_RECEIPT_PHASE_COMPLETED":   3,
+		"IMPORT_RECEIPT_PHASE_PARTIAL":     4,
+		"IMPORT_RECEIPT_PHASE_FAILED":      5,
+	}
+)
+
+func (x ImportReceiptPhase) Enum() *ImportReceiptPhase {
+	p := new(ImportReceiptPhase)
+	*p = x
+	return p
+}
+
+func (x ImportReceiptPhase) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportReceiptPhase) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[4].Descriptor()
+}
+
+func (ImportReceiptPhase) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[4]
+}
+
+func (x ImportReceiptPhase) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportReceiptPhase.Descriptor instead.
+func (ImportReceiptPhase) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{4}
+}
+
+type ImportCommitObservation int32
+
+const (
+	ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_UNSPECIFIED  ImportCommitObservation = 0
+	ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED ImportCommitObservation = 1
+	ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_IN_PROGRESS  ImportCommitObservation = 2
+	ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_UNKNOWN      ImportCommitObservation = 3
+	ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_TERMINAL     ImportCommitObservation = 4
+)
+
+// Enum value maps for ImportCommitObservation.
+var (
+	ImportCommitObservation_name = map[int32]string{
+		0: "IMPORT_COMMIT_OBSERVATION_UNSPECIFIED",
+		1: "IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED",
+		2: "IMPORT_COMMIT_OBSERVATION_IN_PROGRESS",
+		3: "IMPORT_COMMIT_OBSERVATION_UNKNOWN",
+		4: "IMPORT_COMMIT_OBSERVATION_TERMINAL",
+	}
+	ImportCommitObservation_value = map[string]int32{
+		"IMPORT_COMMIT_OBSERVATION_UNSPECIFIED":  0,
+		"IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED": 1,
+		"IMPORT_COMMIT_OBSERVATION_IN_PROGRESS":  2,
+		"IMPORT_COMMIT_OBSERVATION_UNKNOWN":      3,
+		"IMPORT_COMMIT_OBSERVATION_TERMINAL":     4,
+	}
+)
+
+func (x ImportCommitObservation) Enum() *ImportCommitObservation {
+	p := new(ImportCommitObservation)
+	*p = x
+	return p
+}
+
+func (x ImportCommitObservation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportCommitObservation) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[5].Descriptor()
+}
+
+func (ImportCommitObservation) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[5]
+}
+
+func (x ImportCommitObservation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportCommitObservation.Descriptor instead.
+func (ImportCommitObservation) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{5}
+}
+
+type ImportRepositoryOutcomeCode int32
+
+const (
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED        ImportRepositoryOutcomeCode = 0
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED          ImportRepositoryOutcomeCode = 1
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED  ImportRepositoryOutcomeCode = 2
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED      ImportRepositoryOutcomeCode = 3
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED          ImportRepositoryOutcomeCode = 4
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST ImportRepositoryOutcomeCode = 5
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED    ImportRepositoryOutcomeCode = 6
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED ImportRepositoryOutcomeCode = 7
+	ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN            ImportRepositoryOutcomeCode = 8
+)
+
+// Enum value maps for ImportRepositoryOutcomeCode.
+var (
+	ImportRepositoryOutcomeCode_name = map[int32]string{
+		0: "IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED",
+		1: "IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED",
+		2: "IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED",
+		3: "IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED",
+		4: "IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED",
+		5: "IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST",
+		6: "IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED",
+		7: "IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED",
+		8: "IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN",
+	}
+	ImportRepositoryOutcomeCode_value = map[string]int32{
+		"IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED":        0,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED":          1,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED":  2,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED":      3,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED":          4,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST": 5,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED":    6,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED": 7,
+		"IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN":            8,
+	}
+)
+
+func (x ImportRepositoryOutcomeCode) Enum() *ImportRepositoryOutcomeCode {
+	p := new(ImportRepositoryOutcomeCode)
+	*p = x
+	return p
+}
+
+func (x ImportRepositoryOutcomeCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImportRepositoryOutcomeCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_import_v1_import_proto_enumTypes[6].Descriptor()
+}
+
+func (ImportRepositoryOutcomeCode) Type() protoreflect.EnumType {
+	return &file_skillhub_import_v1_import_proto_enumTypes[6]
+}
+
+func (x ImportRepositoryOutcomeCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImportRepositoryOutcomeCode.Descriptor instead.
+func (ImportRepositoryOutcomeCode) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{6}
 }
 
 type PreviewLibraryExportRequest struct {
@@ -327,11 +682,1117 @@ func (x *PreviewCCSwitchSnapshotResponse) GetRepositories() []*RepositoryCandida
 	return nil
 }
 
+type PreviewImportSelectionRequest struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Source        ImportSelectionSource     `protobuf:"varint,1,opt,name=source,proto3,enum=skillhub.import.v1.ImportSelectionSource" json:"source,omitempty"`
+	SourceData    []byte                    `protobuf:"bytes,2,opt,name=source_data,json=sourceData,proto3" json:"source_data,omitempty"`
+	Options       []*ImportCandidateOptions `protobuf:"bytes,3,rep,name=options,proto3" json:"options,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewImportSelectionRequest) Reset() {
+	*x = PreviewImportSelectionRequest{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewImportSelectionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewImportSelectionRequest) ProtoMessage() {}
+
+func (x *PreviewImportSelectionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewImportSelectionRequest.ProtoReflect.Descriptor instead.
+func (*PreviewImportSelectionRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PreviewImportSelectionRequest) GetSource() ImportSelectionSource {
+	if x != nil {
+		return x.Source
+	}
+	return ImportSelectionSource_IMPORT_SELECTION_SOURCE_UNSPECIFIED
+}
+
+func (x *PreviewImportSelectionRequest) GetSourceData() []byte {
+	if x != nil {
+		return x.SourceData
+	}
+	return nil
+}
+
+func (x *PreviewImportSelectionRequest) GetOptions() []*ImportCandidateOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type ImportCandidateOptions struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	CandidateId string                 `protobuf:"bytes,1,opt,name=candidate_id,json=candidateId,proto3" json:"candidate_id,omitempty"`
+	Name        *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	// Types that are valid to be assigned to Auth:
+	//
+	//	*ImportCandidateOptions_ClaudeAuthMode
+	//	*ImportCandidateOptions_GeminiAuthMode
+	Auth               isImportCandidateOptions_Auth `protobuf_oneof:"auth"`
+	GeminiKeyTransport *v1.GeminiKeyTransport        `protobuf:"varint,5,opt,name=gemini_key_transport,json=geminiKeyTransport,proto3,enum=skillhub.configuration.v1.GeminiKeyTransport,oneof" json:"gemini_key_transport,omitempty"`
+	SkillBinding       *SkillBinding                 `protobuf:"bytes,6,opt,name=skill_binding,json=skillBinding,proto3" json:"skill_binding,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ImportCandidateOptions) Reset() {
+	*x = ImportCandidateOptions{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportCandidateOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportCandidateOptions) ProtoMessage() {}
+
+func (x *ImportCandidateOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportCandidateOptions.ProtoReflect.Descriptor instead.
+func (*ImportCandidateOptions) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ImportCandidateOptions) GetCandidateId() string {
+	if x != nil {
+		return x.CandidateId
+	}
+	return ""
+}
+
+func (x *ImportCandidateOptions) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *ImportCandidateOptions) GetAuth() isImportCandidateOptions_Auth {
+	if x != nil {
+		return x.Auth
+	}
+	return nil
+}
+
+func (x *ImportCandidateOptions) GetClaudeAuthMode() v1.ClaudeAuthMode {
+	if x != nil {
+		if x, ok := x.Auth.(*ImportCandidateOptions_ClaudeAuthMode); ok {
+			return x.ClaudeAuthMode
+		}
+	}
+	return v1.ClaudeAuthMode(0)
+}
+
+func (x *ImportCandidateOptions) GetGeminiAuthMode() v1.GeminiAuthMode {
+	if x != nil {
+		if x, ok := x.Auth.(*ImportCandidateOptions_GeminiAuthMode); ok {
+			return x.GeminiAuthMode
+		}
+	}
+	return v1.GeminiAuthMode(0)
+}
+
+func (x *ImportCandidateOptions) GetGeminiKeyTransport() v1.GeminiKeyTransport {
+	if x != nil && x.GeminiKeyTransport != nil {
+		return *x.GeminiKeyTransport
+	}
+	return v1.GeminiKeyTransport(0)
+}
+
+func (x *ImportCandidateOptions) GetSkillBinding() *SkillBinding {
+	if x != nil {
+		return x.SkillBinding
+	}
+	return nil
+}
+
+type isImportCandidateOptions_Auth interface {
+	isImportCandidateOptions_Auth()
+}
+
+type ImportCandidateOptions_ClaudeAuthMode struct {
+	ClaudeAuthMode v1.ClaudeAuthMode `protobuf:"varint,3,opt,name=claude_auth_mode,json=claudeAuthMode,proto3,enum=skillhub.configuration.v1.ClaudeAuthMode,oneof"`
+}
+
+type ImportCandidateOptions_GeminiAuthMode struct {
+	GeminiAuthMode v1.GeminiAuthMode `protobuf:"varint,4,opt,name=gemini_auth_mode,json=geminiAuthMode,proto3,enum=skillhub.configuration.v1.GeminiAuthMode,oneof"`
+}
+
+func (*ImportCandidateOptions_ClaudeAuthMode) isImportCandidateOptions_Auth() {}
+
+func (*ImportCandidateOptions_GeminiAuthMode) isImportCandidateOptions_Auth() {}
+
+type PreviewImportSelectionResponse struct {
+	state          protoimpl.MessageState          `protogen:"open.v1"`
+	Ticket         []byte                          `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
+	ExpiresMs      int64                           `protobuf:"varint,2,opt,name=expires_ms,json=expiresMs,proto3" json:"expires_ms,omitempty"`
+	Repositories   []*ImportRepositoryCandidate    `protobuf:"bytes,3,rep,name=repositories,proto3" json:"repositories,omitempty"`
+	Skills         []*ImportSkillCandidate         `protobuf:"bytes,4,rep,name=skills,proto3" json:"skills,omitempty"`
+	Configurations []*ImportConfigurationCandidate `protobuf:"bytes,5,rep,name=configurations,proto3" json:"configurations,omitempty"`
+	Notices        []*ImportNotice                 `protobuf:"bytes,6,rep,name=notices,proto3" json:"notices,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PreviewImportSelectionResponse) Reset() {
+	*x = PreviewImportSelectionResponse{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewImportSelectionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewImportSelectionResponse) ProtoMessage() {}
+
+func (x *PreviewImportSelectionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewImportSelectionResponse.ProtoReflect.Descriptor instead.
+func (*PreviewImportSelectionResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *PreviewImportSelectionResponse) GetTicket() []byte {
+	if x != nil {
+		return x.Ticket
+	}
+	return nil
+}
+
+func (x *PreviewImportSelectionResponse) GetExpiresMs() int64 {
+	if x != nil {
+		return x.ExpiresMs
+	}
+	return 0
+}
+
+func (x *PreviewImportSelectionResponse) GetRepositories() []*ImportRepositoryCandidate {
+	if x != nil {
+		return x.Repositories
+	}
+	return nil
+}
+
+func (x *PreviewImportSelectionResponse) GetSkills() []*ImportSkillCandidate {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+func (x *PreviewImportSelectionResponse) GetConfigurations() []*ImportConfigurationCandidate {
+	if x != nil {
+		return x.Configurations
+	}
+	return nil
+}
+
+func (x *PreviewImportSelectionResponse) GetNotices() []*ImportNotice {
+	if x != nil {
+		return x.Notices
+	}
+	return nil
+}
+
+type ImportRepositoryCandidate struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Hint          *RepositoryCandidate   `protobuf:"bytes,2,opt,name=hint,proto3" json:"hint,omitempty"`
+	Status        ImportCandidateStatus  `protobuf:"varint,3,opt,name=status,proto3,enum=skillhub.import.v1.ImportCandidateStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportRepositoryCandidate) Reset() {
+	*x = ImportRepositoryCandidate{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportRepositoryCandidate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportRepositoryCandidate) ProtoMessage() {}
+
+func (x *ImportRepositoryCandidate) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportRepositoryCandidate.ProtoReflect.Descriptor instead.
+func (*ImportRepositoryCandidate) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ImportRepositoryCandidate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ImportRepositoryCandidate) GetHint() *RepositoryCandidate {
+	if x != nil {
+		return x.Hint
+	}
+	return nil
+}
+
+func (x *ImportRepositoryCandidate) GetStatus() ImportCandidateStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSPECIFIED
+}
+
+type ImportSkillCandidate struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SafeName              string                 `protobuf:"bytes,2,opt,name=safe_name,json=safeName,proto3" json:"safe_name,omitempty"`
+	RepositoryCandidateId string                 `protobuf:"bytes,3,opt,name=repository_candidate_id,json=repositoryCandidateId,proto3" json:"repository_candidate_id,omitempty"`
+	Status                ImportCandidateStatus  `protobuf:"varint,4,opt,name=status,proto3,enum=skillhub.import.v1.ImportCandidateStatus" json:"status,omitempty"`
+	Binding               *SkillBinding          `protobuf:"bytes,5,opt,name=binding,proto3" json:"binding,omitempty"`
+	Notices               []*ImportNotice        `protobuf:"bytes,6,rep,name=notices,proto3" json:"notices,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ImportSkillCandidate) Reset() {
+	*x = ImportSkillCandidate{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportSkillCandidate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportSkillCandidate) ProtoMessage() {}
+
+func (x *ImportSkillCandidate) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportSkillCandidate.ProtoReflect.Descriptor instead.
+func (*ImportSkillCandidate) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ImportSkillCandidate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ImportSkillCandidate) GetSafeName() string {
+	if x != nil {
+		return x.SafeName
+	}
+	return ""
+}
+
+func (x *ImportSkillCandidate) GetRepositoryCandidateId() string {
+	if x != nil {
+		return x.RepositoryCandidateId
+	}
+	return ""
+}
+
+func (x *ImportSkillCandidate) GetStatus() ImportCandidateStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSPECIFIED
+}
+
+func (x *ImportSkillCandidate) GetBinding() *SkillBinding {
+	if x != nil {
+		return x.Binding
+	}
+	return nil
+}
+
+func (x *ImportSkillCandidate) GetNotices() []*ImportNotice {
+	if x != nil {
+		return x.Notices
+	}
+	return nil
+}
+
+type SkillBinding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RepositoryId  string                 `protobuf:"bytes,1,opt,name=repository_id,json=repositoryId,proto3" json:"repository_id,omitempty"`
+	ArchiveHash   string                 `protobuf:"bytes,2,opt,name=archive_hash,json=archiveHash,proto3" json:"archive_hash,omitempty"`
+	SkillId       string                 `protobuf:"bytes,3,opt,name=skill_id,json=skillId,proto3" json:"skill_id,omitempty"`
+	LogicalPath   string                 `protobuf:"bytes,4,opt,name=logical_path,json=logicalPath,proto3" json:"logical_path,omitempty"`
+	ContentHash   string                 `protobuf:"bytes,5,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
+	Repository    string                 `protobuf:"bytes,6,opt,name=repository,proto3" json:"repository,omitempty"`
+	Branch        string                 `protobuf:"bytes,7,opt,name=branch,proto3" json:"branch,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SkillBinding) Reset() {
+	*x = SkillBinding{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SkillBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SkillBinding) ProtoMessage() {}
+
+func (x *SkillBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SkillBinding.ProtoReflect.Descriptor instead.
+func (*SkillBinding) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SkillBinding) GetRepositoryId() string {
+	if x != nil {
+		return x.RepositoryId
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetArchiveHash() string {
+	if x != nil {
+		return x.ArchiveHash
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetLogicalPath() string {
+	if x != nil {
+		return x.LogicalPath
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetContentHash() string {
+	if x != nil {
+		return x.ContentHash
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetRepository() string {
+	if x != nil {
+		return x.Repository
+	}
+	return ""
+}
+
+func (x *SkillBinding) GetBranch() string {
+	if x != nil {
+		return x.Branch
+	}
+	return ""
+}
+
+type ImportConfigurationCandidate struct {
+	state           protoimpl.MessageState  `protogen:"open.v1"`
+	Id              string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	KnownAgentId    string                  `protobuf:"bytes,2,opt,name=known_agent_id,json=knownAgentId,proto3" json:"known_agent_id,omitempty"`
+	Kind            v1.AssetKind            `protobuf:"varint,3,opt,name=kind,proto3,enum=skillhub.configuration.v1.AssetKind" json:"kind,omitempty"`
+	Status          ImportCandidateStatus   `protobuf:"varint,4,opt,name=status,proto3,enum=skillhub.import.v1.ImportCandidateStatus" json:"status,omitempty"`
+	Draft           *v1.Draft               `protobuf:"bytes,5,opt,name=draft,proto3" json:"draft,omitempty"`
+	Notices         []*ImportNotice         `protobuf:"bytes,6,rep,name=notices,proto3" json:"notices,omitempty"`
+	CredentialSlots []*ImportCredentialSlot `protobuf:"bytes,7,rep,name=credential_slots,json=credentialSlots,proto3" json:"credential_slots,omitempty"`
+	SafeName        string                  `protobuf:"bytes,8,opt,name=safe_name,json=safeName,proto3" json:"safe_name,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ImportConfigurationCandidate) Reset() {
+	*x = ImportConfigurationCandidate{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportConfigurationCandidate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportConfigurationCandidate) ProtoMessage() {}
+
+func (x *ImportConfigurationCandidate) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportConfigurationCandidate.ProtoReflect.Descriptor instead.
+func (*ImportConfigurationCandidate) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ImportConfigurationCandidate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ImportConfigurationCandidate) GetKnownAgentId() string {
+	if x != nil {
+		return x.KnownAgentId
+	}
+	return ""
+}
+
+func (x *ImportConfigurationCandidate) GetKind() v1.AssetKind {
+	if x != nil {
+		return x.Kind
+	}
+	return v1.AssetKind(0)
+}
+
+func (x *ImportConfigurationCandidate) GetStatus() ImportCandidateStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSPECIFIED
+}
+
+func (x *ImportConfigurationCandidate) GetDraft() *v1.Draft {
+	if x != nil {
+		return x.Draft
+	}
+	return nil
+}
+
+func (x *ImportConfigurationCandidate) GetNotices() []*ImportNotice {
+	if x != nil {
+		return x.Notices
+	}
+	return nil
+}
+
+func (x *ImportConfigurationCandidate) GetCredentialSlots() []*ImportCredentialSlot {
+	if x != nil {
+		return x.CredentialSlots
+	}
+	return nil
+}
+
+func (x *ImportConfigurationCandidate) GetSafeName() string {
+	if x != nil {
+		return x.SafeName
+	}
+	return ""
+}
+
+type ImportCredentialSlot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SlotId        string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
+	Present       bool                   `protobuf:"varint,2,opt,name=present,proto3" json:"present,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportCredentialSlot) Reset() {
+	*x = ImportCredentialSlot{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportCredentialSlot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportCredentialSlot) ProtoMessage() {}
+
+func (x *ImportCredentialSlot) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportCredentialSlot.ProtoReflect.Descriptor instead.
+func (*ImportCredentialSlot) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ImportCredentialSlot) GetSlotId() string {
+	if x != nil {
+		return x.SlotId
+	}
+	return ""
+}
+
+func (x *ImportCredentialSlot) GetPresent() bool {
+	if x != nil {
+		return x.Present
+	}
+	return false
+}
+
+type ImportNotice struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          ImportNoticeCode       `protobuf:"varint,2,opt,name=code,proto3,enum=skillhub.import.v1.ImportNoticeCode" json:"code,omitempty"`
+	Count         uint32                 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportNotice) Reset() {
+	*x = ImportNotice{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportNotice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportNotice) ProtoMessage() {}
+
+func (x *ImportNotice) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportNotice.ProtoReflect.Descriptor instead.
+func (*ImportNotice) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ImportNotice) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ImportNotice) GetCode() ImportNoticeCode {
+	if x != nil {
+		return x.Code
+	}
+	return ImportNoticeCode_IMPORT_NOTICE_CODE_UNSPECIFIED
+}
+
+func (x *ImportNotice) GetCount() uint32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type CommitImportSelectionRequest struct {
+	state            protoimpl.MessageState    `protogen:"open.v1"`
+	Ticket           []byte                    `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
+	Source           ImportSelectionSource     `protobuf:"varint,2,opt,name=source,proto3,enum=skillhub.import.v1.ImportSelectionSource" json:"source,omitempty"`
+	SourceData       []byte                    `protobuf:"bytes,3,opt,name=source_data,json=sourceData,proto3" json:"source_data,omitempty"`
+	Options          []*ImportCandidateOptions `protobuf:"bytes,4,rep,name=options,proto3" json:"options,omitempty"`
+	OperationId      []byte                    `protobuf:"bytes,5,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
+	RepositoryIds    []string                  `protobuf:"bytes,6,rep,name=repository_ids,json=repositoryIds,proto3" json:"repository_ids,omitempty"`
+	SkillIds         []string                  `protobuf:"bytes,7,rep,name=skill_ids,json=skillIds,proto3" json:"skill_ids,omitempty"`
+	ConfigurationIds []string                  `protobuf:"bytes,8,rep,name=configuration_ids,json=configurationIds,proto3" json:"configuration_ids,omitempty"`
+	AckNoticeIds     []string                  `protobuf:"bytes,9,rep,name=ack_notice_ids,json=ackNoticeIds,proto3" json:"ack_notice_ids,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CommitImportSelectionRequest) Reset() {
+	*x = CommitImportSelectionRequest{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitImportSelectionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitImportSelectionRequest) ProtoMessage() {}
+
+func (x *CommitImportSelectionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitImportSelectionRequest.ProtoReflect.Descriptor instead.
+func (*CommitImportSelectionRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CommitImportSelectionRequest) GetTicket() []byte {
+	if x != nil {
+		return x.Ticket
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetSource() ImportSelectionSource {
+	if x != nil {
+		return x.Source
+	}
+	return ImportSelectionSource_IMPORT_SELECTION_SOURCE_UNSPECIFIED
+}
+
+func (x *CommitImportSelectionRequest) GetSourceData() []byte {
+	if x != nil {
+		return x.SourceData
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetOptions() []*ImportCandidateOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetOperationId() []byte {
+	if x != nil {
+		return x.OperationId
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetRepositoryIds() []string {
+	if x != nil {
+		return x.RepositoryIds
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetSkillIds() []string {
+	if x != nil {
+		return x.SkillIds
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetConfigurationIds() []string {
+	if x != nil {
+		return x.ConfigurationIds
+	}
+	return nil
+}
+
+func (x *CommitImportSelectionRequest) GetAckNoticeIds() []string {
+	if x != nil {
+		return x.AckNoticeIds
+	}
+	return nil
+}
+
+type CommitImportSelectionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Receipt       *ImportReceipt         `protobuf:"bytes,1,opt,name=receipt,proto3" json:"receipt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitImportSelectionResponse) Reset() {
+	*x = CommitImportSelectionResponse{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitImportSelectionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitImportSelectionResponse) ProtoMessage() {}
+
+func (x *CommitImportSelectionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitImportSelectionResponse.ProtoReflect.Descriptor instead.
+func (*CommitImportSelectionResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CommitImportSelectionResponse) GetReceipt() *ImportReceipt {
+	if x != nil {
+		return x.Receipt
+	}
+	return nil
+}
+
+type GetImportCommitStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OperationId   []byte                 `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetImportCommitStatusRequest) Reset() {
+	*x = GetImportCommitStatusRequest{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetImportCommitStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetImportCommitStatusRequest) ProtoMessage() {}
+
+func (x *GetImportCommitStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetImportCommitStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetImportCommitStatusRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetImportCommitStatusRequest) GetOperationId() []byte {
+	if x != nil {
+		return x.OperationId
+	}
+	return nil
+}
+
+type GetImportCommitStatusResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Observation   ImportCommitObservation `protobuf:"varint,1,opt,name=observation,proto3,enum=skillhub.import.v1.ImportCommitObservation" json:"observation,omitempty"`
+	Receipt       *ImportReceipt          `protobuf:"bytes,2,opt,name=receipt,proto3" json:"receipt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetImportCommitStatusResponse) Reset() {
+	*x = GetImportCommitStatusResponse{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetImportCommitStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetImportCommitStatusResponse) ProtoMessage() {}
+
+func (x *GetImportCommitStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetImportCommitStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetImportCommitStatusResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetImportCommitStatusResponse) GetObservation() ImportCommitObservation {
+	if x != nil {
+		return x.Observation
+	}
+	return ImportCommitObservation_IMPORT_COMMIT_OBSERVATION_UNSPECIFIED
+}
+
+func (x *GetImportCommitStatusResponse) GetReceipt() *ImportReceipt {
+	if x != nil {
+		return x.Receipt
+	}
+	return nil
+}
+
+type ImportReceipt struct {
+	state                 protoimpl.MessageState     `protogen:"open.v1"`
+	OperationId           []byte                     `protobuf:"bytes,1,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
+	Revision              int64                      `protobuf:"varint,2,opt,name=revision,proto3" json:"revision,omitempty"`
+	Phase                 ImportReceiptPhase         `protobuf:"varint,3,opt,name=phase,proto3,enum=skillhub.import.v1.ImportReceiptPhase" json:"phase,omitempty"`
+	RepositoryOutcomes    []*ImportRepositoryOutcome `protobuf:"bytes,4,rep,name=repository_outcomes,json=repositoryOutcomes,proto3" json:"repository_outcomes,omitempty"`
+	SelectedSkillBindings []*SkillBinding            `protobuf:"bytes,5,rep,name=selected_skill_bindings,json=selectedSkillBindings,proto3" json:"selected_skill_bindings,omitempty"`
+	CreatedAssets         []*v1.Asset                `protobuf:"bytes,6,rep,name=created_assets,json=createdAssets,proto3" json:"created_assets,omitempty"`
+	Notices               []*ImportNotice            `protobuf:"bytes,7,rep,name=notices,proto3" json:"notices,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ImportReceipt) Reset() {
+	*x = ImportReceipt{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportReceipt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportReceipt) ProtoMessage() {}
+
+func (x *ImportReceipt) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportReceipt.ProtoReflect.Descriptor instead.
+func (*ImportReceipt) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ImportReceipt) GetOperationId() []byte {
+	if x != nil {
+		return x.OperationId
+	}
+	return nil
+}
+
+func (x *ImportReceipt) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *ImportReceipt) GetPhase() ImportReceiptPhase {
+	if x != nil {
+		return x.Phase
+	}
+	return ImportReceiptPhase_IMPORT_RECEIPT_PHASE_UNSPECIFIED
+}
+
+func (x *ImportReceipt) GetRepositoryOutcomes() []*ImportRepositoryOutcome {
+	if x != nil {
+		return x.RepositoryOutcomes
+	}
+	return nil
+}
+
+func (x *ImportReceipt) GetSelectedSkillBindings() []*SkillBinding {
+	if x != nil {
+		return x.SelectedSkillBindings
+	}
+	return nil
+}
+
+func (x *ImportReceipt) GetCreatedAssets() []*v1.Asset {
+	if x != nil {
+		return x.CreatedAssets
+	}
+	return nil
+}
+
+func (x *ImportReceipt) GetNotices() []*ImportNotice {
+	if x != nil {
+		return x.Notices
+	}
+	return nil
+}
+
+type ImportRepositoryOutcome struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	CandidateId   string                      `protobuf:"bytes,1,opt,name=candidate_id,json=candidateId,proto3" json:"candidate_id,omitempty"`
+	Code          ImportRepositoryOutcomeCode `protobuf:"varint,2,opt,name=code,proto3,enum=skillhub.import.v1.ImportRepositoryOutcomeCode" json:"code,omitempty"`
+	RepositoryId  *string                     `protobuf:"bytes,3,opt,name=repository_id,json=repositoryId,proto3,oneof" json:"repository_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportRepositoryOutcome) Reset() {
+	*x = ImportRepositoryOutcome{}
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportRepositoryOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportRepositoryOutcome) ProtoMessage() {}
+
+func (x *ImportRepositoryOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_import_v1_import_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportRepositoryOutcome.ProtoReflect.Descriptor instead.
+func (*ImportRepositoryOutcome) Descriptor() ([]byte, []int) {
+	return file_skillhub_import_v1_import_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ImportRepositoryOutcome) GetCandidateId() string {
+	if x != nil {
+		return x.CandidateId
+	}
+	return ""
+}
+
+func (x *ImportRepositoryOutcome) GetCode() ImportRepositoryOutcomeCode {
+	if x != nil {
+		return x.Code
+	}
+	return ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED
+}
+
+func (x *ImportRepositoryOutcome) GetRepositoryId() string {
+	if x != nil && x.RepositoryId != nil {
+		return *x.RepositoryId
+	}
+	return ""
+}
+
 var File_skillhub_import_v1_import_proto protoreflect.FileDescriptor
 
 const file_skillhub_import_v1_import_proto_rawDesc = "" +
 	"\n" +
-	"\x1fskillhub/import/v1/import.proto\x12\x12skillhub.import.v1\"x\n" +
+	"\x1fskillhub/import/v1/import.proto\x12\x12skillhub.import.v1\x1a-skillhub/configuration/v1/configuration.proto\"x\n" +
 	"\x1bPreviewLibraryExportRequest\x128\n" +
 	"\x06format\x18\x01 \x01(\x0e2 .skillhub.import.v1.ExportFormatR\x06format\x12\x1f\n" +
 	"\vexport_data\x18\x02 \x01(\fR\n" +
@@ -350,13 +1811,151 @@ const file_skillhub_import_v1_import_proto_rawDesc = "" +
 	"\x1ePreviewCCSwitchSnapshotRequest\x12#\n" +
 	"\rsnapshot_data\x18\x01 \x01(\fR\fsnapshotData\"n\n" +
 	"\x1fPreviewCCSwitchSnapshotResponse\x12K\n" +
-	"\frepositories\x18\x01 \x03(\v2'.skillhub.import.v1.RepositoryCandidateR\frepositories*T\n" +
+	"\frepositories\x18\x01 \x03(\v2'.skillhub.import.v1.RepositoryCandidateR\frepositories\"\xce\x01\n" +
+	"\x1dPreviewImportSelectionRequest\x12A\n" +
+	"\x06source\x18\x01 \x01(\x0e2).skillhub.import.v1.ImportSelectionSourceR\x06source\x12$\n" +
+	"\vsource_data\x18\x02 \x01(\fB\x03\x80\x01\x01R\n" +
+	"sourceData\x12D\n" +
+	"\aoptions\x18\x03 \x03(\v2*.skillhub.import.v1.ImportCandidateOptionsR\aoptions\"\xd9\x03\n" +
+	"\x16ImportCandidateOptions\x12!\n" +
+	"\fcandidate_id\x18\x01 \x01(\tR\vcandidateId\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tH\x01R\x04name\x88\x01\x01\x12U\n" +
+	"\x10claude_auth_mode\x18\x03 \x01(\x0e2).skillhub.configuration.v1.ClaudeAuthModeH\x00R\x0eclaudeAuthMode\x12U\n" +
+	"\x10gemini_auth_mode\x18\x04 \x01(\x0e2).skillhub.configuration.v1.GeminiAuthModeH\x00R\x0egeminiAuthMode\x12d\n" +
+	"\x14gemini_key_transport\x18\x05 \x01(\x0e2-.skillhub.configuration.v1.GeminiKeyTransportH\x02R\x12geminiKeyTransport\x88\x01\x01\x12E\n" +
+	"\rskill_binding\x18\x06 \x01(\v2 .skillhub.import.v1.SkillBindingR\fskillBindingB\x06\n" +
+	"\x04authB\a\n" +
+	"\x05_nameB\x17\n" +
+	"\x15_gemini_key_transport\"\x87\x03\n" +
+	"\x1ePreviewImportSelectionResponse\x12\x1b\n" +
+	"\x06ticket\x18\x01 \x01(\fB\x03\x80\x01\x01R\x06ticket\x12\x1d\n" +
+	"\n" +
+	"expires_ms\x18\x02 \x01(\x03R\texpiresMs\x12Q\n" +
+	"\frepositories\x18\x03 \x03(\v2-.skillhub.import.v1.ImportRepositoryCandidateR\frepositories\x12@\n" +
+	"\x06skills\x18\x04 \x03(\v2(.skillhub.import.v1.ImportSkillCandidateR\x06skills\x12X\n" +
+	"\x0econfigurations\x18\x05 \x03(\v20.skillhub.import.v1.ImportConfigurationCandidateR\x0econfigurations\x12:\n" +
+	"\anotices\x18\x06 \x03(\v2 .skillhub.import.v1.ImportNoticeR\anotices\"\xab\x01\n" +
+	"\x19ImportRepositoryCandidate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
+	"\x04hint\x18\x02 \x01(\v2'.skillhub.import.v1.RepositoryCandidateR\x04hint\x12A\n" +
+	"\x06status\x18\x03 \x01(\x0e2).skillhub.import.v1.ImportCandidateStatusR\x06status\"\xb6\x02\n" +
+	"\x14ImportSkillCandidate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tsafe_name\x18\x02 \x01(\tR\bsafeName\x126\n" +
+	"\x17repository_candidate_id\x18\x03 \x01(\tR\x15repositoryCandidateId\x12A\n" +
+	"\x06status\x18\x04 \x01(\x0e2).skillhub.import.v1.ImportCandidateStatusR\x06status\x12:\n" +
+	"\abinding\x18\x05 \x01(\v2 .skillhub.import.v1.SkillBindingR\abinding\x12:\n" +
+	"\anotices\x18\x06 \x03(\v2 .skillhub.import.v1.ImportNoticeR\anotices\"\xef\x01\n" +
+	"\fSkillBinding\x12#\n" +
+	"\rrepository_id\x18\x01 \x01(\tR\frepositoryId\x12!\n" +
+	"\farchive_hash\x18\x02 \x01(\tR\varchiveHash\x12\x19\n" +
+	"\bskill_id\x18\x03 \x01(\tR\askillId\x12!\n" +
+	"\flogical_path\x18\x04 \x01(\tR\vlogicalPath\x12!\n" +
+	"\fcontent_hash\x18\x05 \x01(\tR\vcontentHash\x12\x1e\n" +
+	"\n" +
+	"repository\x18\x06 \x01(\tR\n" +
+	"repository\x12\x16\n" +
+	"\x06branch\x18\a \x01(\tR\x06branch\"\xb7\x03\n" +
+	"\x1cImportConfigurationCandidate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12$\n" +
+	"\x0eknown_agent_id\x18\x02 \x01(\tR\fknownAgentId\x128\n" +
+	"\x04kind\x18\x03 \x01(\x0e2$.skillhub.configuration.v1.AssetKindR\x04kind\x12A\n" +
+	"\x06status\x18\x04 \x01(\x0e2).skillhub.import.v1.ImportCandidateStatusR\x06status\x126\n" +
+	"\x05draft\x18\x05 \x01(\v2 .skillhub.configuration.v1.DraftR\x05draft\x12:\n" +
+	"\anotices\x18\x06 \x03(\v2 .skillhub.import.v1.ImportNoticeR\anotices\x12S\n" +
+	"\x10credential_slots\x18\a \x03(\v2(.skillhub.import.v1.ImportCredentialSlotR\x0fcredentialSlots\x12\x1b\n" +
+	"\tsafe_name\x18\b \x01(\tR\bsafeName\"I\n" +
+	"\x14ImportCredentialSlot\x12\x17\n" +
+	"\aslot_id\x18\x01 \x01(\tR\x06slotId\x12\x18\n" +
+	"\apresent\x18\x02 \x01(\bR\apresent\"n\n" +
+	"\fImportNotice\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
+	"\x04code\x18\x02 \x01(\x0e2$.skillhub.import.v1.ImportNoticeCodeR\x04code\x12\x14\n" +
+	"\x05count\x18\x03 \x01(\rR\x05count\"\xa4\x03\n" +
+	"\x1cCommitImportSelectionRequest\x12\x1b\n" +
+	"\x06ticket\x18\x01 \x01(\fB\x03\x80\x01\x01R\x06ticket\x12A\n" +
+	"\x06source\x18\x02 \x01(\x0e2).skillhub.import.v1.ImportSelectionSourceR\x06source\x12$\n" +
+	"\vsource_data\x18\x03 \x01(\fB\x03\x80\x01\x01R\n" +
+	"sourceData\x12D\n" +
+	"\aoptions\x18\x04 \x03(\v2*.skillhub.import.v1.ImportCandidateOptionsR\aoptions\x12!\n" +
+	"\foperation_id\x18\x05 \x01(\fR\voperationId\x12%\n" +
+	"\x0erepository_ids\x18\x06 \x03(\tR\rrepositoryIds\x12\x1b\n" +
+	"\tskill_ids\x18\a \x03(\tR\bskillIds\x12+\n" +
+	"\x11configuration_ids\x18\b \x03(\tR\x10configurationIds\x12$\n" +
+	"\x0eack_notice_ids\x18\t \x03(\tR\fackNoticeIds\"\\\n" +
+	"\x1dCommitImportSelectionResponse\x12;\n" +
+	"\areceipt\x18\x01 \x01(\v2!.skillhub.import.v1.ImportReceiptR\areceipt\"A\n" +
+	"\x1cGetImportCommitStatusRequest\x12!\n" +
+	"\foperation_id\x18\x01 \x01(\fR\voperationId\"\xab\x01\n" +
+	"\x1dGetImportCommitStatusResponse\x12M\n" +
+	"\vobservation\x18\x01 \x01(\x0e2+.skillhub.import.v1.ImportCommitObservationR\vobservation\x12;\n" +
+	"\areceipt\x18\x02 \x01(\v2!.skillhub.import.v1.ImportReceiptR\areceipt\"\xc9\x03\n" +
+	"\rImportReceipt\x12!\n" +
+	"\foperation_id\x18\x01 \x01(\fR\voperationId\x12\x1a\n" +
+	"\brevision\x18\x02 \x01(\x03R\brevision\x12<\n" +
+	"\x05phase\x18\x03 \x01(\x0e2&.skillhub.import.v1.ImportReceiptPhaseR\x05phase\x12\\\n" +
+	"\x13repository_outcomes\x18\x04 \x03(\v2+.skillhub.import.v1.ImportRepositoryOutcomeR\x12repositoryOutcomes\x12X\n" +
+	"\x17selected_skill_bindings\x18\x05 \x03(\v2 .skillhub.import.v1.SkillBindingR\x15selectedSkillBindings\x12G\n" +
+	"\x0ecreated_assets\x18\x06 \x03(\v2 .skillhub.configuration.v1.AssetR\rcreatedAssets\x12:\n" +
+	"\anotices\x18\a \x03(\v2 .skillhub.import.v1.ImportNoticeR\anotices\"\xbd\x01\n" +
+	"\x17ImportRepositoryOutcome\x12!\n" +
+	"\fcandidate_id\x18\x01 \x01(\tR\vcandidateId\x12C\n" +
+	"\x04code\x18\x02 \x01(\x0e2/.skillhub.import.v1.ImportRepositoryOutcomeCodeR\x04code\x12(\n" +
+	"\rrepository_id\x18\x03 \x01(\tH\x00R\frepositoryId\x88\x01\x01B\x10\n" +
+	"\x0e_repository_id*T\n" +
 	"\fExportFormat\x12\x1d\n" +
 	"\x19EXPORT_FORMAT_UNSPECIFIED\x10\x00\x12%\n" +
-	"!EXPORT_FORMAT_MAGPIE_LIBRARY_JSON\x10\x012\x8f\x02\n" +
+	"!EXPORT_FORMAT_MAGPIE_LIBRARY_JSON\x10\x01*\xa0\x01\n" +
+	"\x15ImportSelectionSource\x12'\n" +
+	"#IMPORT_SELECTION_SOURCE_UNSPECIFIED\x10\x00\x12-\n" +
+	")IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24\x10\x01\x12/\n" +
+	"+IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON\x10\x02*\xa1\x03\n" +
+	"\x15ImportCandidateStatus\x12'\n" +
+	"#IMPORT_CANDIDATE_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dIMPORT_CANDIDATE_STATUS_READY\x10\x01\x12(\n" +
+	"$IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE\x10\x02\x123\n" +
+	"/IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT\x10\x03\x12&\n" +
+	"\"IMPORT_CANDIDATE_STATUS_UNRESOLVED\x10\x04\x12-\n" +
+	")IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT\x10\x05\x12,\n" +
+	"(IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND\x10\x06\x12-\n" +
+	")IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD\x10\a\x12)\n" +
+	"%IMPORT_CANDIDATE_STATUS_NAME_CONFLICT\x10\b*\xab\x02\n" +
+	"\x10ImportNoticeCode\x12\"\n" +
+	"\x1eIMPORT_NOTICE_CODE_UNSPECIFIED\x10\x00\x12*\n" +
+	"&IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED\x10\x01\x12(\n" +
+	"$IMPORT_NOTICE_CODE_METADATA_EXCLUDED\x10\x02\x121\n" +
+	"-IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED\x10\x03\x122\n" +
+	".IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED\x10\x04\x126\n" +
+	"2IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED\x10\x05*\xe9\x01\n" +
+	"\x12ImportReceiptPhase\x12$\n" +
+	" IMPORT_RECEIPT_PHASE_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dIMPORT_RECEIPT_PHASE_RESERVED\x10\x01\x12#\n" +
+	"\x1fIMPORT_RECEIPT_PHASE_COLLECTING\x10\x02\x12\"\n" +
+	"\x1eIMPORT_RECEIPT_PHASE_COMPLETED\x10\x03\x12 \n" +
+	"\x1cIMPORT_RECEIPT_PHASE_PARTIAL\x10\x04\x12\x1f\n" +
+	"\x1bIMPORT_RECEIPT_PHASE_FAILED\x10\x05*\xea\x01\n" +
+	"\x17ImportCommitObservation\x12)\n" +
+	"%IMPORT_COMMIT_OBSERVATION_UNSPECIFIED\x10\x00\x12*\n" +
+	"&IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED\x10\x01\x12)\n" +
+	"%IMPORT_COMMIT_OBSERVATION_IN_PROGRESS\x10\x02\x12%\n" +
+	"!IMPORT_COMMIT_OBSERVATION_UNKNOWN\x10\x03\x12&\n" +
+	"\"IMPORT_COMMIT_OBSERVATION_TERMINAL\x10\x04*\xdf\x03\n" +
+	"\x1bImportRepositoryOutcomeCode\x12.\n" +
+	"*IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED\x10\x00\x12,\n" +
+	"(IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED\x10\x01\x124\n" +
+	"0IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED\x10\x02\x120\n" +
+	",IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED\x10\x03\x12,\n" +
+	"(IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED\x10\x04\x125\n" +
+	"1IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST\x10\x05\x122\n" +
+	".IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED\x10\x06\x125\n" +
+	"1IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED\x10\a\x12*\n" +
+	"&IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN\x10\b2\x8c\x05\n" +
 	"\rImportService\x12y\n" +
 	"\x14PreviewLibraryExport\x12/.skillhub.import.v1.PreviewLibraryExportRequest\x1a0.skillhub.import.v1.PreviewLibraryExportResponse\x12\x82\x01\n" +
-	"\x17PreviewCCSwitchSnapshot\x122.skillhub.import.v1.PreviewCCSwitchSnapshotRequest\x1a3.skillhub.import.v1.PreviewCCSwitchSnapshotResponseB9Z7github.com/ca-x/cognate/gen/skillhub/import/v1;importv1b\x06proto3"
+	"\x17PreviewCCSwitchSnapshot\x122.skillhub.import.v1.PreviewCCSwitchSnapshotRequest\x1a3.skillhub.import.v1.PreviewCCSwitchSnapshotResponse\x12\x7f\n" +
+	"\x16PreviewImportSelection\x121.skillhub.import.v1.PreviewImportSelectionRequest\x1a2.skillhub.import.v1.PreviewImportSelectionResponse\x12|\n" +
+	"\x15CommitImportSelection\x120.skillhub.import.v1.CommitImportSelectionRequest\x1a1.skillhub.import.v1.CommitImportSelectionResponse\x12|\n" +
+	"\x15GetImportCommitStatus\x120.skillhub.import.v1.GetImportCommitStatusRequest\x1a1.skillhub.import.v1.GetImportCommitStatusResponseB9Z7github.com/ca-x/cognate/gen/skillhub/import/v1;importv1b\x06proto3"
 
 var (
 	file_skillhub_import_v1_import_proto_rawDescOnce sync.Once
@@ -370,29 +1969,94 @@ func file_skillhub_import_v1_import_proto_rawDescGZIP() []byte {
 	return file_skillhub_import_v1_import_proto_rawDescData
 }
 
-var file_skillhub_import_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skillhub_import_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_skillhub_import_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_skillhub_import_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_skillhub_import_v1_import_proto_goTypes = []any{
 	(ExportFormat)(0),                       // 0: skillhub.import.v1.ExportFormat
-	(*PreviewLibraryExportRequest)(nil),     // 1: skillhub.import.v1.PreviewLibraryExportRequest
-	(*RepositoryCandidate)(nil),             // 2: skillhub.import.v1.RepositoryCandidate
-	(*PreviewLibraryExportResponse)(nil),    // 3: skillhub.import.v1.PreviewLibraryExportResponse
-	(*PreviewCCSwitchSnapshotRequest)(nil),  // 4: skillhub.import.v1.PreviewCCSwitchSnapshotRequest
-	(*PreviewCCSwitchSnapshotResponse)(nil), // 5: skillhub.import.v1.PreviewCCSwitchSnapshotResponse
+	(ImportSelectionSource)(0),              // 1: skillhub.import.v1.ImportSelectionSource
+	(ImportCandidateStatus)(0),              // 2: skillhub.import.v1.ImportCandidateStatus
+	(ImportNoticeCode)(0),                   // 3: skillhub.import.v1.ImportNoticeCode
+	(ImportReceiptPhase)(0),                 // 4: skillhub.import.v1.ImportReceiptPhase
+	(ImportCommitObservation)(0),            // 5: skillhub.import.v1.ImportCommitObservation
+	(ImportRepositoryOutcomeCode)(0),        // 6: skillhub.import.v1.ImportRepositoryOutcomeCode
+	(*PreviewLibraryExportRequest)(nil),     // 7: skillhub.import.v1.PreviewLibraryExportRequest
+	(*RepositoryCandidate)(nil),             // 8: skillhub.import.v1.RepositoryCandidate
+	(*PreviewLibraryExportResponse)(nil),    // 9: skillhub.import.v1.PreviewLibraryExportResponse
+	(*PreviewCCSwitchSnapshotRequest)(nil),  // 10: skillhub.import.v1.PreviewCCSwitchSnapshotRequest
+	(*PreviewCCSwitchSnapshotResponse)(nil), // 11: skillhub.import.v1.PreviewCCSwitchSnapshotResponse
+	(*PreviewImportSelectionRequest)(nil),   // 12: skillhub.import.v1.PreviewImportSelectionRequest
+	(*ImportCandidateOptions)(nil),          // 13: skillhub.import.v1.ImportCandidateOptions
+	(*PreviewImportSelectionResponse)(nil),  // 14: skillhub.import.v1.PreviewImportSelectionResponse
+	(*ImportRepositoryCandidate)(nil),       // 15: skillhub.import.v1.ImportRepositoryCandidate
+	(*ImportSkillCandidate)(nil),            // 16: skillhub.import.v1.ImportSkillCandidate
+	(*SkillBinding)(nil),                    // 17: skillhub.import.v1.SkillBinding
+	(*ImportConfigurationCandidate)(nil),    // 18: skillhub.import.v1.ImportConfigurationCandidate
+	(*ImportCredentialSlot)(nil),            // 19: skillhub.import.v1.ImportCredentialSlot
+	(*ImportNotice)(nil),                    // 20: skillhub.import.v1.ImportNotice
+	(*CommitImportSelectionRequest)(nil),    // 21: skillhub.import.v1.CommitImportSelectionRequest
+	(*CommitImportSelectionResponse)(nil),   // 22: skillhub.import.v1.CommitImportSelectionResponse
+	(*GetImportCommitStatusRequest)(nil),    // 23: skillhub.import.v1.GetImportCommitStatusRequest
+	(*GetImportCommitStatusResponse)(nil),   // 24: skillhub.import.v1.GetImportCommitStatusResponse
+	(*ImportReceipt)(nil),                   // 25: skillhub.import.v1.ImportReceipt
+	(*ImportRepositoryOutcome)(nil),         // 26: skillhub.import.v1.ImportRepositoryOutcome
+	(v1.ClaudeAuthMode)(0),                  // 27: skillhub.configuration.v1.ClaudeAuthMode
+	(v1.GeminiAuthMode)(0),                  // 28: skillhub.configuration.v1.GeminiAuthMode
+	(v1.GeminiKeyTransport)(0),              // 29: skillhub.configuration.v1.GeminiKeyTransport
+	(v1.AssetKind)(0),                       // 30: skillhub.configuration.v1.AssetKind
+	(*v1.Draft)(nil),                        // 31: skillhub.configuration.v1.Draft
+	(*v1.Asset)(nil),                        // 32: skillhub.configuration.v1.Asset
 }
 var file_skillhub_import_v1_import_proto_depIdxs = []int32{
-	0, // 0: skillhub.import.v1.PreviewLibraryExportRequest.format:type_name -> skillhub.import.v1.ExportFormat
-	2, // 1: skillhub.import.v1.PreviewLibraryExportResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
-	2, // 2: skillhub.import.v1.PreviewCCSwitchSnapshotResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
-	1, // 3: skillhub.import.v1.ImportService.PreviewLibraryExport:input_type -> skillhub.import.v1.PreviewLibraryExportRequest
-	4, // 4: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:input_type -> skillhub.import.v1.PreviewCCSwitchSnapshotRequest
-	3, // 5: skillhub.import.v1.ImportService.PreviewLibraryExport:output_type -> skillhub.import.v1.PreviewLibraryExportResponse
-	5, // 6: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:output_type -> skillhub.import.v1.PreviewCCSwitchSnapshotResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: skillhub.import.v1.PreviewLibraryExportRequest.format:type_name -> skillhub.import.v1.ExportFormat
+	8,  // 1: skillhub.import.v1.PreviewLibraryExportResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
+	8,  // 2: skillhub.import.v1.PreviewCCSwitchSnapshotResponse.repositories:type_name -> skillhub.import.v1.RepositoryCandidate
+	1,  // 3: skillhub.import.v1.PreviewImportSelectionRequest.source:type_name -> skillhub.import.v1.ImportSelectionSource
+	13, // 4: skillhub.import.v1.PreviewImportSelectionRequest.options:type_name -> skillhub.import.v1.ImportCandidateOptions
+	27, // 5: skillhub.import.v1.ImportCandidateOptions.claude_auth_mode:type_name -> skillhub.configuration.v1.ClaudeAuthMode
+	28, // 6: skillhub.import.v1.ImportCandidateOptions.gemini_auth_mode:type_name -> skillhub.configuration.v1.GeminiAuthMode
+	29, // 7: skillhub.import.v1.ImportCandidateOptions.gemini_key_transport:type_name -> skillhub.configuration.v1.GeminiKeyTransport
+	17, // 8: skillhub.import.v1.ImportCandidateOptions.skill_binding:type_name -> skillhub.import.v1.SkillBinding
+	15, // 9: skillhub.import.v1.PreviewImportSelectionResponse.repositories:type_name -> skillhub.import.v1.ImportRepositoryCandidate
+	16, // 10: skillhub.import.v1.PreviewImportSelectionResponse.skills:type_name -> skillhub.import.v1.ImportSkillCandidate
+	18, // 11: skillhub.import.v1.PreviewImportSelectionResponse.configurations:type_name -> skillhub.import.v1.ImportConfigurationCandidate
+	20, // 12: skillhub.import.v1.PreviewImportSelectionResponse.notices:type_name -> skillhub.import.v1.ImportNotice
+	8,  // 13: skillhub.import.v1.ImportRepositoryCandidate.hint:type_name -> skillhub.import.v1.RepositoryCandidate
+	2,  // 14: skillhub.import.v1.ImportRepositoryCandidate.status:type_name -> skillhub.import.v1.ImportCandidateStatus
+	2,  // 15: skillhub.import.v1.ImportSkillCandidate.status:type_name -> skillhub.import.v1.ImportCandidateStatus
+	17, // 16: skillhub.import.v1.ImportSkillCandidate.binding:type_name -> skillhub.import.v1.SkillBinding
+	20, // 17: skillhub.import.v1.ImportSkillCandidate.notices:type_name -> skillhub.import.v1.ImportNotice
+	30, // 18: skillhub.import.v1.ImportConfigurationCandidate.kind:type_name -> skillhub.configuration.v1.AssetKind
+	2,  // 19: skillhub.import.v1.ImportConfigurationCandidate.status:type_name -> skillhub.import.v1.ImportCandidateStatus
+	31, // 20: skillhub.import.v1.ImportConfigurationCandidate.draft:type_name -> skillhub.configuration.v1.Draft
+	20, // 21: skillhub.import.v1.ImportConfigurationCandidate.notices:type_name -> skillhub.import.v1.ImportNotice
+	19, // 22: skillhub.import.v1.ImportConfigurationCandidate.credential_slots:type_name -> skillhub.import.v1.ImportCredentialSlot
+	3,  // 23: skillhub.import.v1.ImportNotice.code:type_name -> skillhub.import.v1.ImportNoticeCode
+	1,  // 24: skillhub.import.v1.CommitImportSelectionRequest.source:type_name -> skillhub.import.v1.ImportSelectionSource
+	13, // 25: skillhub.import.v1.CommitImportSelectionRequest.options:type_name -> skillhub.import.v1.ImportCandidateOptions
+	25, // 26: skillhub.import.v1.CommitImportSelectionResponse.receipt:type_name -> skillhub.import.v1.ImportReceipt
+	5,  // 27: skillhub.import.v1.GetImportCommitStatusResponse.observation:type_name -> skillhub.import.v1.ImportCommitObservation
+	25, // 28: skillhub.import.v1.GetImportCommitStatusResponse.receipt:type_name -> skillhub.import.v1.ImportReceipt
+	4,  // 29: skillhub.import.v1.ImportReceipt.phase:type_name -> skillhub.import.v1.ImportReceiptPhase
+	26, // 30: skillhub.import.v1.ImportReceipt.repository_outcomes:type_name -> skillhub.import.v1.ImportRepositoryOutcome
+	17, // 31: skillhub.import.v1.ImportReceipt.selected_skill_bindings:type_name -> skillhub.import.v1.SkillBinding
+	32, // 32: skillhub.import.v1.ImportReceipt.created_assets:type_name -> skillhub.configuration.v1.Asset
+	20, // 33: skillhub.import.v1.ImportReceipt.notices:type_name -> skillhub.import.v1.ImportNotice
+	6,  // 34: skillhub.import.v1.ImportRepositoryOutcome.code:type_name -> skillhub.import.v1.ImportRepositoryOutcomeCode
+	7,  // 35: skillhub.import.v1.ImportService.PreviewLibraryExport:input_type -> skillhub.import.v1.PreviewLibraryExportRequest
+	10, // 36: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:input_type -> skillhub.import.v1.PreviewCCSwitchSnapshotRequest
+	12, // 37: skillhub.import.v1.ImportService.PreviewImportSelection:input_type -> skillhub.import.v1.PreviewImportSelectionRequest
+	21, // 38: skillhub.import.v1.ImportService.CommitImportSelection:input_type -> skillhub.import.v1.CommitImportSelectionRequest
+	23, // 39: skillhub.import.v1.ImportService.GetImportCommitStatus:input_type -> skillhub.import.v1.GetImportCommitStatusRequest
+	9,  // 40: skillhub.import.v1.ImportService.PreviewLibraryExport:output_type -> skillhub.import.v1.PreviewLibraryExportResponse
+	11, // 41: skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot:output_type -> skillhub.import.v1.PreviewCCSwitchSnapshotResponse
+	14, // 42: skillhub.import.v1.ImportService.PreviewImportSelection:output_type -> skillhub.import.v1.PreviewImportSelectionResponse
+	22, // 43: skillhub.import.v1.ImportService.CommitImportSelection:output_type -> skillhub.import.v1.CommitImportSelectionResponse
+	24, // 44: skillhub.import.v1.ImportService.GetImportCommitStatus:output_type -> skillhub.import.v1.GetImportCommitStatusResponse
+	40, // [40:45] is the sub-list for method output_type
+	35, // [35:40] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_import_v1_import_proto_init() }
@@ -401,13 +2065,18 @@ func file_skillhub_import_v1_import_proto_init() {
 		return
 	}
 	file_skillhub_import_v1_import_proto_msgTypes[1].OneofWrappers = []any{}
+	file_skillhub_import_v1_import_proto_msgTypes[6].OneofWrappers = []any{
+		(*ImportCandidateOptions_ClaudeAuthMode)(nil),
+		(*ImportCandidateOptions_GeminiAuthMode)(nil),
+	}
+	file_skillhub_import_v1_import_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_import_v1_import_proto_rawDesc), len(file_skillhub_import_v1_import_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   5,
+			NumEnums:      7,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

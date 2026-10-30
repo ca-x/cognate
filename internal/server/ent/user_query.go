@@ -18,6 +18,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
 	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
@@ -51,6 +52,7 @@ type UserQuery struct {
 	withMcpCredentials              *MCPCredentialQuery
 	withCategories                  *CategoryQuery
 	withConfigurationAssets         *ConfigurationAssetQuery
+	withImportReceipts              *ImportReceiptQuery
 	withNativeConsumerChallenges    *NativeConsumerChallengeQuery
 	withNativeConsumerSessions      *NativeConsumerSessionQuery
 	withNativeApplyPreparations     *NativeApplyPreparationQuery
@@ -355,6 +357,28 @@ func (_q *UserQuery) QueryConfigurationAssets() *ConfigurationAssetQuery {
 	return query
 }
 
+// QueryImportReceipts chains the current query on the "import_receipts" edge.
+func (_q *UserQuery) QueryImportReceipts() *ImportReceiptQuery {
+	query := (&ImportReceiptClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(importreceipt.Table, importreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ImportReceiptsTable, user.ImportReceiptsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryNativeConsumerChallenges chains the current query on the "native_consumer_challenges" edge.
 func (_q *UserQuery) QueryNativeConsumerChallenges() *NativeConsumerChallengeQuery {
 	query := (&NativeConsumerChallengeClient{config: _q.config}).Query()
@@ -647,6 +671,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withMcpCredentials:              _q.withMcpCredentials.Clone(),
 		withCategories:                  _q.withCategories.Clone(),
 		withConfigurationAssets:         _q.withConfigurationAssets.Clone(),
+		withImportReceipts:              _q.withImportReceipts.Clone(),
 		withNativeConsumerChallenges:    _q.withNativeConsumerChallenges.Clone(),
 		withNativeConsumerSessions:      _q.withNativeConsumerSessions.Clone(),
 		withNativeApplyPreparations:     _q.withNativeApplyPreparations.Clone(),
@@ -789,6 +814,17 @@ func (_q *UserQuery) WithConfigurationAssets(opts ...func(*ConfigurationAssetQue
 	return _q
 }
 
+// WithImportReceipts tells the query-builder to eager-load the nodes that are connected to
+// the "import_receipts" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithImportReceipts(opts ...func(*ImportReceiptQuery)) *UserQuery {
+	query := (&ImportReceiptClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withImportReceipts = query
+	return _q
+}
+
 // WithNativeConsumerChallenges tells the query-builder to eager-load the nodes that are connected to
 // the "native_consumer_challenges" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithNativeConsumerChallenges(opts ...func(*NativeConsumerChallengeQuery)) *UserQuery {
@@ -911,7 +947,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [16]bool{
+		loadedTypes = [17]bool{
 			_q.withGithubCredential != nil,
 			_q.withGithubLists != nil,
 			_q.withGithubRepositories != nil,
@@ -924,6 +960,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withMcpCredentials != nil,
 			_q.withCategories != nil,
 			_q.withConfigurationAssets != nil,
+			_q.withImportReceipts != nil,
 			_q.withNativeConsumerChallenges != nil,
 			_q.withNativeConsumerSessions != nil,
 			_q.withNativeApplyPreparations != nil,
@@ -1033,6 +1070,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User, e *ConfigurationAsset) {
 				n.Edges.ConfigurationAssets = append(n.Edges.ConfigurationAssets, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withImportReceipts; query != nil {
+		if err := _q.loadImportReceipts(ctx, query, nodes,
+			func(n *User) { n.Edges.ImportReceipts = []*ImportReceipt{} },
+			func(n *User, e *ImportReceipt) { n.Edges.ImportReceipts = append(n.Edges.ImportReceipts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1414,6 +1458,36 @@ func (_q *UserQuery) loadConfigurationAssets(ctx context.Context, query *Configu
 	}
 	query.Where(predicate.ConfigurationAsset(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ConfigurationAssetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadImportReceipts(ctx context.Context, query *ImportReceiptQuery, nodes []*User, init func(*User), assign func(*User, *ImportReceipt)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(importreceipt.FieldUserID)
+	}
+	query.Where(predicate.ImportReceipt(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ImportReceiptsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

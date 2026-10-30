@@ -13,6 +13,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
@@ -295,6 +296,126 @@ func init() {
 	githubrepositoryDescNameWithOwner := githubrepositoryFields[3].Descriptor()
 	// githubrepository.NameWithOwnerValidator is a validator for the "name_with_owner" field. It is called by the builders before save.
 	githubrepository.NameWithOwnerValidator = githubrepositoryDescNameWithOwner.Validators[0].(func(string) error)
+	importreceiptFields := schema.ImportReceipt{}.Fields()
+	_ = importreceiptFields
+	// importreceiptDescOperationID is the schema descriptor for operation_id field.
+	importreceiptDescOperationID := importreceiptFields[1].Descriptor()
+	// importreceipt.OperationIDValidator is a validator for the "operation_id" field. It is called by the builders before save.
+	importreceipt.OperationIDValidator = func() func([]byte) error {
+		validators := importreceiptDescOperationID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(operation_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(operation_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// importreceiptDescTicketID is the schema descriptor for ticket_id field.
+	importreceiptDescTicketID := importreceiptFields[2].Descriptor()
+	// importreceipt.TicketIDValidator is a validator for the "ticket_id" field. It is called by the builders before save.
+	importreceipt.TicketIDValidator = func() func([]byte) error {
+		validators := importreceiptDescTicketID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(ticket_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(ticket_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// importreceiptDescRequestDigest is the schema descriptor for request_digest field.
+	importreceiptDescRequestDigest := importreceiptFields[3].Descriptor()
+	// importreceipt.RequestDigestValidator is a validator for the "request_digest" field. It is called by the builders before save.
+	importreceipt.RequestDigestValidator = func() func([]byte) error {
+		validators := importreceiptDescRequestDigest.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(request_digest []byte) error {
+			for _, fn := range fns {
+				if err := fn(request_digest); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// importreceiptDescOriginDigest is the schema descriptor for origin_digest field.
+	importreceiptDescOriginDigest := importreceiptFields[4].Descriptor()
+	// importreceipt.OriginDigestValidator is a validator for the "origin_digest" field. It is called by the builders before save.
+	importreceipt.OriginDigestValidator = func() func([]byte) error {
+		validators := importreceiptDescOriginDigest.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(origin_digest []byte) error {
+			for _, fn := range fns {
+				if err := fn(origin_digest); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// importreceiptDescRevision is the schema descriptor for revision field.
+	importreceiptDescRevision := importreceiptFields[5].Descriptor()
+	// importreceipt.DefaultRevision holds the default value on creation for the revision field.
+	importreceipt.DefaultRevision = importreceiptDescRevision.Default.(int64)
+	// importreceipt.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
+	importreceipt.RevisionValidator = importreceiptDescRevision.Validators[0].(func(int64) error)
+	// importreceiptDescExecutionID is the schema descriptor for execution_id field.
+	importreceiptDescExecutionID := importreceiptFields[7].Descriptor()
+	// importreceipt.ExecutionIDValidator is a validator for the "execution_id" field. It is called by the builders before save.
+	importreceipt.ExecutionIDValidator = func() func([]byte) error {
+		validators := importreceiptDescExecutionID.Validators
+		fns := [...]func([]byte) error{
+			validators[0].(func([]byte) error),
+			validators[1].(func([]byte) error),
+		}
+		return func(execution_id []byte) error {
+			for _, fn := range fns {
+				if err := fn(execution_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// importreceiptDescCiphertext is the schema descriptor for ciphertext field.
+	importreceiptDescCiphertext := importreceiptFields[10].Descriptor()
+	// importreceipt.CiphertextValidator is a validator for the "ciphertext" field. It is called by the builders before save.
+	importreceipt.CiphertextValidator = importreceiptDescCiphertext.Validators[0].(func([]byte) error)
+	// importreceiptDescCharge is the schema descriptor for charge field.
+	importreceiptDescCharge := importreceiptFields[11].Descriptor()
+	// importreceipt.ChargeValidator is a validator for the "charge" field. It is called by the builders before save.
+	importreceipt.ChargeValidator = func() func(int64) error {
+		validators := importreceiptDescCharge.Validators
+		fns := [...]func(int64) error{
+			validators[0].(func(int64) error),
+			validators[1].(func(int64) error),
+		}
+		return func(charge int64) error {
+			for _, fn := range fns {
+				if err := fn(charge); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	localaccountFields := schema.LocalAccount{}.Fields()
 	_ = localaccountFields
 	// localaccountDescUsername is the schema descriptor for username field.

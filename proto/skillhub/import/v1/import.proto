@@ -2,11 +2,16 @@ syntax = "proto3";
 
 package skillhub.import.v1;
 
+import "skillhub/configuration/v1/configuration.proto";
+
 option go_package = "github.com/ca-x/cognate/gen/skillhub/import/v1;importv1";
 
 service ImportService {
   rpc PreviewLibraryExport(PreviewLibraryExportRequest) returns (PreviewLibraryExportResponse);
   rpc PreviewCCSwitchSnapshot(PreviewCCSwitchSnapshotRequest) returns (PreviewCCSwitchSnapshotResponse);
+  rpc PreviewImportSelection(PreviewImportSelectionRequest) returns (PreviewImportSelectionResponse);
+  rpc CommitImportSelection(CommitImportSelectionRequest) returns (CommitImportSelectionResponse);
+  rpc GetImportCommitStatus(GetImportCommitStatusRequest) returns (GetImportCommitStatusResponse);
 }
 
 enum ExportFormat {
@@ -37,4 +42,174 @@ message PreviewCCSwitchSnapshotRequest {
 
 message PreviewCCSwitchSnapshotResponse {
   repeated RepositoryCandidate repositories = 1;
+}
+
+enum ImportSelectionSource {
+  IMPORT_SELECTION_SOURCE_UNSPECIFIED = 0;
+  IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24 = 1;
+  IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON = 2;
+}
+
+enum ImportCandidateStatus {
+  IMPORT_CANDIDATE_STATUS_UNSPECIFIED = 0;
+  IMPORT_CANDIDATE_STATUS_READY = 1;
+  IMPORT_CANDIDATE_STATUS_NEEDS_CHOICE = 2;
+  IMPORT_CANDIDATE_STATUS_NEEDS_REPOSITORY_IMPORT = 3;
+  IMPORT_CANDIDATE_STATUS_UNRESOLVED = 4;
+  IMPORT_CANDIDATE_STATUS_UNSUPPORTED_AGENT = 5;
+  IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND = 6;
+  IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD = 7;
+  IMPORT_CANDIDATE_STATUS_NAME_CONFLICT = 8;
+}
+
+enum ImportNoticeCode {
+  IMPORT_NOTICE_CODE_UNSPECIFIED = 0;
+  IMPORT_NOTICE_CODE_CREDENTIALS_OMITTED = 1;
+  IMPORT_NOTICE_CODE_METADATA_EXCLUDED = 2;
+  IMPORT_NOTICE_CODE_OTHER_SOURCE_DATA_EXCLUDED = 3;
+  IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED = 4;
+  IMPORT_NOTICE_CODE_UNKNOWN_SOURCE_SECTION_EXCLUDED = 5;
+}
+
+enum ImportReceiptPhase {
+  IMPORT_RECEIPT_PHASE_UNSPECIFIED = 0;
+  IMPORT_RECEIPT_PHASE_RESERVED = 1;
+  IMPORT_RECEIPT_PHASE_COLLECTING = 2;
+  IMPORT_RECEIPT_PHASE_COMPLETED = 3;
+  IMPORT_RECEIPT_PHASE_PARTIAL = 4;
+  IMPORT_RECEIPT_PHASE_FAILED = 5;
+}
+
+enum ImportCommitObservation {
+  IMPORT_COMMIT_OBSERVATION_UNSPECIFIED = 0;
+  IMPORT_COMMIT_OBSERVATION_NOT_OBSERVED = 1;
+  IMPORT_COMMIT_OBSERVATION_IN_PROGRESS = 2;
+  IMPORT_COMMIT_OBSERVATION_UNKNOWN = 3;
+  IMPORT_COMMIT_OBSERVATION_TERMINAL = 4;
+}
+
+enum ImportRepositoryOutcomeCode {
+  IMPORT_REPOSITORY_OUTCOME_CODE_UNSPECIFIED = 0;
+  IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED = 1;
+  IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED = 2;
+  IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED = 3;
+  IMPORT_REPOSITORY_OUTCOME_CODE_CANCELLED = 4;
+  IMPORT_REPOSITORY_OUTCOME_CODE_AUTHORIZATION_LOST = 5;
+  IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED = 6;
+  IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED = 7;
+  IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN = 8;
+}
+
+message PreviewImportSelectionRequest {
+  ImportSelectionSource source = 1;
+  bytes source_data = 2 [debug_redact = true];
+  repeated ImportCandidateOptions options = 3;
+}
+
+message ImportCandidateOptions {
+  string candidate_id = 1;
+  optional string name = 2;
+  oneof auth {
+    skillhub.configuration.v1.ClaudeAuthMode claude_auth_mode = 3;
+    skillhub.configuration.v1.GeminiAuthMode gemini_auth_mode = 4;
+  }
+  optional skillhub.configuration.v1.GeminiKeyTransport gemini_key_transport = 5;
+  SkillBinding skill_binding = 6;
+}
+
+message PreviewImportSelectionResponse {
+  bytes ticket = 1 [debug_redact = true];
+  int64 expires_ms = 2;
+  repeated ImportRepositoryCandidate repositories = 3;
+  repeated ImportSkillCandidate skills = 4;
+  repeated ImportConfigurationCandidate configurations = 5;
+  repeated ImportNotice notices = 6;
+}
+
+message ImportRepositoryCandidate {
+  string id = 1;
+  RepositoryCandidate hint = 2;
+  ImportCandidateStatus status = 3;
+}
+
+message ImportSkillCandidate {
+  string id = 1;
+  string safe_name = 2;
+  string repository_candidate_id = 3;
+  ImportCandidateStatus status = 4;
+  SkillBinding binding = 5;
+  repeated ImportNotice notices = 6;
+}
+
+message SkillBinding {
+  string repository_id = 1;
+  string archive_hash = 2;
+  string skill_id = 3;
+  string logical_path = 4;
+  string content_hash = 5;
+  string repository = 6;
+  string branch = 7;
+}
+
+message ImportConfigurationCandidate {
+  string id = 1;
+  string known_agent_id = 2;
+  skillhub.configuration.v1.AssetKind kind = 3;
+  ImportCandidateStatus status = 4;
+  skillhub.configuration.v1.Draft draft = 5;
+  repeated ImportNotice notices = 6;
+  repeated ImportCredentialSlot credential_slots = 7;
+  string safe_name = 8;
+}
+
+message ImportCredentialSlot {
+  string slot_id = 1;
+  bool present = 2;
+}
+
+message ImportNotice {
+  string id = 1;
+  ImportNoticeCode code = 2;
+  uint32 count = 3;
+}
+
+message CommitImportSelectionRequest {
+  bytes ticket = 1 [debug_redact = true];
+  ImportSelectionSource source = 2;
+  bytes source_data = 3 [debug_redact = true];
+  repeated ImportCandidateOptions options = 4;
+  bytes operation_id = 5;
+  repeated string repository_ids = 6;
+  repeated string skill_ids = 7;
+  repeated string configuration_ids = 8;
+  repeated string ack_notice_ids = 9;
+}
+
+message CommitImportSelectionResponse {
+  ImportReceipt receipt = 1;
+}
+
+message GetImportCommitStatusRequest {
+  bytes operation_id = 1;
+}
+
+message GetImportCommitStatusResponse {
+  ImportCommitObservation observation = 1;
+  ImportReceipt receipt = 2;
+}
+
+message ImportReceipt {
+  bytes operation_id = 1;
+  int64 revision = 2;
+  ImportReceiptPhase phase = 3;
+  repeated ImportRepositoryOutcome repository_outcomes = 4;
+  repeated SkillBinding selected_skill_bindings = 5;
+  repeated skillhub.configuration.v1.Asset created_assets = 6;
+  repeated ImportNotice notices = 7;
+}
+
+message ImportRepositoryOutcome {
+  string candidate_id = 1;
+  ImportRepositoryOutcomeCode code = 2;
+  optional string repository_id = 3;
 }

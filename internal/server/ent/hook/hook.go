@@ -105,6 +105,18 @@ func (f GitHubRepositoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GitHubRepositoryMutation", m)
 }
 
+// The ImportReceiptFunc type is an adapter to allow the use of ordinary
+// function as ImportReceipt mutator.
+type ImportReceiptFunc func(context.Context, *ent.ImportReceiptMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ImportReceiptFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ImportReceiptMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImportReceiptMutation", m)
+}
+
 // The LocalAccountFunc type is an adapter to allow the use of ordinary
 // function as LocalAccount mutator.
 type LocalAccountFunc func(context.Context, *ent.LocalAccountMutation) (ent.Value, error)

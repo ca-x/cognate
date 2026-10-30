@@ -23,6 +23,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
@@ -61,6 +62,8 @@ type Client struct {
 	GitHubMembership *GitHubMembershipClient
 	// GitHubRepository is the client for interacting with the GitHubRepository builders.
 	GitHubRepository *GitHubRepositoryClient
+	// ImportReceipt is the client for interacting with the ImportReceipt builders.
+	ImportReceipt *ImportReceiptClient
 	// LocalAccount is the client for interacting with the LocalAccount builders.
 	LocalAccount *LocalAccountClient
 	// MCPAudit is the client for interacting with the MCPAudit builders.
@@ -110,6 +113,7 @@ func (c *Client) init() {
 	c.GitHubList = NewGitHubListClient(c.config)
 	c.GitHubMembership = NewGitHubMembershipClient(c.config)
 	c.GitHubRepository = NewGitHubRepositoryClient(c.config)
+	c.ImportReceipt = NewImportReceiptClient(c.config)
 	c.LocalAccount = NewLocalAccountClient(c.config)
 	c.MCPAudit = NewMCPAuditClient(c.config)
 	c.MCPCredential = NewMCPCredentialClient(c.config)
@@ -225,6 +229,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		GitHubList:                 NewGitHubListClient(cfg),
 		GitHubMembership:           NewGitHubMembershipClient(cfg),
 		GitHubRepository:           NewGitHubRepositoryClient(cfg),
+		ImportReceipt:              NewImportReceiptClient(cfg),
 		LocalAccount:               NewLocalAccountClient(cfg),
 		MCPAudit:                   NewMCPAuditClient(cfg),
 		MCPCredential:              NewMCPCredentialClient(cfg),
@@ -267,6 +272,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		GitHubList:                 NewGitHubListClient(cfg),
 		GitHubMembership:           NewGitHubMembershipClient(cfg),
 		GitHubRepository:           NewGitHubRepositoryClient(cfg),
+		ImportReceipt:              NewImportReceiptClient(cfg),
 		LocalAccount:               NewLocalAccountClient(cfg),
 		MCPAudit:                   NewMCPAuditClient(cfg),
 		MCPCredential:              NewMCPCredentialClient(cfg),
@@ -313,8 +319,8 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
-		c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
+		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
@@ -328,8 +334,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Category, c.CollectedRepository, c.CollectedSkill, c.ConfigurationAsset,
 		c.GitHubCredential, c.GitHubList, c.GitHubMembership, c.GitHubRepository,
-		c.LocalAccount, c.MCPAudit, c.MCPCredential, c.NativeApplyPreparation,
-		c.NativeConsumerChallenge, c.NativeConsumerSession,
+		c.ImportReceipt, c.LocalAccount, c.MCPAudit, c.MCPCredential,
+		c.NativeApplyPreparation, c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack, c.PackItem, c.PackShare,
 		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
 	} {
@@ -356,6 +362,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GitHubMembership.mutate(ctx, m)
 	case *GitHubRepositoryMutation:
 		return c.GitHubRepository.mutate(ctx, m)
+	case *ImportReceiptMutation:
+		return c.ImportReceipt.mutate(ctx, m)
 	case *LocalAccountMutation:
 		return c.LocalAccount.mutate(ctx, m)
 	case *MCPAuditMutation:
@@ -1692,6 +1700,155 @@ func (c *GitHubRepositoryClient) mutate(ctx context.Context, m *GitHubRepository
 		return (&GitHubRepositoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GitHubRepository mutation op: %q", m.Op())
+	}
+}
+
+// ImportReceiptClient is a client for the ImportReceipt schema.
+type ImportReceiptClient struct {
+	config
+}
+
+// NewImportReceiptClient returns a client for the ImportReceipt from the given config.
+func NewImportReceiptClient(c config) *ImportReceiptClient {
+	return &ImportReceiptClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `importreceipt.Hooks(f(g(h())))`.
+func (c *ImportReceiptClient) Use(hooks ...Hook) {
+	c.hooks.ImportReceipt = append(c.hooks.ImportReceipt, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `importreceipt.Intercept(f(g(h())))`.
+func (c *ImportReceiptClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ImportReceipt = append(c.inters.ImportReceipt, interceptors...)
+}
+
+// Create returns a builder for creating a ImportReceipt entity.
+func (c *ImportReceiptClient) Create() *ImportReceiptCreate {
+	mutation := newImportReceiptMutation(c.config, OpCreate)
+	return &ImportReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ImportReceipt entities.
+func (c *ImportReceiptClient) CreateBulk(builders ...*ImportReceiptCreate) *ImportReceiptCreateBulk {
+	return &ImportReceiptCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ImportReceiptClient) MapCreateBulk(slice any, setFunc func(*ImportReceiptCreate, int)) *ImportReceiptCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ImportReceiptCreateBulk{err: fmt.Errorf("calling to ImportReceiptClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ImportReceiptCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ImportReceiptCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ImportReceipt.
+func (c *ImportReceiptClient) Update() *ImportReceiptUpdate {
+	mutation := newImportReceiptMutation(c.config, OpUpdate)
+	return &ImportReceiptUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImportReceiptClient) UpdateOne(_m *ImportReceipt) *ImportReceiptUpdateOne {
+	mutation := newImportReceiptMutation(c.config, OpUpdateOne, withImportReceipt(_m))
+	return &ImportReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImportReceiptClient) UpdateOneID(id int) *ImportReceiptUpdateOne {
+	mutation := newImportReceiptMutation(c.config, OpUpdateOne, withImportReceiptID(id))
+	return &ImportReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ImportReceipt.
+func (c *ImportReceiptClient) Delete() *ImportReceiptDelete {
+	mutation := newImportReceiptMutation(c.config, OpDelete)
+	return &ImportReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ImportReceiptClient) DeleteOne(_m *ImportReceipt) *ImportReceiptDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ImportReceiptClient) DeleteOneID(id int) *ImportReceiptDeleteOne {
+	builder := c.Delete().Where(importreceipt.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImportReceiptDeleteOne{builder}
+}
+
+// Query returns a query builder for ImportReceipt.
+func (c *ImportReceiptClient) Query() *ImportReceiptQuery {
+	return &ImportReceiptQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeImportReceipt},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ImportReceipt entity by its id.
+func (c *ImportReceiptClient) Get(ctx context.Context, id int) (*ImportReceipt, error) {
+	return c.Query().Where(importreceipt.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImportReceiptClient) GetX(ctx context.Context, id int) *ImportReceipt {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ImportReceipt.
+func (c *ImportReceiptClient) QueryUser(_m *ImportReceipt) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(importreceipt.Table, importreceipt.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, importreceipt.UserTable, importreceipt.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ImportReceiptClient) Hooks() []Hook {
+	return c.hooks.ImportReceipt
+}
+
+// Interceptors returns the client interceptors.
+func (c *ImportReceiptClient) Interceptors() []Interceptor {
+	return c.inters.ImportReceipt
+}
+
+func (c *ImportReceiptClient) mutate(ctx context.Context, m *ImportReceiptMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImportReceiptCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImportReceiptUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImportReceiptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImportReceiptDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ImportReceipt mutation op: %q", m.Op())
 	}
 }
 
@@ -4289,6 +4446,22 @@ func (c *UserClient) QueryConfigurationAssets(_m *User) *ConfigurationAssetQuery
 	return query
 }
 
+// QueryImportReceipts queries the import_receipts edge of a User.
+func (c *UserClient) QueryImportReceipts(_m *User) *ImportReceiptQuery {
+	query := (&ImportReceiptClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(importreceipt.Table, importreceipt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ImportReceiptsTable, user.ImportReceiptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryNativeConsumerChallenges queries the native_consumer_challenges edge of a User.
 func (c *UserClient) QueryNativeConsumerChallenges(_m *User) *NativeConsumerChallengeQuery {
 	query := (&NativeConsumerChallengeClient{config: c.config}).Query()
@@ -4382,18 +4555,18 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
-		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
-		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
-		PackItem, PackShare, RepositoryPrivateHistory, ServerMetadata, Session,
-		User []ent.Hook
+		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
+		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
+		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
+		OIDCIdentity, Pack, PackItem, PackShare, RepositoryPrivateHistory,
+		ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
-		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository, LocalAccount,
-		MCPAudit, MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
-		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
-		PackItem, PackShare, RepositoryPrivateHistory, ServerMetadata, Session,
-		User []ent.Interceptor
+		GitHubCredential, GitHubList, GitHubMembership, GitHubRepository,
+		ImportReceipt, LocalAccount, MCPAudit, MCPCredential, NativeApplyPreparation,
+		NativeConsumerChallenge, NativeConsumerSession, NativeMaterializationGrant,
+		OIDCIdentity, Pack, PackItem, PackShare, RepositoryPrivateHistory,
+		ServerMetadata, Session, User []ent.Interceptor
 	}
 )

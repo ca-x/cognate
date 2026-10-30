@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
+	"github.com/ca-x/cognate/gen/skillhub/import/v1/importv1connect"
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/importer"
@@ -15,6 +16,7 @@ import (
 )
 
 type ImportHandler struct {
+	importv1connect.UnimplementedImportServiceHandler
 	auth       *authHandler
 	collection *library.Service
 	mutex      sync.Mutex

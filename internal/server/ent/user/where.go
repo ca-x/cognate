@@ -399,6 +399,29 @@ func HasConfigurationAssetsWith(preds ...predicate.ConfigurationAsset) predicate
 	})
 }
 
+// HasImportReceipts applies the HasEdge predicate on the "import_receipts" edge.
+func HasImportReceipts() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ImportReceiptsTable, ImportReceiptsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasImportReceiptsWith applies the HasEdge predicate on the "import_receipts" edge with a given conditions (other predicates).
+func HasImportReceiptsWith(preds ...predicate.ImportReceipt) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newImportReceiptsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasNativeConsumerChallenges applies the HasEdge predicate on the "native_consumer_challenges" edge.
 func HasNativeConsumerChallenges() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

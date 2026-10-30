@@ -30,6 +30,9 @@ type GitHubMembership func(*sql.Selector)
 // GitHubRepository is the predicate function for githubrepository builders.
 type GitHubRepository func(*sql.Selector)
 
+// ImportReceipt is the predicate function for importreceipt builders.
+type ImportReceipt func(*sql.Selector)
+
 // LocalAccount is the predicate function for localaccount builders.
 type LocalAccount func(*sql.Selector)
 

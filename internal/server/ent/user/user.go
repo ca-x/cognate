@@ -38,6 +38,8 @@ const (
 	EdgeCategories = "categories"
 	// EdgeConfigurationAssets holds the string denoting the configuration_assets edge name in mutations.
 	EdgeConfigurationAssets = "configuration_assets"
+	// EdgeImportReceipts holds the string denoting the import_receipts edge name in mutations.
+	EdgeImportReceipts = "import_receipts"
 	// EdgeNativeConsumerChallenges holds the string denoting the native_consumer_challenges edge name in mutations.
 	EdgeNativeConsumerChallenges = "native_consumer_challenges"
 	// EdgeNativeConsumerSessions holds the string denoting the native_consumer_sessions edge name in mutations.
@@ -132,6 +134,13 @@ const (
 	ConfigurationAssetsInverseTable = "configuration_assets"
 	// ConfigurationAssetsColumn is the table column denoting the configuration_assets relation/edge.
 	ConfigurationAssetsColumn = "user_id"
+	// ImportReceiptsTable is the table that holds the import_receipts relation/edge.
+	ImportReceiptsTable = "import_receipts"
+	// ImportReceiptsInverseTable is the table name for the ImportReceipt entity.
+	// It exists in this package in order to avoid circular dependency with the "importreceipt" package.
+	ImportReceiptsInverseTable = "import_receipts"
+	// ImportReceiptsColumn is the table column denoting the import_receipts relation/edge.
+	ImportReceiptsColumn = "user_id"
 	// NativeConsumerChallengesTable is the table that holds the native_consumer_challenges relation/edge.
 	NativeConsumerChallengesTable = "native_consumer_challenges"
 	// NativeConsumerChallengesInverseTable is the table name for the NativeConsumerChallenge entity.
@@ -350,6 +359,20 @@ func ByConfigurationAssets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
+// ByImportReceiptsCount orders the results by import_receipts count.
+func ByImportReceiptsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newImportReceiptsStep(), opts...)
+	}
+}
+
+// ByImportReceipts orders the results by import_receipts terms.
+func ByImportReceipts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newImportReceiptsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByNativeConsumerChallengesCount orders the results by native_consumer_challenges count.
 func ByNativeConsumerChallengesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -487,6 +510,13 @@ func newConfigurationAssetsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ConfigurationAssetsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationAssetsTable, ConfigurationAssetsColumn),
+	)
+}
+func newImportReceiptsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ImportReceiptsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ImportReceiptsTable, ImportReceiptsColumn),
 	)
 }
 func newNativeConsumerChallengesStep() *sqlgraph.Step {

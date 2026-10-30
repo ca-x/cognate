@@ -16,6 +16,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
 	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
@@ -229,6 +230,21 @@ func (_u *UserUpdate) AddConfigurationAssets(v ...*ConfigurationAsset) *UserUpda
 		ids[i] = v[i].ID
 	}
 	return _u.AddConfigurationAssetIDs(ids...)
+}
+
+// AddImportReceiptIDs adds the "import_receipts" edge to the ImportReceipt entity by IDs.
+func (_u *UserUpdate) AddImportReceiptIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddImportReceiptIDs(ids...)
+	return _u
+}
+
+// AddImportReceipts adds the "import_receipts" edges to the ImportReceipt entity.
+func (_u *UserUpdate) AddImportReceipts(v ...*ImportReceipt) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddImportReceiptIDs(ids...)
 }
 
 // AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
@@ -516,6 +532,27 @@ func (_u *UserUpdate) RemoveConfigurationAssets(v ...*ConfigurationAsset) *UserU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveConfigurationAssetIDs(ids...)
+}
+
+// ClearImportReceipts clears all "import_receipts" edges to the ImportReceipt entity.
+func (_u *UserUpdate) ClearImportReceipts() *UserUpdate {
+	_u.mutation.ClearImportReceipts()
+	return _u
+}
+
+// RemoveImportReceiptIDs removes the "import_receipts" edge to ImportReceipt entities by IDs.
+func (_u *UserUpdate) RemoveImportReceiptIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveImportReceiptIDs(ids...)
+	return _u
+}
+
+// RemoveImportReceipts removes "import_receipts" edges to ImportReceipt entities.
+func (_u *UserUpdate) RemoveImportReceipts(v ...*ImportReceipt) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveImportReceiptIDs(ids...)
 }
 
 // ClearNativeConsumerChallenges clears all "native_consumer_challenges" edges to the NativeConsumerChallenge entity.
@@ -1146,6 +1183,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ImportReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedImportReceiptsIDs(); len(nodes) > 0 && !_u.mutation.ImportReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ImportReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.NativeConsumerChallengesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1534,6 +1616,21 @@ func (_u *UserUpdateOne) AddConfigurationAssets(v ...*ConfigurationAsset) *UserU
 	return _u.AddConfigurationAssetIDs(ids...)
 }
 
+// AddImportReceiptIDs adds the "import_receipts" edge to the ImportReceipt entity by IDs.
+func (_u *UserUpdateOne) AddImportReceiptIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddImportReceiptIDs(ids...)
+	return _u
+}
+
+// AddImportReceipts adds the "import_receipts" edges to the ImportReceipt entity.
+func (_u *UserUpdateOne) AddImportReceipts(v ...*ImportReceipt) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddImportReceiptIDs(ids...)
+}
+
 // AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
 func (_u *UserUpdateOne) AddNativeConsumerChallengeIDs(ids ...int) *UserUpdateOne {
 	_u.mutation.AddNativeConsumerChallengeIDs(ids...)
@@ -1819,6 +1916,27 @@ func (_u *UserUpdateOne) RemoveConfigurationAssets(v ...*ConfigurationAsset) *Us
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveConfigurationAssetIDs(ids...)
+}
+
+// ClearImportReceipts clears all "import_receipts" edges to the ImportReceipt entity.
+func (_u *UserUpdateOne) ClearImportReceipts() *UserUpdateOne {
+	_u.mutation.ClearImportReceipts()
+	return _u
+}
+
+// RemoveImportReceiptIDs removes the "import_receipts" edge to ImportReceipt entities by IDs.
+func (_u *UserUpdateOne) RemoveImportReceiptIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveImportReceiptIDs(ids...)
+	return _u
+}
+
+// RemoveImportReceipts removes "import_receipts" edges to ImportReceipt entities.
+func (_u *UserUpdateOne) RemoveImportReceipts(v ...*ImportReceipt) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveImportReceiptIDs(ids...)
 }
 
 // ClearNativeConsumerChallenges clears all "native_consumer_challenges" edges to the NativeConsumerChallenge entity.
@@ -2472,6 +2590,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ImportReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedImportReceiptsIDs(); len(nodes) > 0 && !_u.mutation.ImportReceiptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ImportReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -39,12 +39,24 @@ const (
 	// ImportServicePreviewCCSwitchSnapshotProcedure is the fully-qualified name of the ImportService's
 	// PreviewCCSwitchSnapshot RPC.
 	ImportServicePreviewCCSwitchSnapshotProcedure = "/skillhub.import.v1.ImportService/PreviewCCSwitchSnapshot"
+	// ImportServicePreviewImportSelectionProcedure is the fully-qualified name of the ImportService's
+	// PreviewImportSelection RPC.
+	ImportServicePreviewImportSelectionProcedure = "/skillhub.import.v1.ImportService/PreviewImportSelection"
+	// ImportServiceCommitImportSelectionProcedure is the fully-qualified name of the ImportService's
+	// CommitImportSelection RPC.
+	ImportServiceCommitImportSelectionProcedure = "/skillhub.import.v1.ImportService/CommitImportSelection"
+	// ImportServiceGetImportCommitStatusProcedure is the fully-qualified name of the ImportService's
+	// GetImportCommitStatus RPC.
+	ImportServiceGetImportCommitStatusProcedure = "/skillhub.import.v1.ImportService/GetImportCommitStatus"
 )
 
 // ImportServiceClient is a client for the skillhub.import.v1.ImportService service.
 type ImportServiceClient interface {
 	PreviewLibraryExport(context.Context, *connect.Request[v1.PreviewLibraryExportRequest]) (*connect.Response[v1.PreviewLibraryExportResponse], error)
 	PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error)
+	PreviewImportSelection(context.Context, *connect.Request[v1.PreviewImportSelectionRequest]) (*connect.Response[v1.PreviewImportSelectionResponse], error)
+	CommitImportSelection(context.Context, *connect.Request[v1.CommitImportSelectionRequest]) (*connect.Response[v1.CommitImportSelectionResponse], error)
+	GetImportCommitStatus(context.Context, *connect.Request[v1.GetImportCommitStatusRequest]) (*connect.Response[v1.GetImportCommitStatusResponse], error)
 }
 
 // NewImportServiceClient constructs a client for the skillhub.import.v1.ImportService service. By
@@ -70,6 +82,24 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(importServiceMethods.ByName("PreviewCCSwitchSnapshot")),
 			connect.WithClientOptions(opts...),
 		),
+		previewImportSelection: connect.NewClient[v1.PreviewImportSelectionRequest, v1.PreviewImportSelectionResponse](
+			httpClient,
+			baseURL+ImportServicePreviewImportSelectionProcedure,
+			connect.WithSchema(importServiceMethods.ByName("PreviewImportSelection")),
+			connect.WithClientOptions(opts...),
+		),
+		commitImportSelection: connect.NewClient[v1.CommitImportSelectionRequest, v1.CommitImportSelectionResponse](
+			httpClient,
+			baseURL+ImportServiceCommitImportSelectionProcedure,
+			connect.WithSchema(importServiceMethods.ByName("CommitImportSelection")),
+			connect.WithClientOptions(opts...),
+		),
+		getImportCommitStatus: connect.NewClient[v1.GetImportCommitStatusRequest, v1.GetImportCommitStatusResponse](
+			httpClient,
+			baseURL+ImportServiceGetImportCommitStatusProcedure,
+			connect.WithSchema(importServiceMethods.ByName("GetImportCommitStatus")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -77,6 +107,9 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 type importServiceClient struct {
 	previewLibraryExport    *connect.Client[v1.PreviewLibraryExportRequest, v1.PreviewLibraryExportResponse]
 	previewCCSwitchSnapshot *connect.Client[v1.PreviewCCSwitchSnapshotRequest, v1.PreviewCCSwitchSnapshotResponse]
+	previewImportSelection  *connect.Client[v1.PreviewImportSelectionRequest, v1.PreviewImportSelectionResponse]
+	commitImportSelection   *connect.Client[v1.CommitImportSelectionRequest, v1.CommitImportSelectionResponse]
+	getImportCommitStatus   *connect.Client[v1.GetImportCommitStatusRequest, v1.GetImportCommitStatusResponse]
 }
 
 // PreviewLibraryExport calls skillhub.import.v1.ImportService.PreviewLibraryExport.
@@ -89,10 +122,28 @@ func (c *importServiceClient) PreviewCCSwitchSnapshot(ctx context.Context, req *
 	return c.previewCCSwitchSnapshot.CallUnary(ctx, req)
 }
 
+// PreviewImportSelection calls skillhub.import.v1.ImportService.PreviewImportSelection.
+func (c *importServiceClient) PreviewImportSelection(ctx context.Context, req *connect.Request[v1.PreviewImportSelectionRequest]) (*connect.Response[v1.PreviewImportSelectionResponse], error) {
+	return c.previewImportSelection.CallUnary(ctx, req)
+}
+
+// CommitImportSelection calls skillhub.import.v1.ImportService.CommitImportSelection.
+func (c *importServiceClient) CommitImportSelection(ctx context.Context, req *connect.Request[v1.CommitImportSelectionRequest]) (*connect.Response[v1.CommitImportSelectionResponse], error) {
+	return c.commitImportSelection.CallUnary(ctx, req)
+}
+
+// GetImportCommitStatus calls skillhub.import.v1.ImportService.GetImportCommitStatus.
+func (c *importServiceClient) GetImportCommitStatus(ctx context.Context, req *connect.Request[v1.GetImportCommitStatusRequest]) (*connect.Response[v1.GetImportCommitStatusResponse], error) {
+	return c.getImportCommitStatus.CallUnary(ctx, req)
+}
+
 // ImportServiceHandler is an implementation of the skillhub.import.v1.ImportService service.
 type ImportServiceHandler interface {
 	PreviewLibraryExport(context.Context, *connect.Request[v1.PreviewLibraryExportRequest]) (*connect.Response[v1.PreviewLibraryExportResponse], error)
 	PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error)
+	PreviewImportSelection(context.Context, *connect.Request[v1.PreviewImportSelectionRequest]) (*connect.Response[v1.PreviewImportSelectionResponse], error)
+	CommitImportSelection(context.Context, *connect.Request[v1.CommitImportSelectionRequest]) (*connect.Response[v1.CommitImportSelectionResponse], error)
+	GetImportCommitStatus(context.Context, *connect.Request[v1.GetImportCommitStatusRequest]) (*connect.Response[v1.GetImportCommitStatusResponse], error)
 }
 
 // NewImportServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -114,12 +165,36 @@ func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(importServiceMethods.ByName("PreviewCCSwitchSnapshot")),
 		connect.WithHandlerOptions(opts...),
 	)
+	importServicePreviewImportSelectionHandler := connect.NewUnaryHandler(
+		ImportServicePreviewImportSelectionProcedure,
+		svc.PreviewImportSelection,
+		connect.WithSchema(importServiceMethods.ByName("PreviewImportSelection")),
+		connect.WithHandlerOptions(opts...),
+	)
+	importServiceCommitImportSelectionHandler := connect.NewUnaryHandler(
+		ImportServiceCommitImportSelectionProcedure,
+		svc.CommitImportSelection,
+		connect.WithSchema(importServiceMethods.ByName("CommitImportSelection")),
+		connect.WithHandlerOptions(opts...),
+	)
+	importServiceGetImportCommitStatusHandler := connect.NewUnaryHandler(
+		ImportServiceGetImportCommitStatusProcedure,
+		svc.GetImportCommitStatus,
+		connect.WithSchema(importServiceMethods.ByName("GetImportCommitStatus")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.import.v1.ImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ImportServicePreviewLibraryExportProcedure:
 			importServicePreviewLibraryExportHandler.ServeHTTP(w, r)
 		case ImportServicePreviewCCSwitchSnapshotProcedure:
 			importServicePreviewCCSwitchSnapshotHandler.ServeHTTP(w, r)
+		case ImportServicePreviewImportSelectionProcedure:
+			importServicePreviewImportSelectionHandler.ServeHTTP(w, r)
+		case ImportServiceCommitImportSelectionProcedure:
+			importServiceCommitImportSelectionHandler.ServeHTTP(w, r)
+		case ImportServiceGetImportCommitStatusProcedure:
+			importServiceGetImportCommitStatusHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -135,4 +210,16 @@ func (UnimplementedImportServiceHandler) PreviewLibraryExport(context.Context, *
 
 func (UnimplementedImportServiceHandler) PreviewCCSwitchSnapshot(context.Context, *connect.Request[v1.PreviewCCSwitchSnapshotRequest]) (*connect.Response[v1.PreviewCCSwitchSnapshotResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.PreviewCCSwitchSnapshot is not implemented"))
+}
+
+func (UnimplementedImportServiceHandler) PreviewImportSelection(context.Context, *connect.Request[v1.PreviewImportSelectionRequest]) (*connect.Response[v1.PreviewImportSelectionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.PreviewImportSelection is not implemented"))
+}
+
+func (UnimplementedImportServiceHandler) CommitImportSelection(context.Context, *connect.Request[v1.CommitImportSelectionRequest]) (*connect.Response[v1.CommitImportSelectionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.CommitImportSelection is not implemented"))
+}
+
+func (UnimplementedImportServiceHandler) GetImportCommitStatus(context.Context, *connect.Request[v1.GetImportCommitStatusRequest]) (*connect.Response[v1.GetImportCommitStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.import.v1.ImportService.GetImportCommitStatus is not implemented"))
 }

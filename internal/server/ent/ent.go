@@ -20,6 +20,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
@@ -103,6 +104,7 @@ func checkColumn(t, c string) error {
 			githublist.Table:                 githublist.ValidColumn,
 			githubmembership.Table:           githubmembership.ValidColumn,
 			githubrepository.Table:           githubrepository.ValidColumn,
+			importreceipt.Table:              importreceipt.ValidColumn,
 			localaccount.Table:               localaccount.ValidColumn,
 			mcpaudit.Table:                   mcpaudit.ValidColumn,
 			mcpcredential.Table:              mcpcredential.ValidColumn,

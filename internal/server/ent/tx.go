@@ -28,6 +28,8 @@ type Tx struct {
 	GitHubMembership *GitHubMembershipClient
 	// GitHubRepository is the client for interacting with the GitHubRepository builders.
 	GitHubRepository *GitHubRepositoryClient
+	// ImportReceipt is the client for interacting with the ImportReceipt builders.
+	ImportReceipt *ImportReceiptClient
 	// LocalAccount is the client for interacting with the LocalAccount builders.
 	LocalAccount *LocalAccountClient
 	// MCPAudit is the client for interacting with the MCPAudit builders.
@@ -197,6 +199,7 @@ func (tx *Tx) init() {
 	tx.GitHubList = NewGitHubListClient(tx.config)
 	tx.GitHubMembership = NewGitHubMembershipClient(tx.config)
 	tx.GitHubRepository = NewGitHubRepositoryClient(tx.config)
+	tx.ImportReceipt = NewImportReceiptClient(tx.config)
 	tx.LocalAccount = NewLocalAccountClient(tx.config)
 	tx.MCPAudit = NewMCPAuditClient(tx.config)
 	tx.MCPCredential = NewMCPCredentialClient(tx.config)

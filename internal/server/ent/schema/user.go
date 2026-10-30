@@ -29,6 +29,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("mcp_credentials", MCPCredential.Type),
 		edge.To("categories", Category.Type),
 		edge.To("configuration_assets", ConfigurationAsset.Type),
+		edge.To("import_receipts", ImportReceipt.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("native_consumer_challenges", NativeConsumerChallenge.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("native_consumer_sessions", NativeConsumerSession.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("native_apply_preparations", NativeApplyPreparation.Type).Annotations(entsql.OnDelete(entsql.Cascade)),

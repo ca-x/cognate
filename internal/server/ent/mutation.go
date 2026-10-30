@@ -19,6 +19,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubmembership"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpaudit"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
@@ -54,6 +55,7 @@ const (
 	TypeGitHubList                 = "GitHubList"
 	TypeGitHubMembership           = "GitHubMembership"
 	TypeGitHubRepository           = "GitHubRepository"
+	TypeImportReceipt              = "ImportReceipt"
 	TypeLocalAccount               = "LocalAccount"
 	TypeMCPAudit                   = "MCPAudit"
 	TypeMCPCredential              = "MCPCredential"
@@ -7126,6 +7128,1049 @@ func (m *GitHubRepositoryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown GitHubRepository edge %s", name)
+}
+
+// ImportReceiptMutation represents an operation that mutates the ImportReceipt nodes in the graph.
+type ImportReceiptMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	operation_id   *[]byte
+	ticket_id      *[]byte
+	request_digest *[]byte
+	origin_digest  *[]byte
+	revision       *int64
+	addrevision    *int64
+	phase          *importreceipt.Phase
+	execution_id   *[]byte
+	created_at     *time.Time
+	updated_at     *time.Time
+	ciphertext     *[]byte
+	charge         *int64
+	addcharge      *int64
+	clearedFields  map[string]struct{}
+	user           *int
+	cleareduser    bool
+	done           bool
+	oldValue       func(context.Context) (*ImportReceipt, error)
+	predicates     []predicate.ImportReceipt
+}
+
+var _ ent.Mutation = (*ImportReceiptMutation)(nil)
+
+// importreceiptOption allows management of the mutation configuration using functional options.
+type importreceiptOption func(*ImportReceiptMutation)
+
+// newImportReceiptMutation creates new mutation for the ImportReceipt entity.
+func newImportReceiptMutation(c config, op Op, opts ...importreceiptOption) *ImportReceiptMutation {
+	m := &ImportReceiptMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeImportReceipt,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withImportReceiptID sets the ID field of the mutation.
+func withImportReceiptID(id int) importreceiptOption {
+	return func(m *ImportReceiptMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ImportReceipt
+		)
+		m.oldValue = func(ctx context.Context) (*ImportReceipt, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ImportReceipt.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withImportReceipt sets the old ImportReceipt of the mutation.
+func withImportReceipt(node *ImportReceipt) importreceiptOption {
+	return func(m *ImportReceiptMutation) {
+		m.oldValue = func(context.Context) (*ImportReceipt, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ImportReceiptMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ImportReceiptMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ImportReceiptMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ImportReceiptMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ImportReceipt.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ImportReceiptMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ImportReceiptMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ImportReceiptMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetOperationID sets the "operation_id" field.
+func (m *ImportReceiptMutation) SetOperationID(b []byte) {
+	m.operation_id = &b
+}
+
+// OperationID returns the value of the "operation_id" field in the mutation.
+func (m *ImportReceiptMutation) OperationID() (r []byte, exists bool) {
+	v := m.operation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperationID returns the old "operation_id" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldOperationID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperationID: %w", err)
+	}
+	return oldValue.OperationID, nil
+}
+
+// ResetOperationID resets all changes to the "operation_id" field.
+func (m *ImportReceiptMutation) ResetOperationID() {
+	m.operation_id = nil
+}
+
+// SetTicketID sets the "ticket_id" field.
+func (m *ImportReceiptMutation) SetTicketID(b []byte) {
+	m.ticket_id = &b
+}
+
+// TicketID returns the value of the "ticket_id" field in the mutation.
+func (m *ImportReceiptMutation) TicketID() (r []byte, exists bool) {
+	v := m.ticket_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTicketID returns the old "ticket_id" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldTicketID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTicketID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTicketID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTicketID: %w", err)
+	}
+	return oldValue.TicketID, nil
+}
+
+// ResetTicketID resets all changes to the "ticket_id" field.
+func (m *ImportReceiptMutation) ResetTicketID() {
+	m.ticket_id = nil
+}
+
+// SetRequestDigest sets the "request_digest" field.
+func (m *ImportReceiptMutation) SetRequestDigest(b []byte) {
+	m.request_digest = &b
+}
+
+// RequestDigest returns the value of the "request_digest" field in the mutation.
+func (m *ImportReceiptMutation) RequestDigest() (r []byte, exists bool) {
+	v := m.request_digest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestDigest returns the old "request_digest" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldRequestDigest(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestDigest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestDigest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestDigest: %w", err)
+	}
+	return oldValue.RequestDigest, nil
+}
+
+// ResetRequestDigest resets all changes to the "request_digest" field.
+func (m *ImportReceiptMutation) ResetRequestDigest() {
+	m.request_digest = nil
+}
+
+// SetOriginDigest sets the "origin_digest" field.
+func (m *ImportReceiptMutation) SetOriginDigest(b []byte) {
+	m.origin_digest = &b
+}
+
+// OriginDigest returns the value of the "origin_digest" field in the mutation.
+func (m *ImportReceiptMutation) OriginDigest() (r []byte, exists bool) {
+	v := m.origin_digest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOriginDigest returns the old "origin_digest" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldOriginDigest(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOriginDigest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOriginDigest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOriginDigest: %w", err)
+	}
+	return oldValue.OriginDigest, nil
+}
+
+// ResetOriginDigest resets all changes to the "origin_digest" field.
+func (m *ImportReceiptMutation) ResetOriginDigest() {
+	m.origin_digest = nil
+}
+
+// SetRevision sets the "revision" field.
+func (m *ImportReceiptMutation) SetRevision(i int64) {
+	m.revision = &i
+	m.addrevision = nil
+}
+
+// Revision returns the value of the "revision" field in the mutation.
+func (m *ImportReceiptMutation) Revision() (r int64, exists bool) {
+	v := m.revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevision returns the old "revision" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldRevision(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevision is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevision requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevision: %w", err)
+	}
+	return oldValue.Revision, nil
+}
+
+// AddRevision adds i to the "revision" field.
+func (m *ImportReceiptMutation) AddRevision(i int64) {
+	if m.addrevision != nil {
+		*m.addrevision += i
+	} else {
+		m.addrevision = &i
+	}
+}
+
+// AddedRevision returns the value that was added to the "revision" field in this mutation.
+func (m *ImportReceiptMutation) AddedRevision() (r int64, exists bool) {
+	v := m.addrevision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRevision resets all changes to the "revision" field.
+func (m *ImportReceiptMutation) ResetRevision() {
+	m.revision = nil
+	m.addrevision = nil
+}
+
+// SetPhase sets the "phase" field.
+func (m *ImportReceiptMutation) SetPhase(i importreceipt.Phase) {
+	m.phase = &i
+}
+
+// Phase returns the value of the "phase" field in the mutation.
+func (m *ImportReceiptMutation) Phase() (r importreceipt.Phase, exists bool) {
+	v := m.phase
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhase returns the old "phase" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldPhase(ctx context.Context) (v importreceipt.Phase, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhase: %w", err)
+	}
+	return oldValue.Phase, nil
+}
+
+// ResetPhase resets all changes to the "phase" field.
+func (m *ImportReceiptMutation) ResetPhase() {
+	m.phase = nil
+}
+
+// SetExecutionID sets the "execution_id" field.
+func (m *ImportReceiptMutation) SetExecutionID(b []byte) {
+	m.execution_id = &b
+}
+
+// ExecutionID returns the value of the "execution_id" field in the mutation.
+func (m *ImportReceiptMutation) ExecutionID() (r []byte, exists bool) {
+	v := m.execution_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExecutionID returns the old "execution_id" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldExecutionID(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExecutionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExecutionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExecutionID: %w", err)
+	}
+	return oldValue.ExecutionID, nil
+}
+
+// ResetExecutionID resets all changes to the "execution_id" field.
+func (m *ImportReceiptMutation) ResetExecutionID() {
+	m.execution_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ImportReceiptMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ImportReceiptMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ImportReceiptMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ImportReceiptMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ImportReceiptMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ImportReceiptMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetCiphertext sets the "ciphertext" field.
+func (m *ImportReceiptMutation) SetCiphertext(b []byte) {
+	m.ciphertext = &b
+}
+
+// Ciphertext returns the value of the "ciphertext" field in the mutation.
+func (m *ImportReceiptMutation) Ciphertext() (r []byte, exists bool) {
+	v := m.ciphertext
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCiphertext returns the old "ciphertext" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldCiphertext(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCiphertext is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCiphertext requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCiphertext: %w", err)
+	}
+	return oldValue.Ciphertext, nil
+}
+
+// ResetCiphertext resets all changes to the "ciphertext" field.
+func (m *ImportReceiptMutation) ResetCiphertext() {
+	m.ciphertext = nil
+}
+
+// SetCharge sets the "charge" field.
+func (m *ImportReceiptMutation) SetCharge(i int64) {
+	m.charge = &i
+	m.addcharge = nil
+}
+
+// Charge returns the value of the "charge" field in the mutation.
+func (m *ImportReceiptMutation) Charge() (r int64, exists bool) {
+	v := m.charge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharge returns the old "charge" field's value of the ImportReceipt entity.
+// If the ImportReceipt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ImportReceiptMutation) OldCharge(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharge: %w", err)
+	}
+	return oldValue.Charge, nil
+}
+
+// AddCharge adds i to the "charge" field.
+func (m *ImportReceiptMutation) AddCharge(i int64) {
+	if m.addcharge != nil {
+		*m.addcharge += i
+	} else {
+		m.addcharge = &i
+	}
+}
+
+// AddedCharge returns the value that was added to the "charge" field in this mutation.
+func (m *ImportReceiptMutation) AddedCharge() (r int64, exists bool) {
+	v := m.addcharge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCharge resets all changes to the "charge" field.
+func (m *ImportReceiptMutation) ResetCharge() {
+	m.charge = nil
+	m.addcharge = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *ImportReceiptMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[importreceipt.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *ImportReceiptMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *ImportReceiptMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *ImportReceiptMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the ImportReceiptMutation builder.
+func (m *ImportReceiptMutation) Where(ps ...predicate.ImportReceipt) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ImportReceiptMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImportReceiptMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ImportReceipt, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ImportReceiptMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImportReceiptMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ImportReceipt).
+func (m *ImportReceiptMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ImportReceiptMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.user != nil {
+		fields = append(fields, importreceipt.FieldUserID)
+	}
+	if m.operation_id != nil {
+		fields = append(fields, importreceipt.FieldOperationID)
+	}
+	if m.ticket_id != nil {
+		fields = append(fields, importreceipt.FieldTicketID)
+	}
+	if m.request_digest != nil {
+		fields = append(fields, importreceipt.FieldRequestDigest)
+	}
+	if m.origin_digest != nil {
+		fields = append(fields, importreceipt.FieldOriginDigest)
+	}
+	if m.revision != nil {
+		fields = append(fields, importreceipt.FieldRevision)
+	}
+	if m.phase != nil {
+		fields = append(fields, importreceipt.FieldPhase)
+	}
+	if m.execution_id != nil {
+		fields = append(fields, importreceipt.FieldExecutionID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, importreceipt.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, importreceipt.FieldUpdatedAt)
+	}
+	if m.ciphertext != nil {
+		fields = append(fields, importreceipt.FieldCiphertext)
+	}
+	if m.charge != nil {
+		fields = append(fields, importreceipt.FieldCharge)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ImportReceiptMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case importreceipt.FieldUserID:
+		return m.UserID()
+	case importreceipt.FieldOperationID:
+		return m.OperationID()
+	case importreceipt.FieldTicketID:
+		return m.TicketID()
+	case importreceipt.FieldRequestDigest:
+		return m.RequestDigest()
+	case importreceipt.FieldOriginDigest:
+		return m.OriginDigest()
+	case importreceipt.FieldRevision:
+		return m.Revision()
+	case importreceipt.FieldPhase:
+		return m.Phase()
+	case importreceipt.FieldExecutionID:
+		return m.ExecutionID()
+	case importreceipt.FieldCreatedAt:
+		return m.CreatedAt()
+	case importreceipt.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case importreceipt.FieldCiphertext:
+		return m.Ciphertext()
+	case importreceipt.FieldCharge:
+		return m.Charge()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ImportReceiptMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case importreceipt.FieldUserID:
+		return m.OldUserID(ctx)
+	case importreceipt.FieldOperationID:
+		return m.OldOperationID(ctx)
+	case importreceipt.FieldTicketID:
+		return m.OldTicketID(ctx)
+	case importreceipt.FieldRequestDigest:
+		return m.OldRequestDigest(ctx)
+	case importreceipt.FieldOriginDigest:
+		return m.OldOriginDigest(ctx)
+	case importreceipt.FieldRevision:
+		return m.OldRevision(ctx)
+	case importreceipt.FieldPhase:
+		return m.OldPhase(ctx)
+	case importreceipt.FieldExecutionID:
+		return m.OldExecutionID(ctx)
+	case importreceipt.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case importreceipt.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case importreceipt.FieldCiphertext:
+		return m.OldCiphertext(ctx)
+	case importreceipt.FieldCharge:
+		return m.OldCharge(ctx)
+	}
+	return nil, fmt.Errorf("unknown ImportReceipt field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImportReceiptMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case importreceipt.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case importreceipt.FieldOperationID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperationID(v)
+		return nil
+	case importreceipt.FieldTicketID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTicketID(v)
+		return nil
+	case importreceipt.FieldRequestDigest:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestDigest(v)
+		return nil
+	case importreceipt.FieldOriginDigest:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOriginDigest(v)
+		return nil
+	case importreceipt.FieldRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevision(v)
+		return nil
+	case importreceipt.FieldPhase:
+		v, ok := value.(importreceipt.Phase)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhase(v)
+		return nil
+	case importreceipt.FieldExecutionID:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExecutionID(v)
+		return nil
+	case importreceipt.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case importreceipt.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case importreceipt.FieldCiphertext:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCiphertext(v)
+		return nil
+	case importreceipt.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImportReceipt field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ImportReceiptMutation) AddedFields() []string {
+	var fields []string
+	if m.addrevision != nil {
+		fields = append(fields, importreceipt.FieldRevision)
+	}
+	if m.addcharge != nil {
+		fields = append(fields, importreceipt.FieldCharge)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ImportReceiptMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case importreceipt.FieldRevision:
+		return m.AddedRevision()
+	case importreceipt.FieldCharge:
+		return m.AddedCharge()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ImportReceiptMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case importreceipt.FieldRevision:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRevision(v)
+		return nil
+	case importreceipt.FieldCharge:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharge(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ImportReceipt numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ImportReceiptMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ImportReceiptMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ImportReceiptMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ImportReceipt nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ImportReceiptMutation) ResetField(name string) error {
+	switch name {
+	case importreceipt.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case importreceipt.FieldOperationID:
+		m.ResetOperationID()
+		return nil
+	case importreceipt.FieldTicketID:
+		m.ResetTicketID()
+		return nil
+	case importreceipt.FieldRequestDigest:
+		m.ResetRequestDigest()
+		return nil
+	case importreceipt.FieldOriginDigest:
+		m.ResetOriginDigest()
+		return nil
+	case importreceipt.FieldRevision:
+		m.ResetRevision()
+		return nil
+	case importreceipt.FieldPhase:
+		m.ResetPhase()
+		return nil
+	case importreceipt.FieldExecutionID:
+		m.ResetExecutionID()
+		return nil
+	case importreceipt.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case importreceipt.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case importreceipt.FieldCiphertext:
+		m.ResetCiphertext()
+		return nil
+	case importreceipt.FieldCharge:
+		m.ResetCharge()
+		return nil
+	}
+	return fmt.Errorf("unknown ImportReceipt field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ImportReceiptMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, importreceipt.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ImportReceiptMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case importreceipt.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ImportReceiptMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ImportReceiptMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ImportReceiptMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, importreceipt.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ImportReceiptMutation) EdgeCleared(name string) bool {
+	switch name {
+	case importreceipt.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ImportReceiptMutation) ClearEdge(name string) error {
+	switch name {
+	case importreceipt.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ImportReceipt unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ImportReceiptMutation) ResetEdge(name string) error {
+	switch name {
+	case importreceipt.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ImportReceipt edge %s", name)
 }
 
 // LocalAccountMutation represents an operation that mutates the LocalAccount nodes in the graph.
@@ -18608,6 +19653,9 @@ type UserMutation struct {
 	configuration_assets                 map[int]struct{}
 	removedconfiguration_assets          map[int]struct{}
 	clearedconfiguration_assets          bool
+	import_receipts                      map[int]struct{}
+	removedimport_receipts               map[int]struct{}
+	clearedimport_receipts               bool
 	native_consumer_challenges           map[int]struct{}
 	removednative_consumer_challenges    map[int]struct{}
 	clearednative_consumer_challenges    bool
@@ -19377,6 +20425,60 @@ func (m *UserMutation) ResetConfigurationAssets() {
 	m.removedconfiguration_assets = nil
 }
 
+// AddImportReceiptIDs adds the "import_receipts" edge to the ImportReceipt entity by ids.
+func (m *UserMutation) AddImportReceiptIDs(ids ...int) {
+	if m.import_receipts == nil {
+		m.import_receipts = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.import_receipts[ids[i]] = struct{}{}
+	}
+}
+
+// ClearImportReceipts clears the "import_receipts" edge to the ImportReceipt entity.
+func (m *UserMutation) ClearImportReceipts() {
+	m.clearedimport_receipts = true
+}
+
+// ImportReceiptsCleared reports if the "import_receipts" edge to the ImportReceipt entity was cleared.
+func (m *UserMutation) ImportReceiptsCleared() bool {
+	return m.clearedimport_receipts
+}
+
+// RemoveImportReceiptIDs removes the "import_receipts" edge to the ImportReceipt entity by IDs.
+func (m *UserMutation) RemoveImportReceiptIDs(ids ...int) {
+	if m.removedimport_receipts == nil {
+		m.removedimport_receipts = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.import_receipts, ids[i])
+		m.removedimport_receipts[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedImportReceipts returns the removed IDs of the "import_receipts" edge to the ImportReceipt entity.
+func (m *UserMutation) RemovedImportReceiptsIDs() (ids []int) {
+	for id := range m.removedimport_receipts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ImportReceiptsIDs returns the "import_receipts" edge IDs in the mutation.
+func (m *UserMutation) ImportReceiptsIDs() (ids []int) {
+	for id := range m.import_receipts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetImportReceipts resets all changes to the "import_receipts" edge.
+func (m *UserMutation) ResetImportReceipts() {
+	m.import_receipts = nil
+	m.clearedimport_receipts = false
+	m.removedimport_receipts = nil
+}
+
 // AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by ids.
 func (m *UserMutation) AddNativeConsumerChallengeIDs(ids ...int) {
 	if m.native_consumer_challenges == nil {
@@ -19726,7 +20828,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.github_credential != nil {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -19762,6 +20864,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.configuration_assets != nil {
 		edges = append(edges, user.EdgeConfigurationAssets)
+	}
+	if m.import_receipts != nil {
+		edges = append(edges, user.EdgeImportReceipts)
 	}
 	if m.native_consumer_challenges != nil {
 		edges = append(edges, user.EdgeNativeConsumerChallenges)
@@ -19850,6 +20955,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeImportReceipts:
+		ids := make([]ent.Value, 0, len(m.import_receipts))
+		for id := range m.import_receipts {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeNativeConsumerChallenges:
 		ids := make([]ent.Value, 0, len(m.native_consumer_challenges))
 		for id := range m.native_consumer_challenges {
@@ -19880,7 +20991,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.removedgithub_lists != nil {
 		edges = append(edges, user.EdgeGithubLists)
 	}
@@ -19910,6 +21021,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedconfiguration_assets != nil {
 		edges = append(edges, user.EdgeConfigurationAssets)
+	}
+	if m.removedimport_receipts != nil {
+		edges = append(edges, user.EdgeImportReceipts)
 	}
 	if m.removednative_consumer_challenges != nil {
 		edges = append(edges, user.EdgeNativeConsumerChallenges)
@@ -19990,6 +21104,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeImportReceipts:
+		ids := make([]ent.Value, 0, len(m.removedimport_receipts))
+		for id := range m.removedimport_receipts {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeNativeConsumerChallenges:
 		ids := make([]ent.Value, 0, len(m.removednative_consumer_challenges))
 		for id := range m.removednative_consumer_challenges {
@@ -20020,7 +21140,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.clearedgithub_credential {
 		edges = append(edges, user.EdgeGithubCredential)
 	}
@@ -20056,6 +21176,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedconfiguration_assets {
 		edges = append(edges, user.EdgeConfigurationAssets)
+	}
+	if m.clearedimport_receipts {
+		edges = append(edges, user.EdgeImportReceipts)
 	}
 	if m.clearednative_consumer_challenges {
 		edges = append(edges, user.EdgeNativeConsumerChallenges)
@@ -20100,6 +21223,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcategories
 	case user.EdgeConfigurationAssets:
 		return m.clearedconfiguration_assets
+	case user.EdgeImportReceipts:
+		return m.clearedimport_receipts
 	case user.EdgeNativeConsumerChallenges:
 		return m.clearednative_consumer_challenges
 	case user.EdgeNativeConsumerSessions:
@@ -20165,6 +21290,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeConfigurationAssets:
 		m.ResetConfigurationAssets()
+		return nil
+	case user.EdgeImportReceipts:
+		m.ResetImportReceipts()
 		return nil
 	case user.EdgeNativeConsumerChallenges:
 		m.ResetNativeConsumerChallenges()

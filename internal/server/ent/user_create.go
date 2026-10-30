@@ -15,6 +15,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubcredential"
 	"github.com/ca-x/cognate/internal/server/ent/githublist"
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
+	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
 	"github.com/ca-x/cognate/internal/server/ent/localaccount"
 	"github.com/ca-x/cognate/internal/server/ent/mcpcredential"
 	"github.com/ca-x/cognate/internal/server/ent/nativeapplypreparation"
@@ -227,6 +228,21 @@ func (_c *UserCreate) AddConfigurationAssets(v ...*ConfigurationAsset) *UserCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddConfigurationAssetIDs(ids...)
+}
+
+// AddImportReceiptIDs adds the "import_receipts" edge to the ImportReceipt entity by IDs.
+func (_c *UserCreate) AddImportReceiptIDs(ids ...int) *UserCreate {
+	_c.mutation.AddImportReceiptIDs(ids...)
+	return _c
+}
+
+// AddImportReceipts adds the "import_receipts" edges to the ImportReceipt entity.
+func (_c *UserCreate) AddImportReceipts(v ...*ImportReceipt) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddImportReceiptIDs(ids...)
 }
 
 // AddNativeConsumerChallengeIDs adds the "native_consumer_challenges" edge to the NativeConsumerChallenge entity by IDs.
@@ -546,6 +562,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(configurationasset.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ImportReceiptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ImportReceiptsTable,
+			Columns: []string{user.ImportReceiptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(importreceipt.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

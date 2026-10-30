@@ -277,6 +277,48 @@ var (
 			},
 		},
 	}
+	// ImportReceiptsColumns holds the columns for the "import_receipts" table.
+	ImportReceiptsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "operation_id", Type: field.TypeBytes, Size: 16},
+		{Name: "ticket_id", Type: field.TypeBytes, Size: 16},
+		{Name: "request_digest", Type: field.TypeBytes, Size: 32},
+		{Name: "origin_digest", Type: field.TypeBytes, Size: 32},
+		{Name: "revision", Type: field.TypeInt64, Default: 1},
+		{Name: "phase", Type: field.TypeEnum, Enums: []string{"reserved", "collecting", "completed", "partial", "failed"}},
+		{Name: "execution_id", Type: field.TypeBytes, Size: 16},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "ciphertext", Type: field.TypeBytes},
+		{Name: "charge", Type: field.TypeInt64},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// ImportReceiptsTable holds the schema information for the "import_receipts" table.
+	ImportReceiptsTable = &schema.Table{
+		Name:       "import_receipts",
+		Columns:    ImportReceiptsColumns,
+		PrimaryKey: []*schema.Column{ImportReceiptsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "import_receipts_users_import_receipts",
+				Columns:    []*schema.Column{ImportReceiptsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "importreceipt_user_id_operation_id",
+				Unique:  true,
+				Columns: []*schema.Column{ImportReceiptsColumns[12], ImportReceiptsColumns[1]},
+			},
+			{
+				Name:    "importreceipt_user_id_ticket_id",
+				Unique:  true,
+				Columns: []*schema.Column{ImportReceiptsColumns[12], ImportReceiptsColumns[2]},
+			},
+		},
+	}
 	// LocalAccountsColumns holds the columns for the "local_accounts" table.
 	LocalAccountsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -803,6 +845,7 @@ var (
 		GitHubListsTable,
 		GitHubMembershipsTable,
 		GitHubRepositoriesTable,
+		ImportReceiptsTable,
 		LocalAccountsTable,
 		McpAuditsTable,
 		McpCredentialsTable,
@@ -832,6 +875,7 @@ func init() {
 	GitHubMembershipsTable.ForeignKeys[0].RefTable = GitHubListsTable
 	GitHubMembershipsTable.ForeignKeys[1].RefTable = GitHubRepositoriesTable
 	GitHubRepositoriesTable.ForeignKeys[0].RefTable = UsersTable
+	ImportReceiptsTable.ForeignKeys[0].RefTable = UsersTable
 	LocalAccountsTable.ForeignKeys[0].RefTable = UsersTable
 	McpAuditsTable.ForeignKeys[0].RefTable = McpCredentialsTable
 	McpCredentialsTable.ForeignKeys[0].RefTable = UsersTable

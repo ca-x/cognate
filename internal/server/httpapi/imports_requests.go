@@ -57,6 +57,10 @@ func (handler *ImportHandler) Guard(next http.Handler) http.Handler {
 			reject(err)
 			return
 		}
+		if request.URL.Path != importv1connect.ImportServicePreviewLibraryExportProcedure && request.URL.Path != importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure {
+			reject(connect.NewError(connect.CodeUnimplemented, errors.New("import method is not available")))
+			return
+		}
 		handler.mutex.Lock()
 		if handler.closed {
 			err = connect.NewError(connect.CodeUnavailable, errors.New("import preview is shutting down"))
