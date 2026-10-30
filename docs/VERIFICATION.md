@@ -24,6 +24,10 @@
 
 后继诊断源码 `ef9e49f` 的 Build `41140357215` 已终态失败；全仓测试与六组二进制成功，两架构最终镜像均在 `stat /usr/share/licenses/cognate` 失败。实际日志显示 `/usr/share/licenses` 为 `0644`，缺少目录搜索权限；即便 UID0，在 cap-drop ALL 下也不能越过该目录。UID10001 检查与原业务 smoke 被跳过，不记作通过；这不追溯认定旧 run 的首个失败命令。修复仅在 LICENSE COPY 后对三个精确公共祖先目录设置 `0755`，文件继续 `0644`，不递归改权限，不改变 `/data` 的 `0700`、默认用户或任何 CI 断言。非作者静审通过，actionlint 通过；本机无 Docker/Podman，实际修复结果仍须后续精确提交的双架构 CI 验证。
 
+实际闭环：精确修复提交 `bd8cc64b78cafb14f228b14ef97d498b5b168df8` 的 Build `41141720391` 已 completed/success，九个 jobs 全成功；amd64/arm64 两个最终镜像的原预检和完整业务 smoke 均成功，未跳过。主线程读取两架构原始 job 日志，三个公共目录实际均 `0755`、LICENSE `0644`，独立 UID10001 与业务容器各自的完整 hash 检查均 OK；默认用户、私有数据、错误密钥拒绝和重启仍由原 mandatory smoke 检查。后继领域提交 `a5f201d` 的 Build `41141882783` 亦 completed/success。这不创建正式 Release、不改变旧 run 的失败历史，也不将 CI 容器结果说成本机 Docker 执行。
+
+另对先前 `489bcf2`/Native desktop `41137504523` 下载产物做静态审计：三个 ZIP 再次匹配 GitHub artifact digest，安全路径/重复成员检查通过；六份架构级 LICENSE 均为完整 11,558 字节且 SHA256 匹配，六个桌面可执行文件的静态 Go 元数据均为 Go1.27.3、CGO0、正确 OS/arch、精确 VCS revision 且无 dirty 标记。本机未执行安装器或桌面程序，亦未在 Linux 上打开 DMG/NSIS 内部；安装包内许可检查仍属于对应平台的原 CI，不以 ZIP staging 证明实际安装或 GUI 可用。
+
 ## 2026-10-31：Native HTTP 配额测试改用被动观测
 
 Grok Build 候选全仓运行实际失败于 `TestCodexNativeTransportLifetime`：八个慢 body 未达到测试探针期待的配额状态，原失败保留。原探针通过 `service.Call(no-op)` 自身占槽，可能使同时入场的第八个真实请求被拒；受控交错已在未改生产服务的情况下复现同一断言失败，不推断原运行的精确调度或归因为机器负载。
