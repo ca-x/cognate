@@ -12,12 +12,12 @@ import (
 
 func newImportCommand() *cobra.Command {
 	command := &cobra.Command{
-		Use: "import", Short: "上传明确授权的导出数据并预览仓库候选", Args: cobra.NoArgs,
+		Use: "import", Short: "上传明确授权的快照，选择导入技能引用、仓库与配置", Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
-			return errors.New("请使用 import magpie 指定授权的导出文件")
+			return errors.New("请使用 import select 或 import magpie 指定授权的导出文件；未知结果仅用 import status 查询")
 		},
 	}
-	command.AddCommand(newImportMagpieCommand())
+	command.AddCommand(newImportMagpieCommand(), newImportSelectionCommand(), newImportStatusCommand())
 	return command
 }
 
