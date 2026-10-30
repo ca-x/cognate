@@ -208,6 +208,7 @@ jobs:
           evidence = root / "evidence"
           import re
           import signal
+          import stat
           environment = {name: os.environ[name] for name in [
               "PATH", "HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "TMPDIR",
               "GOPATH", "GOCACHE", "COGNATE_APFS_SENSITIVE", "COGNATE_APFS_INSENSITIVE", "COGNATE_DARWIN_BINARY",
@@ -232,9 +233,119 @@ jobs:
               "desktop-unsupported": "Darwin native service must require explicit initialization",
               "pack-core-unsupported": "Darwin real Pack CLI command must succeed",
           }
-          def capture_native(command, path, environment):
-              process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                         env=environment, start_new_session=True)
+          capability_sources = {
+              "TestDarwinAPFSExecutionPrerequisites": ("install", "platform_volume_darwin_test.go", "apfs", [
+                  "DARWIN_INFRA requires actual arm64 runner",
+                  "DARWIN_INFRA requires two mounted APFS fixtures",
+                  "DARWIN_INFRA mounted volume missing",
+                  "DARWIN_INFRA native stat unavailable",
+                  "DARWIN_INFRA filesystem identity unavailable",
+                  "DARWIN_INFRA fixture is not APFS",
+                  "DARWIN_INFRA fixture devices are identical",
+                  "DARWIN_INFRA volume fixture creation",
+                  "DARWIN_INFRA volume fixture cleanup",
+                  "DARWIN_INFRA case fixture",
+                  "DARWIN_INFRA sensitive volume folds case",
+                  "DARWIN_INFRA case close",
+                  "DARWIN_INFRA insensitive volume admits case alias",
+                  "DARWIN_INFRA Unicode fixture",
+                  "DARWIN_INFRA Unicode equivalent unexpectedly distinct",
+                  "DARWIN_INFRA rename source",
+                  "DARWIN_INFRA directory handle",
+                  "DARWIN_INFRA no-replace primitive failed",
+                  "DARWIN_INFRA cross-device fixture cleanup",
+                  "DARWIN_INFRA cross-device source",
+                  "DARWIN_INFRA cross-device rename did not reject",
+                  "DARWIN_INFRA cross-device source changed",
+                  "DARWIN_INFRA cross-device destination created",
+              ]),
+              "TestDarwinPTYExecutionPrerequisites": ("cli", "platform_output_darwin_test.go", "pty", [
+                  "DARWIN_INFRA PTY child deadline or incomplete drain",
+                  "DARWIN_INFRA PTY process unavailable",
+                  "DARWIN_INFRA duplicate PTY exit receipt",
+                  "DARWIN_INFRA invalid PTY exit receipt",
+                  "DARWIN_INFRA missing actual PTY child/exit receipt",
+                  "DARWIN_INFRA canonical private PTY home",
+                  "DARWIN_INFRA isolated PTY environment",
+                  "DARWIN_INFRA actual controlling PTY unavailable",
+              ]),
+          }
+          capability_diagnostics = {"schema": 1, "records": [
+              {"test_name": name, "attempted": False, "exit_known": False, "exit": 0,
+               "timeout": False, "failure_class": "unknown"} for name in capability_sources
+          ]}
+          def write_capability_diagnostics():
+              try:
+                  descriptor = os.open(evidence / "capability-diagnostics.json",
+                                       os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+                  with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+                      info = os.fstat(output.fileno())
+                      if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_uid != os.geteuid()
+                              or stat.S_IMODE(info.st_mode) != 0o600):
+                          return
+                      data = (json.dumps(capability_diagnostics, sort_keys=True) + "\n").encode()
+                      if len(data) > 2048:
+                          return
+                      output.truncate(0)
+                      output.write(data.decode())
+              except Exception:
+                  pass
+          def capability_events(path):
+              def unique(pairs):
+                  result = {}
+                  for key, value in pairs:
+                      if key in result:
+                          raise ValueError
+                      result[key] = value
+                  return result
+              try:
+                  with path.open("rb") as source:
+                      data = source.read((4 << 20) + 1)
+                  lines = data.splitlines()
+                  if len(data) > 4 << 20 or len(lines) > 16:
+                      return []
+                  return [json.loads(line, object_pairs_hook=unique) for line in lines]
+              except Exception:
+                  return []
+          def capability_failure(name, events):
+              try:
+                  package, filename, prefix, messages = capability_sources[name]
+                  roles = [("start", None), ("run", name), ("output", name), ("output", name),
+                           ("output", name), ("fail", name), ("output", None), ("fail", None)]
+                  if type(events) is not list or len(events) != len(roles):
+                      return "unknown"
+                  for event, (action, target) in zip(events, roles):
+                      if (type(event) is not dict or set(event) - {"Time", "Action", "Package", "Test", "Elapsed", "Output", "OutputType"}
+                              or event.get("Action") != action or event.get("Test") != target
+                              or event.get("Package") != "github.com/ca-x/cognate/internal/" + package):
+                          return "unknown"
+                      if "Elapsed" in event and (type(event["Elapsed"]) not in (int, float) or not 0 <= event["Elapsed"] < 1000):
+                          return "unknown"
+                      if "Time" in event and (type(event["Time"]) is not str or not re.fullmatch(
+                              r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})", event["Time"])):
+                          return "unknown"
+                      if action != "output" and ("Output" in event or "OutputType" in event):
+                          return "unknown"
+                  if (events[2].get("Output") != "=== RUN   " + name + "\n" or events[2].get("OutputType") != "frame"
+                          or events[6].get("Output") != "FAIL\n" or events[6].get("OutputType") != "frame"
+                          or events[4].get("OutputType") != "frame" or not re.fullmatch(
+                              r"--- FAIL: " + re.escape(name) + r" \([0-9]+(?:\.[0-9]+)?s\)\n", events[4].get("Output", ""))
+                          or events[3].get("OutputType") != "error"):
+                      return "unknown"
+                  match = re.fullmatch(r"    " + re.escape(filename) + r":[1-9][0-9]*: ([^\n]+)\n", events[3].get("Output", ""))
+                  if match is None or match[1] not in messages:
+                      return "unknown"
+                  return prefix + "-" + str(messages.index(match[1]) + 1).zfill(2)
+              except Exception:
+                  return "unknown"
+          def capture_native(command, path, environment, diagnostic=None):
+              try:
+                  process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                             env=environment, start_new_session=True)
+              except OSError:
+                  if diagnostic is not None:
+                      diagnostic["failure_class"] = "capture-launch"
+                  raise
               selector = None
               deadline = time.monotonic() + 100
               try:
@@ -246,6 +357,8 @@ jobs:
                       while True:
                           remaining = deadline - time.monotonic()
                           if remaining <= 0:
+                              if diagnostic is not None:
+                                  diagnostic.update(timeout=True, failure_class="capture-timeout")
                               raise RuntimeError("native capture deadline")
                           if not selector.select(min(remaining, 1)):
                               continue
@@ -256,9 +369,13 @@ jobs:
                           output.write(data[:available])
                           size += min(len(data), available)
                           if len(data) > available:
+                              if diagnostic is not None:
+                                  diagnostic["failure_class"] = "capture-limit"
                               raise RuntimeError("native capture byte limit")
                   code = process.wait(timeout=max(0.001, deadline - time.monotonic()))
-              except BaseException:
+              except BaseException as error:
+                  if diagnostic is not None and isinstance(error, subprocess.TimeoutExpired):
+                      diagnostic.update(timeout=True, failure_class="capture-timeout")
                   try:
                       os.killpg(process.pid, signal.SIGKILL)
                   except ProcessLookupError:
@@ -269,6 +386,8 @@ jobs:
                   if selector is not None:
                       selector.close()
                   process.stdout.close()
+                  if diagnostic is not None and type(process.returncode) is int and -255 <= process.returncode <= 255:
+                      diagnostic.update(exit_known=True, exit=process.returncode)
                   path.with_suffix(".exit").write_text(str(process.returncode) + "\n")
               return code
           def classify(package, name, expected, events, code):
@@ -320,21 +439,33 @@ jobs:
                       raise RuntimeError("unknown native error or output")
           def execute(package, name, expected):
               path = evidence / (name + ".json")
-              code = capture_native([
-                  "go", "tool", "test2json", "-p", "github.com/ca-x/cognate/internal/" + package,
-                  str(root / "bin" / (package + ".test")), "-test.v=test2json", "-test.count=1",
-                  "-test.timeout=90s", "-test.run=^" + name + "$",
-              ], path, environment)
-              path.with_suffix(".exit").write_text(str(code) + "\n")
+              diagnostic = next((record for record in capability_diagnostics["records"]
+                                 if expected is None and record["test_name"] == name), None)
+              if diagnostic is not None:
+                  diagnostic["attempted"] = True
+                  write_capability_diagnostics()
               events = []
-              with path.open() as source:
-                  for line in source:
-                      if len(events) >= 16:
-                          raise RuntimeError("native event count limit")
-                      events.append(json.loads(line))
+              try:
+                  code = capture_native([
+                      "go", "tool", "test2json", "-p", "github.com/ca-x/cognate/internal/" + package,
+                      str(root / "bin" / (package + ".test")), "-test.v=test2json", "-test.count=1",
+                      "-test.timeout=90s", "-test.run=^" + name + "$",
+                  ], path, environment, diagnostic)
+                  path.with_suffix(".exit").write_text(str(code) + "\n")
+                  with path.open() as source:
+                      for line in source:
+                          if len(events) >= 16:
+                              raise RuntimeError("native event count limit")
+                          events.append(json.loads(line))
+              finally:
+                  if diagnostic is not None:
+                      if diagnostic["failure_class"] == "unknown" and diagnostic["exit_known"] and diagnostic["exit"] != 0:
+                          diagnostic["failure_class"] = capability_failure(name, capability_events(path))
+                      write_capability_diagnostics()
               classify(package, name, expected, events, code)
               receipts.append({"test": name, "raw_exit": code,
                                "classification": "capability-pass" if expected is None else "baseline-unsupported-assertion-RED"})
+          write_capability_diagnostics()
           try:
               for case in cases:
                   execute(*case)
@@ -530,7 +661,8 @@ jobs:
               "TestDarwinExecutionDesktopServiceInstall", "TestDarwinExecutionPackLifecycle",
           ]
           allow = {"source-identity.json": 1 << 20, "toolchain.txt": 128,
-                   "volume-capability.json": 8192, "cleanup.json": 8192, "observation.json": 8192}
+                   "volume-capability.json": 8192, "cleanup.json": 8192, "observation.json": 8192,
+                   "capability-diagnostics.json": 2048}
           for name in names:
               allow[name + ".json"] = 4 << 20
               allow[name + ".exit"] = 16
@@ -543,6 +675,8 @@ jobs:
                   before = os.fstat(source.fileno())
                   if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > allow[name]:
                       raise ValueError("invalid evidence object")
+                  if name == "capability-diagnostics.json" and (before.st_uid != os.geteuid() or stat.S_IMODE(before.st_mode) != 0o600):
+                      raise ValueError("invalid diagnostic object")
                   data = source.read(allow[name] + 1)
                   after = os.fstat(source.fileno())
                   identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
@@ -558,6 +692,47 @@ jobs:
                       result[key] = value
                   return result
               return json.loads(data, object_pairs_hook=unique)
+          def capability_receipt():
+              unknown = {"schema": 1, "records": [
+                  {"test_name": name, "attempted": False, "exit_known": False, "exit": 0,
+                   "timeout": False, "failure_class": "unknown"} for name in names[:2]
+              ]}
+              try:
+                  parsed = receipt_json(read_file("capability-diagnostics.json"))
+                  if (type(parsed) is not dict or set(parsed) != {"schema", "records"}
+                          or type(parsed["schema"]) is not int or parsed["schema"] != 1
+                          or type(parsed["records"]) is not list or len(parsed["records"]) != 2):
+                      return unknown
+                  for index, (record, name) in enumerate(zip(parsed["records"], names[:2])):
+                      if type(record) is not dict or set(record) != {"test_name", "attempted", "exit_known", "exit", "timeout", "failure_class"}:
+                          return unknown
+                      if record["test_name"] != name or any(type(record[key]) is not bool for key in ["attempted", "exit_known", "timeout"]):
+                          return unknown
+                      if type(record["exit"]) is not int or not -255 <= record["exit"] <= 255:
+                          return unknown
+                      classes = {("apfs" if index == 0 else "pty") + "-" + str(number).zfill(2)
+                                 for number in range(1, 24 if index == 0 else 9)}
+                      category = record["failure_class"]
+                      if type(category) is not str or category not in classes | {"unknown", "capture-launch", "capture-timeout", "capture-limit"}:
+                          return unknown
+                      if not record["exit_known"] and record["exit"] != 0:
+                          return unknown
+                      if not record["attempted"]:
+                          if record["exit_known"] or record["exit"] != 0 or record["timeout"] or category != "unknown":
+                              return unknown
+                      if category == "capture-launch" and (not record["attempted"] or record["exit_known"] or record["timeout"]):
+                          return unknown
+                      if category == "capture-timeout" and (not record["attempted"] or not record["timeout"]):
+                          return unknown
+                      if category == "capture-limit" and (not record["attempted"] or record["timeout"]):
+                          return unknown
+                      if category in classes and (not record["attempted"] or not record["exit_known"] or record["exit"] == 0 or record["timeout"]):
+                          return unknown
+                      if record["timeout"] and category not in {"unknown", "capture-timeout"}:
+                          return unknown
+                  return parsed
+              except Exception:
+                  return unknown
           def volume_receipt(data=None):
               unknown = {"classification": "operation-unconfirmed"}
               try:
@@ -667,11 +842,17 @@ jobs:
                       count += 1
                       if count > len(allow) or entry.name not in allow or entry.name in payloads:
                           raise ValueError("unknown evidence entry")
+                      if entry.name == "capability-diagnostics.json":
+                          continue
                       data = read_file(entry.name)
                       total += len(data)
                       if total > 12 << 20:
                           raise ValueError("total evidence limit")
                       payloads[entry.name] = data
+              payloads["capability-diagnostics.json"] = (json.dumps(capability_receipt(), sort_keys=True) + "\n").encode()
+              total += len(payloads["capability-diagnostics.json"])
+              if total > 12 << 20:
+                  raise ValueError("total evidence limit")
               if (set(payloads) != set(allow) or "classification" in cleanup_receipt(payloads["cleanup.json"])
                       or "classification" in volume_receipt(payloads["volume-capability.json"])):
                   raise ValueError("incomplete evidence")
@@ -697,6 +878,7 @@ jobs:
                                                "creates": volume.get("creates", {"classification": "creates-unconfirmed"})},
                                               sort_keys=True) + "\n").encode(),
                   "cleanup.json": (json.dumps(cleanup_receipt(), sort_keys=True) + "\n").encode(),
+                  "capability-diagnostics.json": (json.dumps(capability_receipt(), sort_keys=True) + "\n").encode(),
               }
           finally:
               if directory is not None:
