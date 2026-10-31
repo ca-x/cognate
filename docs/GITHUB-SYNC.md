@@ -1,6 +1,19 @@
 # GitHub Lists 同步（开发中）
 
-`internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`cognate-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时任务、增量水位线跳过和实际仓库拉取入库未完成，F1/M3 尚未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
+`internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`cognate-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时水位同步和公开/私有归档收录的后继实现见 `SOURCE-REFRESH.md`；真实账号端到端资格仍未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
+
+## 明确重新授权
+
+处于 `needs_reauthorization` 的凭据只向已登录所有者返回原 viewer、预期 generation 和
+`authorization_required`，不返回旧 Lists/仓库，也不请求 GitHub。现有来源表单沿同一
+generation 通过手动 token 或 device flow 明确重新授权，无需新的 RPC 或浏览器存储。
+服务端验证新凭据后，先校验旧认证密文/AAD，再以事务 CAS 同时发布新 generation/密文
+并转为 ready，清除旧在途标记；旧同步票据和来源能力不能跨代继续使用。
+
+空/过期 generation、refreshing/未知状态、跨 owner 或损坏旧密文均拒绝。被动身份读取
+不 SELECT token 密文、不解密，也不放宽普通 Credential 的 ready-only 内容访问门。
+此片经真实 SQLite、Connect 及合成 TLS PAT/device 全链独立验收；不是用户真实 GitHub
+账号、浏览器新回归或完整恢复产品的运行资格。具体收据见 `VERIFICATION.md`。
 
 ## 设备授权接线
 

@@ -27,6 +27,10 @@ S3 的运行资格，不是外部供应商 IAM/一致性证书，也未提供生
 生产撤销 coordinator、运行代切换/回退、离线 CLI 及真实重启业务回读仍待交付，不能手工
 移动 Candidate 到活目录冒充恢复。准确证据与异常安全边界见 `VERIFICATION.md`。
 
+GitHub needs_reauthorization 的所有者明确重授权已补齐：现有 Catalog 只给被动身份和
+预期 generation，PAT/device 两路复用原 CAS，在验证旧 AAD 后原子生成新代/新密文。
+普通内容读取仍要求 ready，旧票据不复活；不表示生产恢复 coordinator 已接通。
+
 ## Web 手动管理
 
 登录工作空间后进入「服务端备份」(`/server-backup`)。页面复用现有 React、TanStack Query/Router、Button 及 Radix Dialog/Checkbox，没有新增依赖或自研基础控件。普通账号由真实 RPC 拒绝，页面不会据此猜测备份是否开启，也不会读取任务历史。管理员可区分关闭、旧服务端不支持、加载失败、无任务及实际历史；页面不接收目标凭据或恢复密钥。

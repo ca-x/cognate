@@ -1,5 +1,27 @@
 # 开发预览验证
 
+## 2026-11-01：GitHub 明确重新授权与 T3S/R4 组合
+
+GitHub exact5 patch SHA256
+`575655a115c35191f03be75b1b7e30718faf4020808aa655308ce64859abef02`，三生产源和两新增
+测试按冻结字节合入。非作者 Spec/Quality ACCEPT：
+`/tmp/cognate-r4-independent-38c246b-Oj8SQI/REPORT.md`，SHA256
+`2f0fda8c0e39df4144b10693c07d0b2126465fcc7287ffa3f174543656516816`。
+独立实跑 112 PASS 事件及 5 个自写探针、三包 vet；旧四入口与单独旧 device 接点的
+行为 RED 均复现。覆盖 Ready 旧行为、Needs 两连接单赢家、原 AAD/损坏密文拒绝、旧代
+工作失效，以及真实 Connect→TLS device-code/poll/GraphQL→事务新代发布，不用 Complete
+mock 代替。被动身份 getter 不 SELECT 密文或解密，普通 Credential 仍 ready-only。
+
+主干净导出将 T3S exact12、撤销 exact2 与重新授权 exact5 合成 source tree
+`61e267232439960a0c9a4d4c8da3ab001eb843c6`（与后继提交仅文档不同），复用正常构建的
+未变 Web embed：server/state/httpapi/githubauth 四包完整测试实际 2782 PASS 事件、
+18 SKIP、0 FAIL及四包 vet exit0，收据 `runtime-r4-main/01-four-packages.*`、`02-vet.*`。
+此前 T3S 全仓 8838 PASS 不冒称本 nineteen-source 组合的单次全仓运行。
+该组合六目标 server CGO0 构建及实际 Go/OS/架构元数据检查全部通过，见
+`runtime-r4-main/03-*`；CLI/MyGo 生产依赖列表确认不含 `internal/server/`，未引入服务端
+SQL/helper 或 moejs。前一组 18 产品构建仍绑定 T3S tree，不混记为本次 18 构建。
+没有新 wire/UI/依赖；不是用户真实 GitHub/OIDC 账号、完整恢复或正式发布资格。
+
 ## 2026-11-01：恢复凭据撤销事务内核
 
 新增 `state/revokeRestoreCredentialsTx` 的内部借事务实现及测试，exact2 patch SHA256

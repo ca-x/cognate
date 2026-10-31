@@ -41,7 +41,7 @@
 - [x] T2 可信 S3 Source bridge 内部 API：头 scope 外完成全对象认证，所有解封/输入 scope 关闭成功后才开放候选验证；原 Capture 密文经 TLS 到真实 Candidate 的组合经独审，不含生产 CLI 或真实云供应商资格。
 - [ ] 生产离线恢复命令与真实 S3 权限/供应商验收：接通原始 key、S3 Source、候选和运行代全过程；内部 API 通过不等于用户已能执行恢复。
 - [x] R4 恢复凭据撤销内部事务 helper：五类会话链、share/MCP、GitHub 在途状态按固定时刻退役，保留业务及原密文/AAD；非作者独审和主 T3S 组合定向通过。非幂等，不含事务 coordinator、发布或恢复产品入口。
-- [ ] 恢复后 GitHub 显式重新授权 CAS 与所有者预期 generation 读取/交互闭环：现有 PutCredential 仅接受 ready，不能将 needs_reauthorization 资产可保留误写为已可重新授权；不修改旧 generation 破坏 AAD，也不删除密文绕过 CAS。
+- [x] GitHub needs_reauthorization 的明确重新授权 CAS：所有者经现有 Catalog 取得预期 generation，沿 PAT/device flow 验新凭据后原子生成新代/新密文并转 ready；旧 AAD、stale/refreshing/跨 owner 与旧票据门保持。非作者独审通过，不代表恢复产品或真实账号已验收。
 - [x] T1 辅助配置关系 gate：在既有只读 worker 核验排序及 Pack 附件的 owner/分区/成员/序号；公开预算域和 LIMIT 溢出 P2 经原独审闭合，不改变合法 stale/Unsupported 读取语义。
 - [ ] 用真实 GitHub 账号验证 device flow、Lists 选择、私有仓库权限和失权行为。
 - [x] 来源重新授权的 SQLite 517 六阶段修复及 N1 可取消准入：限定独审 Spec/Quality ACCEPT，新组合 395 条浏览器证据、取消/跨连接重复专项及修后全仓通过。只有精确 BUSY 的尚未开始 BEGIN 使用 5ms/10s 准入轮询，不重放业务、CAS、提交或网络，见 `SOURCES-UI.md`。

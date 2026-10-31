@@ -139,7 +139,7 @@ func (handler *githubHandler) catalog(ctx context.Context, user string) (*github
 		return &githubv1.Catalog{DeviceFlowEnabled: handler.device != nil}, nil
 	}
 	if errors.Is(err, state.ErrCredentialUnavailable) {
-		credential, lookupErr := handler.store.Credential(ctx, user)
+		credential, lookupErr := handler.store.CredentialIdentity(ctx, user)
 		if lookupErr != nil {
 			return nil, lookupErr
 		}

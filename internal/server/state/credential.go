@@ -24,6 +24,11 @@ type Credential struct {
 	Token      github.Token
 }
 
+type CredentialIdentity struct {
+	ViewerID   string
+	Generation string
+}
+
 func (Credential) String() string   { return "[redacted GitHub credential]" }
 func (Credential) GoString() string { return "[redacted GitHub credential]" }
 
@@ -66,13 +71,17 @@ func (store *Store) PutCredential(ctx context.Context, userKey, viewerID, expect
 		} else if err != nil {
 			return fmt.Errorf("inspect GitHub credential: %w", err)
 		} else {
-			if expectedGeneration == "" || existing.Generation != expectedGeneration || existing.Status != githubcredential.StatusReady {
+			if expectedGeneration == "" || existing.Generation != expectedGeneration || (existing.Status != githubcredential.StatusReady && existing.Status != githubcredential.StatusNeedsReauthorization) {
 				return ErrCredentialConflict
 			}
 			if _, err := store.decryptCredential(userKey, existing); err != nil {
 				return err
 			}
-			count, err := tx.GitHubCredential.Update().Where(githubcredential.IDEQ(existing.ID), githubcredential.GenerationEQ(expectedGeneration), githubcredential.StatusEQ(githubcredential.StatusReady)).SetViewerID(viewerID).SetClientID(token.ClientID()).SetKeyID(store.state.keyID).SetGeneration(generation).SetCiphertext(ciphertext).Save(ctx)
+			update := tx.GitHubCredential.Update().Where(githubcredential.IDEQ(existing.ID), githubcredential.GenerationEQ(expectedGeneration), githubcredential.StatusEQ(existing.Status)).SetViewerID(viewerID).SetClientID(token.ClientID()).SetKeyID(store.state.keyID).SetGeneration(generation).SetCiphertext(ciphertext)
+			if existing.Status == githubcredential.StatusNeedsReauthorization {
+				update.SetStatus(githubcredential.StatusReady).SetRefreshAttempt("").SetSyncFetchID("").SetCollectionCursor(0)
+			}
+			count, err := update.Save(ctx)
 			if err != nil {
 				return fmt.Errorf("update GitHub credential: %w", err)
 			}
@@ -89,6 +98,27 @@ func (store *Store) PutCredential(ctx context.Context, userKey, viewerID, expect
 		return generation, err
 	}
 	return generation, nil
+}
+
+func (store *Store) CredentialIdentity(ctx context.Context, userKey string) (CredentialIdentity, error) {
+	if err := validateIdentifier(userKey); err != nil {
+		return CredentialIdentity{}, err
+	}
+	owner, err := findUser(ctx, store.state.client, userKey)
+	if err != nil {
+		return CredentialIdentity{}, err
+	}
+	entry, err := store.state.client.GitHubCredential.Query().Where(githubcredential.UserIDEQ(owner.ID)).Select(githubcredential.FieldViewerID, githubcredential.FieldGeneration, githubcredential.FieldStatus).Only(ctx)
+	if ent.IsNotFound(err) {
+		return CredentialIdentity{}, ErrCredentialNotFound
+	}
+	if err != nil {
+		return CredentialIdentity{}, fmt.Errorf("read GitHub credential identity: %w", err)
+	}
+	if (entry.Status != githubcredential.StatusReady && entry.Status != githubcredential.StatusNeedsReauthorization) || validateIdentifier(entry.ViewerID) != nil || validateIdentifier(entry.Generation) != nil {
+		return CredentialIdentity{}, ErrCredentialUnavailable
+	}
+	return CredentialIdentity{ViewerID: entry.ViewerID, Generation: entry.Generation}, nil
 }
 
 func (store *Store) Credential(ctx context.Context, userKey string) (Credential, error) {

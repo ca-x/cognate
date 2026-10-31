@@ -126,6 +126,15 @@ func (service *Service) Start(ctx context.Context, user, expectedGeneration stri
 	defer stop()
 	defer cancelStart()
 	credential, err := service.store.Credential(startCtx, user)
+	if errors.Is(err, state.ErrCredentialUnavailable) {
+		if identities, ok := service.store.(interface {
+			CredentialIdentity(context.Context, string) (state.CredentialIdentity, error)
+		}); ok {
+			var identity state.CredentialIdentity
+			identity, err = identities.CredentialIdentity(startCtx, user)
+			credential.Generation = identity.Generation
+		}
+	}
 	if err != nil && !errors.Is(err, state.ErrCredentialNotFound) {
 		service.finish(current, err)
 		return Authorization{}, err
