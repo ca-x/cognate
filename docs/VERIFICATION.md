@@ -36,8 +36,19 @@ source tree `1c3edd309c581dff2b9ad4a585b52a8205117db6` 的完整 restore/state/b
 泄入 fixture 子进程而 exit1，记录 `18-full-go-combined.*` 保留，不作为产品回归或绿色证据。
 随后清除该变量，正常 npm ci/build 均 exit0，重新全仓运行的独立收据为
 `20-combined-npm-ci.*`、`21-combined-web-build.*`、`22-full-go-combined-corrected.*`、
-`23-full-vet-combined-corrected.*`。最终结果以各真实终态收据为准，不以进行中冒充通过，
-也不把 scoped 独审或本机全仓推成完整 F4/GA。
+`23-full-vet-combined-corrected.*`：最终 **8627 PASS / 170 SKIP / 0 FAIL**，51 个测试包
+通过，77 个无测试包；全仓 tests/vet 均 exit0。三产品 CLI/server/MyGo × Linux/Darwin/
+Windows × amd64/arm64 的 18 项 CGO0 build 全 exit0，实际二进制的 Go1.27.3、CGO_ENABLED=0
+及 GOOS/GOARCH 元数据均逐项匹配，见 `26-cross-builds.*`、`27-build-metadata.*`。
+被测 source tree 与已推 `2efa940` 的 Go/Web/module 源码完全相同，仅后继文档有差异。
+交叉构建不等于目标平台安装/运行，也不把 scoped 独审或本机全仓推成完整 F4/GA。
+
+四阶段均已 SSH 推送读回：CopyFile `82b212d`、lease `7b58bf5`、辅助关系 `a9bc97c`、
+Candidate `2efa940`。前两 Build `41247661708` / `41247819147` 已 completed/success；
+后两 Build `41247945841` / `41248349185` 目前 in_progress，未称成功。后两对应 Platform
+filesystem primitives `41247945745` / `41248349194` 已 completed/success；不能用它们
+替代整个 Build 资格。后继启动准备设计见 `superpowers/plans/2026-11-01-restore-startup.md`，
+只批准私有隔离实施，未把设计写成启动接线已交付。
 
 可信 S3 Source bridge、startup/运行代 Resolve、凭据撤销、发布/回退、离线 CLI 和真实
 业务重启仍未交付。Candidate 核心不是用户可运行的恢复产品；不发布正式标签或分发产物。
