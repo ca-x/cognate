@@ -80,3 +80,25 @@ node /tmp/cognate-ui-polish/verify-ui.mjs \
 主线程重新执行 Web build、Grok state、来源导入 state，并使用当前构建编译真实 TLS/SQLite fixture，分别运行仓库原验收脚本的 light/dark 两套流程，均通过。证据目录 `/tmp/cognate-ui-native-combined.xhw6k5op`：`web-build.log`、`web-state.log`、`import-state.log`、`browser-light/receipts.json`、`browser-dark/receipts.json`。仓库脚本现已修正历史 `.dark` class 误断言，同时检查 `dataset.theme` 和 computed `colorScheme`，不向生产 UI 添加测试 class。
 
 这关闭本次共享设计及关键配置页切片，不关闭其它页面、完整原生 UI、所有平台或完整首发视觉门禁；没有把截图当作动效本身的运行证明，也没有将合成 fixture 当作真实 GitHub/OIDC 部署。
+
+## 首发逐页验收账本
+
+以下按真实 `main.tsx` 注册入口列出后继工作，避免把“共享组件已打磨”当成所有页面已验收。已通过的合成测试不替代真实账号、外部 provider 或跨平台真人测试。
+
+| 入口 | 已有本轮证据 | 后继 UI 门禁 |
+| --- | --- | --- |
+| 未登录工作空间 / `AuthScreen` | 复用已审共享偏好和控件 | 本地登录/注册、OIDC/device flow 的 loading/error/取消、窄屏与焦点完整视觉签收仍 OPEN |
+| `/` 来源发现 | 已有功能与共享外壳 | 搜索/选中/收录/失败重试层级、空状态、分页/长名称及 200% 文字 OPEN |
+| `/repositories` 仓库/技能 | 已有树、刷新与公开控件 | 私有/公开来源、分支、刷新结果、分类操作与不可见来源的明确区分 OPEN |
+| `/packs` 与内嵌分享管理 | 已有 Pack/分享功能 | 重合技能、撤销/过期、同步状态、危险操作及键盘/窄屏 OPEN；配置附件消费尚缺实现，不只是样式 |
+| `/categories` 分类 | 已有功能 | 空/长分类、数量语义、编辑/删除边界和中英窄屏 OPEN |
+| `/account` 账号 | 已有账号功能 | 身份来源、登录绑定/注销状态、错误和密钥不回显的逐场景视觉签收 OPEN |
+| `/mcp-settings` | 已有站点 MCP token 管理 | 权限/一次显示/撤销/过期、长工具说明、复制反馈与键盘 OPEN；不同于客户端 MCP 配置资产 |
+| `/configuration` | 共享与关键配置/Grok 编辑切片已独审，见本文件前文 | 所有已支持 agent 的空/列表/编辑/只读未知/冲突/Unknown 场景逐一覆盖 OPEN；十四 agent 功能缺口不以 UI 填空代替 |
+| `/server-logging` | 已有管理员设置功能 | 普通用户权限提示、配置/保留参数、错误/保存反馈及窄屏 OPEN |
+| `/explore`、`/explore/$skillId` | 公开目录/详情局部 ACCEPT；24 份 200% 几何、复制完整词、真实分页/错误/匿名边界，见 `PUBLIC-CATALOG-UI.md` | 自动化验收限本机 Chromium；真人读屏、触屏、真实公开安装与其它浏览器仍 OPEN |
+| 备份管理页 | 尚无生产页面，不虚构入口 | 后端管理员控制平面签收后再接状态/手动任务/取消/只读对账；自动调度/恢复仍是独立实现门禁 |
+
+各后继切片统一验收：深浅/跟随系统、中英、不丢未提交草稿、375px 与 320px/200% 文字、真实 loading/empty/error、键盘与焦点恢复、ReduceMotion。动效只服务定位、直接反馈与状态关系，不加持续背景装饰、假统计、假进度或输入延迟。破坏性与含密钥动作保持现有授权/确认语义；没有实现的能力明确标记不可用，不用动画或按钮假装完成。
+
+MyGo 原生验收仍单独跟踪 `NATIVE-UI-DESIGN.md`，不能用 Web 页面矩阵代替原生窗口、安装、IME 或其它平台证据。此账本记录剩余目标，不声明新增代码或页面已经验收。
