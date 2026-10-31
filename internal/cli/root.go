@@ -2,12 +2,14 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"text/tabwriter"
 	"unicode"
 
@@ -22,6 +24,18 @@ func Execute() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	command := New()
+	if authInvocation(os.Args[1:]) {
+		authCtx, authStop := signal.NotifyContext(ctx, syscall.SIGTERM)
+		defer authStop()
+		if err := command.ExecuteContext(authCtx); err != nil {
+			if !errors.Is(err, errAuthCleanup) && !errors.Is(err, errAuthChild) {
+				err = errAuthRun
+			}
+			authExitDiagnostic(err)
+			os.Exit(1)
+		}
+		return
+	}
 	if packConfigurationsInvocation(os.Args[1:]) {
 		if err := executePackConfigurations(ctx, command); err != nil {
 			packConfigurationsDiagnostic(ctx, err)
@@ -67,6 +81,7 @@ func Execute() {
 func New() *cobra.Command {
 	root := &cobra.Command{Use: "cognate", Short: "聚合与浏览 agent skills", SilenceUsage: true, SilenceErrors: true}
 	root.AddCommand(newInstallLocalCommand())
+	root.AddCommand(newAuthCommand())
 	root.AddCommand(newInstallPublicCommand())
 	root.AddCommand(newUninstallLocalCommand())
 	root.AddCommand(newPackCommand())

@@ -3,11 +3,11 @@
 `cognate pack configurations` manages **owner-only server metadata**, not subscriptions, device consumption or configuration application. Supply a current authenticated owner session through bounded non-TTY stdin, never a Pack share token, command-line token or environment credential.
 
 ```
-session-producer | cognate pack configurations list --server https://cognate.example --pack PACK_ID --token-stdin
-session-producer | cognate pack configurations replace --server https://cognate.example --pack PACK_ID --token-stdin --references-file ./references.json --expected-pack-revision 4 --expected-configuration-revision 2
+cognate auth run --server https://cognate.example -- pack configurations list --pack PACK_ID
+cognate auth run --server https://cognate.example -- pack configurations replace --pack PACK_ID --references-file ./references.json --expected-pack-revision 4 --expected-configuration-revision 2
 ```
 
-`session-producer` stands for your existing private session source; it is not a new login command or a literal credential. Do not put sessions into shell arguments/history. The stdin stream must finish; arbitrary readers/TTY session input and blocking file redirection are not supported by the existing CLI bounded-I/O contract.
+On Linux, [auth run](CLI-AUTH.md) reads a local account privately on the controlling terminal, verifies the session, then starts the owner command with a prefilled anonymous stdin pipe. It attempts Logout after the command joins; an unconfirmed cleanup is nonzero without changing business truth. The server TTL remains 24 hours. OIDC and other-platform account UX are not implemented. An existing noninteractive private session source can still supply the original bounded non-TTY stdin contract, but do not start that consumer while a human is still logging in: its token read expires after 10 seconds. Never put sessions into shell arguments/history/environment.
 
 ## Ordered references and preview
 

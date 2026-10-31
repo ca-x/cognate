@@ -114,7 +114,7 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 `config apply --target codex.config` 接入既有 Codex 编排、原生消费与多文件发布合同；**当前生产资格登记仍为空，普通构建拒绝新 Codex apply，不表示 Codex/v2/全部十四类 agent 已可应用。** 专用私有编译fixture的真实consumer/PTY验收不是生产登记或真实账号资格。此节不替代前文历史交付与未交付记录，也不启用随Pack自动应用或MyGo流程。
 
 ```
-session-producer | cognate config apply --target codex.config --server HTTPS_ORIGIN --owner OWNER --asset ASSET --revision N --profile C0 --token-stdin --codex-executable ABS --codex-cwd ABS
+cognate auth run --server HTTPS_ORIGIN -- config apply --target codex.config --asset ASSET --revision N --profile C0 --codex-executable ABS --codex-cwd ABS
 cognate config status --target codex.config --operation OP
 cognate config recover --target codex.config --operation OP
 cognate config restore --target codex.config --source-operation OP
@@ -122,7 +122,7 @@ cognate config abandon --target codex.config --operation OP
 cognate config retire-unpublished --target codex.config --operation OP
 ```
 
-`session-producer` 是已有私有session来源的占位符，不是新登录命令；不把session写入argv/history/env。仅apply需要有界非TTY stdin（2048B/10s）；这不是批准输入。客户端仅LoadExisting，不隐式生成或替换client key。原Claude参数/省略target的restore/status保持原义；Codex每次必须显式target，新三种本地命令不猜journal目标。没有裸`retire`或force选项。本地命令不重新传server/session/native路径，使用原操作认证的绑定与新鲜观察；Status可收敛实际磁盘事实，不保证绝对只读。
+Linux的[`auth run`](CLI-AUTH.md)先在实际控制TTY隐藏输入本地账号，真实Login/GetSession后才通过预填匿名pipe启动apply，并从认证session注入owner；不要自行传`--owner`/`--server`/`--token-stdin`。这不启用Codex生产资格、OIDC或其它平台登录。旧私有session来源仍可用于原有非TTY stdin（2048B/10s），但不能一边交互登录一边提前启动consumer；stdin从来不是批准输入，不把session写入argv/history/env。wrapper在child结束后仅尝试一次Logout，失败不改变业务结果，服务端TTL仍为24h。客户端仅LoadExisting，不隐式生成或替换client key。原Claude参数/省略target的restore/status保持原义；Codex每次必须显式target，新三种本地命令不猜journal目标。没有裸`retire`或force选项。本地命令不重新传server/session/native路径，使用原操作认证的绑定与新鲜观察；Status可收敛实际磁盘事实，不保证绝对只读。
 
 默认仅预览。要执行写操作，在相应命令追加`--apply`，必须在**同一个实际控制TTY**看到完整角色/字段/动作/count、原操作与新计划、C0/NativeProfile、selection/confirmation、期限和auth Keep等安全metadata，然后逐槽输入`approve codex.provider-key OP`及最终`confirm OP`。本地恢复/还原/中止不取新秘密槽，但仍需新计划及精确最终确认；restore确认的是新计划OP，不是source-operation。stdin yes、无控制TTY、截断/短写/阻塞review、到期或取消均不能批准。部分本地安全视图不提供owner/origin/资产revision字符串，明确显示未提供并依赖经本机key认证的原operation，不能推断当前远端资产状态。
 

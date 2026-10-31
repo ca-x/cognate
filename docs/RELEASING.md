@@ -18,6 +18,14 @@ Ordinary branch pushes and pull requests retain build checks without publication
 Manual desktop runs do not publish unless `publish` is explicitly enabled and an
 existing matching GUI tag is supplied.
 
+The first three-component preview uses `server-v0.1.0-rc.2`,
+`cli-v0.1.0-rc.1` and `gui-v0.1.0`. The GUI package keeps its numeric internal
+version for native packaging, but its GitHub Release is a prerelease, not a GA.
+The workflows first create CLI/GUI drafts; after their required checks and
+downloaded asset/checksum verification, the maintainer publishes those drafts
+with `prerelease=true` and without promoting them to latest. See
+`PREVIEW-RELEASE.md` for release notes and `TODO.md` for deferred work.
+
 ## Server image
 
 The server release reuses the same workflow as Build. Only after both tested OCI

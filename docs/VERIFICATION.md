@@ -413,3 +413,11 @@ Codex 官方 ChatGPT/OAuth、本机 provider 选择/文件写入/登录保留、
 本次 native 交付 checkpoint 起初仅观察到后继 CI pending/in_progress；随后主线程实际等待并 fresh 核对 Build **`40937407082`** 为 completed/success，精确 head 为 `bd00bc03411f3d1979e237da8e03abc5f0ca16fb`，九个 jobs 全部成功。platform **`40937406971`** 则实际 completed/failure，同样在 APFS fixture RuntimeError 处、capability 与六项 ordinary probes 之前停止，cleanup/sealer 也未取得完整能力收据；原失败日志 SHA256 为 `4374e2be86896a46023ab658c74c541a5da0e74dd95b9cea372652fec1999006`。本次没有该 run 其它三 OS primitives 的完整 fresh 核验，不借用 e373 的成绩称新 run 全部成功。Build 绿色不覆盖 platform 失败，更不等于六项 native 普通行为 RED、Darwin 安装/配置应用或新窗口 PASS。
 
 完整历史、值级/文件 diff、其它 agent 本机支持、来源配置导入、Pack 配置附件、自动应用、非 Linux 配置应用和完整 F12/M7/正式 Release 仍未由该十三路径交付。
+
+## Linux 认证 CLI 与首批组件预览收尾（2026-10-31）
+
+主线程在 `793f086` 上合入已有认证 source10 及 AUTH-ORIGIN-01 的两文件后继，保留现有 Grok 文档段落；没有新派子 agent。原独立源审及限定 origin 复验是历史证据，本轮主线程自审与组合验证不称独立验收。明文 HTTP 仅允许字面量回环地址，用户名和密码从真实控制终端隐藏读取，会话仅以匿名 pipe 传给一次白名单子命令；B2 worker dispatch 与 `/proc/self/exe` 认证子命令共存。
+
+Go 1.27.3、CGO0、readonly modules、env-i 与隔离 HOME/XDG/TMP 下，实际主程序构建及 `go test ./internal/cli -run '^TestAuthRun' -count=1 -timeout=180s -v` 通过，56 个含子用例 PASS、零 skip/fail。包含 12.5 秒延迟输入后才启动业务命令、真实 TLS/App/SQLite/PTY、确认写入、提交后失包、Logout 失败、取消与秘密隔离。全仓 `go test ./... -count=1 -timeout=600s -json` 为 7360 个含子用例 PASS、158 skip、49 package PASS、77 无测试包、零 fail；skip 不计运行资格。全仓 vet、模块校验、六 OS/架构 CLI CGO0 构建及 metadata 读取通过，格式和 diff 检查通过；交叉编译不是其它平台运行支持。
+
+主 full 验证日志 SHA256：`63115309327dfeff2aa20b550e6a1cacbe309d3ce292033abcff8201ae0bba5c`；认证专项日志 SHA256：`3c97599ced9c497159a2ddd7d618022271dd9201be4ab0f5f94110b547f435fc`。发布仍须以对应 tag 的实际 CI、安装包和远端镜像结果为准；本地绿色不代替发布完成。未完成工作集中于 `TODO.md`，本片不开放 Codex 生产资格或补齐 F3/F4/F12/M7。
