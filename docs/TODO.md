@@ -35,6 +35,8 @@
 - [ ] 按 cc-switch 能力矩阵完成各 agent 的 provider、模型、MCP、提示词交互，不把元数据支持当作可应用。
 - [x] 接通 Grok Build CLI 编辑器与认证白名单，保留完整终端审阅、密钥独立批准、CAS 和 Unknown 禁自动重放；不开放本机应用。
 - [x] Grok Build cc-switch schema24 显式单模型来源导入：七字段、env 存在位、无源密钥迁移、票据绑定，Web/CLI 审阅与真实 Connect/SQLite 提交回读；不含完整导入矩阵或本机应用。
+- [x] MyGo Grok 私有资产 service/model 底座：所有者核验、安全读取、无凭据复制、删除、排序、审阅确认及 CAS/Unknown/关闭排空；尚无生产 UI 入口。
+- [ ] 为 MyGo 编辑补充 grokclient 的内存输入与结构化脱敏读取接口，再接 native/custom 七字段及 Keep/Replace/Clear 原生表单；禁止通过临时明文文件绕过。
 - [ ] 补齐 Grok Build MyGo 编辑器与本机应用；Web 资产管理及受限来源导入已单独交付。
 - [ ] Codex 生产 profile 正式登记：由普通生产 CLI 驱动新鲜固定版本消费者完整验证；当前登记表仍为空。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。

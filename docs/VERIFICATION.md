@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：MyGo Grok service/model 底座
+
+并行 worker 新增 `grok_service.go`、`grok_model.go` 与六项真实 Connect/SQLite 测试；不注册生产 UI，Create/Update fail-closed。覆盖 owner/origin、读取安全摘要与最大整数、复制不带源凭据、删除/排序、精确确认、审阅取消、提交 revision CAS、已提交丢响应及 Unknown 禁自动重放、未知字段只读、忙时拒绝和关闭排空。worker 的定向十轮、desktop/grokclient 包测试及 vet/MyGo vet 通过；三文件 SHA256 与 `/tmp/cognate-grok-gui-boundary.YbiQrn/source.sha256` 一致。
+
+独立代表只读审查接受该底座，另用内存 overlay 验证真实双所有者隔离与 pending review 的关闭/重复关闭；未修改源文件。本结论不扩大为完整 GUI、七字段编辑、密钥三态、本机应用或跨实例持久幂等。独立补充检测与正式无 cgo 构建证据分开，不以其替代生产 `CGO_ENABLED=0` 门禁。
+
+主线程对最终组合重新以隔离 HOME/XDG/TMP、Go 1.27.3、离线 readonly、`CGO_ENABLED=0` 执行 `go test -json -count=1 ./...`：**7523 PASS / 158 SKIP / 0 FAIL**。证据 `/tmp/cognate-grok-import.SIpZg5z4/combined-full.json`，SHA256 `3eb70e03e8b5e5bb2e3b53413abda6643388c861cb198d79d1640e29f0a5fd3b`；desktop/MyGo vet 与 Linux/Darwin/Windows × amd64/arm64 桌面构建通过。构建不算窗口运行、签名或真人平台验收。后续先补 grokclient 内存输入/typed 脱敏读取，再接原生表单与主页面；关闭窗口、登出或切换身份时须显式关闭会话。
+
 ## 2026-10-31：Grok Build 来源导入阶段
 
 支持 cc-switch schema24 的显式单模型配置，经安全 Go 投影、固定服务端 moejs adapter、审阅票据和真实 SQLite 加密资产写入；Connect 客户端回读全部字段并验证省略源密钥。丢响应场景只查状态，第二次提交拒绝，配置单独导入不拉取仓库。Web 复用现有审阅组件和 Grok 字段验证，不新增 UI 框架或动画；最大窗口 `9007199254740991` 以整数/十进制字符串在各层传输。

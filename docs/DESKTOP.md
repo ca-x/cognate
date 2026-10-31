@@ -1,5 +1,11 @@
 # Cognate Native Desktop
 
+## Grok Build 接线底座（2026-10-31）
+
+`grok_service.go` / `grok_model.go` 提供独立私有资产会话：复用所有者身份与 grokclient，支持列表、安全摘要、无凭据复制、删除、排序、精确审阅确认与 revision CAS。结果不明后当前客户端封锁后续写入，不自动重放；这不是跨实例持久幂等保证。关闭时取消并排空请求，再释放待审阅操作。
+
+此阶段没有主 Model/页面注册，也不是完整 Grok GUI。Create/Update 明确拒绝；native/custom 七字段编辑、密钥 Keep/Replace/Clear 仍须先补充 grokclient 的内存输入与结构化脱敏读取接口，不能靠临时明文文件或 raw JSON 绕过。未来窗口关闭、登出与身份切换必须显式调用此独立会话的 `Close()`；取消审阅不等于撤销已提交请求。没有本机应用或新原生窗口验收。
+
 ## Implementation plan (2026-10-28)
 
 1. Verify MyGo v0.7.1 through the normal Go proxy and default checksum database; use a documented authentic cached version only if necessary.
