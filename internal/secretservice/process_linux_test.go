@@ -624,13 +624,49 @@ func newFixture(test *testing.T, withKeyring bool) fixture {
 		time.Sleep(10 * time.Millisecond)
 	}
 	var output dbus.Variant
-	if connection.Object(secretService, secretPath).CallWithContext(test.Context(), serviceInterface+".OpenSession", 0, "plain", dbus.MakeVariant("")).Store(&output, &fixture.session) != nil {
-		test.Fatal("fixture-open-session")
+	if err := connection.Object(secretService, secretPath).CallWithContext(test.Context(), serviceInterface+".OpenSession", 0, "plain", dbus.MakeVariant("")).Store(&output, &fixture.session); err != nil {
+		test.Fatalf("fixture-open-session class=%s error_type=%T context_done=%t", fixtureRPCErrorClass(err), err, test.Context().Err() != nil)
 	}
 	if connection.Object(secretService, secretPath).CallWithContext(test.Context(), serviceInterface+".ReadAlias", 0, "default").Store(&fixture.collection) != nil || fixture.collection == "/" {
 		test.Fatal("fixture-read-alias")
 	}
 	return fixture
+}
+
+func fixtureRPCErrorClass(err error) string {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "deadline"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "canceled"
+	}
+	if failure, ok := errors.AsType[dbus.Error](err); ok {
+		switch failure.Name {
+		case "org.freedesktop.DBus.Error.UnknownMethod", "org.freedesktop.DBus.Error.UnknownObject", "org.freedesktop.DBus.Error.ServiceUnknown", "org.freedesktop.DBus.Error.NameHasNoOwner", "org.freedesktop.DBus.Error.NoReply", "org.freedesktop.DBus.Error.Disconnected", "org.freedesktop.DBus.Error.AccessDenied", "org.freedesktop.DBus.Error.Failed":
+			return failure.Name
+		}
+	}
+	return "other"
+}
+
+func TestFixtureRPCErrorClassDoesNotExposeBodies(test *testing.T) {
+	for _, name := range []string{"UnknownMethod", "UnknownObject", "ServiceUnknown", "NameHasNoOwner", "NoReply", "Disconnected", "AccessDenied", "Failed"} {
+		test.Run(name, func(test *testing.T) {
+			qualifiedName := "org.freedesktop.DBus.Error." + name
+			failure := dbus.Error{Name: qualifiedName, Body: []any{"synthetic-private-error-body"}}
+			if fixtureRPCErrorClass(failure) != qualifiedName || fixtureRPCErrorClass(errors.Join(errors.New("synthetic-private-wrapper"), failure)) != qualifiedName {
+				test.Fatal("known D-Bus classification lost")
+			}
+		})
+	}
+	if fixtureRPCErrorClass(context.DeadlineExceeded) != "deadline" || fixtureRPCErrorClass(context.Canceled) != "canceled" {
+		test.Fatal("context classification lost")
+	}
+	for _, failure := range []error{errors.New("synthetic-private-error"), dbus.Error{Name: "synthetic-private-error-name", Body: []any{"synthetic-private-error-body"}}, dbus.Error{Name: "org.freedesktop.DBus.Error.synthetic-private-error-name"}} {
+		if fixtureRPCErrorClass(failure) != "other" {
+			test.Fatal("private error body or unknown name escaped")
+		}
+	}
 }
 
 func (fixture fixture) create(test *testing.T, service, account string, value []byte, extra bool) dbus.ObjectPath {

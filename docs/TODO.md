@@ -10,7 +10,7 @@
 - [x] 在 `lazycat-contrib/cognate-lzcapp` 构建 Exec LPK `0.1.0-rc.2` 并提交喵喵商店，官方商店关闭。
 - [ ] 懒猫真机安装、平台 OIDC、升级数据保留及文件选择器验证。
 - [ ] 首发后收集真人测试反馈，优先处理数据安全、登录、安装与同步问题。
-- [ ] 排查 Build `41161084838` 的 Secret Service 私有 fixture `fixture-open-session` 失败；本地通过不能覆盖该远端失败，原失败记录保留。
+- [ ] 排查 Build `41161084838` 的 Secret Service 私有 fixture `fixture-open-session` 失败；本地同例连续 200 次通过，尚未复现，新增脱敏错误分类待捕获证据。不能用本地通过覆盖原远端失败，暂不添加重试或调整期限。
 
 ## 服务端
 

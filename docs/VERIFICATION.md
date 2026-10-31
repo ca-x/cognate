@@ -493,3 +493,27 @@ PASS、158 skip、49 package PASS、77 无测试包、零 fail；其中 Secret S
 专项日志 SHA256：
 `a72d61ad541f3734cd1590c3b0074b16433b078b2b06fb77566e1e6c4b9e9e13`。
 不改变首批预览 tag；Grok Web/MyGo、来源导入与本机应用仍未完成。
+
+## Secret Service 私有 fixture 诊断（2026-10-31）
+
+在 `beafeca` 上针对旧 Build `41161084838` 的 `fixture-open-session` 失败
+执行有界复现：仅给原失败点增加脱敏分类后，隔离 HOME/XDG/TMP、Go 1.27.3、
+CGO0、readonly modules 和离线模块解析下运行原
+`TestProcessExitReclaimsLiveWorker` 200 次，实际 200 PASS、零 skip/fail。
+原失败未在本机复现，原因仍 UNKNOWN；不将它归为端点注册竞态、CPU 或负载，
+不添加 OpenSession 重试、改变现有限时或放宽业务断言。
+
+新增诊断仅允许八个固定 D-Bus 错误名，以及 deadline/canceled/other 分类；
+另记录 Go 错误类型与上下文取消布尔值，不输出任意错误消息、D-Bus body、
+未知错误名或秘密。新增测试覆盖全部允许分类、嵌套错误、上下文及未知名称/
+敏感 body 隐藏。完整 Secret Service 包 32 个含子用例 PASS、零 skip/fail，
+包 vet、格式及 diff 检查通过。测试使用真实私有 D-Bus/keyring，不访问用户
+实际 keyring；这次仅增强 fixture 取证，不修改生产 Secret Service 行为。
+
+200 次观察日志 SHA256：
+`e1a5baab54a9719021f9d67f1b0668862eb28d066d333c968bd77528fb9c9f3d`。
+包测试日志 SHA256：
+`2fa28fb8a2398fbc47741f13f0aa3716c0c69e8e6d6341e0b9b5402792061947`。
+本轮未重跑全仓；之前的 7422 PASS 属于 `beafeca` 组合，不能改记到本片。
+`beafeca` 的 Platform run `41162492364` 已实际 success；Build `41162492271`
+观察时仍在 setup-go 步骤运行，不重启、不冒称全绿，也不关闭旧失败待办。
