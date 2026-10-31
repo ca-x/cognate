@@ -3,6 +3,18 @@
 2026-11-01：限定本机 Linux/amd64 的真实公开 GitHub → 服务端 → 匿名 API → CLI 安装链。
 不是完整 F8、UI、私有仓库、OIDC、跨平台或正式版放行。
 
+## T3S 后继组合复跑
+
+2026-11-01 主线程在干净导出 tree
+`5a1860a4c1b58869a748465caa0d40b94994dfcb` 重建并复跑相同八步，实际 exit0、
+八步 PASS，本次仍观察 46 个 skills，所有自建 fixture 已清理。两产品均以 Go1.27.3、
+CGO_ENABLED=0、`-trimpath -buildvcs=false` 构建：CLI SHA256
+`2cb65c18a42c2844c4ebecc5a1c8192064d1d694c55c8072c2b8a8dc7ea14f42`，server SHA256
+`e30a4371f08fed871460c5f8730e91aa0352dbfc1ba38cad16cbbd47127862e7`。
+收据在 `/tmp/cognate-npx-selection.TB9Vd2tL/t3s-main/fix1/09-public-live.*`；
+编排只更新产物/输出路径与 source tree 标识，保留原 pipe helper 和所有业务断言。
+这是主线程的新组合运行，不将下述旧独立代表签收冒称本 tree 的新独审；原范围限制不变。
+
 ## 被测版本与隔离
 
 被测 source tree 为 `1c3edd309c581dff2b9ad4a585b52a8205117db6`；与 `2efa940` 和

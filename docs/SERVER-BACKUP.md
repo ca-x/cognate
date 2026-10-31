@@ -9,9 +9,14 @@ bundle 材料化到自有私有目录，可信源完整关闭后再次核验 DB�
 仅提供一次作用域内的内部验证能力。辅助配置排序/Pack 附件关系也在同一受限只读 worker
 检查，拒绝跨 owner、非法分区或序号，不改变合法 stale/Unsupported 的读取语义。
 
-Linux SH/EX 运行根 lease 内核已实现，但还没有接 startup/key/运行代选择；它不约束现有
-未参与程序，也不能在根/协调 inode 被整体替换后保证同路径全局互斥。后继部署必须维持
-稳定命名并停用不合作旧 supervisor，不能用文件锁代替这个前提。
+Linux SH/EX 运行根 lease 内核及 legacy App 启动参与已实现：普通/backup-enabled 进程均
+在业务/key 写入前持 SH，完整排空 HTTP/后台/Store/日志后才释放。首次缺 key 仍由程序
+创建，但必须由 live Runtime 证明只有两件具体协调对象，不能笼统忽略点文件；原失钥
+保护不变。发现保留的 current/generations/restore/intent 痕迹时只拒绝，不自动选旧库。
+
+这还不是全系统停服或运行代选择：不合作旧程序须停用，worker 父死/FD 交接和进程退出
+后的业务故障 fence 尚未完成；也不保证根/协调 inode 被整体替换后的同路径全局互斥。
+部署必须维持稳定命名，不可删除协调或恢复痕迹来强行回退旧 binary。
 
 可信 S3 Source 内部 API 已接通原密文对象认证与真实 Candidate，头 scope 不承载整个恢复，
 自有资源全部正常关闭成功后才开放验证。它只执行 GET/HEAD；目前仅有真实本机 TLS 合成

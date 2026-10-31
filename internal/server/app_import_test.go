@@ -196,9 +196,12 @@ func TestAppCCSwitchSnapshotSharedAdmissionAndClose(t *testing.T) {
 	if response.StatusCode < 400 {
 		t.Fatal("closed snapshot upload unexpectedly succeeded")
 	}
-	response = fixture.post(t, ccSwitchPreviewPath, `{}`)
-	if response.StatusCode != http.StatusServiceUnavailable {
-		t.Fatal("closed snapshot handler accessed the store")
+	listener, err := net.Listen("tcp", fixture.address)
+	if err != nil {
+		t.Fatal("closed snapshot App retained its HTTP listener", err)
+	}
+	if err := listener.Close(); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -275,8 +278,11 @@ func TestAppImportCloseDrainsUploadBeforeStore(t *testing.T) {
 	if response.StatusCode < 400 {
 		t.Fatalf("closed upload unexpectedly succeeded: %d", response.StatusCode)
 	}
-	response = fixture.post(t, importPreviewPath, magpieRequest(`{"skills":[]}`))
-	if response.StatusCode != http.StatusServiceUnavailable {
-		t.Fatalf("closed preview did not reject before accessing the closed store: %d", response.StatusCode)
+	listener, err := net.Listen("tcp", fixture.address)
+	if err != nil {
+		t.Fatal("closed preview App retained its HTTP listener", err)
+	}
+	if err := listener.Close(); err != nil {
+		t.Fatal(err)
 	}
 }

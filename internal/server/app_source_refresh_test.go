@@ -111,6 +111,8 @@ func TestAppSourceRefreshCancellationDrainsBeforeDependencies(test *testing.T) {
 				}
 			}()
 			app := &App{store: store, library: collection, sourceRefresh: worker, handler: http.NotFoundHandler(), allowHTTP: true}
+			app.runtime.life, app.runtime.cancel = context.WithCancel(test.Context())
+			defer app.runtime.cancel()
 			ctx, cancel := context.WithCancel(test.Context())
 			defer cancel()
 			finished := make(chan error, 1)

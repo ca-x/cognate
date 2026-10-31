@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/ca-x/cognate/internal/filelock"
+	"github.com/ca-x/cognate/internal/server/runtimegen"
 )
 
 func ReadMasterKey(path string) ([]byte, error) {
@@ -25,9 +26,21 @@ func ReadMasterKey(path string) ([]byte, error) {
 	return key, nil
 }
 
-func InitializeMasterKey(ctx context.Context, path, dataDirectory string) (key []byte, resultErr error) {
+func InitializeMasterKey(ctx context.Context, path, dataDirectory string) ([]byte, error) {
+	return initializeMasterKey(ctx, path, dataDirectory, nil)
+}
+
+func initializeMasterKey(ctx context.Context, path, dataDirectory string, runtime *runtimegen.Runtime) (key []byte, resultErr error) {
+	if ctx == nil {
+		return nil, runtimegen.ErrInvalid
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	if runtime != nil {
+		if err := runtime.CheckLegacy(ctx, dataDirectory); err != nil {
+			return nil, err
+		}
 	}
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
 		return nil, fmt.Errorf("master key path must be absolute and clean")
@@ -55,6 +68,21 @@ func InitializeMasterKey(ctx context.Context, path, dataDirectory string) (key [
 	} else if exists {
 		return ReadMasterKey(path)
 	}
+	initialize := func() error {
+		if err := publishMasterKey(path); err != nil {
+			return err
+		}
+		var err error
+		key, err = ReadMasterKey(path)
+		return err
+	}
+	if runtime != nil {
+		if err := runtime.WithFreshRoot(ctx, dataDirectory, initialize); err != nil {
+			clear(key)
+			return nil, err
+		}
+		return key, nil
+	}
 	if err := PrepareDirectory(dataDirectory); err != nil {
 		return nil, err
 	}
@@ -62,10 +90,17 @@ func InitializeMasterKey(ctx context.Context, path, dataDirectory string) (key [
 	if err != nil || len(entries) != 0 {
 		return nil, fmt.Errorf("master key missing with existing or unreadable server state; restore the original key, do not regenerate it")
 	}
-	if err := publishMasterKey(path); err != nil {
+	if err := initialize(); err != nil {
 		return nil, err
 	}
-	return ReadMasterKey(path)
+	return key, nil
+}
+
+func InitializeMasterKeyWithRuntime(ctx context.Context, path, dataDirectory string, runtime *runtimegen.Runtime) ([]byte, error) {
+	if runtime == nil {
+		return nil, runtimegen.ErrInvalid
+	}
+	return initializeMasterKey(ctx, path, dataDirectory, runtime)
 }
 
 func publishMasterKey(path string) error {

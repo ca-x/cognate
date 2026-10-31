@@ -4,8 +4,11 @@
 
 ## 后继阶段进度
 
-本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
+本段由主线程补记 2026-10-31 起的后继交付，不改写下面独立审计的原始基线结论。
 
+- T3S fix1 三测试合同修订已获非作者增量限定 ACCEPT，原三项冲突 CLOSED；六生产源及 kernel 不变。原字节三 FAIL 与后继 240s 包预算超时均保留；标准 10m 重跑完整组合实际 8838 PASS、170 SKIP、0 FAIL，全 vet 通过。18 个 CGO0 构建/元数据和新 binary 真实公开链通过，不借此关闭恢复或完整 GA；见 `VERIFICATION.md`。
+
+- 2026-11-01 T3S exact10 的 Linux legacy startup/key/HTTP/资源排空经独审限定 ACCEPT：220 个定向行为叶、19 个独立边界、八组行为 RED 与恢复 GREEN；同形懒猫 namespace fresh/restart/祖先拒绝保持旧权限合同。主线最新组合另跑全仓，不能拿基线独审代替。R2/R3、worker 父死、durable 业务 fence、Resolve/撤销发布回退/离线 CLI 与完整 GA 仍开放。
 - 2026-11-01 Linux 公开链实测经独立代表限定 ACCEPT：真实 GitHub 采集、默认私有/跨 owner 拒绝、分类/显式公开、匿名 API/真 CLI 安装、取消公开及关闭清理八步 PASS；无安装 fakeCLI 的行为 RED 检出。独立复现两产品 binary SHA 与固定源码 tree 绑定。只证明一个 skill 的该链，不推成完整 F8、UI、私有/OIDC/全平台或 GA；见 `PUBLIC-LIVE-SMOKE.md`。
 - 2026-11-01 S3 CandidateSource exact4 经独审限定 ACCEPT，连同仅重命名的独立原密文探针晋升为五源；主 9bd 隔离组合 restore 51 顶层/253 PASS、0 FAIL/SKIP及 vet 通过。原 Capture 数据、双 owner 共享归档经 TLS 到真实 DB/完整候选门已贯通，但生产 CLI、真实 S3、startup/撤销/发布/回退仍待交付。私有 cleanup Sync hook 自身 panic 的更强 FD 保证未包含在签收中，详见 `VERIFICATION.md`。
 - 2026-11-01 四阶段已 SSH 推送读回 `82b212d` / `7b58bf5` / `a9bc97c` / `2efa940`。最终隔离组合全仓 8627 PASS、170 SKIP、0 FAIL及全 vet、正常 Web build、18 个 CGO0 构建和产物元数据均通过；前两远端 Build 成功，后两仍在运行。T3S legacy 启动准备片设计已批准隔离实施，未交付 startup/Resolve/离线恢复；本机绿测不关闭原完整 GA 门禁。详见 `VERIFICATION.md`。

@@ -11,6 +11,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/ca-x/cognate/internal/server/runtimegen"
 	"github.com/ca-x/cognate/internal/server/state"
 )
 
@@ -191,4 +192,130 @@ func TestMasterKeyRejectsLazyCatWritableAncestor(t *testing.T) {
 	if err != nil || !bytes.Equal(stored, bytes.Repeat([]byte{13}, 32)) {
 		t.Fatal("existing key changed")
 	}
+}
+
+func TestInitializeMasterKeyRuntime(test *testing.T) {
+	if runtime.GOOS != "linux" {
+		test.Skip("Linux runtime lease")
+	}
+	for _, name := range []string{"fresh", "existing", "server.db", "server.db-wal", "server.db-shm", "server.db.schema.lock", "archives", "logs", "backup", ".instance.lock", ".source-refresh.lock", ".snapshot-worker.lock", ".snapshot-old", ".unknown", "unknown", "runtime.current", "generations", "restore", "fence"} {
+		test.Run(name, func(test *testing.T) {
+			base := privateDirectory(test)
+			data := filepath.Join(base, "data")
+			if err := state.PrepareDirectory(data); err != nil {
+				test.Fatal(err)
+			}
+			lease, err := runtimegen.OpenRuntime(test.Context(), data)
+			if err != nil {
+				test.Fatal(err)
+			}
+			defer func() {
+				if err := lease.Close(); err != nil {
+					test.Error(err)
+				}
+			}()
+			path := filepath.Join(base, "keys", "master.key")
+			var before os.FileInfo
+			if name == "existing" {
+				if err := state.PrepareDirectory(filepath.Dir(path)); err != nil {
+					test.Fatal(err)
+				}
+				if err := os.WriteFile(path, bytes.Repeat([]byte{27}, 32), 0600); err != nil {
+					test.Fatal(err)
+				}
+				before, err = os.Lstat(path)
+				if err != nil {
+					test.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(data, "server.db"), []byte("history"), 0600); err != nil {
+					test.Fatal(err)
+				}
+			} else if name != "fresh" {
+				entry := filepath.Join(data, name)
+				if name == "fence" {
+					entry = filepath.Join(data, ".runtime-fences", "foreign")
+				}
+				if err := os.WriteFile(entry, []byte("history"), 0600); err != nil {
+					test.Fatal(err)
+				}
+				defer os.Remove(entry)
+			}
+			if name == "fresh" {
+				if _, err := state.InitializeMasterKey(test.Context(), path, data); err == nil {
+					test.Fatal("old entry ignored coordination objects")
+				}
+			}
+			key, err := state.InitializeMasterKeyWithRuntime(test.Context(), path, data, lease)
+			defer clear(key)
+			if name != "fresh" && name != "existing" {
+				if err == nil || key != nil {
+					test.Fatal("generated replacement key for history", name)
+				}
+				if _, err := os.Lstat(path); !errors.Is(err, os.ErrNotExist) {
+					test.Fatal("rejected initialization published key")
+				}
+				return
+			}
+			if err != nil || len(key) != 32 {
+				test.Fatal("live runtime could not initialize", err)
+			}
+			if name == "existing" {
+				after, err := os.Lstat(path)
+				if err != nil || !os.SameFile(before, after) || !bytes.Equal(key, bytes.Repeat([]byte{27}, 32)) {
+					test.Fatal("existing key replaced")
+				}
+			}
+		})
+	}
+	test.Run("concurrent-runtime", func(test *testing.T) {
+		base := privateDirectory(test)
+		lease, err := runtimegen.OpenRuntime(test.Context(), base)
+		if err != nil {
+			test.Fatal(err)
+		}
+		defer lease.Close()
+		path := filepath.Join(privateDirectory(test), "keys", "master.key")
+		var joined sync.WaitGroup
+		for range 8 {
+			joined.Go(func() {
+				key, err := state.InitializeMasterKeyWithRuntime(test.Context(), path, base, lease)
+				defer clear(key)
+				if err != nil || len(key) != 32 {
+					test.Error("concurrent runtime key initialization", err)
+					return
+				}
+				stored, err := state.ReadMasterKey(path)
+				defer clear(stored)
+				if err != nil || !bytes.Equal(key, stored) {
+					test.Error("concurrent runtime key changed", err)
+				}
+			})
+		}
+		joined.Wait()
+	})
+	test.Run("invalid-capabilities", func(test *testing.T) {
+		base := privateDirectory(test)
+		path := filepath.Join(base, "keys", "master.key")
+		for _, lease := range []*runtimegen.Runtime{nil, {}} {
+			if key, err := state.InitializeMasterKeyWithRuntime(test.Context(), path, base, lease); err == nil || key != nil {
+				test.Fatal("accepted invalid runtime")
+			}
+		}
+		lease, err := runtimegen.OpenRuntime(test.Context(), base)
+		if err != nil {
+			test.Fatal(err)
+		}
+		if key, err := state.InitializeMasterKeyWithRuntime(test.Context(), path, filepath.Join(base, "other"), lease); err == nil || key != nil {
+			test.Fatal("accepted wrong root")
+		}
+		if err := lease.Close(); err != nil {
+			test.Fatal(err)
+		}
+		if key, err := state.InitializeMasterKeyWithRuntime(test.Context(), path, base, lease); err == nil || key != nil {
+			test.Fatal("accepted closed runtime")
+		}
+		if _, err := os.Lstat(filepath.Dir(path)); !errors.Is(err, os.ErrNotExist) {
+			test.Fatal("invalid capability created key parent")
+		}
+	})
 }

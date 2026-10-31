@@ -1,5 +1,70 @@
 # 开发预览验证
 
+## 2026-11-01：T3S Linux legacy 启动参与与排空
+
+exact10 从 `2efa940` 独立构建，patch SHA256
+`d251986d21df151405fff4f169805bcf54f84a7105fbd3110896fbab4b8ea3d2`，fullsource SHA256
+`7cafb11bf88a27e9415130036fdcc0ff3c9c1f1e7d01c4732bf71cf20b00bc02`。
+非作者 Spec/Quality 限定 ACCEPT，报告
+`/tmp/cognate-t3s-independent-2efa940-GBQrgrG9/REPORT.md`，SHA256
+`28b7e791f2cd9acdf6651333b8d529f863d71cfa7f273e594a9835493ea443b3`。
+仅三份既有源修改、七份新增；kernel 四源与原接受字节一致，未放宽目录/key 校验。
+
+普通及 backup-enabled App 均先准备最小根、取得 SH、检查 legacy 保留痕迹，再读/初始化
+key 和构造 Store/cache/backup/logs。原 InitializeMasterKey 仍要求真正空目录；新 typed
+Runtime 入口只在两件具体协调 inode 被当前 live lease 证明、完整目录扫描且 fence 为空时
+允许首次 key 发布。未知 hidden/business/history/current/intent 不作为可忽略点文件；
+已有 key 不覆盖，已有数据丢 key 拒绝替代。Legacy gate 只读拒绝，不解析或自动挑选运行代。
+
+App 自取得 SH 起有 partial owner；所有 owning 构造结果立即接管。Close 一次性停止准入并
+取消依赖，先退役控制器，再等 HTTP handler、Shutdown callback、Serve 尾部与最终日志，
+最后关闭 library/cache、Store、logs、lease。未知资源不重试关闭，强引用保留相关依赖及 SH；
+包括未能证明清理的 nil 构造与 key 错误的保守情况。listener once-wrapper 防真实 Close
+已经发生后报错又被 net/http/Serve 重复调用。最终 lease 自身晚期错误沿用 kernel 边界，
+不能将所有 uncertain 都说成物理锁仍持有。
+
+独审实际执行 220 个定向行为叶、19 个独立边界、八组编译成功行为 RED 与恢复 GREEN，
+四包 vet 通过。两个真实普通 server 可同时健康并阻止第三进程 EX，关闭一个仍阻止，
+全部正常退出后 EX 可取；backup on/off × key init on/off 均在 EX 下禁止业务/key-parent 写入。
+handler/Serve tail/library/cache/Store/log 屏障、并发 Close/GC、nil 构造与实际关闭后 EIO
+均以真 EX 进程检查 authority，不拿 registry 长度或 helper noop 当证据。
+
+额外懒猫同形测试仅在独立 namespace UID0、合成 `/lzcapp/var/cognate/{data,keys}` 进行：
+fresh 自动生成 32-byte/0600 key、正常重启保持 inode/字节；无 sticky 的 0777 合成祖先
+严格拒绝且不 chmod。不是新 LPK/盒子资格，也不重开用户已确认成功的旧权限问题。
+
+主线程已将原十源合入最新 Source5 之后的组合，四包定向 244 PASS 事件、0 FAIL/SKIP；
+正常 npm ci/build 均 exit0。完整隔离 fullGo/vet、真实公开链及交叉编译终态另记，
+不把独审的基线结果冒称最新组合。主证据根新增 `t3s-main/`。
+
+首次组合 fullGo 实际 exit1，vet exit0：source-refresh 白盒 App 没有新生命周期，另两项
+import 测试在 Close 已正确关闭监听之后继续网络 POST。原三组失败保留，不用定向通过
+抵销。fix1 累计 exact12，生产六源及 lease 四源不变，仅三个测试文件调整合同：白盒显式
+生命周期；保留原慢上传/排空断言并检查监听可重绑定；新增真实 handler 关闭前 401、
+关闭后 503 和 runtime 零 delegate 检查。新测试首次 httptest 默认 Host 被既有 guard
+以 403 拒绝，修正为字面回环 Host；这是夹具失败而非安全 RED。四个定向顶层用例修后
+6 PASS 事件、0 FAIL/SKIP。非作者 fix1 增量限定 ACCEPT，原三项合同冲突 CLOSED；
+原字节三 FAIL 独立复现、完整认证 handler/零 body 读取及分层减门行为 RED 均保留。
+报告 `/tmp/cognate-t3s-fix1-independent-3dfs0bc1/REPORT.md`，SHA256
+`a827b44ff9eab1a86aab03f77e74f9ef44e4e71f52df3df7ca351f3c35acc8a4`。
+freeze tree `5a1860a4c1b58869a748465caa0d40b94994dfcb`，patch SHA256
+`d70bb98e6e4bf1f0573c37dbd017b1677ae770df84175ee0ecac528986a7f7ca`。
+
+fix1 干净导出正常 Web 构建、三产品×三 OS×双架构 18 个 CGO0 构建及元数据核验通过，
+新 binary 真实公开链八步 exit0，见 `PUBLIC-LIVE-SMOKE.md`。第一次 fix1 fullGo 因主选择
+240s 包时限，在未改的 configapply durable-crash 矩阵超时（240.011s）；其余 50 包通过，
+7991 PASS 事件、170 SKIP，只有该包级 FAIL，不能计为全仓成功。全 vet exit0。
+保留 `fix1/05-full-go.*`，改以标准 10m 包时限重跑完整命令 `fix1/10-full-go.*`，
+实际 exit0：51 个测试包、8838 PASS 事件、170 SKIP、0 FAIL；configapply 完整结束
+耗时 281.138s。没有修改产品时限、测试正文或断言，也未据此猜测具体慢因。
+以上是固定 T3S fix1 tree 的完整组合；之后的凭据撤销/重新授权组合另记，不混称一个输入。
+前两阶段 Build `41250331711`（3802231）、`41250449473`（38c246b）本轮均已核实 success。
+
+重要残余不变：SH 保留只对进程存活期有效；worker 父死/FD 交接、进程退出后的 durable
+业务故障 fence 未交付。非参与旧 binary/supervisor 须停用；稳定命名是主线程沿原稳定根
+计划的技术裁定，不保证跨 inode 全局 authority。尚无 Resolve、authenticated current、
+运行代收编/旧 binary 拒读占位、撤销/发布/回退或生产恢复 CLI，不能据此放行 R2/R3/F4/GA。
+
 ## 2026-11-01：真实公开链 smoke
 
 源码与两 Linux 二进制经独立重建/哈希绑定；真实无凭据 GitHub 整仓采集、默认私有及

@@ -29,7 +29,8 @@
 - [x] 备份手动管理 Web：真实管理员边界、显式全实例确认、同 request ID 继续、浏览器记录清除、任务详情/分页/取消/只读对账；复用 React/TanStack/Radix，保留服务端私有凭据，不代表完整 F4。
 - [ ] 自动调度、保留/孤儿清扫与跨任务磁盘回收；任务上限不能代替完整生命周期治理。
 - [ ] 离线完整恢复与运行代切换，明确凭据撤销和回退策略；内部快照库不等于可用备份功能。
-- [x] T3 Linux 运行根 SH/EX lease 内核：独审限定 ACCEPT，逐 holder 持久 fence 防关闭不明后重入；尚未接 startup/key/Resolve，稳定命名与停用不合作旧程序的部署前提不可省略。
+- [x] T3 Linux 运行根 SH/EX lease 内核：独审限定 ACCEPT，逐 holder 持久 fence 防关闭不明后重入；legacy 启动参与另由 T3S 接线，稳定命名与停用不合作旧程序的部署前提不可省略。
+- [x] T3S Linux legacy 启动准备：业务/key 写前 SH、typed fresh-root key 证明、保留痕迹拒绝、App/HTTP/日志完整排空及不明所有权保留经独审；没有 Resolve、worker 父死或进程退出后的 durable 业务故障 fence，不放行完整 R2/R3 或离线恢复。
 - [x] 恢复传输前置 T2a：Afero S3 精确密文复制，完整验证与物理响应关闭后才可信；独审通过。没有恢复头引导、候选闭包或产品恢复入口。
 - [x] 恢复验真 T1：只读隔离数据库、原 key/policy 与全部保留密文检查；非正 ID 全域准入 P1 经原七反例独立闭合，exact12 主线集成与真实 worker 验证通过。不是归档闭包、运行代切换或恢复产品入口。
 - [x] 恢复传输 T2b 头引导：显式私有 parent FD、有界只读 bootstrap/complete scope；exact3 独审通过，隔离主线组合与旧 S3 回归通过。不是认证、候选发布或恢复产品入口。

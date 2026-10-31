@@ -4,6 +4,19 @@
 `2efa940f3569015cc5f060627334fb19963a0fdc`; independently review the resulting source before integration.
 No branch/worktree, cgo, automatic restore activation or permission relaxation.
 
+Execution update: exact10 has independent Spec/Quality scoped ACCEPT. Report
+`/tmp/cognate-t3s-independent-2efa940-GBQrgrG9/REPORT.md`, SHA256
+`28b7e791f2cd9acdf6651333b8d529f863d71cfa7f273e594a9835493ea443b3`.
+The original kernel is unchanged; main is validating the latest Source5 plus startup composition.
+This does not approve worker handoff, durable business-failure fencing, R2/R3 or offline activation.
+
+Integration fix1 adds two existing fixture files to the cumulative write set (exact12):
+`app_import_test.go` and `app_source_refresh_test.go`, plus a new regression in the already listed
+`app_runtime_linux_test.go`. Only these three tests differ from exact10; production and kernel
+bytes are unchanged. Non-author incremental ACCEPT closes the original fixture contract conflicts,
+not the original-byte failures or full-repository gate. Report SHA256
+`a827b44ff9eab1a86aab03f77e74f9ef44e4e71f52df3df7ca351f3c35acc8a4`.
+
 **Goal:** Make Linux ordinary and backup-enabled startup hold SH before business/key writes and until
 all App dependencies have definitely closed. Preserve fresh-instance program-generated master keys.
 Reject recovery-layout traces instead of silently falling back to the legacy database.

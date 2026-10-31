@@ -13,7 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 	"uuid"
 
@@ -32,6 +31,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/oidclogin"
 	"github.com/ca-x/cognate/internal/server/packs"
 	"github.com/ca-x/cognate/internal/server/publiccatalog"
+	"github.com/ca-x/cognate/internal/server/runtimegen"
 	"github.com/ca-x/cognate/internal/server/scheduler"
 	"github.com/ca-x/cognate/internal/server/sourcerefresh"
 	"github.com/ca-x/cognate/internal/server/state"
@@ -62,6 +62,8 @@ type Config struct {
 }
 
 type App struct {
+	runtime          appRuntime
+	cache            *library.ArchiveCache
 	backups          *serverBackup
 	logs             *logging.Manager
 	store            *state.Store
@@ -77,11 +79,19 @@ type App struct {
 	scheduler        *scheduler.Scheduler
 	sourceRefresh    *sourcerefresh.Worker
 	imports          *httpapi.ImportHandler
+	selection        *importer.SelectionService
 	native           *nativeconsumer.Service
 	mcpConfiguration *httpapi.MCPConfigurationHandler
 }
 
 func Open(ctx context.Context, config Config) (*App, error) {
+	return openApp(ctx, config, appRuntimeHooks{})
+}
+
+func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result *App, returnedError error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("server context is required")
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -151,33 +161,54 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
 	}
+	app := &App{tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP}
+	app.runtime.hooks = hooks
+	app.runtime.life, app.runtime.cancel = context.WithCancel(context.Background())
+	defer func() {
+		if returnedError != nil {
+			returnedError = errors.Join(returnedError, app.Close())
+		}
+	}()
+	if err := app.openRuntime(ctx, config.DataDirectory); err != nil {
+		return nil, err
+	}
 	var key []byte
 	var err error
 	if config.InitializeMasterKey {
-		key, err = state.InitializeMasterKey(ctx, config.MasterKeyFile, config.DataDirectory)
+		if app.runtime.lease != nil {
+			key, err = state.InitializeMasterKeyWithRuntime(ctx, config.MasterKeyFile, config.DataDirectory, app.runtime.lease)
+		} else {
+			key, err = state.InitializeMasterKey(ctx, config.MasterKeyFile, config.DataDirectory)
+		}
 	} else {
 		key, err = state.ReadMasterKey(config.MasterKeyFile)
 	}
 	if err != nil {
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	defer clear(key)
-	if err := state.PrepareDirectory(config.DataDirectory); err != nil {
+	app.observeRuntime("store-opening")
+	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	store, err := state.OpenWithOptions(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled})
+	openStore := state.OpenWithOptions
+	if hooks.store != nil {
+		openStore = hooks.store
+	}
+	store, err := openStore(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled})
+	app.store = store
 	if err != nil {
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	service, err := auth.NewService(store, key)
 	if err != nil {
-		_ = store.Close()
 		return nil, err
 	}
 	if config.BootstrapAdminUsername != "" {
 		administrator, err := service.BootstrapAdministrator(ctx, config.BootstrapAdminUsername, config.BootstrapAdminPasswordFile)
 		if err != nil {
-			_ = store.Close()
 			return nil, err
 		}
 		if _, exists := admins[administrator]; !exists {
@@ -187,8 +218,9 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	var device *githubauth.Service
 	if config.GitHubClientID != "" {
 		device, err = githubauth.NewService(store, config.GitHubClientID, nil)
+		app.device = device
 		if err != nil {
-			_ = store.Close()
+			app.markRuntimeUncertain()
 			return nil, err
 		}
 	}
@@ -200,122 +232,98 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 		if err == nil {
 			login, err = oidclogin.New(ctx, service, oidclogin.Config{Issuer: config.OIDCIssuer, ClientID: config.OIDCClientID, ClientSecret: strings.TrimRight(string(secret), "\r\n"), PublicOrigin: config.PublicOrigin})
+			app.oidc = login
 		}
 		clear(secret)
 		if err != nil {
-			if device != nil {
-				device.Close()
-			}
-			_ = store.Close()
+			app.markRuntimeUncertain()
 			return nil, err
 		}
 	}
 	cache, err := library.OpenArchiveCacheWithOptions(ctx, filepath.Join(config.DataDirectory, "archives"), library.CacheOptions{MaxBytes: config.ArchiveCacheBytes, MaintenanceManaged: config.BackupEnabled})
+	app.cache = cache
 	if err != nil {
-		if login != nil {
-			login.Close()
-		}
-		if device != nil {
-			device.Close()
-		}
-		_ = store.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	fetcher := repository.NewArchiveFetcher(nil)
 	collection, err := library.NewService(store, cache, fetcher)
+	app.library = collection
 	if err != nil {
-		_ = cache.Close()
-		if login != nil {
-			login.Close()
-		}
-		if device != nil {
-			device.Close()
-		}
-		_ = store.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
+	app.cache = nil
 	distribution, err := packs.NewService(store, collection, key)
+	app.packs = distribution
 	if err != nil {
-		_ = collection.Close()
-		if login != nil {
-			login.Close()
-		}
-		if device != nil {
-			device.Close()
-		}
-		_ = store.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	var listScheduler *scheduler.Scheduler
 	if config.ListSyncInterval != 0 {
 		listScheduler, err = scheduler.New(store, cache, fetcher, nil, scheduler.Options{Interval: config.ListSyncInterval})
+		app.scheduler = listScheduler
 		if err != nil {
-			distribution.Close()
-			_ = collection.Close()
-			if login != nil {
-				login.Close()
-			}
-			if device != nil {
-				device.Close()
-			}
-			_ = store.Close()
+			app.markRuntimeUncertain()
 			return nil, err
 		}
 	}
-	app := &App{store: store, tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP, device: device, oidc: login, library: collection, packs: distribution, scheduler: listScheduler}
 	if config.BackupEnabled {
 		app.backups, err = openServerBackup(ctx, config, key, collection)
 		if err != nil {
-			return nil, errors.Join(err, app.Close())
+			app.markRuntimeUncertain()
+			return nil, err
 		}
 	}
 	app.mcpConfiguration, err = httpapi.NewMCPConfigurationHandler(service, store)
 	if err != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	if sourceInterval != 0 {
 		app.sourceRefresh, err = sourcerefresh.New(store, collection, sourcerefresh.Options{Interval: sourceInterval, DataDirectory: config.DataDirectory})
 		if err != nil {
-			_ = app.Close()
+			app.markRuntimeUncertain()
 			return nil, err
 		}
 	}
 	selection, selectionErr := importer.NewSelectionService(store, collection, service, config.PublicOrigin)
+	app.selection = selection
 	if selectionErr != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, selectionErr
 	}
 	app.imports, err = httpapi.NewImportHandlerWithSelection(service, collection, selection)
 	if err != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
+	app.selection = nil
 	access, err := mcpaccess.NewService(store)
 	if err != nil {
-		_ = app.Close()
 		return nil, err
 	}
 	app.mcp, err = mcpserver.New(mcpserver.Options{Access: access, Store: store, Library: collection, PublicOrigin: config.PublicOrigin})
 	if err != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	app.public, err = publiccatalog.NewService(store, collection)
 	if err != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, err
 	}
 	if tlsConfig != nil && strings.HasPrefix(config.PublicOrigin, "https://") && nativesessionauth.ValidServerOrigin(config.PublicOrigin) {
 		app.native, err = nativeconsumer.New(store, service, key, config.PublicOrigin)
 		if err != nil {
-			_ = app.Close()
+			app.markRuntimeUncertain()
 			return nil, err
 		}
 	}
 	app.logs, err = logging.Open(ctx, config.DataDirectory)
 	if err != nil {
-		_ = app.Close()
+		app.markRuntimeUncertain()
 		return nil, fmt.Errorf("cannot initialize server logging")
 	}
 	options := httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native}
@@ -326,72 +334,25 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	return app, nil
 }
 
-func (app *App) Close() (result error) {
+func (app *App) Serve(ctx context.Context, listener net.Listener) (result error) {
+	if listener == nil {
+		return fmt.Errorf("server listener is required")
+	}
+	ownedListener := &runtimeListener{Listener: listener}
+	listener = ownedListener
+	scoped, finish, err := app.beginRuntimeServe(ctx, ownedListener)
+	if err != nil {
+		_ = listener.Close()
+		return err
+	}
+	defer finish()
+	ctx = scoped
 	defer func() {
-		if app.logs != nil {
-			result = errors.Join(result, app.logs.Close())
+		if err := app.closeRuntimeResource("listener", func() error { return closeRuntimeListener(listener) }); err != nil {
+			app.markRuntimeUncertain()
+			result = errors.Join(result, runtimegen.ErrUncertain)
 		}
 	}()
-	if app.backups != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := app.backups.Close(ctx); err != nil {
-			uncertainBackupApps.Store(app, struct{}{})
-			return err
-		}
-	}
-	if app.mcpConfiguration != nil {
-		if err := app.mcpConfiguration.Close(); err != nil {
-			return err
-		}
-	}
-	if app.native != nil {
-		app.native.Close()
-	}
-	if app.sourceRefresh != nil {
-		_ = app.sourceRefresh.Close()
-	}
-	if app.scheduler != nil {
-		_ = app.scheduler.Close()
-	}
-	if app.imports != nil {
-		if err := app.imports.Close(); err != nil {
-			return err
-		}
-	}
-	if app.mcp != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		err := app.mcp.Close(ctx)
-		cancel()
-		if err != nil {
-			return err
-		}
-	}
-	if app.public != nil {
-		if err := app.public.Close(); err != nil {
-			return err
-		}
-	}
-	var shutdown sync.WaitGroup
-	var libraryError error
-	if app.packs != nil {
-		shutdown.Go(app.packs.Close)
-	}
-	if app.library != nil {
-		shutdown.Go(func() { libraryError = app.library.Close() })
-	}
-	if app.device != nil {
-		shutdown.Go(app.device.Close)
-	}
-	if app.oidc != nil {
-		shutdown.Go(app.oidc.Close)
-	}
-	shutdown.Wait()
-	return errors.Join(libraryError, app.store.Close())
-}
-
-func (app *App) Serve(ctx context.Context, listener net.Listener) (result error) {
-	defer listener.Close()
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -420,16 +381,26 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 		if err := app.scheduler.Start(ctx); err != nil {
 			return err
 		}
-		defer app.scheduler.Close()
+		defer func() {
+			if err := app.scheduler.Close(); err != nil {
+				app.markRuntimeUncertain()
+				result = errors.Join(result, err)
+			}
+		}()
 	}
 	if app.sourceRefresh != nil {
 		if err := app.sourceRefresh.Start(ctx); err != nil {
 			return err
 		}
-		defer app.sourceRefresh.Close()
+		defer func() {
+			if err := app.sourceRefresh.Close(); err != nil {
+				app.markRuntimeUncertain()
+				result = errors.Join(result, err)
+			}
+		}()
 	}
 	httpServer := &http.Server{
-		Handler: app.handler, TLSConfig: app.tlsConfig,
+		Handler: app.runtimeHandler(), TLSConfig: app.tlsConfig,
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second,
 		WriteTimeout: 30 * time.Second, IdleTimeout: time.Minute, MaxHeaderBytes: 16 << 10,
 		BaseContext: func(net.Listener) context.Context { return ctx },
@@ -439,7 +410,12 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 		httpServer.ErrorLog = app.logs.HTTPErrorLog()
 		_ = app.logs.Record(logging.Event{Kind: logging.EventServerStarted})
 	}
-	defer httpServer.Close()
+	defer func() {
+		if err := httpServer.Close(); err != nil {
+			app.markRuntimeUncertain()
+			result = errors.Join(result, runtimegen.ErrUncertain)
+		}
+	}()
 	finished := make(chan error, 1)
 	stop := context.AfterFunc(ctx, func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -447,6 +423,7 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 		err := httpServer.Shutdown(shutdownCtx)
 		if err != nil {
 			_ = httpServer.Close()
+			err = runtimegen.ErrUncertain
 		}
 		finished <- err
 	})
@@ -459,6 +436,9 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 	var shutdownErr error
 	if !stop() {
 		shutdownErr = <-finished
+		if shutdownErr != nil {
+			app.markRuntimeUncertain()
+		}
 	}
 	if errors.Is(serveErr, http.ErrServerClosed) && ctx.Err() != nil {
 		serveErr = nil
