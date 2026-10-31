@@ -1,16 +1,22 @@
 # AI 配置资产
 
+## Grok Build 来源导入（2026-10-31）
+
+cc-switch schema24 的独立配置选择导入支持 Grok Build 显式单模型 TOML；来源参考固定为 `6d6b7162f122ac0ce1356a14688c8c4f712db3c8`。要求 `[models].default` 引用唯一 `[model.<profile>]`，保留 profile、上游模型、HTTPS endpoint、模型名称、responses backend、context window 与可选 env_key，整数范围为 1–9007199254740991。未知字段、多模型、空配置、缺失必填字段、错误类型或引用均标为不支持，不按上游 UI fallback 猜测原生登录或补默认值。
+
+Web 与 CLI 审阅显示全部安全字段、env_key 的未设置状态和源 API key 是否存在；源密钥只显示省略提示，不进入 adapter、草稿或导入资产。名称与回执统一为最多 128 UTF-8 字节，不截断或修剪来源名称；TOML 字段白名单区分大小写，不接受大小写别名。审阅票据逐字段绑定，提交后保存所有者私有 Grok 资产；凭据须另经已有配置管理入口设置。有环境变量名不证明设备存在该变量。提交结果不明时只查状态，不自动重放。MyGo 编辑、本机应用、Magpie 配置与其它 agent 的完整导入矩阵仍待开发。
+
 ## Grok Build Web（2026-10-31）
 
 Web 支持 native-login/custom-model provider 的创建、编辑、无凭据复制、排序与删除。custom-model 保留七个模型字段、可选 envKey 的 absent 语义及最大安全整数的十进制精度；密钥支持 Keep/Replace/Clear，切换 native-login 前显式确认清除模型和密钥。未知持久字段只读并禁止复制；冲突拒绝覆盖，异常或丢失回执进入 Unknown，禁止自动重放。输入密钥不进入 React 文本状态，切换语言与提交结束清空。该入口管理私有资产，不代表 Grok 本机应用、MyGo 或 Pack 自动应用已交付。
 
 > 2026-10-30：Claude、Codex 与 Gemini 私有 provider 资产管理已有 Web 入口；Gemini typed API/Web 在 `184feaa` 交付。Codex 与 Gemini 尚不能本机应用。Claude 的 Linux 手动 CLI 配置工作流在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo Claude provider/schema1 原生编辑、预览、显式批准应用、状态及恢复在 `bd00bc0` 交付；本机操作仅限 Linux。其它 agent 的完整配置、完整历史/文件差异及非 Linux 配置应用仍未交付；证据与 CI 状态见 `VERIFICATION.md`。
 
-Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini、OpenCode 与 Grok Build provider 的服务端私有资产管理**；Web 专属表单目前支持前三者，OpenCode 与 Grok Build 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
+Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini、OpenCode 与 Grok Build provider 的服务端私有资产管理**；Web 专属表单支持 Claude、Codex、Gemini 与 Grok Build，OpenCode 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。
 
 ## Web 使用流程
 
-Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC，并提供 Linux `grok-assets` CLI；专属 Web/MyGo 编辑器和本机应用仍待接线。`Draft.grokbuild_provider` 使用独立的 native-login/custom-model 模式；custom model 保留本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名。context window 为 int64，JSON 使用十进制字符串，范围为 1 至 9007199254740991；env 名 absent 与空串不同，显式 null 或空串拒绝。只允许单个 `grokbuild.api-key` SecretMutation，密钥不进入 provider DTO、读取响应或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。未知持久化字段只读，不能借更新或复制丢失；排序继续只读取元数据。保存、读取和服务端规划都不代表本机已应用。
+Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC，并提供 Linux `grok-assets` CLI 和专属 Web 编辑器；MyGo 编辑器和本机应用仍待接线。`Draft.grokbuild_provider` 使用独立的 native-login/custom-model 模式；custom model 保留本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名。context window 为 int64，JSON 使用十进制字符串，范围为 1 至 9007199254740991；env 名 absent 与空串不同，显式 null 或空串拒绝。只允许单个 `grokbuild.api-key` SecretMutation，密钥不进入 provider DTO、读取响应或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。未知持久化字段只读，不能借更新或复制丢失；排序继续只读取元数据。保存、读取和服务端规划都不代表本机已应用。
 
 登录后从“AI 配置”进入，或直接访问 `/configuration`。列表只读取当前账号的元数据；点击编辑后才读取脱敏草稿。当前不提供通用 raw JSON 编辑或原文凭据查看。
 
@@ -111,7 +117,7 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 
 六个接口仅接受 Connect unary protobuf POST，不接受 JSON、GET/query、gRPC-Web、压缩请求、浏览器 Origin/Sec-Fetch 或 cookie 认证。Begin/Bind 使用 owner bearer，其余只接受绑定的 native-purpose 子会话。响应及错误均 no-store；八个并发槽与 20 秒预算从 body 读取前覆盖解码、实际响应写出和取消排空，显式 Flush 不逃出计数。响应丢失不能重发秘密；proof 是持钥证明，不是官方客户端 attestation。详细合同见 `superpowers/plans/2026-10-29-native-configuration-transport.md`。
 
-来源配置导入、十四类 agent 的完整专属交互、Pack 配置附件、完整历史枚举与值级/文件 diff、非 Linux 配置应用，以及明确选择后的自动应用仍为后续门禁。已交付的 Claude CLI/MyGo 手动流程不替代这些能力。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以已交付部分缩减首发范围。
+完整来源配置导入矩阵、十四类 agent 的完整专属交互、Pack 配置附件、完整历史枚举与值级/文件 diff、非 Linux 配置应用，以及明确选择后的自动应用仍为后续门禁。已交付的部分来源导入和 Claude CLI/MyGo 手动流程不替代这些能力。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以已交付部分缩减首发范围。
 
 # Codex CLI：显式本机编排，生产资格仍关闭
 

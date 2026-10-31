@@ -296,7 +296,7 @@ func importSelectionDraft(candidate importer.SelectionConfigurationCandidate) (*
 	result := &configurationv1.Draft{Name: input.Name}
 	switch candidate.KnownAgentID {
 	case "claude":
-		if input.CodexProvider != nil || input.GeminiProvider != nil {
+		if input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider != nil {
 			return nil, errImportReceiptUnavailable
 		}
 		provider := &configurationv1.ClaudeProvider{Endpoint: configurationClonePointer(input.Provider.Endpoint)}
@@ -314,7 +314,7 @@ func importSelectionDraft(candidate importer.SelectionConfigurationCandidate) (*
 		provider.Models = &configurationv1.ClaudeModels{DefaultModel: configurationClonePointer(models.Default), Haiku: configurationClonePointer(models.Haiku), Sonnet: configurationClonePointer(models.Sonnet), Opus: configurationClonePointer(models.Opus)}
 		result.Payload = &configurationv1.Draft_ClaudeProvider{ClaudeProvider: provider}
 	case "codex":
-		if input.GeminiProvider != nil || input.Provider != (configuration.ClaudeProvider{}) {
+		if input.GeminiProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider != nil || input.Provider != (configuration.ClaudeProvider{}) {
 			return nil, errImportReceiptUnavailable
 		}
 		provider, err := configurationCodexProvider(input.CodexProvider)
@@ -323,7 +323,7 @@ func importSelectionDraft(candidate importer.SelectionConfigurationCandidate) (*
 		}
 		result.Payload = &configurationv1.Draft_CodexProvider{CodexProvider: provider}
 	case "gemini":
-		if input.CodexProvider != nil || input.Provider != (configuration.ClaudeProvider{}) {
+		if input.CodexProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider != nil || input.Provider != (configuration.ClaudeProvider{}) {
 			return nil, errImportReceiptUnavailable
 		}
 		provider, err := configurationGeminiProvider(input.GeminiProvider)
@@ -331,6 +331,12 @@ func importSelectionDraft(candidate importer.SelectionConfigurationCandidate) (*
 			return nil, errImportReceiptUnavailable
 		}
 		result.Payload = &configurationv1.Draft_GeminiProvider{GeminiProvider: provider}
+	case "grokbuild":
+		if input.Provider != (configuration.ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider == nil || input.GrokBuildProvider.Mode != agentconfig.GrokBuildCustomModel || !configurationGrokBuildModelValid(input.GrokBuildProvider.Model) {
+			return nil, errImportReceiptUnavailable
+		}
+		model := input.GrokBuildProvider.Model
+		result.Payload = &configurationv1.Draft_GrokbuildProvider{GrokbuildProvider: &configurationv1.GrokBuildProvider{Mode: configurationv1.GrokBuildMode_GROK_BUILD_MODE_CUSTOM_MODEL, Model: &configurationv1.GrokBuildModel{Profile: model.Profile, UpstreamModel: model.UpstreamModel, Endpoint: model.Endpoint, Name: model.Name, ApiBackend: model.APIBackend, ContextWindow: model.ContextWindow, EnvKey: configurationClonePointer(model.EnvKey)}}}
 	default:
 		return nil, errImportReceiptUnavailable
 	}

@@ -235,7 +235,7 @@ func readSelectionProviders(ctx context.Context, connection *sql.Conn, view *Sel
 			clear(settings)
 			return ErrSelectionInvalid
 		}
-		if agent == "claude" || agent == "codex" || agent == "gemini" {
+		if agent == "claude" || agent == "codex" || agent == "gemini" || agent == "grokbuild" {
 			candidate.Status = SelectionUnsupportedField
 			if metadataEmpty && endpointCount == 0 && knownColumns {
 				var parsedDraft = candidate.Draft
@@ -250,10 +250,13 @@ func readSelectionProviders(ctx context.Context, connection *sql.Conn, view *Sel
 				case "gemini":
 					draft, slots, err := parseGeminiSelection(ctx, candidate.Name, settings)
 					parsedDraft, candidate.Slots, parsedErr = &draft, slots, err
+				case "grokbuild":
+					draft, slots, err := parseGrokSelection(ctx, candidate.Name, settings)
+					parsedDraft, candidate.Slots, parsedErr = &draft, slots, err
 				}
 				if parsedErr == nil {
 					candidate.Draft, candidate.Status = parsedDraft, SelectionNeedsChoice
-					if agent == "codex" && selectionName(candidate.Name) {
+					if (agent == "codex" || agent == "grokbuild") && selectionName(candidate.Name) {
 						candidate.Status = SelectionReady
 					}
 					selectionNotice(&candidate.Notices, SelectionCredentialsOmitted, 1)

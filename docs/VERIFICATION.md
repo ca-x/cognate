@@ -1,5 +1,23 @@
 # 开发预览验证
 
+## 2026-10-31：Grok Build 来源导入阶段
+
+支持 cc-switch schema24 的显式单模型配置，经安全 Go 投影、固定服务端 moejs adapter、审阅票据和真实 SQLite 加密资产写入；Connect 客户端回读全部字段并验证省略源密钥。丢响应场景只查状态，第二次提交拒绝，配置单独导入不拉取仓库。Web 复用现有审阅组件和 Grok 字段验证，不新增 UI 框架或动画；最大窗口 `9007199254740991` 以整数/十进制字符串在各层传输。
+
+边界测试覆盖未知字段、多模型、默认引用错误、空配置、错误类型与窗口溢出、HTTP endpoint、env absent/empty、密钥 absent/empty/present、跨 agent 混合与选项拒绝。票据 transcript 单独验证模式、模型存在位、全部模型字段和 env 存在位/内容变化均改变摘要。初次相关包回归的三项失败来自旧十文件宿主指纹和“空 Grok 仍为 unsupported-agent”的旧断言；保留原失败日志，以独立 Node 长度编码计算十一文件宿主和 adapter 绑定新摘要，固定模块摘要不变；空 Grok 改为 unsupported-field，未放宽拒绝边界。
+
+隔离 HOME/XDG/TMP、Go 1.27.3、`CGO_ENABLED=0`、离线 readonly 模块环境下，全仓 `go test -json ./...` 为 **7506 PASS / 158 SKIP / 0 FAIL**；后加 Grok 的 `TestPrepareImportedDraftParity` 单独通过。全仓 vet、modules verify、六平台 CLI/服务端构建（Linux/Darwin/Windows × amd64/arm64）通过；构建不是跨平台运行验收。Web 类型检查/生产构建、Grok 导入 state 向量、已有 Grok Web state 回归和 actionlint 通过。证据 `/tmp/cognate-grok-import.SIpZg5z4`，全仓日志 SHA256 `4c7178af016afeb9ea75f1c4303b22c5cd7b3d99455a4c726e6f0c6b55fb63d2`。
+
+独立验收另发现两个真实反例：TOML struct 解码的 `DisallowUnknownFields()` 仍接受大小写别名甚至同现覆盖；公共客户端只接受 80 字节/JS code units 的名称，与服务端 128 UTF-8 字节不符。五个大小写反例和 81/128 字节名称反例先 RED；解析改为单次精确键 map 解码、逐层白名单及类型校验，Go/Web 名称与回执统一 128 UTF-8 字节并拒绝非法 Unicode/控制字符后定向 GREEN。保留首轮通过与独立反例，不以首轮全仓绿色覆盖该发现；修复后最终验证另记。
+
+修复后在排除 desktop 并行 WIP 的源快照完整验证：**7517 PASS / 158 SKIP / 0 FAIL**，全仓 vet 通过；日志 `final-full.json` 的 SHA256 为 `7470d77f69ca65ac062717f51ddcb431d75b8071682bd7d63a37388b0c1ff4ae`。快照与待提交代码逐文件 cmp 一致；Web 重新构建与两组 state 向量、最新 embed 包测试及六平台 CGO0 CLI/服务端构建通过。独立代表复验 P1/P2、五相关包定向测试、Web 额外长名称预览/回执向量及宿主绑定后解除阻塞；接受范围仅为本片，不含 desktop 或发布产物。当前宿主摘要 `34c9962a2611cdfee49351132e09b229d161357319adbf9bb8690250bd664e7d`，固定 moejs 模块摘要保持不变。
+
+本片没有 Grok 本机应用、MyGo 编辑器、Magpie 配置或完整十四 agent 导入；Web 本次只做状态与构建验证，没有新浏览器/真机验收。用户已重新允许并行推进，独立验收与 MyGo 后续实现分别隔离分工；不更新现有发布 tag。
+
+## 2026-10-31：懒猫安装成功反馈
+
+用户在本线程明确确认“懒猫安装成功了”，原 master-key 启动故障据此闭环，恢复剩余功能开发。此前最新交付为 rc.7，但用户没有单独确认实测版本号；不把这句话扩展为平台 OIDC、升级数据保留、文件选择器或最终 Release 下载探针验收通过。此前失败记录保留。
+
 ## 2026-10-31：懒猫 rc.4 发布与设备失败反馈
 
 服务端 `server-v0.1.0-rc.3` 固定源码 `577ed79bacce981c474fe434094115780885efa1`，release run `41166206452` completed/success，amd64/arm64 容器构建、提升与部署验证均通过。懒猫 rc.3 run `41166452977` 在 SDK 原始模板解码阶段失败，没有上传包或商店；旧 tag 保留。整项 printf 模板改为普通环境标量加 b64enc，使用与 CI 相同的 Action v1.3.7 得到旧模板普通 RED、新模板预检查 PASS，未渲染虚构参数。密码直接解码到私有文件，真实测试覆盖特殊字符与尾部换行，子服务环境不含原始或编码密码。

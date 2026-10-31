@@ -3,7 +3,9 @@ package importclient
 import (
 	"bytes"
 	"encoding/hex"
+	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -11,6 +13,7 @@ import (
 
 	configurationv1 "github.com/ca-x/cognate/gen/skillhub/configuration/v1"
 	importv1 "github.com/ca-x/cognate/gen/skillhub/import/v1"
+	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/repository"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -89,7 +92,7 @@ func selectionNoticesValid(notices []*importv1.ImportNotice) bool {
 
 func selectionDraftValid(candidate *importv1.ImportConfigurationCandidate) bool {
 	draft := candidate.Draft
-	if draft == nil || !selectionText(draft.Name, 80, false) || strings.TrimSpace(draft.Name) != draft.Name || draft.Name != candidate.SafeName || candidate.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER {
+	if draft == nil || !selectionText(draft.Name, 128, false) || strings.TrimSpace(draft.Name) != draft.Name || draft.Name != candidate.SafeName || candidate.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER {
 		return false
 	}
 	switch candidate.KnownAgentId {
@@ -105,8 +108,43 @@ func selectionDraftValid(candidate *importv1.ImportConfigurationCandidate) bool 
 			return false
 		}
 		return provider.AuthMode == configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_NATIVE_LOGIN && provider.Endpoint == nil && provider.KeyTransport == nil || provider.AuthMode == configurationv1.GeminiAuthMode_GEMINI_AUTH_MODE_API_KEY && provider.KeyTransport != nil && (*provider.KeyTransport == 1 || *provider.KeyTransport == 2)
+	case "grokbuild":
+		provider := draft.GetGrokbuildProvider()
+		return provider != nil && provider.Mode == configurationv1.GrokBuildMode_GROK_BUILD_MODE_CUSTOM_MODEL && selectionGrokModelValid(provider.Model)
 	}
 	return false
+}
+
+func selectionGrokModelValid(model *configurationv1.GrokBuildModel) bool {
+	literal := func(value string, maximum int) bool {
+		return selectionText(value, maximum, false) && strings.TrimSpace(value) == value
+	}
+	if model == nil || !literal(model.Profile, 128) || !literal(model.UpstreamModel, 256) || !literal(model.Name, 128) || !literal(model.Endpoint, 2048) || model.ApiBackend != "responses" || model.ContextWindow < 1 || model.ContextWindow > agentconfig.MaxGrokBuildContextWindow || strings.ContainsAny(model.Endpoint, "?#\\") {
+		return false
+	}
+	endpoint, err := url.Parse(model.Endpoint)
+	if err != nil || endpoint.Scheme != "https" || endpoint.Hostname() == "" || endpoint.User != nil || strings.HasSuffix(endpoint.Host, ":") || strings.Contains(endpoint.Path, "\\") || !utf8.ValidString(endpoint.Path) || strings.ContainsFunc(endpoint.Path, unicode.IsControl) {
+		return false
+	}
+	if endpoint.Port() != "" {
+		port, err := strconv.Atoi(endpoint.Port())
+		if err != nil || port < 1 || port > 65535 {
+			return false
+		}
+	}
+	if model.EnvKey != nil {
+		value := *model.EnvKey
+		if len(value) == 0 || len(value) > 128 {
+			return false
+		}
+		for index, character := range []byte(value) {
+			letter := character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z' || character == '_'
+			if !letter && (index == 0 || character < '0' || character > '9') {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func selectionPreviewValid(view *importv1.PreviewImportSelectionResponse, now time.Time) bool {
@@ -148,7 +186,7 @@ func selectionPreviewValid(view *importv1.PreviewImportSelectionResponse, now ti
 		}
 	}
 	agents := []string{"claude", "claude-desktop", "codex", "gemini", "grokbuild", "opencode", "openclaw", "hermes", "pi", "mcode", "kimi", "dsh", "agy", "omp"}
-	slots := map[string][]string{"claude": {"claude.api-key", "claude.auth-token"}, "codex": {"codex.provider-key"}, "gemini": {"gemini.api-key", "gemini.legacy-api-key"}}
+	slots := map[string][]string{"claude": {"claude.api-key", "claude.auth-token"}, "codex": {"codex.provider-key"}, "gemini": {"gemini.api-key", "gemini.legacy-api-key"}, "grokbuild": {"grokbuild.api-key"}}
 	for _, entry := range view.Configurations {
 		if entry == nil || !add(entry.Id) || !slices.Contains([]importv1.ImportCandidateStatus{1, 2, 5, 6, 7, 8}, entry.Status) || entry.KnownAgentId != "" && !slices.Contains(agents, entry.KnownAgentId) || entry.Kind < 1 || entry.Kind > 5 || !selectionText(entry.SafeName, 1024, true) {
 			return false
@@ -252,7 +290,7 @@ func selectionReceiptShape(receipt *importv1.ImportReceipt, operation []byte) bo
 	}
 	seen = make(map[string]bool)
 	for _, asset := range receipt.CreatedAssets {
-		if asset == nil || !selectionText(asset.Id, 128, false) || seen[asset.Id] || asset.Revision <= 0 || asset.SchemaVersion != 1 || asset.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER || !slices.Contains([]string{"claude", "codex", "gemini"}, asset.AgentId) || !selectionText(asset.Name, 80, false) {
+		if asset == nil || !selectionText(asset.Id, 128, false) || seen[asset.Id] || asset.Revision <= 0 || asset.SchemaVersion != 1 || asset.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER || !slices.Contains([]string{"claude", "codex", "gemini", "grokbuild"}, asset.AgentId) || !selectionText(asset.Name, 128, false) {
 			return false
 		}
 		seen[asset.Id] = true

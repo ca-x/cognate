@@ -2,7 +2,7 @@ import { useId, useRef, useState, type ChangeEvent, type ReactNode } from "react
 import { useTranslation } from "react-i18next"
 import { clone } from "@bufbuild/protobuf"
 import { t, formatNumber, savePreference } from "./i18n"
-import { ClaudeAuthMode, CodexAuthMode, GeminiAuthMode, GeminiKeyTransport, CodexModality, CodexReasoningEffort, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
+import { ClaudeAuthMode, CodexAuthMode, GeminiAuthMode, GeminiKeyTransport, GrokBuildMode, CodexModality, CodexReasoningEffort, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { ImportCandidateOptionsSchema, ImportCandidateStatus, ImportCommitObservation, ImportReceiptPhase, type ImportCandidateOptions, type ImportConfigurationCandidate, type SkillBinding } from "./gen/skillhub/import/v1/import_pb"
 import { canConfirmSelection, selectionNotices, selectionNoticeLabels, selectionOption, selectionStatusLabels, type SelectionGroup, type SelectionState } from "./import-selection-state"
 import { Button } from "./components/ui/button"
@@ -61,6 +61,10 @@ function ProviderPreview({ draft }: { draft: Draft }) {
     {payload.case === "geminiProvider" && <>
       <ReadField label="authMode" value={GeminiAuthMode[payload.value.authMode]} /><ReadField label="endpoint" value={payload.value.endpoint} /><ReadField label="keyTransport" value={payload.value.keyTransport === undefined ? undefined : GeminiKeyTransport[payload.value.keyTransport]} /><ReadField label="env.model" value={payload.value.envModel} /><ReadField label="settings.model.name" value={payload.value.settingsModel} />
     </>}
+    {payload.case === "grokbuildProvider" && <>
+      <ReadField label="mode" value={GrokBuildMode[payload.value.mode]} />
+      <ReadField label="profile" value={payload.value.model?.profile} /><ReadField label="upstreamModel" value={payload.value.model?.upstreamModel} /><ReadField label="endpoint" value={payload.value.model?.endpoint} /><ReadField label="name" value={payload.value.model?.name} /><ReadField label="apiBackend" value={payload.value.model?.apiBackend} /><ReadField label="contextWindow" value={payload.value.model?.contextWindow} /><ReadField label="envKey" value={payload.value.model?.envKey} />
+    </>}
     {payload.case === "codexProvider" && <>
       <ReadField label="authMode" value={CodexAuthMode[payload.value.authMode]} /><ReadField label="endpoint" value={payload.value.endpoint} /><ReadField label="model" value={payload.value.model} /><ReadField label="reasoningEffort" value={payload.value.reasoningEffort === undefined ? undefined : CodexReasoningEffort[payload.value.reasoningEffort]} />
       <div className="mt-3"><dt className="font-medium">catalog</dt><dd>{payload.value.catalog === undefined ? t("未设置") : <ol className="space-y-3">{payload.value.catalog.models.map((model, index) => <li key={index} className="border-t border-border pt-2"><dl>
@@ -85,7 +89,7 @@ function ConfigurationChoices({ candidate, option, disabled, onOption }: { candi
     onOption(next)
   }
   return <div className="mt-3 space-y-3">
-    <div className="space-y-1"><label htmlFor={`${id}-name`} className="text-sm">{t("导入名称（不自动修正）")}</label><Input id={`${id}-name`} disabled={disabled} value={name} maxLength={80} onChange={(event) => setName(event.target.value)} /></div>
+    <div className="space-y-1"><label htmlFor={`${id}-name`} className="text-sm">{t("导入名称（不自动修正）")}</label><Input id={`${id}-name`} disabled={disabled} value={name} maxLength={128} onChange={(event) => setName(event.target.value)} /></div>
     {(candidate.knownAgentId === "claude" || candidate.knownAgentId === "gemini") && <div className="space-y-1"><label htmlFor={`${id}-auth`}>{t("认证模式")}</label><Select value={auth} disabled={disabled} onValueChange={setAuth}><SelectTrigger id={`${id}-auth`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unset">{t("请选择，不推断认证")}</SelectItem><SelectItem value="1">{t("原生登录（不证明设备已登录）")}</SelectItem><SelectItem value="2">API key</SelectItem>{candidate.knownAgentId === "claude" && <SelectItem value="3">Auth token</SelectItem>}</SelectContent></Select></div>}
     {candidate.knownAgentId === "gemini" && auth === "2" && <div className="space-y-1"><label htmlFor={`${id}-transport`}>{t("Gemini key 传输方式")}</label><Select value={transport} disabled={disabled} onValueChange={setTransport}><SelectTrigger id={`${id}-transport`}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unset">{t("请明确选择传输方式")}</SelectItem><SelectItem value="1">native-default</SelectItem><SelectItem value="2">bearer</SelectItem></SelectContent></Select></div>}
     <Button type="button" variant="outline" disabled={disabled} onClick={apply}>{t("更新选项，需重新预览")}</Button>

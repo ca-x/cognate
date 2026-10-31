@@ -130,7 +130,11 @@ func TestSelectionAgentCapabilityAndAuxiliaryExclusions(test *testing.T) {
 		test.Fatal("known agents or auxiliary kinds disappeared")
 	}
 	for _, candidate := range view.Configurations {
-		if candidate.Kind == "provider" && (candidate.Status != importer.SelectionUnsupportedAgent || candidate.Draft != nil || candidate.AgentID == "") {
+		expected := importer.SelectionUnsupportedAgent
+		if candidate.AgentID == "grokbuild" {
+			expected = importer.SelectionUnsupportedField
+		}
+		if candidate.Kind == "provider" && (candidate.Status != expected || candidate.Draft != nil || candidate.AgentID == "") {
 			test.Fatal("unsupported agent was silently converted")
 		}
 	}

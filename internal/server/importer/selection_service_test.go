@@ -1223,15 +1223,15 @@ func TestSelectionServiceStatusStorageFailureAndOrigin(test *testing.T) {
 
 func TestSelectionCanonicalCompiledHostIdentity(test *testing.T) {
 	host, err := selectionHostDigest()
-	if err != nil || hex.EncodeToString(host[:]) != "a9d3abd187595386d6dfeb934e9d27354034e8fbc8144d7861fb0224c4271a31" {
-		test.Fatal("actual compiled ten-file host bytes changed", err)
+	if err != nil || hex.EncodeToString(host[:]) != "34c9962a2611cdfee49351132e09b229d161357319adbf9bb8690250bd664e7d" {
+		test.Fatal("actual compiled eleven-file host bytes changed", err)
 	}
 	for _, fixture := range []struct {
 		source        SelectionSource
 		module, bound string
 	}{
-		{SelectionCCSwitch24, "5d50fb218db1cca7de85b0d2dd30c9634a07da3549a22801321068e769073380", "3bbdc87e850cdedc692fdd93d944cd97309e48516ae0013cfe3f165f5bc293d0"},
-		{SelectionMagpie, "009724f358a2c537b342b4ce8f0967eaddd8b95907ff2f07c5039a0b6cc67596", "03d4e25887b78c883de0b5c0816d12295434d3f975179a52e9be82ce6b199e89"},
+		{SelectionCCSwitch24, "5d50fb218db1cca7de85b0d2dd30c9634a07da3549a22801321068e769073380", "2adf34f1ecdb090fcc1258902fe987adb21576aeded3f9ed346e7a1070c1cb08"},
+		{SelectionMagpie, "009724f358a2c537b342b4ce8f0967eaddd8b95907ff2f07c5039a0b6cc67596", "2e4796d718f9d595283cf2fe4be6caef27acb761b0c15ac7f4efebe9672e4854"},
 	} {
 		module, err := SelectionAdapterDigest(fixture.source)
 		if err != nil || module != fixture.module {
@@ -1245,7 +1245,7 @@ func TestSelectionCanonicalCompiledHostIdentity(test *testing.T) {
 }
 
 func TestSelectionCanonicalBindingMatchesEmbeddedBytes(test *testing.T) {
-	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "selection_service.go"}
+	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "selection_service.go"}
 	independent := sha256.New()
 	writeLength := func(value []byte) {
 		var size [4]byte
@@ -1255,7 +1255,7 @@ func TestSelectionCanonicalBindingMatchesEmbeddedBytes(test *testing.T) {
 	}
 	writeLength([]byte("cognate/import-selection/v1/go-host-source"))
 	var count [4]byte
-	binary.BigEndian.PutUint32(count[:], 10)
+	binary.BigEndian.PutUint32(count[:], 11)
 	_, _ = independent.Write(count[:])
 	for _, path := range paths {
 		data, err := selectionHostSources.ReadFile(path)

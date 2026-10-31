@@ -648,7 +648,7 @@ func (SelectionPreview) LogValue() slog.Value {
 	return slog.StringValue("[redacted selection preview]")
 }
 
-//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go selection_service.go
+//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go source_grok.go selection_service.go
 var selectionHostSources embed.FS
 
 type selectionTranscript struct {
@@ -733,7 +733,13 @@ func (transcript *selectionTranscript) draft(draft *configuration.Draft) {
 	if draft == nil {
 		return
 	}
-	if draft.CodexProvider != nil && draft.GeminiProvider != nil || (draft.CodexProvider != nil || draft.GeminiProvider != nil) && (draft.Provider.Endpoint != nil || draft.Provider.AuthMode != "" || draft.Provider.Models.Default != nil || draft.Provider.Models.Haiku != nil || draft.Provider.Models.Sonnet != nil || draft.Provider.Models.Opus != nil) {
+	typed := 0
+	for _, present := range []bool{draft.CodexProvider != nil, draft.GeminiProvider != nil, draft.GrokBuildProvider != nil} {
+		if present {
+			typed++
+		}
+	}
+	if draft.OpenCodeProvider != nil || typed > 1 || typed != 0 && draft.Provider != (configuration.ClaudeProvider{}) {
 		transcript.err = ErrSelectionInvalid
 		return
 	}
@@ -794,6 +800,20 @@ func (transcript *selectionTranscript) draft(draft *configuration.Draft) {
 		}
 		transcript.optional(provider.EnvModel)
 		transcript.optional(provider.SettingsModel)
+	} else if draft.GrokBuildProvider != nil {
+		transcript.raw([]byte{4})
+		provider := draft.GrokBuildProvider
+		transcript.text(string(provider.Mode))
+		transcript.flag(provider.Model != nil)
+		if model := provider.Model; model != nil {
+			transcript.text(model.Profile)
+			transcript.text(model.UpstreamModel)
+			transcript.text(model.Endpoint)
+			transcript.text(model.Name)
+			transcript.text(model.APIBackend)
+			transcript.raw(binary.BigEndian.AppendUint64(nil, uint64(model.ContextWindow)))
+			transcript.optional(model.EnvKey)
+		}
 	} else {
 		transcript.raw([]byte{1})
 		provider := draft.Provider
@@ -893,7 +913,7 @@ func selectionOptionsDigest(options SelectionOptions) ([32]byte, error) {
 
 func selectionHostDigest() ([32]byte, error) {
 	transcript := selectionTranscriptFor("cognate/import-selection/v1/go-host-source")
-	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "selection_service.go"}
+	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "selection_service.go"}
 	transcript.count(len(paths))
 	for _, path := range paths {
 		data, err := selectionHostSources.ReadFile(path)

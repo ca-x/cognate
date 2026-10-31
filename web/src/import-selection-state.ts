@@ -1,6 +1,7 @@
 import { clone, create, equals } from "@bufbuild/protobuf"
 import { Code, ConnectError } from "@connectrpc/connect"
-import { AssetKind, ClaudeAuthMode, CodexAuthMode, CodexModality, CodexReasoningEffort, GeminiAuthMode, GeminiKeyTransport, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
+import { AssetKind, ClaudeAuthMode, CodexAuthMode, CodexModality, CodexReasoningEffort, GeminiAuthMode, GeminiKeyTransport, GrokBuildMode, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
+import { grokFields, grokName, validGrokUnicode, validateGrok } from "./configuration-grok-state"
 import { ImportCandidateOptionsSchema, ImportCandidateStatus, ImportCommitObservation, ImportConfigurationCandidateSchema, ImportNoticeCode, ImportReceiptPhase, ImportReceiptSchema, ImportRepositoryCandidateSchema, ImportRepositoryOutcomeCode, ImportSkillCandidateSchema, SkillBindingSchema, type ImportCandidateOptions, type ImportNotice, type ImportReceipt, type GetImportCommitStatusResponse, type PreviewImportSelectionResponse, type SkillBinding } from "./gen/skillhub/import/v1/import_pb"
 
 export type SelectionPhase = "idle" | "reading" | "previewing" | "ready" | "confirming" | "committing" | "unknown" | "terminal"
@@ -22,7 +23,7 @@ export type SelectionPlan = { repositoryIds: string[]; skillIds: string[]; confi
 const hash = /^[a-f0-9]{64}$/
 const statuses = [1, 2, 3, 4, 5, 6, 7, 8]
 const agents = ["claude", "claude-desktop", "codex", "gemini", "grokbuild", "opencode", "openclaw", "hermes", "pi", "mcode", "kimi", "dsh", "agy", "omp"]
-const slots: Record<string, string[]> = { claude: ["claude.api-key", "claude.auth-token"], codex: ["codex.provider-key"], gemini: ["gemini.api-key", "gemini.legacy-api-key"] }
+const slots: Record<string, string[]> = { claude: ["claude.api-key", "claude.auth-token"], codex: ["codex.provider-key"], gemini: ["gemini.api-key", "gemini.legacy-api-key"], grokbuild: ["grokbuild.api-key"] }
 const maximum = { repositories: 16, skills: 128, configurations: 32 }
 
 function requireSelection(valid: unknown): asserts valid {
@@ -36,7 +37,7 @@ function closedMessages(value: unknown): boolean {
 }
 
 function unique(values: string[]) { return new Set(values).size === values.length }
-function validName(value: string) { return value.length > 0 && value.length <= 80 && value === value.trim() && !/[\u0000-\u001f\u007f]/u.test(value) }
+function validName(value: string) { return value.length > 0 && validGrokUnicode(value) && new TextEncoder().encode(value).length <= 128 && value === grokName(value) && !/\p{Cc}/u.test(value) }
 
 export function initialSelectionState(): SelectionState {
   return { phase: "idle", options: [], chosen: { repositories: [], skills: [], configurations: [] }, acknowledged: [], stale: false }
@@ -64,6 +65,8 @@ function validateDraft(draft: Draft, agent: string) {
   } else if (agent === "gemini" && payload.case === "geminiProvider") {
     const provider = payload.value
     requireSelection(provider.authMode === GeminiAuthMode.NATIVE_LOGIN && provider.endpoint === undefined && provider.keyTransport === undefined || provider.authMode === GeminiAuthMode.API_KEY && [GeminiKeyTransport.NATIVE_DEFAULT, GeminiKeyTransport.BEARER].includes(provider.keyTransport!))
+  } else if (agent === "grokbuild" && payload.case === "grokbuildProvider") {
+    requireSelection(payload.value.mode === GrokBuildMode.CUSTOM_MODEL && payload.value.model && !Object.keys(validateGrok(grokFields(payload.value, draft.name))).length)
   } else requireSelection(false)
 }
 

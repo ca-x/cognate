@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -81,7 +82,7 @@ func importRoundtripFetcher(test *testing.T) (*repository.ArchiveFetcher, *atomi
 	return repository.NewArchiveFetcher(&http.Client{Transport: transport, Timeout: 5 * time.Second}), count
 }
 
-func importRoundtripSnapshot(test *testing.T) []byte {
+func importRoundtripSnapshot(test *testing.T, extraSQL ...string) []byte {
 	test.Helper()
 	schema, err := os.ReadFile("../importer/testdata/selection/ccswitch-schema24.sql")
 	if err != nil {
@@ -97,7 +98,7 @@ func importRoundtripSnapshot(test *testing.T) []byte {
 		test.Fatal("synthetic source connection unavailable")
 	}
 	defer connection.Close()
-	if _, err := connection.ExecContext(test.Context(), string(schema)+`UPDATE skills SET repo_name='existing';`); err != nil {
+	if _, err := connection.ExecContext(test.Context(), string(schema)+`UPDATE skills SET repo_name='existing';`+strings.Join(extraSQL, "\n")); err != nil {
 		test.Fatal("synthetic source schema failed")
 	}
 	var snapshot []byte

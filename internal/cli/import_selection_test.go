@@ -213,6 +213,27 @@ func TestImportSelectionDefaultPreview(test *testing.T) {
 	}
 }
 
+func TestImportSelectionGrokSafeReview(test *testing.T) {
+	fixture := newSelectionCommandRPC(test)
+	candidate := fixture.preview.Configurations[0]
+	candidate.KnownAgentId, candidate.SafeName = "grokbuild", "Grok imported"
+	candidate.CredentialSlots = []*importv1.ImportCredentialSlot{{SlotId: "grokbuild.api-key", Present: true}}
+	candidate.Draft = &configurationv1.Draft{Name: candidate.SafeName, Payload: &configurationv1.Draft_GrokbuildProvider{GrokbuildProvider: &configurationv1.GrokBuildProvider{Mode: configurationv1.GrokBuildMode_GROK_BUILD_MODE_CUSTOM_MODEL, Model: &configurationv1.GrokBuildModel{Profile: "work-profile", UpstreamModel: "grok-model", Endpoint: "https://grok.example/v1", Name: "Work model", ApiBackend: "responses", ContextWindow: 9007199254740991, EnvKey: new("GROK_KEY")}}}}
+	var output bytes.Buffer
+	if err := selectionCommandRun(test.Context(), fixture.arguments(), strings.NewReader(selectionCommandSession), &output); err != nil {
+		test.Fatal("Grok CLI preview failed")
+	}
+	for _, field := range []string{"grokbuild", "work-profile", "grok-model", "https://grok.example/v1", "Work model", "responses", "9007199254740991", "GROK_KEY", "grokbuild.api-key present=true omitted=true"} {
+		if !strings.Contains(output.String(), field) {
+			test.Error("Grok review omitted safe field")
+		}
+	}
+	selectionCommandPrivate(test, fixture, output.String())
+	if fixture.commits.Load() != 0 {
+		test.Fatal("preview committed without approval")
+	}
+}
+
 func TestImportSelectionShowsExactSkillBinding(test *testing.T) {
 	fixture := newSelectionCommandRPC(test)
 	var output bytes.Buffer

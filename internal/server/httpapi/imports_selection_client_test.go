@@ -31,7 +31,7 @@ func TestSelectionClientRealStore(test *testing.T) {
 	}
 }
 
-func selectionClientRealStore(test *testing.T, mask int, lost bool) {
+func selectionClientRealStore(test *testing.T, mask int, lost bool, extraSQL ...string) {
 	directory := test.TempDir()
 	if os.Chmod(directory, 0o700) != nil {
 		test.Fatal("private fixture directory unavailable")
@@ -120,7 +120,7 @@ func selectionClientRealStore(test *testing.T, mask int, lost bool) {
 		test.Fatal("client unavailable")
 	}
 	test.Cleanup(client.Close)
-	raw := importRoundtripSnapshot(test)
+	raw := importRoundtripSnapshot(test, extraSQL...)
 	path := filepath.Join(directory, "snapshot.db")
 	if os.WriteFile(path, raw, 0o600) != nil {
 		test.Fatal("source file unavailable")
