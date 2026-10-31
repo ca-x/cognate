@@ -53,3 +53,23 @@ v2 仅从同一 Check 捕获/最终目录快照解析实际所选模型：无有
 资格仅限既定 v2 tuple、固定 Linux/amd64 ELF、受控隔离的 Missing/API/fresh synthetic OAuth 与 loopback TLS。42 次完成均由 collector 确认，随后主动 kill 并 Wait(-9)，不是 native 优雅退出 0；独审核验这些新执行证据，没有冒称自己重跑全部 42 次。旧 REJECT 和失败探针保留。v1 accessor/摘要/语义不变；D/C2 helper 迁移、生产登记、官方账号刷新、实际业务端点、其它平台、完整客户端与首发资格仍未完成。默认资格表继续为空，不能仅凭本节启用应用；对应提交的实际打包与 CI 结果须单独核对。
 
 固定上游 `prompt.md` 第 151 行的末尾空格属于已核验原始字节，随源摘要保留，不做自动排版或 trim；它不是本项目手写 Go 的格式约定。
+
+### 2026-10-31：D2/C2 helper 迁移已验收，登记仍关闭
+
+新生产者和 C2 projection 采用完整 effective-v2 tuple；历史全零、observed-v1 与
+observed-v2 分别读取，不给旧记录重标身份或增发准入权。合法恢复保留原身份、
+ownership、managed-model 信息和原 auth 字节；跨 profile 承接仍要求 completed、
+current selection、精确 After/target 及已验证版本。局部审阅读取输入 source
+operation 的 recorded profile，不把新 restore plan ID 当作历史来源。
+
+独审重新执行五个真实固定 native/TLS 场景与实际 CLI/PTY/App/SQLite 组合，
+没有继承旧 42 次运行；这是 helper 迁移证据，不是登记资格。默认
+`codexQualifiedProfiles` 继续为空，普通 Codex Apply 仍拒绝；首次公开启用还需
+正常登记候选的完整消费者矩阵、分发许可及当前组合验收。
+
+升级注意：将来显式启用后，槽和最终确认即可产生 v2 durable operation，即使
+还未 Authorize、未收到业务结果或未修改目标文件，也不能假定可透明回退。
+固定旧版 reader 能读取原合法全零/v1，但遇 v2 库存会 fail closed。
+升级前保留库存与目标的一致备份以及支持 v2 的新版 binary；结果不明时用新版
+的合法 status/recover/restore 等流程核查。不要删 anchor、改 profile 标签、
+删除个别 v2 行或覆盖单个角色来绕过拒绝；Restore 也不是全库降级工具。

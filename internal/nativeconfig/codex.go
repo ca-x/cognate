@@ -397,7 +397,14 @@ func (client *Client) codexLocalAction(caller context.Context, operationID strin
 	default:
 		return result, ErrInvalid
 	}
-	profile, _, _, _ := codexconfig.Native0166Manifest()
+	identity, err := engine.RecordedCodexProfile(ctx, operationID)
+	if err != nil {
+		return result, err
+	}
+	profile := identity.ID
+	if identity == (configapply.CodexProfileIdentity{}) {
+		profile = "legacy-unobserved"
+	}
 	result.Preview = codexView(view(), profile)
 	if err := codexReview(ctx, ui, view, profile, apply); err != nil {
 		return result, err

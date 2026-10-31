@@ -7,12 +7,178 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/codexconfig"
 )
+
+func TestCodexD2ActiveIdentityAndClosedRegistry(test *testing.T) {
+	id, manifest, profile, template := codexconfig.Native0166EffectiveManifest()
+	want := CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+	if codexNative0166Identity() != want {
+		test.Fatal("new producer does not select the exact effective-v2 tuple")
+	}
+	before := codexQualifiedProfiles
+	test.Cleanup(func() { codexQualifiedProfiles = before })
+	oldID, oldManifest, oldProfile, oldTemplate := codexconfig.Native0166Manifest()
+	old := CodexProfileIdentity{ID: oldID, ManifestSHA256: oldManifest, ProfileDigest: oldProfile, TemplateDigest: oldTemplate}
+	mixed := want
+	mixed.TemplateDigest[0] ^= 1
+	for _, registry := range [][]CodexProfileIdentity{nil, {old}, {mixed}, {{ID: id}}} {
+		codexQualifiedProfiles = registry
+		if result, err := QualifiedCodexNativeProfile(); !errors.Is(err, ErrCodexUnsupported) || result != (CodexProfileIdentity{}) {
+			test.Fatal("inactive, mixed or partial tuple acquired new admission authority")
+		}
+	}
+	codexQualifiedProfiles = []CodexProfileIdentity{want}
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+		if result, err := QualifiedCodexNativeProfile(); err != nil || result != want {
+			test.Fatal("exact private qualification refused")
+		}
+	}
+}
+
+func TestCodexD2RecordedProfile(test *testing.T) {
+	engine, _, stateRoot, _ := codexFixture(test)
+	bodies := [3][]byte{[]byte("synthetic-config"), nil, []byte(`{"models":[]}`)}
+	operation := codexLiteral(test, engine, bodies, [3]bool{true, false, true})
+	codexStageLiteral(test, engine, operation, bodies)
+	anchor, err := os.ReadFile(filepath.Join(stateRoot, codexAnchorName))
+	if err != nil {
+		test.Fatal("anchor baseline")
+	}
+	identity, err := engine.RecordedCodexProfile(test.Context(), operation.ID)
+	if err != nil || identity != (CodexProfileIdentity{}) {
+		test.Fatal("legacy record fact is not the whole zero tuple")
+	}
+	identity.ID = "caller-mutated"
+	again, err := engine.RecordedCodexProfile(test.Context(), operation.ID)
+	if err != nil || again != (CodexProfileIdentity{}) {
+		test.Fatal("accessor aliases inventory")
+	}
+	for _, id := range []string{"invalid", codexRandomID()} {
+		if value, err := engine.RecordedCodexProfile(test.Context(), id); !errors.Is(err, ErrCodexInvalid) || value != (CodexProfileIdentity{}) {
+			test.Fatal("missing operation returned identity fact")
+		}
+	}
+	canceled, cancel := context.WithCancel(test.Context())
+	cancel()
+	if _, err := engine.RecordedCodexProfile(canceled, operation.ID); !errors.Is(err, context.Canceled) {
+		test.Fatal("accessor ignored cancellation")
+	}
+	after, err := os.ReadFile(filepath.Join(stateRoot, codexAnchorName))
+	if err != nil || !bytes.Equal(anchor, after) {
+		test.Fatal("fact accessor rewrote quiescent inventory")
+	}
+	if engine.Close() != nil {
+		test.Fatal("engine close")
+	}
+	if value, err := engine.RecordedCodexProfile(test.Context(), operation.ID); !errors.Is(err, ErrCodexClosed) || value != (CodexProfileIdentity{}) {
+		test.Fatal("closed engine returned identity fact")
+	}
+}
+
+func TestCodexD2OwnershipEvidence(test *testing.T) {
+	for _, kind := range []string{"proven-v1", "metadata0", "lifecycle0", "legacy", "target", "after", "selection"} {
+		test.Run(kind, func(test *testing.T) {
+			catalog := &agentconfig.CodexCatalogDesired{Models: []agentconfig.CodexCatalogModelDesired{{Model: "synthetic-model", SupportsParallelToolCalls: new(true)}}}
+			engine, plan, home, _, _ := codexManagedCatalogPlanFixture(test, catalog)
+			admission, err := engine.ConfirmCodexForConsumer(test.Context(), plan, plan.View().RequiredSlots, true)
+			if err != nil {
+				test.Fatal("first confirm")
+			}
+			defer admission.Destroy()
+			constraints := admission.CopyAuthorizationConstraints()
+			defer constraints.Destroy()
+			if admission.BeginAuthorize(test.Context(), constraints) != nil || admission.BeginConsume(test.Context()) != nil {
+				test.Fatal("first durable attempts")
+			}
+			secret, err := codexconfig.NewSelectedSecret(agentconfig.CodexProviderKeySecret, []byte("SYNTHETIC_D2_OWNED"))
+			if err != nil {
+				test.Fatal("selected material")
+			}
+			defer secret.Destroy()
+			candidate, err := engine.MaterializeCodex(test.Context(), admission, []codexconfig.SelectedSecret{secret})
+			if err != nil {
+				test.Fatal("first materialize")
+			}
+			defer candidate.Destroy()
+			if _, err := engine.ApplyCodex(test.Context(), admission, candidate); err != nil {
+				test.Fatal("first publish")
+			}
+			if err := engine.private().withLock(test.Context(), func(ctx context.Context) error {
+				row := engine.private().inventory.Operations[plan.View().OperationID]
+				id, manifest, profile, template := codexconfig.Native0166Manifest()
+				row.ProfileIdentity = CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+				switch kind {
+				case "metadata0":
+					row.ManagedModelsVersion = 0
+				case "lifecycle0", "legacy":
+					row.LifecycleVersion, row.ManagedModelsVersion, row.Authorization = 0, 0, nil
+					if kind == "legacy" {
+						row.Observation, row.ProfileIdentity = nil, CodexProfileIdentity{}
+					}
+				case "target":
+					row.Target.Inode++
+				case "after":
+					row.After[0].SHA256[0] ^= 1
+				case "selection":
+					key := codexSelectionKey(row.Origin, row.Owner, row.Profile)
+					current := engine.private().inventory.Selections[key]
+					current.Operation = ""
+					engine.private().inventory.Selections[key] = current
+				}
+				return engine.private().saveCodexInventory()
+			}); err != nil {
+				test.Fatal("historical authenticated fixture")
+			}
+			current, err := engine.CurrentCodexSelection(test.Context(), "https://synthetic.invalid", "fixture-owner", "fixture-profile")
+			if err != nil {
+				test.Fatal("new current")
+			}
+			defer current.Destroy()
+			input := plan.get[codexPlanData]().selection
+			prepared := input.prepared
+			prepared.OperationId = bytes.Repeat([]byte{0x52}, 16)
+			prepared.SelectionRevision, err = current.NextSelectionRevision()
+			if err != nil {
+				test.Fatal("next revision")
+			}
+			selection, err := NewCodexSelection(prepared, input.declaration, input.expires, current)
+			if err != nil {
+				test.Fatal("fresh selection")
+			}
+			defer selection.Destroy()
+			launch := CodexLaunch{Executable: os.Getenv("COGNATE_Q2_NATIVE_FIXTURE"), Directory: filepath.Join(filepath.Dir(home), "workspace"), Arguments: []string{"app-server"}}
+			observed, err := engine.ObserveCodex(test.Context(), selection, launch)
+			if err != nil {
+				test.Fatal("fresh observation")
+			}
+			defer observed.Destroy()
+			next, err := engine.PreviewCodexObserved(test.Context(), selection, observed)
+			if kind != "proven-v1" && errors.Is(err, ErrCodexAttention) && next.get[codexPlanData]() == nil {
+				return
+			}
+			if err != nil {
+				test.Fatal("fresh v2 preview", err)
+			}
+			defer next.Destroy()
+			binding := next.get[codexPlanData]().provider.Binding()
+			defer binding.Destroy()
+			facts := binding.CopyObservation()
+			want := codexconfig.Foreign
+			if kind == "proven-v1" {
+				want = codexconfig.Managed
+			}
+			if facts.ProviderOwnership != want || facts.CatalogOwnership != want || next.get[codexPlanData]().profile != codexNative0166Identity() {
+				test.Fatal("cross-profile ownership lacks completed/current/after/lifecycle1/metadata1 proof")
+			}
+		})
+	}
+}
 
 func TestCodexOriginalDeadlineAfterFreshObservation(test *testing.T) {
 	for _, phase := range []string{"observe", "preview", "confirm", "revalidate", "materialize"} {

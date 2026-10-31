@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：Codex effective-v2 D2/C2 迁移
+
+精确四实现与四测试叶匹配 source8 SHA256 `4d1f339f1434490bfe1c45d8f97f6b0b4bd9b67c233f9112d7b77566c75d30e5`。独审报告 SHA256 `1895380f079ba5fab98c9f6e6e0ebfe4e60f5857b86a466fae62103588c9a3bd`，Spec/Quality 接受；D2、C2、历史 reader 与实际 CLI/PTY/TLS/SQLite 具名门通过，四个可编译变异普通 RED 后恢复。另有五次新 native/TLS POST，完成 turn 后主动 kill+Wait(-9)，全部 worker join；不是 native 正常退出或旧 42 次重签。作者 INVALID_LAUNCHER_RECEIPT 原样保留，不用后续绿色洗掉。
+
+主线程在当前 `365a497`（已含 B2 worker 与 watch 窄修）上组合精确 source8。Codex 三包定向 222 PASS、126 显式条件 SKIP；全仓 7,304 个测试 PASS、49 个测试包 PASS、158 显式用例 SKIP，另 77 个无测试包，零 FAIL。全仓 vet、module verify、十二项 Go1.27.3/CGO0 CLI/server 构建退出 0；复用 Web/branding 输入未变的精确既有 embed，无新 Web/browser 验收。跳过的条件/native 门不算运行通过，当前主组合不把独审五次 POST 外推为公开资格。
+
+默认登记表仍为空，未修改 codec/tuple/平台准入、协议、模块或旧 v1 getter。完整身份与 auth/ownership 的历史保全、旧 binary 拒 v2、首次确认可能已写 v2 及不可透明降级的操作说明见 `CODEX-NATIVE-PROFILES.md`；生产登记与完整正常 CLI 消费矩阵仍是后继门。
+
 ## 2026-10-31：watch 晚期密钥丢失测试阶段边界
 
 仅修改 `client_key_entrypoints_linux_test.go`，源码 SHA256 `9102060ac7a9942c7ca7f61f23157261d8ab84825fd7c6b3497a4dbd7df2099f`；生产代码、interval/attempt 1 秒、outer 4 秒、取锁 300 毫秒均不变。现在允许第一次成功前的合法重试历史，仍要求恰好一次成功、真实安装锁已关闭后删 key、下一次准入返回 RecoveryRequired，且成功边界后没有失败/完成报告或额外重试提示。

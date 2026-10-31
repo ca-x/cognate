@@ -27,7 +27,7 @@ func codexAdmissionFailure(err error) error {
 }
 
 func codexAdmittedProjection(binding codexconfig.ProviderBinding, identity configapply.CodexProfileIdentity) (*nativev1.CodexLocalBindingV1, error) {
-	id, manifest, profile, template := codexconfig.Native0166Manifest()
+	id, manifest, profile, template := codexconfig.Native0166EffectiveManifest()
 	if identity != (configapply.CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}) {
 		return nil, ErrNativeUnavailable
 	}

@@ -28,6 +28,83 @@ import (
 	"github.com/ca-x/cognate/internal/server/state"
 )
 
+func TestCodexAdmittedV2Identity(test *testing.T) {
+	_, _, _, _, admission, _, _ := codexAdmittedFixture(test, nil)
+	id, manifest, profile, template := codexconfig.Native0166EffectiveManifest()
+	want := configapply.CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+	if admission.CopyProfileIdentity() != want {
+		test.Fatal("D admission is not exact effective-v2")
+	}
+	binding := admission.CopyProviderBinding()
+	defer binding.Destroy()
+	projection, err := codexAdmittedProjection(binding, want)
+	if err != nil || projection == nil || projection.BindingVersion != 1 || projection.NativeProfileId != id || !bytes.Equal(projection.NativeProfileSha256, manifest[:]) || !bytes.Equal(projection.TemplateSha256, template[:]) {
+		test.Fatal("C2 refuses exact v2 or changed wire version1")
+	}
+}
+
+func TestCodexAdmittedV1MixedRefusal(test *testing.T) {
+	var calls atomic.Int32
+	_, flow, engine, plan, admission, _, _ := codexAdmittedFixture(test, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			if strings.HasSuffix(request.URL.Path, "/AuthorizeNativeMaterialization") || strings.HasSuffix(request.URL.Path, "/ConsumeNativeMaterialization") {
+				calls.Add(1)
+			}
+			next.ServeHTTP(writer, request)
+		})
+	})
+	binding := admission.CopyProviderBinding()
+	defer binding.Destroy()
+	id, manifest, profile, template := codexconfig.Native0166Manifest()
+	old := configapply.CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+	identities := []configapply.CodexProfileIdentity{old, {}}
+	for _, field := range []string{"id", "manifest", "profile", "template"} {
+		mixed := admission.CopyProfileIdentity()
+		switch field {
+		case "id":
+			mixed.ID = old.ID
+		case "manifest":
+			mixed.ManifestSHA256 = old.ManifestSHA256
+		case "profile":
+			mixed.ProfileDigest = old.ProfileDigest
+		case "template":
+			mixed.TemplateDigest[0] ^= 1
+		}
+		identities = append(identities, mixed)
+	}
+	for _, identity := range identities {
+		if projection, err := codexAdmittedProjection(binding, identity); err == nil || projection != nil {
+			test.Fatal("old/mixed/zero tuple acquired C2 projection authority")
+		}
+	}
+	if status, err := engine.StatusCodex(test.Context(), plan.View().OperationID); err != nil || status.State != configapply.CodexPreviewed || calls.Load() != 0 || flow.codex.authorizeAttempted || flow.codex.consumeAttempted {
+		test.Fatal("tuple refusal created intent or remote business request")
+	}
+}
+
+func TestCodexAdmittedV2Lifecycle(test *testing.T) {
+	var authorizes, consumes atomic.Int32
+	fixture, flow, engine, plan, admission, _, _ := codexAdmittedFixture(test, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			if strings.HasSuffix(request.URL.Path, "/AuthorizeNativeMaterialization") {
+				authorizes.Add(1)
+			}
+			if strings.HasSuffix(request.URL.Path, "/ConsumeNativeMaterialization") {
+				consumes.Add(1)
+			}
+			next.ServeHTTP(writer, request)
+		})
+	})
+	want := admission.CopyProfileIdentity()
+	if result := codexApplyAdmittedRound(test, flow, engine, admission); result.State != configapply.CodexCompleted || authorizes.Load() != 1 || consumes.Load() != 1 || codexCommittedConsumeCount(test, fixture) != 1 {
+		test.Fatal("v2 real TLS/SQLite lifecycle not exactly once")
+	}
+	recorded, err := engine.RecordedCodexProfile(test.Context(), plan.View().OperationID)
+	if err != nil || recorded != want {
+		test.Fatal("durable v2 profile changed after publish")
+	}
+}
+
 type codexAdmittedServer struct {
 	*nativeClientFixture
 	databasePath string

@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/ca-x/cognate/internal/agentconfig"
+	"github.com/ca-x/cognate/internal/codexconfig"
 	"github.com/ca-x/cognate/internal/configapply"
 	"github.com/ca-x/cognate/internal/configclient"
 	"github.com/ca-x/cognate/internal/server"
@@ -36,6 +37,124 @@ import (
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/state"
 )
+
+func TestCodexV2LocalActionProfile(test *testing.T) {
+	fixture := newCodexFixture(test, "")
+	fixture.request.Apply = true
+	result, err := fixture.apply(test.Context(), codexConsent())
+	if err != nil {
+		test.Fatal("v2 local-label source apply", codexFailure(err))
+	}
+	for _, apply := range []bool{false, true} {
+		var reviewed bool
+		ui := codexConsent()
+		ui.Preview = func(_ context.Context, view CodexPreview) error {
+			reviewed = true
+			if view.NativeProfileID != codexconfig.Native0166EffectiveProfileID {
+				test.Fatal("local review mislabeled the recorded v2 source")
+			}
+			return nil
+		}
+		restored, err := fixture.client.RestoreCodex(test.Context(), result.Local.OperationID, apply, ui)
+		if err != nil || !reviewed || restored.Preview.NativeProfileID != codexconfig.Native0166EffectiveProfileID || restored.Preview.OperationID == result.Local.OperationID {
+			test.Fatal("restore label not bound to input/source identity", codexFailure(err))
+		}
+	}
+	if fixture.authorizes.Load() != 1 || fixture.consumes.Load() != 1 || fixture.consumed(test) != 1 {
+		test.Fatal("local identity read caused remote consumption")
+	}
+}
+
+func TestCodexV2ActualLifecycle(test *testing.T) {
+	for _, mode := range []string{"generated", "canonical", "canonical-empty", "legacy-empty", "both-absent", "lite"} {
+		test.Run(mode, func(test *testing.T) {
+			fixture := newCodexFixture(test, "")
+			provider := &configuration.CodexProvider{AuthMode: "provider-key", Endpoint: "https://127.0.0.1:18443/v1", Model: "synthetic-model", ReasoningEffort: new(agentconfig.CodexReasoningEffort("high"))}
+			instruction := "SYNTHETIC D2 GENERATED INSTRUCTIONS"
+			var retained []byte
+			if mode == "generated" {
+				provider.Catalog = &agentconfig.CodexCatalogDesired{Models: []agentconfig.CodexCatalogModelDesired{{Model: "synthetic-model", BaseInstructions: new(instruction), SupportsParallelToolCalls: new(true), ReasoningLevels: new([]agentconfig.CodexReasoningEffort{"high"})}}}
+			} else {
+				model := map[string]any{"slug": "synthetic-model", "display_name": "Synthetic retained", "supported_reasoning_levels": []any{map[string]any{"effort": "high", "description": "Synthetic high"}}, "shell_type": "unified_exec", "visibility": "list", "supported_in_api": true, "priority": 0, "support_verbosity": false, "truncation_policy": map[string]any{"mode": "bytes", "limit": 10000}, "experimental_supported_tools": []any{}, "unknown-retained": map[string]any{"value": "UNCHANGED"}}
+				switch mode {
+				case "canonical":
+					instruction = "SYNTHETIC D2 CANONICAL INSTRUCTIONS"
+					model["model_messages"] = map[string]any{"instructions_template": instruction}
+					model["base_instructions"] = "SYNTHETIC LEGACY SHADOW MUST NOT WIN"
+				case "canonical-empty":
+					instruction = ""
+					model["model_messages"] = map[string]any{"instructions_template": ""}
+					model["base_instructions"] = "SYNTHETIC LEGACY SHADOW MUST NOT WIN"
+				case "legacy-empty":
+					instruction = ""
+					model["base_instructions"] = ""
+				case "lite":
+					model["base_instructions"] = "SYNTHETIC LITE"
+					model["use_responses_lite"] = true
+				}
+				var err error
+				retained, err = json.Marshal(map[string]any{"models": []any{model}, "unknown-root": "UNCHANGED"}, json.Deterministic(true))
+				if err != nil || os.WriteFile(filepath.Join(fixture.home, ".codex", "cognate-model-catalog.json"), retained, 0o600) != nil {
+					test.Fatal("retained catalog fixture")
+				}
+				if os.WriteFile(filepath.Join(fixture.home, ".codex", "config.toml"), []byte("model_catalog_json=\"cognate-model-catalog.json\"\n"), 0o600) != nil {
+					test.Fatal("retained config fixture")
+				}
+			}
+			asset, err := fixture.domain.Create(test.Context(), fixture.request.OwnerID, configuration.Draft{Name: "d2-controlled", CodexProvider: provider}, []configuration.SecretMutation{{Slot: configuration.CodexProviderKeySlot, Action: configuration.Replace, Replacement: configuration.NewSecret([]byte("SYNTHETIC_Q3_KEY"))}})
+			if err != nil {
+				test.Fatal("controlled asset creation")
+			}
+			fixture.request.AssetID, fixture.request.AssetRevision = asset.Metadata.ID, asset.Metadata.Revision
+			authPath := filepath.Join(fixture.home, ".codex", "auth.json")
+			authBefore, err := os.ReadFile(authPath)
+			if err != nil {
+				test.Fatal("auth baseline")
+			}
+			defer clear(authBefore)
+			preview, err := fixture.apply(test.Context(), CodexInteraction{})
+			if mode == "both-absent" || mode == "lite" {
+				if err == nil || preview.Preview.OperationID != "" || fixture.authorizes.Load() != 0 || fixture.consumes.Load() != 0 || fixture.consumed(test) != 0 {
+					test.Fatal("unsupported effective instructions/lite reached secret admission")
+				}
+				return
+			}
+			if err != nil || preview.Preview.NativeProfileID != codexconfig.Native0166EffectiveProfileID || fixture.authorizes.Load() != 0 || fixture.consumes.Load() != 0 {
+				test.Fatalf("effective v2 preview not presecret: invalid=%t unsupported=%t attention=%t conflict=%t requests=%d authorize=%d consume=%d profilematch=%t", errors.Is(err, configapply.ErrCodexInvalid), errors.Is(err, configapply.ErrCodexUnsupported), errors.Is(err, configapply.ErrCodexAttention), errors.Is(err, configapply.ErrCodexConflict), fixture.requests.Load(), fixture.authorizes.Load(), fixture.consumes.Load(), preview.Preview.NativeProfileID == codexconfig.Native0166EffectiveProfileID)
+			}
+			fixture.request.Apply = true
+			result, err := fixture.apply(test.Context(), codexConsent())
+			if err != nil || result.Local.State != configapply.CodexCompleted || result.Preview.NativeProfileID != codexconfig.Native0166EffectiveProfileID || fixture.authorizes.Load() != 1 || fixture.consumes.Load() != 1 || fixture.consumed(test) != 1 {
+				test.Fatal("controlled effective v2 apply did not commit exactly once", codexFailure(err))
+			}
+			authAfter, err := os.ReadFile(authPath)
+			defer clear(authAfter)
+			if err != nil || !bytes.Equal(authBefore, authAfter) {
+				test.Fatal("effective v2 changed local auth bytes")
+			}
+			catalog, err := os.ReadFile(filepath.Join(fixture.home, ".codex", "cognate-model-catalog.json"))
+			if err != nil || retained != nil && !bytes.Equal(retained, catalog) {
+				test.Fatal("nil catalog changed retained unknown bytes")
+			}
+			if directory := os.Getenv("COGNATE_D2_EXPORT"); directory != "" {
+				output := filepath.Join(directory, mode)
+				if !filepath.IsAbs(directory) || os.Mkdir(output, 0o700) != nil {
+					test.Fatal("private consumer export directory")
+				}
+				for _, name := range []string{"config.toml", "auth.json", "cognate-model-catalog.json"} {
+					body, err := os.ReadFile(filepath.Join(fixture.home, ".codex", name))
+					if err != nil || os.WriteFile(filepath.Join(output, name), body, 0o600) != nil {
+						test.Fatal("private physical-role export")
+					}
+					clear(body)
+				}
+				if os.WriteFile(filepath.Join(output, "expected-instructions.txt"), []byte(instruction), 0o600) != nil {
+					test.Fatal("independent literal consumer expectation")
+				}
+			}
+		})
+	}
+}
 
 func TestCodexDefaultQualificationZeroIO(test *testing.T) {
 	if _, err := configapply.QualifiedCodexNativeProfile(); err == nil {

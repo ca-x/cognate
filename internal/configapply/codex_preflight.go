@@ -39,8 +39,36 @@ func codexQualified(profile CodexProfileIdentity) bool {
 }
 
 func codexNative0166Identity() CodexProfileIdentity {
-	id, manifest, profile, template := codexconfig.Native0166Manifest()
+	id, manifest, profile, template := codexconfig.Native0166EffectiveManifest()
 	return CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+}
+
+func codexRecordedProfileKnown(identity CodexProfileIdentity) bool {
+	id, manifest, profile, template := codexconfig.Native0166Manifest()
+	legacy := CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+	id, manifest, profile, template = codexconfig.Native0166EffectiveManifest()
+	effective := CodexProfileIdentity{ID: id, ManifestSHA256: manifest, ProfileDigest: profile, TemplateDigest: template}
+	return identity == legacy || identity == effective
+}
+
+func (engine *CodexEngine) RecordedCodexProfile(ctx context.Context, operationID string) (CodexProfileIdentity, error) {
+	if !codexOperationID(operationID) {
+		return CodexProfileIdentity{}, ErrCodexInvalid
+	}
+	state := engine.private()
+	var identity CodexProfileIdentity
+	err := state.withLock(ctx, func(ctx context.Context) error {
+		operation := state.inventory.Operations[operationID]
+		if operation == nil {
+			return ErrCodexInvalid
+		}
+		identity = operation.ProfileIdentity
+		return ctx.Err()
+	})
+	if err != nil {
+		return CodexProfileIdentity{}, err
+	}
+	return identity, nil
 }
 
 func (engine *CodexEngine) ObserveCodex(ctx context.Context, selection CodexSelection, launch CodexLaunch) (CodexObservation, error) {
@@ -135,7 +163,7 @@ func (engine *CodexEngine) PreviewCodexObserved(ctx context.Context, selection C
 			catalogOwner = codexconfig.Foreign
 		}
 		var managedModels []string
-		if previous := state.inventory.Operations[input.current.record.Operation]; previous != nil && previous.State == CodexCompleted && previous.After == images && sameDirectory(previous.Target, target.identity) && previous.ProfileIdentity == profile {
+		if previous := state.inventory.Operations[input.current.record.Operation]; previous != nil && previous.State == CodexCompleted && previous.After == images && sameDirectory(previous.Target, target.identity) && (previous.ProfileIdentity == profile || previous.Observation != nil && codexRecordedProfileKnown(previous.ProfileIdentity) && previous.LifecycleVersion == 1 && previous.ManagedModelsVersion == 1) {
 			if providerPresent {
 				providerOwner = codexconfig.Managed
 			}

@@ -102,7 +102,7 @@ func (state *codexEngineState) codexOperationObservationExpiry(ctx context.Conte
 		return time.Time{}, ErrCodexInvalid
 	}
 	if operation.Observation == nil {
-		if operation.ProfileIdentity.ID != "" {
+		if operation.ProfileIdentity != (CodexProfileIdentity{}) {
 			return time.Time{}, ErrCodexConflict
 		}
 		return state.now().Add(120 * time.Second), nil
@@ -110,7 +110,7 @@ func (state *codexEngineState) codexOperationObservationExpiry(ctx context.Conte
 	if err := state.checkCodexContext(ctx); err != nil {
 		return time.Time{}, err
 	}
-	if codexDescriptorShape(operation.Observation) != nil || operation.ProfileIdentity != codexNative0166Identity() || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
+	if codexDescriptorShape(operation.Observation) != nil || !codexRecordedProfileKnown(operation.ProfileIdentity) || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
 		return time.Time{}, ErrCodexConflict
 	}
 	actual, _, target, expires, err := state.captureCodexLaunch(ctx, operation.Observation.Launch)
@@ -404,10 +404,10 @@ func codexInventoryShape(inventory *codexInventory) error {
 			}
 		}
 		if operation.Observation != nil {
-			if codexDescriptorShape(operation.Observation) != nil || operation.ProfileIdentity != codexNative0166Identity() || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
+			if codexDescriptorShape(operation.Observation) != nil || !codexRecordedProfileKnown(operation.ProfileIdentity) || operation.Observation.Auth != operation.Before[1] || operation.Before[1] != operation.After[1] {
 				return ErrCodexAttention
 			}
-		} else if operation.ProfileIdentity.ID != "" {
+		} else if operation.ProfileIdentity != (CodexProfileIdentity{}) {
 			return ErrCodexAttention
 		}
 	}
