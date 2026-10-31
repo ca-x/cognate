@@ -1,5 +1,28 @@
 # 开发预览验证
 
+## 2026-11-01：T3 Linux 运行根 SH/EX lease 内核
+
+新增 runtimegen 四源，尚未接 App startup、key 初始化或运行代 Resolve。OpenRuntime 为 SH，
+LockOffline 为 EX；根必须既存私有目录。部署前提是参与者维持 root/lock/fence-dir 命名稳定，
+停用不合作旧 binary/supervisor；这是主线程沿原计划“稳定根永不 rename”的技术裁定，
+不是用户原话，也不是全路径跨 inode 全局互斥。原 whole-root 双 authority 反例继续有效。
+
+每个 Close 先持久化自身 pending marker，再关闭目录、根和最后锁 FD；全部成功后才按
+身份删除 own marker，之后无新 Close。不明结果隔离，不重试，也不删除 peer/foreign fence。
+最终 unlink 已生效却报错时不能声称仍锁住；marker 无法持久化时保留实际 authority，
+不声称存储拒写再断电仍能生成持久 fence。已获得的 lease 不随准入 ctx 取消暗中释放。
+
+exact4 patch SHA256 `9e88ac29144549a4dcd9d0396ec1d51d61049e5bfe498770a59e26503d83cdfa`；
+独审 `/tmp/cognate-t3-independent-f6744b3-i7GnynYB/REPORT.md`，SHA256
+`d208a76333fe857c20a359702f9efd677228d209c33c5cd1918698b50e33a76f`，Spec/Quality 限定 ACCEPT。
+独立执行原 54、新 18 行为叶及关键重复，真实 SH/EX 进程、16 SH 并发关闭、未知 FD 关闭后
+新进程拒入和两个破坏 fence 的 RED 负控均有收据；包 vet 与 Darwin/Windows 包编译通过。
+这些不是 App 接线、非 Linux 运行资格或完整 T3/C4/F4/GA。主线四源 SHA 与冻结一致；
+排除并行 Candidate WIP 的隔离 staged-tree：runtimegen 19 顶层/61 PASS 事件，
+maintenance 20 顶层/29 PASS 事件，0 FAIL/SKIP，两包 vet 和 Darwin/Windows amd64
+包级 CGO0 build 全 exit0。证据为主证据根 `candidate-fix1/11-lease-staged.*`、
+`12-lease-staged-vet.*`、`13-lease-*.{log,exit}`；不发布新分发版本。
+
 ## 2026-11-01：恢复 CopyFile 目录查找根修
 
 T2d `f6744b3` 的 Build `41243767350` 已现场确认 completed/success。

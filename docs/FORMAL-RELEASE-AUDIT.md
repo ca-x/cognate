@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 T3 runtimegen exact4 经独审限定 ACCEPT，Linux 真进程 SH/EX、共享关闭和逐 holder fence 保留通过。只接受稳定命名/可信参与者范围，不保证跨 inode 全局互斥；startup/key/Resolve 尚未接线，旧非参与 binary 须部署停用，不能据内核关闭 T3/C4/F4 或 GA。
 - 2026-11-01 T2d `f6744b3` 远端 Build completed/success。CopyFile exact3 的目录二分及范围遍历经独审限定 ACCEPT，真实 crypto/故障/取消兼容与磁盘读数验证通过；不是完整 Candidate、恢复产品入口或 GA。Candidate 和辅助资产 gate 的原 P2 另行修复复审，不以此抵销。
 - 2026-11-01 T2b `1ba9896` / T2c `720287a` 的远端 Build 均 completed/success。T2d 纯归档语义 exact2 独审限定 ACCEPT，主 staged-tree 22 顶层/115 PASS 事件及 restore/repository vet 通过；逐仓库技能语义、binary/内容 hash 与有界扫描不等于真实 DB/归档文件集合的完整 Candidate，C4/F4 与 GA 门禁仍开。
 - 2026-11-01 T2b 已推 `1ba9896`。T2c 纯 inventory 检查三文件经独审限定 ACCEPT，新增独立向量/大输入预算/取消与绑定边界探针通过；主 staged-tree 13 顶层/66 PASS 事件及 restore/backup vet 通过。被动 references 期望不等于 T1 evidence 或 Candidate 发布能力，实际归档/技能、完整 T2–T5 与 GA 门禁仍开。
