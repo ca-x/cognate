@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 Candidate Core7 fix1 的 staging panic 自等待 P2 经原独审增量 CLOSED、限定 ACCEPT；立即 defer 完成通知/取消、构造所有权及 fence FD 回收有八点真实 RED→GREEN，保留原 BLOCK。真实 DB/完整文件与共享技能绑定、可信源关闭屏障已经实现；与辅助 gate/CopyIndex 的主线隔离组合另验，不据此关闭 S3 Source、startup、撤销/发布/回退/离线 CLI 或完整 C4/F4/GA。
 - 2026-11-01 T1 配置排序/Pack 附件辅助关系 exact3 fix1 经原独审增量 ACCEPT，公开 MaxRecords 有效域收窄的 P2 CLOSED，SQL LIMIT 防溢出及无静默夹断有真实 RED→GREEN。原 BLOCK 保留，不外推为完整 Candidate/C4/F4/GA；主线组合证据见 `VERIFICATION.md`。
 - 2026-11-01 T3 runtimegen exact4 经独审限定 ACCEPT，Linux 真进程 SH/EX、共享关闭和逐 holder fence 保留通过。只接受稳定命名/可信参与者范围，不保证跨 inode 全局互斥；startup/key/Resolve 尚未接线，旧非参与 binary 须部署停用，不能据内核关闭 T3/C4/F4 或 GA。
 - 2026-11-01 T2d `f6744b3` 远端 Build completed/success。CopyFile exact3 的目录二分及范围遍历经独审限定 ACCEPT，真实 crypto/故障/取消兼容与磁盘读数验证通过；不是完整 Candidate、恢复产品入口或 GA。Candidate 和辅助资产 gate 的原 P2 另行修复复审，不以此抵销。

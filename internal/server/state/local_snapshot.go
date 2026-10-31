@@ -70,6 +70,8 @@ func (limits LocalSnapshotLimits) valid() bool {
 	return limits.MaxDBBytes > 0 && limits.MaxInventoryBytes > 0 && limits.MaxStagingBytes > 0 && limits.MaxRecords > 0 && limits.MaxRecords <= math.MaxInt64 && limits.SQLiteHeapBytes >= 65536 && limits.SQLiteHeapBytes <= 1<<30 && limits.WorkerAddressSpaceBytes > limits.SQLiteHeapBytes && limits.WorkerCPUSeconds > 0 && limits.WorkerCPUSeconds <= math.MaxInt32 && limits.MaxWALBytes > 0 && limits.MaxSHMBytes >= 32768 && limits.DrainTimeout > 0 && limits.OperationTimeout > 0
 }
 
+func (limits LocalSnapshotLimits) Valid() bool { return limits.valid() }
+
 type LocalSnapshotView struct{ get func() *localSnapshotScope }
 type LocalSnapshotSummary struct{ get func() localSnapshotManifest }
 type LocalSnapshotMetadata struct{ get func() localSnapshotManifest }

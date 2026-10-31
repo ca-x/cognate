@@ -1,5 +1,47 @@
 # 开发预览验证
 
+## 2026-11-01：T2 Candidate 核心与源关闭屏障
+
+Core7 fix1 累计 patch SHA256
+`a1cba77eb29b5404f2a646a5fa8d624e442cbb554b9ab9f9d3e9acbd546f4bbd`。
+原独审发现 staging 中途 panic 跳过 callback 完成通知，外层 Prepare 永久自等待，
+P2 BLOCK 与原 RED 保留。主线程修复后原 Socrates 增量复审 P2 CLOSED、限定 ACCEPT：
+`/tmp/cognate-candidate-fix1-review-f6744b3-zoG2YE/REPORT.md`，SHA256
+`29160f0c70199a44f3b7ddb9894345552c0fd29be81c5715eb2079b51e4af602`。
+
+Stage 只材料化私有 DB/inventory/archive 文件，不产生 ready；Prepare 仅在可信 Source
+恰好一次 callback 及外层全部 cleanup 成功后开放 WithVerified。后者再次真实 T1、绑定
+DB bytes/hash/schema/key、核对 canonical 尾、完整文件集合/cache 正文，以及每个共享仓库
+全部技能目录 path/contentHash；短命 reader/worker 关闭后才借 one-shot opaque capability。
+没有公共 path/FD、激活或 rename API；不能证明任意恶意 Go Source 是否谎报 cleanup。
+
+callback completion、scoped cancel/AfterFunc stop 立即 defer；Stage 先接管 files 再初始化，
+fence FD 立即 deferred Close，不明后仍关闭自有目录但不重复 Sync。永久八点 Sync panic
+矩阵先 9 FAIL 自等待，再仅通知修复的 4 PASS/5 FAIL 暴露 FD 泄漏，最终全绿；借 key/parent
+不变、原 panic 可 recover、fence 保留且仅借入 parent FD 留存。独审原三探针、吞 panic/
+Goexit 追加探针及两个减门行为 RED 均实际执行，restore 39 顶层/184 PASS、vet exit0。
+最终 fence unlink 在全部自有 FD 明确关闭之后；不保证断电后没有保守残留，未知 Close
+不重试、不删 foreign；整根非合作同 UID/root 置换不在稳定命名合同内。
+
+本次同时组合已独审的辅助关系 gate 与 CopyFile 二分。真实 Capture/Open fixture 覆盖
+空业务库、两 owner 共享隐藏/二进制归档、Pack/分类/配置及附件；源目录移走、源 scope
+全部关闭后仍可验真。篡改实际 SQLite 并保持 T1/inventory 自洽、但最后共享仓库技能
+contentHash 错误的反例拒绝，不能只查首仓库。主线七源 SHA 与 fix1 冻结一致；隔离组合
+source tree `1c3edd309c581dff2b9ad4a585b52a8205117db6` 的完整 restore/state/backup 三包为
+184/1265/545 PASS 事件，共 1994 PASS、3 SKIP、0 FAIL，三包 vet exit0。三个 SKIP 是
+父进程中的具名 subprocess helper，不把它们算作行为 PASS。证据为主证据根
+`candidate-fix1/24-full-three-package-combined.*`、`25-three-package-vet.*`；Go1.27.3/CGO0。
+
+同一导出树的首次全仓命令因测试编排遗漏 Web embed 构建、并将临时 GIT_INDEX_FILE
+泄入 fixture 子进程而 exit1，记录 `18-full-go-combined.*` 保留，不作为产品回归或绿色证据。
+随后清除该变量，正常 npm ci/build 均 exit0，重新全仓运行的独立收据为
+`20-combined-npm-ci.*`、`21-combined-web-build.*`、`22-full-go-combined-corrected.*`、
+`23-full-vet-combined-corrected.*`。最终结果以各真实终态收据为准，不以进行中冒充通过，
+也不把 scoped 独审或本机全仓推成完整 F4/GA。
+
+可信 S3 Source bridge、startup/运行代 Resolve、凭据撤销、发布/回退、离线 CLI 和真实
+业务重启仍未交付。Candidate 核心不是用户可运行的恢复产品；不发布正式标签或分发产物。
+
 ## 2026-11-01：恢复辅助配置关系准入
 
 在同一个只读、受限 T1 worker 中增加配置排序及 Pack 配置附件 gate；不用 canonical
