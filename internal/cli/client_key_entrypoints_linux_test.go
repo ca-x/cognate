@@ -62,9 +62,10 @@ func TestClientKeyEntrypointsRemoteNoKey(test *testing.T) {
 }
 
 type clientKeyWatchWriter struct {
-	buffer      bytes.Buffer
-	closedCycle func(context.Context) error
-	observed    bool
+	buffer              bytes.Buffer
+	closedCycle         func(context.Context) error
+	observed            bool
+	closedCycleBoundary int
 }
 
 func (writer *clientKeyWatchWriter) Write(data []byte) (int, error) {
@@ -73,6 +74,7 @@ func (writer *clientKeyWatchWriter) Write(data []byte) (int, error) {
 func (writer *clientKeyWatchWriter) WriteContext(ctx context.Context, data []byte) (int, error) {
 	if !writer.observed && bytes.Contains(data, []byte("下次同步")) {
 		writer.observed = true
+		writer.closedCycleBoundary = writer.buffer.Len()
 		if err := writer.closedCycle(ctx); err != nil {
 			return 0, err
 		}
@@ -106,8 +108,12 @@ func TestClientKeyEntrypointsWatchAdmissionLateKeyLoss(test *testing.T) {
 	if err := command.ExecuteContext(ctx); !errors.Is(err, clientkey.ErrRecoveryRequired) {
 		test.Fatal("later key loss was retried or swallowed")
 	}
-	if !writer.observed || strings.Count(writer.buffer.String(), "同步完成") != 1 || strings.Contains(writer.buffer.String(), "连续失败") {
+	if !writer.observed || strings.Count(writer.buffer.String(), "同步完成") != 1 {
 		test.Fatal("late loss did not follow exactly one successful closed cycle")
+	}
+	afterSuccess := writer.buffer.String()[writer.closedCycleBoundary:]
+	if strings.Contains(afterSuccess, "同步未完成") || strings.Contains(afterSuccess, "同步完成") || strings.Count(afterSuccess, "下次同步") != 1 {
+		test.Fatal("late loss retried after successful closed cycle")
 	}
 }
 

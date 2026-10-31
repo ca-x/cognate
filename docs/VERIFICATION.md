@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：watch 晚期密钥丢失测试阶段边界
+
+仅修改 `client_key_entrypoints_linux_test.go`，源码 SHA256 `9102060ac7a9942c7ca7f61f23157261d8ab84825fd7c6b3497a4dbd7df2099f`；生产代码、interval/attempt 1 秒、outer 4 秒、取锁 300 毫秒均不变。现在允许第一次成功前的合法重试历史，仍要求恰好一次成功、真实安装锁已关闭后删 key、下一次准入返回 RecoveryRequired，且成功边界后没有失败/完成报告或额外重试提示。
+
+独立报告 SHA256 `3cbb9ae0890b8181eca69fcd6bbdee03e294ccf35f9f7165c3bcf2016ab36905`：Spec/Quality 接受，14 PASS、零 SKIP/FAIL；真实首次 attempt 到期令原断言普通 RED，新断言通过，吞掉 report 准入错误的可编译生产变异仍被新断言普通拒绝，恢复通过。全部 170 项证据经主线程校验。原两份自然失败没有 buffer，精确历史触发仍 UNKNOWN；本片不归因负载、不回写旧失败，也不签 Darwin 或 auth 候选。
+
+主线程在当前 `b0bc3d2` 的独立源码目录以精确新测试 overlay 验证三项相邻测试各三次：9 PASS、零 SKIP/FAIL，相关 vet 和格式检查通过。复用此前正常构建的精确 Web embed，受影响提交间 Web/branding 字节未变；无新浏览器或全仓结果声明。待后续功能组合重新执行全仓门禁；`b0bc3d2` 自身 Build `41154469309` 已实际 completed/success，九个 jobs 均通过，不借该旧测试绿色代替此次修复证据。
+
 ## 2026-10-31：本地 SQLite 快照 Core27 闭合 catalog 后继
 
 签收 source27 SHA256 `18a1e22305c59643af5b0ef849d32d9bc2be6bf40d40b449c7a465059eac2336`。相对前版仅 worker 与测试两叶根修，完整读取 92 条 schema 记录并核对两个内部完整元组，不再按 sqlite 名称前缀豁免；原应用 90 条的双指纹保留，真实 SQL NULL 与非法投影 NULL 分开处理。独立报告 SHA256 `bbf007e664bac5fc2225e8ad0a743796c8b00cdbced0e290383653eae2c17698`：Spec/Quality 接受，145 项具名用例与恢复后的 63 项通过，三个可编译控制均普通 RED；只关闭新后继的 B2-CORE-01/02，原两版 REJECT 与三个反例字节不变，不重新签资源数值资格。
