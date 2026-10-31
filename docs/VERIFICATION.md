@@ -421,3 +421,27 @@ Codex 官方 ChatGPT/OAuth、本机 provider 选择/文件写入/登录保留、
 Go 1.27.3、CGO0、readonly modules、env-i 与隔离 HOME/XDG/TMP 下，实际主程序构建及 `go test ./internal/cli -run '^TestAuthRun' -count=1 -timeout=180s -v` 通过，56 个含子用例 PASS、零 skip/fail。包含 12.5 秒延迟输入后才启动业务命令、真实 TLS/App/SQLite/PTY、确认写入、提交后失包、Logout 失败、取消与秘密隔离。全仓 `go test ./... -count=1 -timeout=600s -json` 为 7360 个含子用例 PASS、158 skip、49 package PASS、77 无测试包、零 fail；skip 不计运行资格。全仓 vet、模块校验、六 OS/架构 CLI CGO0 构建及 metadata 读取通过，格式和 diff 检查通过；交叉编译不是其它平台运行支持。
 
 主 full 验证日志 SHA256：`63115309327dfeff2aa20b550e6a1cacbe309d3ce292033abcff8201ae0bba5c`；认证专项日志 SHA256：`3c97599ced9c497159a2ddd7d618022271dd9201be4ab0f5f94110b547f435fc`。发布仍须以对应 tag 的实际 CI、安装包和远端镜像结果为准；本地绿色不代替发布完成。未完成工作集中于 `TODO.md`，本片不开放 Codex 生产资格或补齐 F3/F4/F12/M7。
+
+## 维护锁释放顺序（2026-10-31）
+
+主线程在 `1fd7564` 上修正最后一个维护句柄的清理顺序：先关闭目录能力，
+只有成功后才关闭物理锁。错误路径继续保留注册表失败条目，不尝试重新获取
+或重放关闭。锁本身关闭失败时不声称物理互斥仍然成立。
+
+先抽出沿用旧顺序的清理函数，加入真实第二进程回归测试，两个清理子用例
+均以普通断言失败：期望 `BLOCKED`，实际 `ACQUIRED`，测试命令 exit 1。
+调整顺序后，维护包全测通过，专项再执行 20 轮通过；测试覆盖清理中拒入、
+注入清理错误后的拒入、正常释放后的获取及锁关闭错误传播。目录能力实际
+关闭，错误由局部 closer 注入；不冒称操作系统真实 close 故障已经复现。
+本轮是主线程自审，不是新增独立验收。
+
+Go 1.27.3、CGO0、禁网模块解析、env-i 与隔离 HOME/XDG/TMP 下，全仓
+`go test -json ./... -count=1` exit 0：7365 个含子用例 PASS、158 skip、
+49 package PASS、77 无测试包、零 fail；全仓 `go vet ./...` 和
+`go mod verify` 均 exit 0。全测试日志 SHA256：
+`b959c611bdf3c0c9e8a37911abe10e45d629d3154d683087a4adae0570947dc0`。
+原 RED 日志 SHA256：
+`ae568cb03f66cd163f974ba9a73b12b6143060c1ab23a868ab1ea68b840190df`。
+维护包测试二进制另外通过 Linux/macOS/Windows × amd64/arm64 六组 CGO0
+交叉编译；不将编译通过记为非 Linux 的运行资格。格式与 diff 检查通过。
+本片不启用完整备份、恢复、云上传或自动调度；预览发布标签保持不变。

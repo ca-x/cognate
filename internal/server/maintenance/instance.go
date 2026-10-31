@@ -5,6 +5,7 @@ package maintenance
 import (
 	"context"
 	"errors"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -219,7 +220,7 @@ func releaseReference(entry *directoryEntry) error {
 	}
 	entry.ready = make(chan struct{})
 	registry.Unlock()
-	err := errors.Join(entry.lock.Close(), entry.root.Close())
+	err := closeDirectory(entry.root, entry.lock)
 	registry.Lock()
 	defer registry.Unlock()
 	if err == nil {
@@ -230,4 +231,11 @@ func releaseReference(entry *directoryEntry) error {
 	close(entry.ready)
 	entry.ready = nil
 	return err
+}
+
+func closeDirectory(root, lock io.Closer) error {
+	if err := root.Close(); err != nil {
+		return err
+	}
+	return lock.Close()
 }
