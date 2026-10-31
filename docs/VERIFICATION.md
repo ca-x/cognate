@@ -6,7 +6,9 @@
 
 包装源码 `760d225dbda3016d73416b093a4c7831edf16acd`、rc.4 run `41166888272` completed/success。喵喵响应接受 app 670/version 3753，68,021,248 字节 LPK 的 SHA256 `3b1ed55b8d1bbe319aef82d2de3e330bdc8fcca4ac89eacebdae75745338f2e8` 与 GitHub Asset digest 一致；公开 prerelease、非 latest、官方商店关闭。通过 gh 下载最终 Release 文件的 90 秒探针超时，未把该探针称作下载通过；本地提取测试与 CI/商店字节回执分开记录。
 
-用户在 04:06Z 实测 rc.4 仍报 master-key 校验拒绝；这推翻「本地别名修复已足够解决设备问题」的任何外推，设备根因仍 UNKNOWN。暂停配置导入等新功能，包装后继 rc.5 仅添加 UID、mode、硬链接数、字节数与逐级目录元数据，不记录 key 内容或参数值、不放宽校验、不修改平台祖先权限。真实本地 LPK 提取测试覆盖原 key 保留、缺失自动生成、health 200，以及 key 合法但祖先 0777 无 sticky/硬链接数 2 的两种拒绝与诊断；不将构造场景归因于用户设备。rc.5 的发布结果与设备日志待独立核实，不宣称真机故障已修复。
+用户在 04:06Z 实测 rc.4 仍报 master-key 校验拒绝；这推翻「本地别名修复已足够解决设备问题」的任何外推，设备根因仍 UNKNOWN。暂停配置导入等新功能，包装后继 rc.5 仅添加 UID、mode、硬链接数、字节数与逐级目录元数据，不记录 key 内容或参数值、不放宽校验、不修改平台祖先权限。真实本地 LPK 提取测试覆盖原 key 保留、缺失自动生成、health 200，以及 key 合法但祖先 0777 无 sticky/硬链接数 2 的两种拒绝与诊断；不将构造场景归因于用户设备。
+
+rc.5 run `41167603186` 已核实 completed/success，喵喵接受 app 670/version 3754，68,022,272 字节 LPK 的 SHA256 `6eda03732a17f27592ac76c9ddc0f3f0e53e1c0b393e443a73fca0b3066a5626` 与 GitHub Asset digest 一致。包装 tag 固定 `a5e554f64cfaa565f26993defb7671d7cf657476`；公开 prerelease/no-latest 的后处理也通过。已请求新启动日志的 metadata 行，不要求进入容器或提供 key 内容；尚无这些设备证据，故障不能标记解决。
 
 ## 2026-10-31：首次管理员初始化与懒猫启动候选
 
