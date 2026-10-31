@@ -48,6 +48,26 @@ then failed at the second platform pull because of that local Docker store
 conflict. It is not a successful public-release receipt; independent verification
 of the same uploaded digest is required without rewriting the tag or image.
 
+That independent check completed successfully in run **41150799480**, verifier
+source `21bd8a0`: the unchanged index and both distinct platform manifests were
+pulled, their actual architectures checked, both server binaries executed with
+`--help`, and anonymous access returned the same expected index digest. This
+read-only run did not rebuild or republish anything. The original publisher run
+remains failed; the two receipts together document the preview's delivery.
+
+The server preview is now publicly pullable without logging into GHCR:
+
+```sh
+docker pull ghcr.io/ca-x/cognate:server-v0.1.0-rc.1
+```
+
+For immutable deployment, use
+`ghcr.io/ca-x/cognate@sha256:ac5c5721b5ad8eaa9469c14f0607ce0e7bb2b7c6c7aadf26e06fe715865f36fc`.
+Image source remains `289dc98`; later verifier/docs commits are not rebuilt into
+this preview. Persistent data and an external private master key remain required;
+follow the server setup instructions in README and do not expose plain HTTP
+directly to the Internet.
+
 Use a new version tag for new source; do not move published tags. Same-tag runs
 are serialized. Protect release tags with GitHub repository rulesets and limit
 push permission to maintainers. Only the server publisher has `packages: write`;
