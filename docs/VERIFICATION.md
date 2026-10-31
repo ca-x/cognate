@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：首次管理员初始化与懒猫启动候选
+
+主线程实现并自审启动专用 bootstrap，默认关闭，无初始化 RPC 和密码 argv。空实例的账号/hash/AEAD 身份绑定同事务提交，注入元数据写失败后 User 和 LocalAccount 均为零；重开数据库保留原 UUID/hash。损坏或删除绑定、改变用户名、非空实例、缺失/过短/过大/公开权限/符号链接密码文件均拒绝。真实 App 的本地 Login 与日志管理授权在两次启动中通过；输入文件移除后仍用原密码登录。现有账户、主密钥与所有权检查未放宽。
+
+本片最终组合全 Go 7,444 PASS、158 SKIP、0 FAIL，受影响四包 vet、module verify 和 Linux/Darwin/Windows × amd64/arm64 六项 CGO0 服务端构建退出 0。证据目录由 `/tmp/cognate-bootstrap.latest` 指向，包含 focused/full-go/vet/modules/cross-build/startup 日志。此处是主线程自测，不称独立验收。
+
+包装仓库的真实服务测试复现旧脚本在祖先挂载别名下的 master-key 拒绝；新脚本规范路径后 health 200，原 key 保留。初始化管理员真实登录及全局日志授权通过，密码未进入 argv、child env 或捕获日志；两次重启（更换输入密码、移除输入文件）均保留原密码和 key。错误大小/公开权限/symlink key 与非法 UUID 均拒绝且不重建 key。shell、actionlint 和 `lzc-cli project lint` 通过；安装模板尚待新包构建验证，用户懒猫真机没有元数据，不能据此声称设备问题已完全解决。
+
 ## 2026-10-31：Grok provider Web
 
 主线程实现与自审，不新增独立验收。合法 Grok 回执经既有解码入口取得普通断言 RED 后补齐入口；独立 state 向量、OpenCode 回归、类型检查与 Web 构建通过。真实 Chromium/TLS/Auth/SQLite 的 dark/light 英文 375px 场景覆盖创建、全部模型字段、精确最大整数、密钥持久化布尔、无凭据复制、env absent、Replace/Clear、切语言/模式清密钥、键盘/无横向溢出、CAS、未知字段只读和伪成功回执；提交后丢响应恰好一次写入，Unknown 不重放。两张截图人工查看，无新动画或依赖。

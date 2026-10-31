@@ -1,5 +1,7 @@
 # Server Logging
 
+首次安装可使用 [首次管理员初始化](BOOTSTRAP-ADMIN.md) 创建本地管理员并接入此处的 UUID allowlist。已有实例继续显式授权；初始化不覆盖密码，也不提升已有普通账号。
+
 ## Objective And Authority
 
 F13 provides private operational file logs and administrator-only Web configuration. L1–L3 have been implemented, independently accepted and delivered; the named Delivery Checkpoint below records the exact identity and evidence. This document preserves the implementation contract and is not a whole-release completion receipt. The user delegates planning and acceptance to an independent representative, so no additional human implementation checkpoint is required. Existing requirements, CGO-free builds and secret-handling rules remain binding.

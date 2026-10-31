@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+func TestBootstrapAdministratorFlags(test *testing.T) {
+	command := New()
+	for _, name := range []string{"bootstrap-admin-username", "bootstrap-admin-password-file"} {
+		value, err := command.Flags().GetString(name)
+		if err != nil || value != "" {
+			test.Fatal("administrator initialization must be opt-in")
+		}
+	}
+	if command.Flags().Lookup("bootstrap-admin-password") != nil {
+		test.Fatal("administrator password must not be accepted in argv")
+	}
+}
+
 func TestAdministratorUserIDFlag(test *testing.T) {
 	command := New()
 	flag := command.Flags().Lookup("admin-user-id")

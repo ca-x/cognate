@@ -39,20 +39,22 @@ import (
 )
 
 type Config struct {
-	AdminUserIDs          []string
-	DataDirectory         string
-	MasterKeyFile         string
-	TLSCertificate        string
-	TLSKey                string
-	AllowHTTP             bool
-	PublicOrigin          string
-	GitHubClientID        string
-	OIDCIssuer            string
-	OIDCClientID          string
-	OIDCClientSecretFile  string
-	ArchiveCacheBytes     int64
-	ListSyncInterval      time.Duration
-	SourceRefreshInterval *time.Duration
+	AdminUserIDs               []string
+	BootstrapAdminUsername     string
+	BootstrapAdminPasswordFile string
+	DataDirectory              string
+	MasterKeyFile              string
+	TLSCertificate             string
+	TLSKey                     string
+	AllowHTTP                  bool
+	PublicOrigin               string
+	GitHubClientID             string
+	OIDCIssuer                 string
+	OIDCClientID               string
+	OIDCClientSecretFile       string
+	ArchiveCacheBytes          int64
+	ListSyncInterval           time.Duration
+	SourceRefreshInterval      *time.Duration
 }
 
 type App struct {
@@ -80,6 +82,12 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	}
 	if len(config.AdminUserIDs) > 32 {
 		return nil, fmt.Errorf("invalid administrator user IDs")
+	}
+	if (config.BootstrapAdminUsername == "") != (config.BootstrapAdminPasswordFile == "") {
+		return nil, fmt.Errorf("initial administrator username and password file must be configured together")
+	}
+	if config.BootstrapAdminUsername != "" && len(config.AdminUserIDs) == 32 {
+		return nil, fmt.Errorf("administrator initialization requires a free administrator slot")
 	}
 	admins := make(map[string]struct{}, len(config.AdminUserIDs))
 	for _, id := range config.AdminUserIDs {
@@ -151,6 +159,16 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	if err != nil {
 		_ = store.Close()
 		return nil, err
+	}
+	if config.BootstrapAdminUsername != "" {
+		administrator, err := service.BootstrapAdministrator(ctx, config.BootstrapAdminUsername, config.BootstrapAdminPasswordFile)
+		if err != nil {
+			_ = store.Close()
+			return nil, err
+		}
+		if _, exists := admins[administrator]; !exists {
+			config.AdminUserIDs = append(config.AdminUserIDs, administrator)
+		}
 	}
 	var device *githubauth.Service
 	if config.GitHubClientID != "" {
