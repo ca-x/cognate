@@ -1,5 +1,37 @@
 # 开发预览验证
 
+## 2026-11-01：MCP 与日志管理页候选集成及 F1 焦点修复
+
+主线程把 Newton 的恰八文件候选应用至 `e2003855c69e2e72e05962d011faa8f788abd733`，逐文件 SHA 与交付清单一致，未改生产 Go 或协议。累计 patch SHA256 `29d47abd5ab902f2fca0fd691b85adfee770c1b3f333828d0a4cc204a193cfd8`，八文件清单 SHA256 `61caabfae412dde9dbb34f7a9ff72b97e1a2feeb90f7bf8d2020442271139902`。首次非作者审查为 Spec/Quality BLOCK，唯一 P2 是下面的 F1；不能用作者或主线组合 GREEN 覆盖这个独立反例。
+
+主线程证据目录 `/tmp/cognate-management-main.jmCjuLim`，Go 1.27.3、Node 26.12.0，所有 Go 命令显式 `CGO_ENABLED=0`：
+
+- `npm --prefix web run build`、真实 fixture 编译、七案终止契约 self-test、MCP/日志授权专项和 logging 包通过。
+- `go test -count=1 -json ./internal/server/httpapi ./internal/server/logging` 为 **1223 PASS / 10 SKIP / 0 FAIL**，两个包终态 PASS；组合 JSON SHA256 `1b4f06937a0a0fd04bc42654fa157975297efad6d1dee3224c1a893b9c2b238a`。这不是再次全仓测试，不能把上阶段的 7919 直接转记成本候选结果。
+- 两个相关包 vet、嵌入本次生产 Web 的 Linux server build 与 CGO0 metadata 检查通过。53 项 dist 在主线程组合后复核一致，清单 SHA256 `0b74b284c558d418f9ef5c50f8bad3707e725973093726e3dc3b2a66888673c0`；没有借此声称十八平台已重新运行或本机 GUI 验收。
+- 真实 TLS/Connect/SQLite 浏览器为 **179 条收据、160 组矩阵、14 张安全图**，fixture 终态 `code=0 / signal=null`、无 failure。覆盖 token 创建/编辑/轮换/撤销/过期及逐调用授权、CAS/Unknown、防秘密持久化；日志管理员/普通用户、草稿/清理确认、CAS/Unknown、真实降级计数及失败健康未知。截图门禁拒绝一次显示区或非空密码框，不用系统剪贴板模拟成功复制。收据 SHA256 `8e300870271bb446a274042108c962cdbfc921565b49b0ce0f252be873d7db62`。
+- 终止 self-test 对正常、非零退出、signal、缺 stop、缺 PASS、收据后 FAIL 及超时分别取期望结果；JSON SHA256 `7119a90caac4c04aa7ce15351dd9531331e981f82318bc77455e036ea8ac88ae`。主线程另目视安全截图的宽屏 MCP 及英文深色 375px/200% 日志页。
+
+矩阵含中文/English、浅/深/跟随系统、正常/ReduceMotion，1440/375/320 CSS px 及 375/320px 的真实 200% 根字号、两个页面。实际键盘导航/Tab/Space/Enter/Escape与焦点检查不等于覆盖所有共享指针导航；作者旧轮 200% 共享指针导航异常仍未归因，最终矩阵采用真实键盘路由。外部剪贴板成功复制、真人读屏/触摸、其它浏览器及 MyGo 仍未验收，完整功能门禁不变，见 `MANAGEMENT-UI.md`。
+
+上阶段 `e200385` 已 SSH push，origin main 读回一致；其 Build `41223330061` 与 Platform `41223330122` 均为 completed/success。它们只证明该提交，不是本候选的远端 CI。尚无正式 tag、Docker/LPK 更新或 GA 放行。
+
+### F1：成功撤销后的返回焦点不能依赖 disabled 的浏览器时序
+
+首次独审报告 `/tmp/cognate-task4-independent.MGt1w9CC/work/REVIEW.md`，SHA256 `293d3bbae5f00fd458d805804dda9326d3a7a024bb0f1a62a920df5d839f8192`。同一真实撤销在 Chromium 143.0.7499.4 中，列表刷新把触发器禁用后浏览器先原生 blur 到 BODY，layout effect 已看不到原 disabled activeElement；普通/慢列表三轮均失败。Chrome 156.0.8078.79 的三轮返回 H1，仅是版本对照，不能据此排除 143。其余缓存错误、CAS、已提交 Unknown 不重放、秘密/身份隔离及终态契约的独立检查通过；报告原 BLOCK 保留。
+
+主线程先强化持久脚本，再用旧二进制在 143 得到同一焦点断言 RED。生产只在明确收到成功撤销通知时清空旧返回触发器，现有 Radix 关闭路径直接回稳定 H1，不再先回即将禁用的按钮；取消保留原触发器，不增加 timer、全局 focus 监听、RPC 重放或其它状态恢复。新脚本实测 Escape 取消零写入且回原可用触发器，随后慢 ListCredentials 下真实撤销、刷新完成回 H1、精确一次 mutation。
+
+| 受控对照与修后实际门禁 | 结果与收据 SHA256 |
+| --- | --- |
+| 旧生产二进制 + 新永久脚本 / Chromium 143 | exit1，仅预期的稳定 H1 断言失败；fixture 0/null；`3d71cecbd3ca3354a48db32e008aaae022e776d8bc433906f9e3703efee3c3b5` |
+| 修后生产二进制 + 同脚本 / Chromium 143 | exit0，10 条收据，fixture 0/null；`f217c22a1b522cf0b778e1605e0ae112f23a4ed38a4f2ab0e5154dd6b9c71789` |
+| 修后生产二进制 + 完整脚本 / Chrome 156 | exit0，180 条收据、160 组矩阵、14 安全图，fixture 0/null；`c881729c6313d217e4b417872147e7d7bb8682de20a4ec9ac7bd80a023aa1ec5` |
+
+证据仍在同一主线程目录的 `f1-*` 子项；最终 53 项 dist 清单 SHA256 `a33d9efa955ec639f989e717e6304bef763ac967477104bbcaf22d4fff2e6300`，两文件增量 SHA256 `71def6e7ad4cf25e0f80f254071a8c352f3caa671a280c0d9d19fda8e2f358d6`。修后 Web build、fixture 编译、server 嵌入 build/CGO0 metadata 和七案终态 self-test 均重新通过，源码与 dist 再核一致；不把修前的 1223 项 Go 结果记为重新运行。Build workflow 增加一行管理页 self-test，仅覆盖终态门禁，不冒称运行完整浏览器矩阵。默认 mise actionlint shim 未配置版本的编排失败保留；直接使用固定 1.7.7 二进制后结构检查 exit0，不声称完整 ShellCheck 全绿。
+
+**F1 已由原非作者 reviewer 独立复核 CLOSED，限定 Spec/Quality ACCEPT。** 其独立构建的旧143加强探针仅三项 F1 RED；修后143/156各 12/12 PASS，包含取消/普通关闭零写入、后台焦点保持及成功撤销精确一次写入，fixture 均 0/null。报告 `/tmp/cognate-task4-independent.MGt1w9CC/work/REVIEW-F1.md`，SHA256 `3702e502bcdfae16567d5aea5d9627a4d301dd77a46e65f45b07cb15be7adf80`。新增 CI 单行另获限定 ACCEPT，附记 `/tmp/cognate-task4-independent.MGt1w9CC/work/REVIEW-F1-CI.md`，SHA256 `69840801af9f449a487b29a9f0fb0eb2e0df5b16eab930a14b9b4e3931634af5`。没有重复全仓/十八构建或借此签署 GA；原 BLOCK 与未验边界不改写。
+
 ## 2026-11-01：四组工作空间 UI 与 SQLite 修复的最终组合
 
 本阶段基于 `59da539509f6d7aa10c28f652b72c879157be63c`，接收来源、登录/账号、仓库/分类、Pack/分享四组 UI，以及 GitHub 写事务、备份源文件锁和 Linux Secret Service 测试就绪修复。以下证据属于最终冻结组合，不覆盖后文旧候选、失败或拒绝记录。MCP/日志页面另有作者候选，尚未包含于本节。

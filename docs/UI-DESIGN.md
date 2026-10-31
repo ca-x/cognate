@@ -93,9 +93,9 @@ node /tmp/cognate-ui-polish/verify-ui.mjs \
 | `/packs` 与内嵌分享管理 | 七文件切片与 F1 修复均已独审 ACCEPT；最终组合 CRUD/分享/撤销/Unknown 132 条证据、另五项焦点观察通过 | 配置附件消费另缺实现，不只是样式；本页不表示设备已同步，见 `PACKS-UI.md` |
 | `/categories` 分类 | 同一仓库/分类切片已覆盖 CRUD、长名、失败保留草稿及丢回执后稳定错误/焦点，独审 ACCEPT | 以上为本页局部 Chromium UI 签收，不扩大成全部 F9 或真实平台验收 |
 | `/account` 账号 | 与登录同一切片，I1/M1 已独审；身份、显式绑定、后台错误焦点与注销的新组合专项通过 | 外部 provider 成功绑定、真人读屏及跨浏览器仍 OPEN；不枚举或推断已有绑定清单 |
-| `/mcp-settings` | 已有站点 MCP token 管理 | 权限/一次显示/撤销/过期、长工具说明、复制反馈与键盘 OPEN；不同于客户端 MCP 配置资产 |
+| `/mcp-settings` | 八文件管理页切片及撤销焦点 F1 已独审；主线真实权限/一次显示/轮换/撤销/过期、CAS/Unknown、160 组联合矩阵通过 | 本页局部签收不覆盖外部剪贴板成功复制、其它浏览器/真人读屏或客户端 MCP 配置资产；见 `MANAGEMENT-UI.md` |
 | `/configuration` | 共享与关键配置/Grok 编辑切片已独审，见本文件前文 | 所有已支持 agent 的空/列表/编辑/只读未知/冲突/Unknown 场景逐一覆盖 OPEN；十四 agent 功能缺口不以 UI 填空代替 |
-| `/server-logging` | 已有管理员设置功能 | 普通用户权限提示、配置/保留参数、错误/保存反馈及窄屏 OPEN |
+| `/server-logging` | 同管理切片已独审；真实普通用户拒绝、管理员策略/保留确认、草稿与 CAS/Unknown、健康样本未知和窄屏键盘通过 | 不代表持续监控或完整外部磁盘故障资格；全产品与平台门禁仍 OPEN，见 `MANAGEMENT-UI.md` |
 | `/server-backup` | 管理员手动页，真实 TLS App/SQLite/S3-like 88 条收据及 56 组布局/焦点检查 | 中英深浅、320/375px/200%、真实键盘滚动与 ReduceMotion 已有本页证据；全产品、外部供应商及完整恢复仍 OPEN，见 `SERVER-BACKUP.md` |
 | `/explore`、`/explore/$skillId` | 公开目录/详情局部 ACCEPT；24 份 200% 几何、复制完整词、真实分页/错误/匿名边界，见 `PUBLIC-CATALOG-UI.md` | 自动化验收限本机 Chromium；真人读屏、触屏、真实公开安装与其它浏览器仍 OPEN |
 

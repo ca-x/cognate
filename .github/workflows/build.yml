@@ -49,6 +49,7 @@ jobs:
       - run: node scripts/verify-sources-web.mjs --self-test-gate
       - run: node scripts/verify-backup-sqlite-locks.mjs --self-test
       - run: node scripts/verify-auth-ui.mjs --self-test
+      - run: node scripts/verify-management-ui.mjs --self-test
       - uses: actions/upload-artifact@v4
         with:
           name: cognate-web

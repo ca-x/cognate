@@ -1,0 +1,105 @@
+.management-page,
+.management-dialog {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.management-page .page-heading > div { min-width: 0; }
+.management-page .page-heading .management-eyebrow {
+  margin: 0 0 .625rem;
+  color: var(--color-primary);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
+.management-card {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: .875rem;
+  background: var(--color-card);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-surface);
+}
+
+.management-endpoint { border-inline-start: 3px solid var(--color-primary); }
+.management-endpoint > code { color: var(--color-primary); }
+.management-disclosure {
+  padding-block-start: .875rem;
+  border-block-start: 1px solid var(--color-border);
+  font-size: .875rem;
+}
+.management-disclosure summary { padding-block: .5rem; font-weight: 500; }
+.management-disclosure summary::marker { color: var(--color-primary); }
+.management-disclosure code { overflow-wrap: anywhere; }
+.management-metadata { padding-block: .875rem; border-block: 1px solid var(--color-border); }
+.management-metadata dd { overflow-wrap: anywhere; }
+.management-facts h3 { flex-basis: 14rem; }
+.management-status {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: .375rem;
+  background: var(--color-muted);
+  padding: .25rem .5rem;
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.management-status[data-status="active"] {
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+}
+.management-status[data-status="degraded"] { color: var(--color-destructive); }
+.management-actions { display: flex; flex-wrap: wrap; gap: .625rem; margin-block-start: 1.25rem; }
+.management-credential .management-danger { margin-inline-start: auto; }
+.management-page .button,
+.management-dialog .button { max-width: 100%; white-space: normal; height: auto; padding-block: .625rem; }
+.management-page svg,
+.management-dialog svg { flex-shrink: 0; }
+.management-feedback {
+  min-width: 0;
+  margin-block: .875rem;
+  border: 1px solid var(--color-border);
+  border-radius: .625rem;
+  background: var(--color-muted);
+  padding: .875rem;
+}
+.management-dialog { max-width: 44rem; scroll-padding-block: 1rem; }
+.management-dialog :focus-visible { scroll-margin-block: 1rem; }
+.management-dialog .management-facts { font-size: .875rem; }
+.management-scopes label:has([data-state="checked"]) { background: var(--color-muted); }
+.management-scopes label:has(:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+.management-scopes code { overflow-wrap: anywhere; }
+.management-scopes label { flex-wrap: wrap; }
+.management-scopes label > span { flex: 1 1 14rem; }
+.management-secret {
+  border-block-start: 2px solid var(--color-primary);
+  padding-block-start: 1rem;
+}
+.management-secret textarea { color: var(--color-foreground); background: var(--color-background); }
+.management-log-grid { display: grid; min-width: 0; align-items: start; gap: 1.25rem; }
+.management-health > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; }
+.management-health dd { overflow-wrap: anywhere; }
+.management-log-grid label { display: block; }
+.management-log-grid [data-slot="select-trigger"] { width: 100%; justify-content: space-between; }
+
+@media (min-width: 80rem) {
+  .management-log-grid { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); }
+}
+
+@media (max-width: 40rem) {
+  .management-card { padding: .75rem; }
+  .management-dialog { width: calc(100% - 1rem); max-height: calc(100svh - 1rem); padding: .75rem; }
+  .management-dialog .management-scopes label { gap: .5rem; padding: .625rem; }
+  .management-dialog input[type="datetime-local"] { font-size: .875rem; }
+  .management-credential .management-danger { margin-inline-start: 0; }
+  .management-page .error-notice { padding: .75rem; }
+  .management-page .error-notice .button { flex-shrink: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-page .button,
+  .management-dialog .button { transition: none; }
+}

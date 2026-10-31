@@ -36,7 +36,7 @@
 - [x] 使用 apply_patch 集成，逐文件 SHA256 一致；Web build、来源六阶段回归和 100 轮 RPC-only 通过。
 - [x] 接收原独审 Hilbert 的 N1 修后 Spec/Quality ACCEPT，不以作者绿色替代独审。
 - [x] 最终冻结新组合真实来源浏览器、备份回归、7919 PASS 全仓及十八目标 CGO0 构建；具体证据见 `VERIFICATION.md`。
-- [ ] 通过后按阶段提交并 SSH push，读回远端，记录 Nowledge 进度。
+- [x] 阶段提交 `e2003855c69e2e72e05962d011faa8f788abd733` 已 SSH push，origin main 读回一致；Nowledge 事件 `0dc211d4-2646-43fa-9737-06e95195826f` 保存实际交付与剩余范围。
 
 ## Task 1: 登录与账号
 
@@ -44,11 +44,11 @@
 
 **Interfaces:** 保留 `AuthScreen`、`AccountPage` 导出及现有 auth RPC；新 i18n 模块由本切片组件自行导入。
 
-- [ ] 读取现有登录、注册和 OIDC 绑定协议及共享组件；记录实际基线问题并写先失败的针对性验收。
-- [ ] 打磨信息层级、材质、表单和反馈；登录方式查询失败提供明确重试，不伪装 OIDC 未启用。
-- [ ] 保留本地登录、register→login→GetSession、显式绑定、不按邮箱合并与密码不回显边界。
-- [ ] 真实生产 build→TLS Go/Connect/SQLite fixture 覆盖登录/注册、loading/error、OIDC 未启用/启用/失败、账号绑定提示和身份。
-- [ ] 覆盖全局视觉/键盘矩阵，保存安全前后截图和复现命令，冻结限定写集补丁与 SHA256。
+- [x] 读取现有登录、注册和 OIDC 绑定协议及共享组件；记录实际基线问题并写先失败的针对性验收。
+- [x] 打磨信息层级、材质、表单和反馈；登录方式查询失败提供明确重试，不伪装 OIDC 未启用。
+- [x] 保留本地登录、register→login→GetSession、显式绑定、不按邮箱合并与密码不回显边界。
+- [x] 真实生产 build→TLS Go/Connect/SQLite fixture 覆盖登录/注册、loading/error、OIDC 未启用/启用/失败、账号绑定提示和身份。
+- [x] 覆盖全局视觉/键盘矩阵，保存安全前后截图和复现命令，冻结限定写集补丁与 SHA256。
 
 ## Task 2: 仓库与分类
 
@@ -56,11 +56,11 @@
 
 **Interfaces:** 保留 `RepositoriesPage`、`CategoriesPage` 导出、既有 collection/category RPC、PublicationControl/SkillCategories/RepositoryRefreshControl；只读其它子组件。
 
-- [ ] 先用真实 fixture 验证收录/技能详情/分类的加载、错误、空和长内容基线，保留可复现 RED。
-- [ ] 打磨仓库选择、分支与快照层级、筛选与分类编辑/删除；不能把来源列表误称已收录内容。
-- [ ] 保留公开 opt-in、私有源授权、刷新/完整性失败及分类所有者隔离边界，不添加假公开状态或计数。
-- [ ] 真实生产 Web/Connect/SQLite 验证真实选择/收录/筛选/分类 CRUD、错误重试与取消，不用 RPC mock 代替业务成功。
-- [ ] 覆盖全局视觉/键盘矩阵，冻结限定写集、截图及证据，局限明确记录。
+- [x] 先用真实 fixture 验证收录/技能详情/分类的加载、错误、空和长内容基线，保留可复现 RED。
+- [x] 打磨仓库选择、分支与快照层级、筛选与分类编辑/删除；不能把来源列表误称已收录内容。
+- [x] 保留公开 opt-in、私有源授权、刷新/完整性失败及分类所有者隔离边界，不添加假公开状态或计数。
+- [x] 真实生产 Web/Connect/SQLite 验证真实选择/收录/筛选/分类 CRUD、错误重试与取消，不用 RPC mock 代替业务成功。
+- [x] 覆盖全局视觉/键盘矩阵，冻结限定写集、截图及证据，局限明确记录。
 
 ## Task 3: Pack 与分享
 
@@ -68,11 +68,11 @@
 
 **Interfaces:** 保留 `PacksPage` 和 `PackShares` 导出与既有 Pack/share RPC，不实现或暗示缺失的配置附件自动应用。
 
-- [ ] 记录当前列表/编辑/重合技能/分享/删除的真实基线，写针对性失败验收。
-- [ ] 打磨选择、修订信息、编辑表单、分享范围与危险区域，复用成熟组件；不改变 CAS 或 mutation 次序。
-- [ ] 明确过期、撤销、一次显示及已分发内容无法收回；保留权限、容量与结果不明边界。
-- [ ] 真实生产 Web/Connect/SQLite 验证创建/编辑/删除/分享/撤销与失败恢复；回执不明不自动重放。
-- [ ] 覆盖全局视觉/键盘矩阵，保存无秘密截图，冻结限定写集与可复现证据。
+- [x] 记录当前列表/编辑/重合技能/分享/删除的真实基线，写针对性失败验收。
+- [x] 打磨选择、修订信息、编辑表单、分享范围与危险区域，复用成熟组件；不改变 CAS 或 mutation 次序。
+- [x] 明确过期、撤销、一次显示及已分发内容无法收回；保留权限、容量与结果不明边界。
+- [x] 真实生产 Web/Connect/SQLite 验证创建/编辑/删除/分享/撤销与失败恢复；回执不明不自动重放。
+- [x] 覆盖全局视觉/键盘矩阵，保存无秘密截图，冻结限定写集与可复现证据。
 
 ## Acceptance And Delivery
 
@@ -84,12 +84,12 @@
 
 **Files:** 修改 `web/src/mcp-settings.tsx`、`web/src/mcp-settings-i18n.ts`、`web/src/server-logging.tsx`、`web/src/server-logging-i18n.ts`；新增 `web/src/management-ui.css`、`internal/server/httpapi/management_ui_browser_fixture_test.go`、`scripts/verify-management-ui.mjs`、`docs/MANAGEMENT-UI.md`，恰八文件。
 
-- [ ] 核对当前真实空/加载/错误、Token 创建/轮换/撤销/过期、日志管理员/非管理员与 CAS/Unknown 协议，先保留针对性 RED。
-- [ ] 改善信息层级、长权限说明、一次显示区、危险操作确认及日志保留参数/健康状态；使用现有 Radix 与框架组件，禁止自造基础控件、虚构统计或模糊管理 Token 与 agent MCP 配置的区别。
-- [ ] Token 原文仅创建/轮换成功时在内存出现，拒绝秘密截图及日志，刷新/离页不回显；权限/有效期与逐调用撤销保持真实服务端语义， mutation 不自动重放。
-- [ ] 日志设置只有显式管理员可改；错误/冲突/结果不明保留草稿并阻止重放，显式核对不虚构保存成功，日志路径不可自选。
-- [ ] 生产 Web → 真实 TLS/Connect/SQLite fixture 验证业务与失败；中英/深浅/系统、320/375px/200% 根字号、真实键盘/焦点、ReduceMotion；异步查询失败和触发器卸载后有稳定焦点。
-- [ ] 浏览器脚本必须拒绝 fixture 非零退出、signal、超时及缺失收据；保存针对性正常/异常自测、真实无秘密截图、八文件补丁/源码摘要与未验边界，交非作者独审。
+- [x] 核对当前真实空/加载/错误、Token 创建/轮换/撤销/过期、日志管理员/非管理员与 CAS/Unknown 协议，先保留针对性 RED。
+- [x] 改善信息层级、长权限说明、一次显示区、危险操作确认及日志保留参数/健康状态；使用现有 Radix 与框架组件，禁止自造基础控件、虚构统计或模糊管理 Token 与 agent MCP 配置的区别。
+- [x] Token 原文仅创建/轮换成功时在内存出现，拒绝秘密截图及日志，刷新/离页不回显；权限/有效期与逐调用撤销保持真实服务端语义， mutation 不自动重放。
+- [x] 日志设置只有显式管理员可改；错误/冲突/结果不明保留草稿并阻止重放，显式核对不虚构保存成功，日志路径不可自选。
+- [x] 生产 Web → 真实 TLS/Connect/SQLite fixture 验证业务与失败；中英/深浅/系统、320/375px/200% 根字号、真实键盘/焦点、ReduceMotion；异步查询失败和触发器卸载后有稳定焦点。
+- [x] 浏览器脚本必须拒绝 fixture 非零退出、signal、超时及缺失收据；保存针对性正常/异常自测、真实无秘密截图、八文件补丁/源码摘要与未验边界，交非作者独审。
 
 ## Parallel Server Repair
 
@@ -105,8 +105,8 @@
 - Task 3：fix round 1/5 完成，后台失败焦点 F1 由原非作者 reviewer 复审 CLOSED，Spec/Quality ACCEPT；最终组合 132 条证据和独立五项焦点观察通过。
 - 备份：六文件身份核验并集成，非作者独审 ACCEPT。子进程锁观测及 3-byte 受控截短已证实机制；新组合 630 次备份和真实管理页通过，历史 v7 仍未归因。
 - 最终全仓首次在 broker fixture-connect 失败；主线程用真实 syscall 延迟证明错误就绪机制，新增测试就绪握手，修后全仓 7919 PASS / 166 SKIP / 0 FAIL；Hilbert 独立编译及真实时序对照后限定 Spec/Quality ACCEPT。原失败保留，不混同旧 OpenSession 或等待断言。
-- Task 4：作者恰八文件冻结候选已交付，Hilbert 在隔离 archive 做非作者独审；未集成、未签收，不并入前三组的绿色证据。
+- Task 4：恰八文件集成；原唯一 P2 撤销焦点 F1 修复第1轮后，Hilbert 独立143/156各12/12 PASS、F1 CLOSED，限定 Spec/Quality ACCEPT；新增 CI 单行另限定 ACCEPT。主线修后180条收据/160矩阵通过，不并入前三组的7919 PASS证据。
 - 集成限定独审对稳定 CSS/i18n、CI 门禁及覆盖账本给出 Spec/Quality LIMITED ACCEPT，新增集成阻断 0；最终 runtime 1319 项与 Web dist 52 项前后 hash 一致，十八目标构建/metadata 通过。
-- 当前尚无阶段提交、push、tag 或新的 Docker/LPK；审核和组合门禁通过后再交付，不发布伪 GA。
+- 四组 UI/存储修复阶段已由 `e200385` 提交并 SSH push，远端读回一致；没有新 tag、Docker/LPK 发布。Task 4 不在该提交或其 7919 PASS 组合内，不发布伪 GA。
 
-本线与三个 UI 写集互不重叠。主线程继续来源页阶段集成和进度交付，待此故障修复并独审后重新做受影响组合门禁；目前不发正式标签。
+本线与各 UI 写集互不重叠。上述故障已按限定范围闭合并完成受影响门禁；配置总览与 Pack 附件 Web 管理按2026-11-01两份计划并行实施，主线程继续阶段交付，目前不发正式标签。
