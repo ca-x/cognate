@@ -1,5 +1,25 @@
 # 开发预览验证
 
+## 2026-11-01：恢复 CopyFile 目录查找根修
+
+T2d `f6744b3` 的 Build `41243767350` 已现场确认 completed/success。
+本片仅将已完成认证 bundle 的 CopyFile 目录定位从逐次全扫改为 lower_bound 加匹配范围，
+不建立新索引、不改 wire/AAD/AEAD、extent 校验或 Close/取消语义。完整排序与连续 extent
+前提由既有 Open/Finish 管线证明，未将任意目录提升为可信输入。
+
+exact3 patch SHA256 `318c5af2236ac9e89316da3c69e6ce51851982fce93501f810e280777626c5cb`；
+独审报告 `/tmp/cognate-copy-exact3-review-bpgY5yhB/REPORT.md`，SHA256
+`73355862140a38e40ebb6484e8a82aaa6df9acc5b3a7981d2dd39a712bed58bb`，限定 ACCEPT。
+独审实际执行新 35 叶、旧 85 叶、独立 26 叶、drain 重复 30 叶及旧实现兼容 35 叶，
+全部通过；恢复旧线性算法的读数断言真实 RED 保留。100000 条真实磁盘 catalog 的定位
+读取为 16–17 次，旧全扫为 100000；复杂度 O(log N+E)，不是端到端倍数声明。
+
+主线三源 SHA 与冻结一致；隔离 staged-tree 的真实 crypto/CopyFile/restore database
+组合为 10 顶层/43 PASS 事件、0 FAIL/SKIP，backup vet exit0；均为 Go1.27.3/CGO0。
+证据在 `/tmp/cognate-npx-selection.TB9Vd2tL/candidate-fix1/08-copy-staged.*` 与
+`09-copy-staged-vet.*`。并行 Candidate 与辅助资产 gate 不计入此片证据。
+本片不关闭完整 T2、C4/F4 或 GA 门禁，不发布标签或分发产物。
+
 ## 2026-11-01：T2d 有界归档语义检查
 
 T2b `1ba9896` 的 Build `41241972010`、T2c `720287a` 的 Build `41242531269`

@@ -1089,13 +1089,22 @@ func (bundle CryptoVerifiedBundle) CopyFile(ctx context.Context, kind, id string
 	default:
 		return 0, ErrInvalid
 	}
-	for ordinal := uint32(0); ordinal < state.dataCount; ordinal++ {
+	first, err := sealCopyLowerBound(scoped, state.dataCount, fileKind, fileID, func(ordinal uint32) (sealRecord, error) {
+		return readSealRecord(state.catalog, int64(ordinal)*128)
+	})
+	if err != nil {
+		return 0, err
+	}
+	for ordinal := first; ordinal < state.dataCount; ordinal++ {
+		if err := scoped.Err(); err != nil {
+			return 0, err
+		}
 		record, err := readSealRecord(state.catalog, int64(ordinal)*128)
 		if err != nil {
 			return 0, err
 		}
 		if record.kind != fileKind || record.id != fileID {
-			continue
+			break
 		}
 		file, err := sealOpen(state.engine.directory, fmt.Sprintf("%sp-1-%08x", state.prefix, ordinal), false)
 		if err != nil {
