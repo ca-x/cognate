@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-10-31：Grok provider Web
+
+主线程实现与自审，不新增独立验收。合法 Grok 回执经既有解码入口取得普通断言 RED 后补齐入口；独立 state 向量、OpenCode 回归、类型检查与 Web 构建通过。真实 Chromium/TLS/Auth/SQLite 的 dark/light 英文 375px 场景覆盖创建、全部模型字段、精确最大整数、密钥持久化布尔、无凭据复制、env absent、Replace/Clear、切语言/模式清密钥、键盘/无横向溢出、CAS、未知字段只读和伪成功回执；提交后丢响应恰好一次写入，Unknown 不重放。两张截图人工查看，无新动画或依赖。
+
+本片组合全 Go 7,432 PASS、158 SKIP、0 FAIL，vet 与 module verify 退出 0。证据目录 `/tmp/cognate-grok-web.vrgTBI`；full-go JSONL SHA256 `a9bf9caf288c64154bae45694a6cede2213db344f78e6e683558ae5e4891f64e`，dark/light 回执 SHA256 分别 `a1879be9c4c50bf795c7449f5f091c53a464107fb3ee9e25565a3e8692bab263`、`0ba5c9273b2f322c230dee0ef65911eda4e51fcae6e4faad2e6e6617e139be37`。前两轮浏览器脚本定位错误原样保留，不称产品 RED。该结果不包含后续管理员初始化改动，不签本机应用或完整正式版。
+
+既有诊断提交 `b4361dc` 的 Build `41163047723` 已重新查询为 completed/success；原 Secret Service fixture-open-session 失败未复现，原因仍 UNKNOWN。
+
 ## 2026-10-31：Codex effective-v2 D2/C2 迁移
 
 精确四实现与四测试叶匹配 source8 SHA256 `4d1f339f1434490bfe1c45d8f97f6b0b4bd9b67c233f9112d7b77566c75d30e5`。独审报告 SHA256 `1895380f079ba5fab98c9f6e6e0ebfe4e60f5857b86a466fae62103588c9a3bd`，Spec/Quality 接受；D2、C2、历史 reader 与实际 CLI/PTY/TLS/SQLite 具名门通过，四个可编译变异普通 RED 后恢复。另有五次新 native/TLS POST，完成 turn 后主动 kill+Wait(-9)，全部 worker join；不是 native 正常退出或旧 42 次重签。作者 INVALID_LAUNCHER_RECEIPT 原样保留，不用后续绿色洗掉。

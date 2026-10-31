@@ -1,7 +1,7 @@
 import i18n from "./i18n"
 
 const english = {
-  scope: "The complete target still covers all 14 agent types. This page provides dedicated provider editors for Claude Code, Codex, Gemini, and OpenCode. Other agents, types, or schemas support metadata, group ordering, and CAS deletion only. Complete group order can be saved on the server; neither saving nor arranging configurations applies them to a device.",
+  scope: "The complete target still covers all 14 agent types. This page provides dedicated provider editors for Claude Code, Codex, Gemini, OpenCode, and Grok Build. Other agents, types, or schemas support metadata, group ordering, and CAS deletion only. Complete group order can be saved on the server; neither saving nor arranging configurations applies them to a device.",
   title: "Arrange configurations",
   description: "Save the order for one agent and configuration type. This changes neither configuration content nor Pack version pins, and does not apply anything to a device.",
   partition: "Agent and configuration type",
@@ -29,7 +29,7 @@ const english = {
 }
 
 const chinese: Record<keyof typeof english, string> = {
-  scope: "完整目标仍覆盖 14 类 agent。本页接通 Claude Code、Codex、Gemini 与 OpenCode provider 资产的专属编辑；其它 agent、类型或 schema 仅支持元数据、分组排序和 CAS 删除。完整分组的顺序可保存到服务端；保存或排序均不表示已应用到设备。",
+  scope: "完整目标仍覆盖 14 类 agent。本页接通 Claude Code、Codex、Gemini、OpenCode 与 Grok Build provider 资产的专属编辑；其它 agent、类型或 schema 仅支持元数据、分组排序和 CAS 删除。完整分组的顺序可保存到服务端；保存或排序均不表示已应用到设备。",
   title: "排列配置",
   description: "按目标 agent 与配置类型保存完整分组的顺序。不修改配置内容或 Pack 版本引用，也不应用到设备。",
   partition: "目标 agent 与配置类型",

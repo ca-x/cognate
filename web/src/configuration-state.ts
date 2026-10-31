@@ -5,6 +5,7 @@ import { AssetKind, ClaudeAuthMode, CredentialReadiness, type Asset, type DraftV
 import { requireCodexView, supportsCodex, type CodexView } from "./configuration-codex-state"
 import { requireGeminiView, supportsGemini, type GeminiView } from "./configuration-gemini-state"
 import { requireOpenCodeView, supportsOpenCode, type OpenCodeView } from "./configuration-opencode-state"
+import { requireGrokView, supportsGrok, type GrokView } from "./configuration-grok-state"
 
 export type AssetMetadata = Pick<Asset, "id" | "agentId" | "kind" | "name" | "schemaVersion" | "revision" | "createdAtUnix" | "updatedAtUnix">
 export const secretSlots = ["claude.api-key", "claude.auth-token"] as const
@@ -26,13 +27,14 @@ export function requireClaudeView(view?: DraftView) {
 }
 
 export type ClaudeView = ReturnType<typeof requireClaudeView>
-export type ConfigurationView = { kind: "claude"; view: ClaudeView } | { kind: "codex"; view: CodexView } | { kind: "gemini"; view: GeminiView } | { kind: "opencode"; view: OpenCodeView }
+export type ConfigurationView = { kind: "claude"; view: ClaudeView } | { kind: "codex"; view: CodexView } | { kind: "gemini"; view: GeminiView } | { kind: "opencode"; view: OpenCodeView } | { kind: "grok"; view: GrokView }
 
 export function requireConfigurationView(view?: DraftView): ConfigurationView {
   if (view?.asset && supportsClaude(view.asset)) return { kind: "claude", view: requireClaudeView(view) }
   if (view?.asset && supportsCodex(view.asset)) return { kind: "codex", view: requireCodexView(view) }
   if (view?.asset && supportsGemini(view.asset)) return { kind: "gemini", view: requireGeminiView(view) }
   if (view?.asset && supportsOpenCode(view.asset)) return { kind: "opencode", view: requireOpenCodeView(view) }
+  if (view?.asset && supportsGrok(view.asset)) return { kind: "grok", view: requireGrokView(view) }
   throw new ConnectError("", Code.FailedPrecondition)
 }
 

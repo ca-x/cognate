@@ -1,5 +1,9 @@
 # AI 配置资产
 
+## Grok Build Web（2026-10-31）
+
+Web 支持 native-login/custom-model provider 的创建、编辑、无凭据复制、排序与删除。custom-model 保留七个模型字段、可选 envKey 的 absent 语义及最大安全整数的十进制精度；密钥支持 Keep/Replace/Clear，切换 native-login 前显式确认清除模型和密钥。未知持久字段只读并禁止复制；冲突拒绝覆盖，异常或丢失回执进入 Unknown，禁止自动重放。输入密钥不进入 React 文本状态，切换语言与提交结束清空。该入口管理私有资产，不代表 Grok 本机应用、MyGo 或 Pack 自动应用已交付。
+
 > 2026-10-30：Claude、Codex 与 Gemini 私有 provider 资产管理已有 Web 入口；Gemini typed API/Web 在 `184feaa` 交付。Codex 与 Gemini 尚不能本机应用。Claude 的 Linux 手动 CLI 配置工作流在 `3b0345e` 交付，Linux arm64 编译修复另见 `656c211`。MyGo Claude provider/schema1 原生编辑、预览、显式批准应用、状态及恢复在 `bd00bc0` 交付；本机操作仅限 Linux。其它 agent 的完整配置、完整历史/文件差异及非 Linux 配置应用仍未交付；证据与 CI 状态见 `VERIFICATION.md`。
 
 Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资源。当前提供 **Claude Code、Codex、Gemini、OpenCode 与 Grok Build provider 的服务端私有资产管理**；Web 专属表单目前支持前三者，OpenCode 与 Grok Build 的接口范围见下文。保存不切换 provider，不写入本机配置，也不表示端点连通或 agent 已加载。

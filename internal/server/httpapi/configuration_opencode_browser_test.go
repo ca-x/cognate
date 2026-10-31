@@ -288,6 +288,10 @@ func (fixture *openCodeBrowserFixture) serveControl(writer http.ResponseWriter, 
 				return
 			}
 			entry["expectedSecretEqual"] = envelope.Secrets["opencode.api-key"] == "SYNTHETIC-OC-WEB-REPLACEMENT"
+			if view.GrokBuildProvider != nil {
+				entry["grokProvider"] = view.GrokBuildProvider
+				entry["expectedGrokSecretEqual"] = envelope.Secrets["api_key"] == "SYNTHETIC-OC-WEB-REPLACEMENT"
+			}
 			clear(envelope.Secrets)
 			if view.OpenCodeProvider != nil {
 				entry["format"] = view.OpenCodeProvider.Format
@@ -373,18 +377,18 @@ func (fixture *openCodeBrowserFixture) serveControl(writer http.ResponseWriter, 
 		fixture.faults.notify()
 	case "external-update":
 		view, err := fixture.domain.Edit(request.Context(), fixture.owner, command.AssetID)
-		if err != nil || view.OpenCodeProvider == nil {
+		if err != nil || view.OpenCodeProvider == nil && view.GrokBuildProvider == nil {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		_, err = fixture.domain.Update(request.Context(), fixture.owner, command.AssetID, view.Metadata.Revision, configuration.Draft{Name: view.Metadata.Name + " external", OpenCodeProvider: view.OpenCodeProvider}, nil)
+		_, err = fixture.domain.Update(request.Context(), fixture.owner, command.AssetID, view.Metadata.Revision, configuration.Draft{Name: view.Metadata.Name + " external", OpenCodeProvider: view.OpenCodeProvider, GrokBuildProvider: view.GrokBuildProvider}, nil)
 		if err != nil {
 			writer.WriteHeader(http.StatusConflict)
 			return
 		}
 	case "seed-preserved-extras":
 		metadata, payload, err := fixture.store.ReadConfigurationAssetVersion(request.Context(), fixture.owner, command.AssetID)
-		if err != nil || metadata.AgentID != "opencode" {
+		if err != nil || metadata.AgentID != "opencode" && metadata.AgentID != "grokbuild" {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -548,6 +552,40 @@ func TestOpenCodeAssetsBrowserFixture(test *testing.T) {
 	fixture.Close()
 	if !fixture.closed || errors.Is(fixture.ctx.Err(), context.DeadlineExceeded) {
 		test.Fatal("fixture did not stop and join normally")
+	}
+}
+
+func TestGrokBrowserObserver(test *testing.T) {
+	fixture := newOpenCodeBrowserFixture(test, nil)
+	session, err := fixture.authentication.Login(test.Context(), "opencode-browser-alice", []byte(fixture.password))
+	if err != nil {
+		test.Fatal("Grok observer login failed")
+	}
+	client := configurationv1connect.NewConfigurationServiceClient(fixture.public.Client(), fixture.public.URL, connect.WithProtoJSON())
+	draft := &configurationv1.Draft{Name: "Grok observer", Payload: &configurationv1.Draft_GrokbuildProvider{GrokbuildProvider: &configurationv1.GrokBuildProvider{Mode: configurationv1.GrokBuildMode_GROK_BUILD_MODE_CUSTOM_MODEL, Model: &configurationv1.GrokBuildModel{Profile: "local", UpstreamModel: "remote", Endpoint: "https://example.invalid/v1", Name: "Model", ApiBackend: "responses", ContextWindow: 9007199254740991, EnvKey: new("GROK_REF")}}}}
+	_, err = client.CreateAsset(test.Context(), configurationRequest(&configurationv1.CreateAssetRequest{Draft: draft, Secrets: []*configurationv1.SecretMutation{{SlotId: "grokbuild.api-key", Action: &configurationv1.SecretMutation_Replace{Replace: "SYNTHETIC-OC-WEB-REPLACEMENT"}}}}, session.Reveal()))
+	if err != nil {
+		test.Fatal("Grok observer write failed")
+	}
+	request, err := http.NewRequestWithContext(test.Context(), http.MethodGet, fixture.control.URL+"/state", nil)
+	if err != nil {
+		test.Fatal("Grok observer request failed")
+	}
+	request.Header.Set("X-Fixture-Capability", fixture.capability)
+	response, err := fixture.control.Client().Do(request)
+	if err != nil {
+		test.Fatal("Grok observer unavailable")
+	}
+	defer response.Body.Close()
+	data, err := io.ReadAll(io.LimitReader(response.Body, 65537))
+	var observed struct {
+		Assets []struct {
+			Provider *configuration.GrokBuildProvider `json:"grokProvider"`
+			KeyEqual bool                             `json:"expectedGrokSecretEqual"`
+		} `json:"assets"`
+	}
+	if err != nil || response.StatusCode != 200 || len(data) > 65536 || bytes.Contains(data, []byte("SYNTHETIC-OC-WEB-REPLACEMENT")) || json.Unmarshal(data, &observed) != nil || len(observed.Assets) != 1 || !observed.Assets[0].KeyEqual || observed.Assets[0].Provider == nil || observed.Assets[0].Provider.Model == nil || observed.Assets[0].Provider.Model.ContextWindow != 9007199254740991 {
+		test.Fatal("Grok observer lost exact model/key truth or exposed plaintext")
 	}
 }
 
