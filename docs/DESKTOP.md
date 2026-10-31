@@ -1,6 +1,18 @@
 # Cognate Native Desktop
 
-## Grok Build 接线底座（2026-10-31）
+## Grok Build 原生资产编辑（2026-10-31）
+
+主窗口新增 Grok Build 页面，复用 `grokclient.NewInput` / `View.Editable` 的内存接口，没有临时明文文件。支持 native-login/custom-model、七模型字段及 env absent、Keep/Replace/Clear、无凭据复制、删除与完整分组排序。Replace/Clear 需要独立授权，提交前显示绑定身份、revision 和差异的审阅并要求精确确认；未知字段只读、CAS 冲突和 Unknown 不自动重放。取消、离页、登出、切身份和关闭清理内存凭据并关闭独立会话。
+
+这仍然只管理服务端配置资产，不切换 provider、不应用本机、不执行客户端插件。其他 agent、本机应用、完整 UI 精致化与跨平台运行验收继续按 `FORMAL-RELEASE-AUDIT.md` 推进，不能由本页入口或构建结果推断已完成。
+
+独立审查发现并关闭两项真实问题：排序提交及失败曾无条件清除独立表单 Dirty，可能让重新载入跳过放弃确认；现仅成功 Create/Update 清除该标记。空闲切页曾无条件显示取消告警；现仅实际忙碌任务取消才显示，generation 失效与取消清理保持。真实排序成功/冲突、表单 CAS/Unknown、reload 保留草稿与成功保存均有回归。worker 最终 desktop 为 221 PASS / 1 SKIP / 0 FAIL，独立 reviewer 的六测试函数及子场景通过；证据 `/tmp/cognate-desktop-cancel-status.siv1Tysp`。
+
+Linux 无桌面会话下，通过独立 cage headless Wayland/pixman 实际启动 MyGo 原生窗口，再用 wtype 的 Tab/Return 进入 Grok 未登录页；截图与日志位于 `/tmp/cognate-ui-native-combined.xhw6k5op/native-launch.png`、`native-grok-tab.png` 和 `native-app.log`。日志确认 `NATIVE_WINDOW_CREATED`，实际采用 llvmpipe 软件绘制。这仅证明该 Linux 环境的窗口渲染和未登录页键盘入口，不是已登录完整流程、用户显示器或 macOS/Windows 真人验收。
+
+修复后的最终六目标构建再次启动，`final-native-grok-page.png` 为实际 Grok 页截图，底部保留初始引导而非误报取消。`final-native-grok-tab.png` 是前一次键盘尝试进入 AI 配置页的截图，不把文件名当作 Grok 验收；最终 Grok 证据以上述实图内容为准。
+
+## Grok Build 接线底座历史（2026-10-31，后继见上）
 
 `grok_service.go` / `grok_model.go` 提供独立私有资产会话：复用所有者身份与 grokclient，支持列表、安全摘要、无凭据复制、删除、排序、精确审阅确认与 revision CAS。结果不明后当前客户端封锁后续写入，不自动重放；这不是跨实例持久幂等保证。关闭时取消并排空请求，再释放待审阅操作。
 

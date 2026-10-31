@@ -25,7 +25,7 @@ func (model *Model) View(context *ui.Context) {
 			model.SetOrigin(model.Origin)
 		}
 		ui.Row(context).Gap(8).Children(func() {
-			for index, title := range []string{"公开目录", "Pack 订阅", "Magpie 导入", "账号", "AI 配置"} {
+			for index, title := range []string{"公开目录", "Pack 订阅", "Magpie 导入", "账号", "AI 配置", "Grok Build"} {
 				if ui.Button(context.Key(fmt.Sprintf("page-%d", index)), title).Clicked() {
 					model.configurationNavigate(index)
 				}
@@ -42,6 +42,8 @@ func (model *Model) View(context *ui.Context) {
 			model.accountView(context)
 		case 4:
 			model.configurationView(context)
+		case 5:
+			model.grokView(context)
 		}
 		ui.Row(context).Gap(8).Children(func() {
 			if ui.Button(context.Key("cancel"), "取消任务").Disabled(!model.Busy && !model.WatchActive && !model.WatchStopping).Clicked() {

@@ -20,10 +20,14 @@
 
 - [x] 先写内存输入、读取快照、别名隔离、取消/关闭、无日志泄露的失败测试。
 - [x] 实现最小 API，真实 Connect create/update/read 验证七字段、最大整数、env absent、Keep/Replace/Clear、切 native 的显式清理及 Unknown。
-- [ ] 接原生表单和入口，替代未完成占位；明确独立密钥授权，模式/取消/身份切换清密钥，未知字段只读，CAS 冲突不覆盖。
-- [ ] 原生组件测试、可用 Linux 真实窗口 smoke、无 cgo 多平台构建；不把交编算真人平台验收。
+- [x] 接原生表单和入口，替代未完成占位；明确独立密钥授权，模式/取消/身份切换清密钥，未知字段只读，CAS 冲突不覆盖。
+- [x] 原生组件测试、可用 Linux headless Wayland 真实窗口 smoke、无 cgo 多平台构建；不把交编或 headless 截图算真人平台验收。
 - [ ] 独立验收后提交、SSH 推送读回，更新 TODO/跨机器记忆；整体正式版目标保持 active，直到完整审计满足才发布。
 
 ## 内存 API 阶段证据
 
 2026-10-31：`NewInput` 与 `View.Editable` 已通过独立只读审查。显式 `CGO_ENABLED=0` 的 grokclient/CLI 全包测试通过，新增凭据边界、结构化日志脱敏、关闭后独立快照与真实 RPC 保留/清理测试后，grokclient 全包再次通过；两包 vet 通过。证据目录 `/tmp/cognate-grok-editor.qvwKBdEu`。这不是 GUI 页面、原生运行或全仓候选验收证据。
+
+## 原生入口阶段证据
+
+独立审查发现并关闭排序提交误清脏草稿与空闲切页误报取消。最终组合 `CGO_ENABLED=0` 全仓 7571 PASS / 158 SKIP / 0 FAIL，vet/module verify、六平台桌面构建通过；Linux headless Wayland 原生窗口与键盘进入未登录页单独留证。证据 `/tmp/cognate-ui-native-combined.xhw6k5op`，详见 `docs/VERIFICATION.md`。不含本机应用、用户显示器或非 Linux 真人验收，完整正式版目标继续 active。

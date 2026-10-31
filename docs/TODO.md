@@ -35,9 +35,10 @@
 - [ ] 按 cc-switch 能力矩阵完成各 agent 的 provider、模型、MCP、提示词交互，不把元数据支持当作可应用。
 - [x] 接通 Grok Build CLI 编辑器与认证白名单，保留完整终端审阅、密钥独立批准、CAS 和 Unknown 禁自动重放；不开放本机应用。
 - [x] Grok Build cc-switch schema24 显式单模型来源导入：七字段、env 存在位、无源密钥迁移、票据绑定，Web/CLI 审阅与真实 Connect/SQLite 提交回读；不含完整导入矩阵或本机应用。
-- [x] MyGo Grok 私有资产 service/model 底座：所有者核验、安全读取、无凭据复制、删除、排序、审阅确认及 CAS/Unknown/关闭排空；尚无生产 UI 入口。
-- [ ] 为 MyGo 编辑补充 grokclient 的内存输入与结构化脱敏读取接口，再接 native/custom 七字段及 Keep/Replace/Clear 原生表单；禁止通过临时明文文件绕过。
-- [ ] 补齐 Grok Build MyGo 编辑器与本机应用；Web 资产管理及受限来源导入已单独交付。
+- [x] MyGo Grok 私有资产 service/model 底座：所有者核验、安全读取、无凭据复制、删除、排序、审阅确认及 CAS/Unknown/关闭排空；后继已接生产 UI 入口。
+- [x] 为 MyGo 编辑补充 grokclient 的内存输入与结构化脱敏读取接口；独立复制密钥与模型，默认脱敏，不通过临时明文文件绕过。
+- [x] 验收 native/custom 七字段及 Keep/Replace/Clear 原生表单；独立审查发现的排序提交误清脏标记与空闲切页误报取消均已修复并通过回归和复核。Linux headless 原生渲染不代替真人跨平台验收。
+- [ ] 补齐 Grok Build 本机应用；Web/MyGo 资产管理及受限来源导入已单独交付。
 - [ ] Codex 生产 profile 正式登记：由普通生产 CLI 驱动新鲜固定版本消费者完整验证；当前登记表仍为空。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。
 - [ ] 完成 cc-switch/Magpie 的 skills、仓库、配置独立选择导入闭环，保留来源版本与权限边界。
@@ -56,6 +57,7 @@
 
 ## 正式版验收
 
+- [ ] UI 精致度、科技感和用途动效为首发重要目标：共享设计与关键页先行，保留真实前后截图、中英/深浅主题/Web 375px/键盘/reduced-motion 与原生运行证据；不以本阶段 Web 打磨代替全产品签收。
 - [ ] 对照 [需求 §7](REQUIREMENTS.md#7-验收要点) 完整验收，并记录真实账号与真实平台的证据边界。
 - [ ] 验证两 Pack 重合去重、源刷新后的下一轮同步、公开安装与取消公开、分类隔离。
 - [ ] 验证 MCP 权限、过期/撤销、跨用户隔离、日志隐私，以及中英主题和窄屏键盘交互。

@@ -6,10 +6,70 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	catalogv1 "github.com/ca-x/cognate/gen/skillhub/catalog/v1"
 	"github.com/egoist/mygo/ui"
 )
+
+func TestNativeIdleNavigationPreservesStatus(test *testing.T) {
+	model, _ := configurationModelFixture(test, &Service{Home: test.TempDir()})
+	model.Status = "填写服务地址；公开目录无需登录"
+	generation := model.generation
+	model.configurationNavigate(1)
+	if model.Page != 1 || model.Status != "填写服务地址；公开目录无需登录" || model.Busy {
+		test.Fatal("idle navigation reported cancellation", model.Status)
+	}
+	if model.generation != generation+1 {
+		test.Fatal("idle navigation did not invalidate stale results")
+	}
+}
+
+func TestNativeCompletedJobNavigationPreservesStatus(test *testing.T) {
+	model, queue := configurationModelFixture(test, &Service{Home: test.TempDir()})
+	model.job("读取测试", func(context.Context) (func(), error) {
+		return func() { model.Status = "读取完成；未应用本机" }, nil
+	})
+	configurationPump(test, model, queue, func() bool { return !model.Busy })
+	if model.cancel == nil {
+		test.Fatal("completed-job fixture did not retain cancel function")
+	}
+	generation := model.generation
+	model.configurationNavigate(1)
+	if model.Status != "读取完成；未应用本机" || model.Busy {
+		test.Fatal("completed task was reported as cancelled", model.Status)
+	}
+	if model.cancel != nil || model.generation != generation+1 {
+		test.Fatal("completed-task cancellation handle or generation was not invalidated")
+	}
+}
+
+func TestNativeBusyNavigationWarnsAndCancels(test *testing.T) {
+	model, _ := configurationModelFixture(test, &Service{Home: test.TempDir()})
+	entered := make(chan context.Context, 1)
+	model.job("进行中测试", func(ctx context.Context) (func(), error) {
+		entered <- ctx
+		<-ctx.Done()
+		return nil, ctx.Err()
+	})
+	var workerContext context.Context
+	select {
+	case workerContext = <-entered:
+	case <-time.After(5 * time.Second):
+		test.Fatal("busy task did not start")
+	}
+	if !model.Busy {
+		test.Fatal("running task was not busy")
+	}
+	generation := model.generation
+	model.configurationNavigate(1)
+	if model.Status != "已取消；若写入已开始，请刷新核实本地状态" || model.Busy {
+		test.Fatal("busy cancellation lost its warning", model.Status)
+	}
+	if workerContext.Err() != context.Canceled || model.cancel != nil || model.generation != generation+1 {
+		test.Fatal("busy task context or stale-result generation was not cancelled")
+	}
+}
 
 type blockedBackend struct {
 	Backend

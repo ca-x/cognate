@@ -106,6 +106,7 @@ type Model struct {
 	originInput                       string
 	Logo                              *ui.Bitmap
 	configuration                     func() *configurationState
+	grok                              func() *grokEditorState
 }
 
 func NewModel(backend Backend, dispatch func(func())) *Model {
@@ -114,6 +115,7 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 }
 
 func (model *Model) Cancel() {
+	model.grokCancel()
 	model.configurationCancel(false)
 	if model.configuration != nil {
 		model.configuration().Identity.clear()
@@ -126,6 +128,7 @@ func (model *Model) Cancel() {
 }
 
 func (model *Model) cancelJob() {
+	wasBusy := model.Busy
 	model.configurationCancel(false)
 	model.generation++
 	if model.cancel != nil {
@@ -133,10 +136,13 @@ func (model *Model) cancelJob() {
 		model.cancel = nil
 	}
 	model.Busy = false
-	model.Status = "已取消；若写入已开始，请刷新核实本地状态"
+	if wasBusy {
+		model.Status = "已取消；若写入已开始，请刷新核实本地状态"
+	}
 }
 
 func (model *Model) clearOwner() {
+	model.grokCancel()
 	model.configurationCancel(true)
 	model.StopWatch()
 	model.session.clear()

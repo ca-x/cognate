@@ -1,5 +1,15 @@
 # 开发预览验证
 
+## 2026-10-31：首发 UI 目标、Web 精致化与 Grok 原生入口
+
+用户明确 UI 精致度、科技感和用途动效为首个正式版本重要目标，已写回需求与 `FORMAL-RELEASE-AUDIT.md`，不以本次切片代替完整首发签收。Web 阶段 `74c8583` 统一材质/层级、导航、共享弹层和按压/进入反馈，将配置研发说明收为可展开边界；成熟框架、主题、多语言与关键安全语义保留。具体前后实图、失败原因、复验矩阵与独立审查见 `UI-DESIGN.md`。主线程 build、两套 state 与原仓库浅深主题真实浏览器流程均通过。
+
+Grok 新增生产 MyGo 页面与内存编辑接口，覆盖七模型字段、env absent、精确整数、密钥独立授权、审阅/CAS/Unknown、复制/删除/排序及身份生命周期。独立代表发现排序提交误清脏草稿和空闲导航误报取消；两项均先由回归重现，修复后再次独立复核通过，未用首轮绿色覆盖发现。此阶段仅管理服务端资产，没有本机应用或客户端插件。
+
+最终组合在隔离 HOME/XDG/TMP、Go 1.27.3、离线 readonly、显式 `CGO_ENABLED=0` 下执行 `go test -json -count=1 ./...`：**7571 PASS / 158 SKIP / 0 FAIL**；全仓 vet、module verify 与 Linux/Darwin/Windows × amd64/arm64 六目标桌面构建通过。证据 `/tmp/cognate-ui-native-combined.xhw6k5op/final-full-go.json`，SHA256 `cdb8c44929deb6419a6bb364297415047b009564b6c326143d16677d9683b8e5`；对应变更源码摘要在 `final-source.sha256`。worker 的 desktop 最终 221 PASS / 1 SKIP / 0 FAIL，独立六函数及子场景复核通过。
+
+真实 MyGo 窗口在独立 headless Wayland/pixman 中启动并以 Tab/Return 进入 Grok 未登录页；不是 mock 控件树，也不把 Linux 软件绘制截图外推为已登录完整流程、用户显示器或跨平台真人安装验收。完整 F4、十四 agent、本机配置应用、Pack 附件授权与正式分发等仍按审计推进，整体正式版目标未完成，不发布 GA 标签。
+
 ## 2026-10-31：MyGo Grok service/model 底座
 
 并行 worker 新增 `grok_service.go`、`grok_model.go` 与六项真实 Connect/SQLite 测试；不注册生产 UI，Create/Update fail-closed。覆盖 owner/origin、读取安全摘要与最大整数、复制不带源凭据、删除/排序、精确确认、审阅取消、提交 revision CAS、已提交丢响应及 Unknown 禁自动重放、未知字段只读、忙时拒绝和关闭排空。worker 的定向十轮、desktop/grokclient 包测试及 vet/MyGo vet 通过；三文件 SHA256 与 `/tmp/cognate-grok-gui-boundary.YbiQrn/source.sha256` 一致。

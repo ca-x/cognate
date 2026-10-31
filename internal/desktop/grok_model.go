@@ -114,6 +114,29 @@ func (model *grokAssetsModel) Read(caller context.Context, id string) (string, e
 	return summary.String(), nil
 }
 
+func (model *grokAssetsModel) Editable(caller context.Context, id string) (grokclient.EditView, error) {
+	ctx, state, release, err := model.begin(caller)
+	if err != nil {
+		return grokclient.EditView{}, err
+	}
+	defer release()
+	view, err := state.client.Read(ctx, id)
+	if err != nil {
+		return grokclient.EditView{}, err
+	}
+	defer view.Close()
+	return view.Editable(ctx)
+}
+
+func (model *grokAssetsModel) PrepareInput(caller context.Context, change grokclient.Change, draft grokclient.Draft, action grokclient.KeyAction, key []byte) (grokAssetsReview, error) {
+	input, err := grokclient.NewInput(caller, draft, action, key)
+	if err != nil {
+		return grokAssetsReview{}, err
+	}
+	defer input.Close()
+	return model.prepare(caller, change, input)
+}
+
 func (model *grokAssetsModel) Order(caller context.Context) (grokclient.OrderSnapshot, error) {
 	ctx, state, release, err := model.begin(caller)
 	if err != nil {
@@ -124,6 +147,10 @@ func (model *grokAssetsModel) Order(caller context.Context) (grokclient.OrderSna
 }
 
 func (model *grokAssetsModel) Prepare(caller context.Context, change grokclient.Change) (grokAssetsReview, error) {
+	return model.prepare(caller, change, nil)
+}
+
+func (model *grokAssetsModel) prepare(caller context.Context, change grokclient.Change, input *grokclient.Input) (grokAssetsReview, error) {
 	ctx, state, release, err := model.begin(caller)
 	if err != nil {
 		return grokAssetsReview{}, err
@@ -133,10 +160,10 @@ func (model *grokAssetsModel) Prepare(caller context.Context, change grokclient.
 		state.pending.Close()
 		state.pending = nil
 	}
-	if change.Action != grokclient.Copy && change.Action != grokclient.Delete && change.Action != grokclient.ReplaceOrder {
+	if input == nil && change.Action != grokclient.Copy && change.Action != grokclient.Delete && change.Action != grokclient.ReplaceOrder {
 		return grokAssetsReview{}, grokclient.ErrUnsupported
 	}
-	operation, err := state.client.Prepare(ctx, change, nil)
+	operation, err := state.client.Prepare(ctx, change, input)
 	if err != nil {
 		return grokAssetsReview{}, err
 	}

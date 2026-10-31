@@ -228,6 +228,20 @@ func (model *Model) configurationCancel(identityLost bool) {
 }
 
 func (model *Model) configurationNavigate(page int) {
+	if model.Page == page {
+		return
+	}
+	if model.Page == 5 && page != 5 && model.grok != nil {
+		state := model.grok()
+		if state.Form != nil {
+			state.Form.clearSecret()
+		}
+		if state.OrderDirty || state.Form != nil && state.Form.Dirty {
+			state.PendingPage = page
+			return
+		}
+		model.grokCancel()
+	}
 	state := model.configurationState()
 	if state.Form != nil && state.Form.Dirty && model.Page == 4 && page != 4 {
 		state.PendingPage = page
