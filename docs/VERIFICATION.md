@@ -1,5 +1,40 @@
 # 开发预览验证
 
+## 2026-11-01：T1 只读候选数据库验真与非正 ID 根修合入
+
+集成基线 `db2b235a68196527a88338e7a7282bc1838160e5`，其 Build `41238804826`
+已现场读回 **completed/success**。本节是后继源码阶段，不发布正式 tag、Docker 或 LPK。
+
+T1 fix1 累计 exact12（9 个新增文件与 3 个 dispatcher 接点），累计 patch SHA256
+`4ca0354a1270e45f1affde3141a04e53fd2c6b7007d1d922e84979b9c4f99a00`。
+原候选的 P1 BLOCK 和七个实际错误放行保留；后继独立增量复审将该 P1 关闭，Spec/Quality
+限定 ACCEPT。报告 `/tmp/cognate-t1-independent-7942388-3Wf81L/fix1-review/REPORT.md`
+SHA256 `2a0ce86e096b7435c35c029b74a1fd495321dcf6ed38ce288a331d8710c01cfd`。
+旧候选同七例再次 exit 1，fix1 拒绝，category=0 相邻负控保持；独立关联域、稀疏 MaxInt64
+正控及内部 ent_types 域隔离通过。没有以原绿色套件覆盖反例，也未批准额外 catalog。
+
+`state.InspectRestoreDatabase` 借入私有候选目录与固定 `server.db` 的只读 FD；Linux worker
+在 SQL 前安装既有资源限制，只读检查精确 schema、integrity/FK、canonical 引用与分类、原
+master key/policy proof 及全部 retained GitHub/configuration 密文。所有正域分页之前共同
+检查 9 表/18 列，不只在已过滤循环内拒绝。原 key 走独立匿名管道，不进入 JSON/argv/env；
+不迁移、补 proof 或修改候选。错误返回零 evidence，借入 FD 不关闭，取消排空与清理不明
+优先级保留。其它平台普通受控拒绝；opaque evidence 不是候选发布或激活 capability。
+
+主线以 apply_patch 合入，12 项源码与独审冻结逐字节一致；Go 1.27.3、显式 CGO0，无 overlay，
+实际 server worker 使用现有真实 Web embed。证据根 `/tmp/cognate-npx-selection.TB9Vd2tL`：
+
+- `t1-main-state.jsonl`：17 顶层、92 PASS 事件，0 FAIL/SKIP。
+- `t1-main-backup-copyexact.jsonl`：2 个 T1 加 11 个 CopyExact 顶层、75 PASS 事件，0 FAIL/SKIP。
+- `t1-main-server-worker.jsonl`：真实生产 main/匿名 FD/拒绝与取消，1 顶层、7 PASS 事件。
+- `t1-main-snapshot-regression.jsonl`、`t1-main-crypto-regression.jsonl`：既有 snapshot dispatcher、
+  catalog 与真实密文离线回读共 4 顶层、11 PASS 事件，0 FAIL/SKIP。
+- 三个受影响包 vet、exact12 gofmt、diff check 均 exit 0。没有重跑全仓或十八目标矩阵；
+  父子 PASS 事件不冒充独立用例，原作者与独审旧日志不计作此次主线新执行。
+
+T1 只证明隔离候选数据库的只读准入，不证明 live 停服、inventory/归档双向闭包、撤销、
+运行代切换、恢复 CLI 或重启业务验收。T2b 头引导与完整 T2–T5、自动调度/保留及其它 GA
+门禁仍开放；下一节的 P1 BLOCK 是被本次后继关闭的历史候选状态，不是当前 fix1 结论。
+
 ## 2026-11-01：恢复读取 T2a 与数据库验真 T1 的独立门禁
 
 Web 后继 `699969f630d134ee01f358f88988b570c23c3a42` 的 Build `41237215863` 已现场读回

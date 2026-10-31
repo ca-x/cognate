@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 T1 fix1 非正 ID 全域准入 P1 经原七反例独立增量复审 CLOSED，累计 exact12 已主线集成；35 个定向顶层/185 PASS 事件（含 CopyExact 与既有回归）、三包 vet 及真实生产 worker 通过。S3 `db2b235` 的 Build `41238804826` 已 completed/success。T1 不是完整候选闭包或恢复入口，T2b 另线实施中；C4/F4 和正式版门禁不关闭，详见 `VERIFICATION.md` 首节。
 - 2026-11-01 Web `699969f` 的远端 Build 已 completed/success。恢复读取 T2a exact2 独审 ACCEPT，主线实际 TLS 新例及 vet 通过；只提供完整验证后才可信的 S3 密文复制。T1 离线 DB 验真候选反因非正 ID 分页漏验获 P1 BLOCK，尚未合主线，已退回根修。两者不相互抵销，不关闭 C4/F4 或正式版门禁，见 `VERIFICATION.md` 首节。
 - 2026-11-01 后继 `3a8ca47` 与 `7942388` 均已 SSH 推送读回且远端 Build completed/success。Pack PC-P3 的组件内显式读取去重、OpenCode 旧排序文案 P3 均独审 CLOSED；主线新组合与 Linux 双架构 server CGO0 构建通过。F4 离线恢复验真和 S3 只读恢复传输前置另以隔离写集并行实施；不是完整恢复或 GA 发布，精确状态见 `VERIFICATION.md`。
 - 2026-11-01 Pack 附件所有者 Web 元数据管理已独审提交推送 `f0e194b`，Build `41233172751` completed/success；PC-F1 关闭但不等于 C7 的客户端消费和自动应用。配置总览 exact8 两项焦点 P2 经独立旧/新构建闭合、已集成待阶段提交；npx v3 lock reader/CLI 的 core21 与 Web W1 修复均限定 ACCEPT，32 路径阶段已推送 `3a8ca47`，远端 Build 尚在运行。C9 的写侧兼容、canonical 扫描和第三方插件，以及其余完整 GA 门禁仍保持打开；精确证据见 `VERIFICATION.md`。

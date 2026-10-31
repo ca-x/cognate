@@ -80,6 +80,17 @@ Reconcile 在回写时重新读取已持久化取消，而非使用网络调用�
 
 ## 本阶段验收
 
+### 2026-11-01：内部数据库恢复验真 T1
+
+后继只读候选数据库检查已合入：原 master key 与所有 retained GitHub/configuration 密文、
+policy proof、精确 schema、integrity/FK 和 canonical 引用/分类均在受限 Linux worker
+核验，失败不给有效 evidence。首次非正 ID 分页漏验 P1 经原七反例独立闭合；不迁移或修复
+候选，不改变 live 启动或 S3 任务语义。实际生产 worker、密文→候选库与 CopyExact 的
+主线定向组合及三包 vet 通过。详细身份与边界见 `VERIFICATION.md`、`LOCAL-SNAPSHOT.md`。
+
+T1 不证明 inventory/归档闭包或停服锁；无运行代切换、权限撤销、恢复 CLI 和重启业务验收。
+T2b 头引导正在隔离实施，尚未合入。完整 C4/F4 与正式版门禁仍保持开放。
+
 ### 2026-11-01：内部恢复读取前置 T2a
 
 `S3Target.CopyExact(ctx, ref, output)` 增加显式对象的密文流式读取，复用 Afero S3 和既有

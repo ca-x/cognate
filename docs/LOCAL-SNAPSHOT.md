@@ -90,6 +90,22 @@ root 和 complete。任一源端或密文端清理不明均优先保留错误类
 生产恢复入口。schema/引用校验、隔离候选代、运行代切换、凭据撤销和失败回退
 仍须独立完成；App、S3 任务、保留策略和管理界面也未因此自动开启。
 
+## 2026-11-01：隔离恢复数据库的只读准入 T1
+
+`state.InspectRestoreDatabase(ctx, parent, database, originalMasterKey, limits)` 只接受
+隔离私有 parent 与固定 `server.db` 的只读 FD；caller 负责没有 writer，不接受活动数据库。
+Linux 隐藏 worker 先安装资源限制，再只读核验完整 catalog、integrity/FK、canonical 引用、
+分类、原 key/policy proof 和全部保留密文；借入 FD 不关闭，不迁移或补 proof。key 经独立
+匿名管道传递，不进入控制 JSON/argv/env。其它平台受控拒绝，不凭交叉编译声明运行资格。
+
+首次候选曾因 `after=0` 分页漏验非正 ID 获 P1 BLOCK，原证据保留。fix1 在共同入口补齐
+9 表/18 列全域证明，原七个真实漏验反例经独立复审 CLOSED 后才合主线。主线 T1、旧
+snapshot dispatcher、真实密文回读、实际生产 worker 与 S3 CopyExact 的有限组合通过；
+命令、计数与冻结报告见 `VERIFICATION.md` 首节。
+
+成功返回的 opaque evidence 不是发布能力，不能跨候选写入或替换复用，也不证明 inventory/
+归档闭包、全实例停服、凭据撤销、运行代切换或完整 F4。T2–T5 仍须单独完成。
+
 ## 验收范围
 
 独立验收覆盖闭合 schema 拒绝、真实连接/WAL、全部所有者的 SQL 还原、

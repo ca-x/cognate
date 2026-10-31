@@ -134,6 +134,12 @@ DDIA 对应取舍：以认证源数据为权威、缓存重新材料化；用单
 
 ## 6. 第一实施片 T1：只读离线候选数据库验真（最小可合入）
 
+后继执行状态：fix1 已独立增量复审限定 ACCEPT，原 P1 CLOSED；累计 exact12 合入主线，
+T1 与既有 dispatcher/密文/S3 CopyExact 定向组合及真实生产 worker 通过。复审报告
+`/tmp/cognate-t1-independent-7942388-3Wf81L/fix1-review/REPORT.md`，SHA256
+`2a0ce86e096b7435c35c029b74a1fd495321dcf6ed38ce288a331d8710c01cfd`。
+下段保留首次候选 BLOCK 历史，不能将其改写为首次即通过；详见 `VERIFICATION.md` 首节。
+
 2026-11-01 首次 exact12 候选独审为 **P1 BLOCK**，尚未合入主线。报告
 `/tmp/cognate-t1-independent-7942388-3Wf81L/REPORT.md`，SHA256
 `fbeac7b4e0d01a9fdb13df510caac86a8be20482008abdfc1067b66d8012c919`。
