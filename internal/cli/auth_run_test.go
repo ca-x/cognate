@@ -34,7 +34,7 @@ func TestAuthRunClosedRoutes(test *testing.T) {
 			test.Fatal("approved fixed route refused")
 		}
 	}
-	for _, route := range [][]string{{"sh", "-c"}, {"serve", "x"}, {"auth", "run"}, {"grok-assets", "list"}, {"config", "status"}, {"config", "apply"}, {"config", "apply", "--target=other"}, {"config", "apply", "--target=codex.config", "--target=codex.config"}, {"mcp-assets", "list", "--server=https://other.test"}, {"mcp-assets", "list", "--token-stdin=false"}, {"mcp-assets", "list", "--owner", "private"}, {"import", "select", "--", "--server"}, {"mcp-assets", "list", strings.Repeat("x", 32768)}} {
+	for _, route := range [][]string{{"sh", "-c"}, {"serve", "x"}, {"auth", "run"}, {"grok-assets", "apply"}, {"config", "status"}, {"config", "apply"}, {"config", "apply", "--target=other"}, {"config", "apply", "--target=codex.config", "--target=codex.config"}, {"mcp-assets", "list", "--server=https://other.test"}, {"mcp-assets", "list", "--token-stdin=false"}, {"mcp-assets", "list", "--owner", "private"}, {"import", "select", "--", "--server"}, {"mcp-assets", "list", strings.Repeat("x", 32768)}} {
 		if _, _, _, err := authArguments(append([]string{"run", "--server", "https://example.test", "--"}, route...)); err == nil {
 			test.Fatal("unsafe route admitted")
 		}

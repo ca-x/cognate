@@ -6,11 +6,11 @@ Cognate 的配置资产与 skill 仓库、Pack、设备应用状态是不同资�
 
 ## Web 使用流程
 
-Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC，尚无专属 Web/CLI 编辑器或本机应用。`Draft.grokbuild_provider` 使用独立的 native-login/custom-model 模式；custom model 保留本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名。context window 为 int64，JSON 使用十进制字符串，范围为 1 至 9007199254740991；env 名 absent 与空串不同，显式 null 或空串拒绝。只允许单个 `grokbuild.api-key` SecretMutation，密钥不进入 provider DTO、读取响应或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。未知持久化字段只读，不能借更新或复制丢失；排序继续只读取元数据。保存、读取和服务端规划都不代表本机已应用。
+Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC，并提供 Linux `grok-assets` CLI；专属 Web/MyGo 编辑器和本机应用仍待接线。`Draft.grokbuild_provider` 使用独立的 native-login/custom-model 模式；custom model 保留本地 profile、上游 model、HTTPS endpoint、name、responses backend、context window 与可选环境变量名。context window 为 int64，JSON 使用十进制字符串，范围为 1 至 9007199254740991；env 名 absent 与空串不同，显式 null 或空串拒绝。只允许单个 `grokbuild.api-key` SecretMutation，密钥不进入 provider DTO、读取响应或插件。缺 key 且无 env 引用可保存未就绪草稿；有 env 名不表示该变量在设备上已存在。复制不带密钥；带密钥切换 native-login 必须同次 revision CAS 显式 Clear。未知持久化字段只读，不能借更新或复制丢失；排序继续只读取元数据。保存、读取和服务端规划都不代表本机已应用。
 
 登录后从“AI 配置”进入，或直接访问 `/configuration`。列表只读取当前账号的元数据；点击编辑后才读取脱敏草稿。当前不提供通用 raw JSON 编辑或原文凭据查看。
 
-Grok Build 另已交付所有者客户端库 `internal/grokclient`，覆盖九个 RPC、固定 revision 的本地审阅和单次提交、凭据动作及 Unknown 禁自动重放。该片尚未注册 CLI 命令或接通 MyGo，不表示专属编辑器或本机应用可用；输入文件当前仅支持 Linux。库的使用边界见 `GROK-OWNER-CLIENT.md`。
+Grok Build 所有者客户端库 `internal/grokclient` 覆盖九个 RPC、固定 revision 的本地审阅和单次提交、凭据动作及 Unknown 禁自动重放。CLI 复用该库，提供完整终端审阅、独立密钥确认、revision CAS 与排序；可用 `auth run` 在本地账号登录后执行，不需导出会话。输入文件与实际终端操作当前仅支持 Linux，不表示 MyGo 编辑器或本机应用可用。库和命令边界分别见 `GROK-OWNER-CLIENT.md`、`GROK-CONFIGURATION-CLI.md`；首批预览标签不因主线新增命令而更新。
 
 1. 新建资产时先明确选择 Claude、Codex 或 Gemini；选定后不能在同一草稿里切换目标。Claude 支持原生登录、API key 或 Auth token 模式；Codex 当前仅支持自定义 HTTPS Responses/provider-key，不支持官方 ChatGPT/OAuth 登录。Gemini 支持 native-login 与 API key 资产模式，详见下节。
 2. Claude 可按需勾选自定义端点和 default/Haiku/Sonnet/Opus 模型。未勾选是 absent，不等于提交空字符串；模型不自动修剪或改变大小写。端点只保存，不由服务端探测。

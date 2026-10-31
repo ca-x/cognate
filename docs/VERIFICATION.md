@@ -445,3 +445,51 @@ Go 1.27.3、CGO0、禁网模块解析、env-i 与隔离 HOME/XDG/TMP 下，全�
 维护包测试二进制另外通过 Linux/macOS/Windows × amd64/arm64 六组 CGO0
 交叉编译；不将编译通过记为非 Linux 的运行资格。格式与 diff 检查通过。
 本片不启用完整备份、恢复、云上传或自动调度；预览发布标签保持不变。
+
+该提交 `73ddf19` 的远端 Platform filesystem primitives run `41161084843`
+实际 completed/success；Build `41161084838` 实际 completed/failure，唯一
+测试包失败为 Secret Service 的 `TestProcessExitReclaimsLiveWorker`，在
+`process_linux_test.go:299` 的私有 fixture 初始化中报 `fixture-open-session`。
+失败发生在业务断言前，具体根因仍待排查，不归因 CPU、负载或本次锁修复，
+也不以本地通过改写远端失败。原失败已加入 `TODO.md`。
+
+## Grok 资产 CLI 与账号入口（2026-10-31）
+
+主线程在 `73ddf19` 上组合既有 G2 候选四个新增文件，root 只合并 Grok
+分派与注册两处 delta，保留账号入口及原命令。候选归档 SHA256 为
+`273bf3a1b0877834feda4bd29805f767547a320f5400f4de9cc68515b5833cf0`。
+另外接通账号白名单与真实 Login → Grok 子进程 → Logout 联调，不修改 G1、
+服务端、protobuf、模块或生产 native 资格表。本轮是主线程自审和组合验证，
+不称新增独立验收。
+
+新增路由测试先取得普通断言 RED：九种 Grok 路由全部被旧白名单拒绝。
+组合后专项 58 个含子用例 PASS、零 skip/fail；其中真实 CLI/PTy/TLS/App/
+SQLite 覆盖九 RPC、完整同终端审阅、密钥独立确认、错误确认拒绝、CAS、
+排序、提交后失包及输出失败的 Unknown。新增账号组合还覆盖默认预览、
+确认写入、错误最终批准、已提交响应丢失及 Logout 失败，检查准确提交次数、
+持久配置的七项字段与密钥、一次登录/登出、原会话清理和真实子进程秘密隔离。
+账号专项额外重复三轮通过。
+
+新增联调的早期失败原样保留：最初误以为所有 GetSession 均由 wrapper
+发起，实际 G1 在准备及提交前还会重验会话；测试增加首次身份检查的子进程
+观察，并准确要求总次数 2 或 3，未删除客户端重验。随后读取数据库内部
+整型 id 而不是 public_id 的测试错误也已更正。两者都是新测试设置错误，
+不是产品行为 RED；不能替代旧白名单的真实拒绝反例。
+
+Go 1.27.3、CGO0、readonly modules、禁网模块解析及隔离 HOME/XDG/TMP 下，
+全仓 `go test -json ./... -count=1 -timeout=600s` exit 0：7422 个含子用例
+PASS、158 skip、49 package PASS、77 无测试包、零 fail；其中 Secret Service
+23 个用例本地通过，但不覆盖上述远端失败。全仓 vet、模块校验、格式和 diff
+检查均通过。六 OS/架构 CLI 与测试二进制交叉编译通过，逐个记录 Go/CGO/平台
+元数据；它们来自开发树，不是重新发布的正式产物，也不是非 Linux 运行资格。
+
+依赖检查确认 G1 不依赖 ent、server 或 JS runtime，CLI 库不依赖 server/moejs，
+命令入口不引入插件运行时。早期两次依赖探针误将既有本地 ent 状态、入口的
+快照 worker server/state 依赖归为新增越界，均保留 exit 1；核对既有入口及依赖
+图后，更正检查范围，未为通过检查删除快照 worker 或放开客户端执行插件。
+
+全仓测试日志 SHA256：
+`d9ace1ac879c852accd0fdf320e063b35fe542e36c9537553679259ca8165a41`；
+专项日志 SHA256：
+`a72d61ad541f3734cd1590c3b0074b16433b078b2b06fb77566e1e6c4b9e9e13`。
+不改变首批预览 tag；Grok Web/MyGo、来源导入与本机应用仍未完成。

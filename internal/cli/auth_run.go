@@ -117,6 +117,13 @@ func authArguments(arguments []string) (string, []string, bool, error) {
 	}
 	valid, native := false, false
 	switch route[0] {
+	case "grok-assets":
+		switch route[1] {
+		case "list", "get", "read", "create", "update", "copy", "delete":
+			valid = true
+		case "order":
+			valid = len(route) >= 3 && (route[2] == "get" || route[2] == "replace")
+		}
 	case "mcp-assets":
 		switch route[1] {
 		case "list", "get", "read", "preview", "create", "update", "copy", "delete":

@@ -36,6 +36,13 @@ func Execute() {
 		}
 		return
 	}
+	if grokInvocation(os.Args[1:]) {
+		if err := executeGrok(ctx, command); err != nil {
+			grokDiagnostic(ctx, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if packConfigurationsInvocation(os.Args[1:]) {
 		if err := executePackConfigurations(ctx, command); err != nil {
 			packConfigurationsDiagnostic(ctx, err)
@@ -89,6 +96,7 @@ func New() *cobra.Command {
 	root.AddCommand(newNativeConfigurationCommand())
 	root.AddCommand(newImportCommand())
 	root.AddCommand(newMCPConfigurationCommand())
+	root.AddCommand(newGrokConfigurationCommand())
 	root.AddCommand(newInstallStatusCommand())
 	root.AddCommand(newBackupLocalCommand())
 	root.AddCommand(newBackupListCommand())

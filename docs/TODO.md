@@ -10,6 +10,7 @@
 - [x] 在 `lazycat-contrib/cognate-lzcapp` 构建 Exec LPK `0.1.0-rc.2` 并提交喵喵商店，官方商店关闭。
 - [ ] 懒猫真机安装、平台 OIDC、升级数据保留及文件选择器验证。
 - [ ] 首发后收集真人测试反馈，优先处理数据安全、登录、安装与同步问题。
+- [ ] 排查 Build `41161084838` 的 Secret Service 私有 fixture `fixture-open-session` 失败；本地通过不能覆盖该远端失败，原失败记录保留。
 
 ## 服务端
 
@@ -25,7 +26,8 @@
 ## AI 配置与导入
 
 - [ ] 按 cc-switch 能力矩阵完成各 agent 的 provider、模型、MCP、提示词交互，不把元数据支持当作可应用。
-- [ ] 接通 Grok Build CLI 编辑器与认证白名单，随后补 Web/MyGo 编辑；现有客户端库不等于命令已交付。
+- [x] 接通 Grok Build CLI 编辑器与认证白名单，保留完整终端审阅、密钥独立批准、CAS 和 Unknown 禁自动重放；不开放本机应用。
+- [ ] 补齐 Grok Build Web/MyGo 编辑器、来源导入与本机应用。
 - [ ] Codex 生产 profile 正式登记：由普通生产 CLI 驱动新鲜固定版本消费者完整验证；当前登记表仍为空。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。
 - [ ] 完成 cc-switch/Magpie 的 skills、仓库、配置独立选择导入闭环，保留来源版本与权限边界。

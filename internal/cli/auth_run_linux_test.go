@@ -37,6 +37,7 @@ type authActualObservation struct {
 	login, identity, logout, business atomic.Int32
 	parent                            atomic.Int32
 	childAtIdentity                   atomic.Bool
+	childAtFirstIdentity              atomic.Bool
 	token                             func() string
 }
 
@@ -66,9 +67,12 @@ func authActualFront(test *testing.T, fixture *mcpActualCLIFixture, mode string)
 			observation.login.Add(1)
 		}
 		if identity {
-			observation.identity.Add(1)
+			identityCount := observation.identity.Add(1)
 			if parent := observation.parent.Load(); parent > 0 && len(authChildPIDs(test, int(parent))) > 0 {
 				observation.childAtIdentity.Store(true)
+				if identityCount == 1 {
+					observation.childAtFirstIdentity.Store(true)
+				}
 			}
 		}
 		if logout {
