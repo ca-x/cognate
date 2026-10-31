@@ -3,7 +3,7 @@ package state
 import "context"
 
 func (store *Store) MaintenanceManaged() bool {
-	return store.state.maintenance != nil
+	return store != nil && store.state != nil && store.state.maintenance != nil
 }
 
 func (store *Store) WithMaintenanceWriter[Value any](ctx context.Context, operation func(context.Context) (Value, error)) (Value, error) {

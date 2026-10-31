@@ -394,6 +394,33 @@ func (store *Store) ValidateLocalSnapshotContext(ctx context.Context) error {
 	return nil
 }
 
+func (store *Store) WithLocalSnapshotReader(ctx context.Context, read func(context.Context) error) (returnedError error) {
+	if store == nil || read == nil {
+		return ErrLocalSnapshotInvalid
+	}
+	if err := store.ValidateLocalSnapshotContext(ctx); err != nil {
+		return err
+	}
+	value := ctx.Value(localSnapshotContextKey{}).(localSnapshotContextValue)
+	view := LocalSnapshotView{get: value.get}
+	operation, scoped, release, err := view.enter(ctx)
+	if err != nil {
+		return err
+	}
+	defer release()
+	returnedError = read(scoped)
+	if returnedError == nil {
+		returnedError = store.ValidateLocalSnapshotContext(scoped)
+	}
+	operation.mutex.Lock()
+	operation.failure = snapshotMerge(operation.failure, snapshotError(scoped, returnedError))
+	if errors.Is(returnedError, ErrLocalSnapshotUncertain) {
+		operation.poisoned = true
+	}
+	operation.mutex.Unlock()
+	return returnedError
+}
+
 func (view LocalSnapshotView) enter(ctx context.Context) (*localSnapshotScope, context.Context, func(), error) {
 	if view.get == nil {
 		return nil, nil, nil, maintenance.ErrLease

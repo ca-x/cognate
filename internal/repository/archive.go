@@ -143,6 +143,16 @@ func (fetcher *ArchiveFetcher) Fetch(ctx context.Context, reference Reference) (
 	return inspectArchive(ctx, data)
 }
 
+func InspectArchive(ctx context.Context, data []byte) (*ArchiveSnapshot, error) {
+	if ctx == nil {
+		return nil, ErrArchiveInvalid
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	return inspectArchive(ctx, data)
+}
+
 func inspectArchive(ctx context.Context, data []byte) (*ArchiveSnapshot, error) {
 	filesystem, err := unpackArchive(ctx, data)
 	if err != nil {

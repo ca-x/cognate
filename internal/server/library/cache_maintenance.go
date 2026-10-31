@@ -11,16 +11,17 @@ import (
 )
 
 type cacheMaintenance struct {
-	instance     *maintenance.Instance
-	parent       string
-	identity     os.FileInfo
-	physicalRoot io.Closer
-	mutex        sync.Mutex
-	closing      bool
-	active       int
-	changed      chan struct{}
-	closeOnce    sync.Once
-	closeError   error
+	instance          *maintenance.Instance
+	parent            string
+	identity          os.FileInfo
+	physicalRoot      io.Closer
+	mutex             sync.Mutex
+	closing           bool
+	active            int
+	changed           chan struct{}
+	closeOnce         sync.Once
+	closeError        error
+	snapshotUncertain bool
 }
 
 type cacheWriter struct {
@@ -122,6 +123,11 @@ func (managed *cacheMaintenance) close() error {
 			managed.mutex.Unlock()
 			<-changed
 			managed.mutex.Lock()
+		}
+		if managed.snapshotUncertain {
+			managed.closeError = ErrSnapshotArchiveUncertain
+			managed.mutex.Unlock()
+			return
 		}
 		managed.mutex.Unlock()
 		managed.closeError = managed.physicalRoot.Close()

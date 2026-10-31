@@ -1,5 +1,21 @@
 # 开发预览验证
 
+## 2026-10-31：原生共享外壳与同切点密文内容管线
+
+本轮以 `88d3a99` 为基线，交付 MyGo 原生共享外壳和 F4 内部内容管线，未开放 App/S3 备份任务或生产恢复入口。UI 仍是首发重要门禁，不把本轮共享组件验收扩张为全产品或真人跨平台验收。
+
+**原生 UI：** 深浅分层材质、稳定选中导航、身份区和紧凑反馈栏；仅真实任务活动标签使用 160ms MyGo 原生颜色过渡，尊重 high contrast / ReduceMotion，不给按键和导航增加延迟。独立代表发现 Pack 在短窗/125%字号下停止操作被遮挡；原错误快照的独立反例为 10 FAIL / 2 PASS，修后 12/12 PASS；永久回归独立重放 16/16 RED → 16/16 GREEN，点击或 Return 确实取消 watch context。最大列表 End 导航、主题/焦点/草稿保护也通过。作者完整桌面包 295 PASS / 1 SKIP / 0 FAIL；真实 cage/Wayland 软件绘制窗口、Tab/Return 和前后截图见 `NATIVE-UI-DESIGN.md`，不等于硬件 GPU、IME 或其它平台运行证据。
+
+**内容源与闭包：** 全 owner 数据库、repository/skill/Pack/item 引用与去重归档在真实 B2 屏障内读取；分类随同切点数据库复制。缺失/损坏和 path/hash/count 不符拒绝，不回源补齐。source reader 覆盖最终关闭并 pin 确切 B2 operation，关闭不明保留原文件、根能力和实例所有权。独审的逃逸复制、末次生命期、inventory 取消与错误降级四项发现均有行为反例及永久回归；最终只读复核 ACCEPT，证据在 `/tmp/skillhub-f4-source-verify.nN1xTr` 和 `/tmp/skillhub-f4-inventory-verify.vR5zyV`。这不是全流程 RSS/磁盘资源数值证书。
+
+**密文连接：** `SealExtentSource` 同步 producer 复用既有认证格式，无新增明文 stage；`CaptureSnapshot` 逐文件切块，只有所有源端外层成功后才封 page/root/complete。验证真实源关闭移走后的数据库、inventory、归档认证回读，真实 B2 cleanup、源 Close 和组合密文清理故障的完成屏障及错误优先级，64MiB+1 实际密文分块与总体 hash，关闭消费者排空。作者 backup 包 267 PASS / 0 FAIL / 0 SKIP，不含主线程空安装永久 case；主线程独立验证空实例，并以临时 overlay 产生 127 个唯一归档、129 extent 和两页 manifest，经现有 BeginOpen/AcceptFile/Finish 回读通过。独立专项见 `/tmp/cognate-capture-main-review.l3G4b9V1`，作者具名命令与边界见 `/tmp/cognate-capture.C16jXQ68/README.md`。巨大 SQLite 端到端、生产恢复/代切换仍未验收。
+
+**最终组合：** 隔离 HOME/XDG/TMP，Go 1.27.3，离线 readonly，所有测试/构建显式 `CGO_ENABLED=0`，未运行 race。`go test -json -count=1 -timeout=240s ./...` 为 **7768 PASS / 158 SKIP / 0 FAIL**；全仓 vet、modules verify、两个 MyGo vet，以及 server/CLI/desktop × Linux/Darwin/Windows × amd64/arm64 的 **18 项构建**全部通过。1140 个 Go/module 输入在测试前后逐项 SHA256 一致，证据 `/tmp/cognate-content-ui-final.7nyeLNwG`；`full-go.json` 的 SHA256 为 `32886ee0aec4cdf4e575b93b437026af87814179edeae5911d91029c1c5d7a1d`。
+
+首个串行验证脚本在已记录 full-go/vet PASS 后以 143 退出，终止原因 UNKNOWN；其 module 输出不能代替退出码收据。保留 `gate-interruption.log`，modules 随后独立重跑 exit 0，构建与 MyGo vet 另批 exit 0，未把中断描述为通过或归因代码/负载。`crapper`、`dryer`、`mutator` 本机未安装，未声称运行；未新增工具依赖。原始编译 RED、独立行为 RED、测试驱动错误与最终 GREEN 各自保留，不互相覆盖。
+
+本轮无 Web 源码变更，不冒称重跑 Web 浏览器矩阵。没有新 GA tag、没有移动预览标签。完整 F4 的管理入口/S3/任务/保留/恢复、十四 agent、本机配置应用、Pack 附件和真实平台门禁仍见 `FORMAL-RELEASE-AUDIT.md` 与 `TODO.md`。
+
 ## 2026-10-31：首发 UI 目标、Web 精致化与 Grok 原生入口
 
 用户明确 UI 精致度、科技感和用途动效为首个正式版本重要目标，已写回需求与 `FORMAL-RELEASE-AUDIT.md`，不以本次切片代替完整首发签收。Web 阶段 `74c8583` 统一材质/层级、导航、共享弹层和按压/进入反馈，将配置研发说明收为可展开边界；成熟框架、主题、多语言与关键安全语义保留。具体前后实图、失败原因、复验矩阵与独立审查见 `UI-DESIGN.md`。主线程 build、两套 state 与原仓库浅深主题真实浏览器流程均通过。

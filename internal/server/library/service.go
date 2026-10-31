@@ -233,6 +233,10 @@ func (service *Service) reserveSlot() error {
 }
 
 func (service *Service) begin(ctx context.Context) (context.Context, func(), error) {
+	return service.beginOperation(ctx, 20*time.Second)
+}
+
+func (service *Service) beginOperation(ctx context.Context, timeout time.Duration) (context.Context, func(), error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
@@ -243,7 +247,7 @@ func (service *Service) begin(ctx context.Context) (context.Context, func(), err
 	}
 	service.active.Add(1)
 	service.mutex.Unlock()
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	stop := context.AfterFunc(service.lifetime, cancel)
 	return ctx, func() { stop(); cancel(); service.active.Done() }, nil
 }
