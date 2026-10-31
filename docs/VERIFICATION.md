@@ -1,5 +1,28 @@
 # 开发预览验证
 
+## 2026-11-01：恢复辅助配置关系准入
+
+在同一个只读、受限 T1 worker 中增加配置排序及 Pack 配置附件 gate；不用 canonical
+inventory 未包含的字段冒充完整验证。检查 owner/分区、完整成员集、连续 ordinal、
+数量上限及正 ID；合法空排序、无排序的 legacy fallback、stale/future revision pin、
+Unsupported 的读取状态继续保留，不要求所有附件 pin 等于当前资产 revision。
+
+原 exact3 独审发现新增 helper 将公开 T1 MaxRecords 的 `(0, MaxInt64]` 错误收窄为
+一百万，P2 BLOCK 保留。fix1 沿用原有效域；uint64 内求 remaining+1、饱和到 MaxInt64
+后再转 SQL int64 LIMIT，防负溢出且不静默夹断逻辑配额。Candidate 自己的一百万政策
+不能倒灌旧 API。饱和完整性依赖同 worker 已验证的实际 DB 大小、catalog、integrity/FK，
+不是对任意虚拟 SQL driver 无限流的保证；既有 heap/AS/CPU/timeout 限制不变。
+
+累计 exact3 patch SHA256 `c92525ef3e4a3f531bd5ce5e6067699e2aa4b7274d52c31d01623e7a2039d963`。
+原独审增量复审 `/tmp/cognate-assets-independent-f6744b3-yy08IM/fix1-review/REPORT.md`，
+SHA256 `a593bb0cb9858095e2a581d7d4fff2becc6cee2106626fac56d0f4d5cb9a14bb`，P2 CLOSED、
+限定 ACCEPT。同一原 probe 在旧候选 exit1、fix1 exit0；仅放宽 guard 的负控实际产生
+四个负 LIMIT，永久参数测试将其检出。fix1 辅助套件 11 顶层/88 PASS、原独审探针
+3 顶层/9 PASS、state vet 通过；原 BLOCK/RED 未改写。主线三源 SHA 与冻结一致；
+排除 Candidate WIP 的隔离 staged-tree 为 state 28 顶层/180 PASS、backup 2 顶层/
+2 PASS 事件、0 FAIL/SKIP，两包 vet exit0。主证据根 `candidate-fix1/16-assets-staged.*`
+及 `17-assets-staged-vet.*`，均 Go1.27.3/CGO0。本片不单独关闭 Candidate、完整 T2/C4/F4 或 GA。
+
 ## 2026-11-01：T3 Linux 运行根 SH/EX lease 内核
 
 新增 runtimegen 四源，尚未接 App startup、key 初始化或运行代 Resolve。OpenRuntime 为 SH，

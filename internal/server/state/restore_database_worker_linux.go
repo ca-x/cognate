@@ -209,6 +209,9 @@ func restoreDatabaseCheck(ctx context.Context, database *os.File, key []byte, si
 	if err := restoreDatabaseCiphertexts(ctx, pool, aead, configurationAEAD, facts.KeyID, limits.MaxRecords); err != nil {
 		return facts, err
 	}
+	if err := restoreDatabaseAssets(ctx, pool, limits.MaxRecords); err != nil {
+		return facts, err
+	}
 	facts.DatabaseBytes = size
 	facts.DatabaseHash, err = restoreDatabaseHash(ctx, database, size)
 	if err != nil {
