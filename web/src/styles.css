@@ -131,7 +131,7 @@ label { font-size: .875rem; font-weight: 500; }
 @media (max-width: 600px) { .sidebar { flex-wrap: wrap; } .sidebar nav { flex-wrap: wrap; } .pack-picked { grid-template-columns: minmax(0, 1fr) auto; } .pack-picked > div:first-child { grid-column: 1 / -1; } .pack-share-controls { align-items: stretch; flex-direction: column; } }
 @media (max-width: 420px) { .sidebar { align-items: stretch; flex-direction: column; gap: .65rem; } .sidebar nav { justify-content: space-between; } }
 .public-workspace { display: flex; flex-direction: column; min-height: 100svh; }
-.public-workspace .workspace-footer { width: min(100%, 1180px); margin-inline: auto; }
+.public-workspace .workspace-footer { width: min(100%, 1180px); margin-inline: auto; flex-wrap: wrap; }
 .public-topbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1rem clamp(1.2rem, 5vw, 4.5rem); border-bottom: 1px solid var(--color-border); background: var(--color-card); }
 .public-topbar nav { display: flex; align-items: center; gap: 1.5rem; font-size: .875rem; }
 .public-topbar nav a { display: inline-flex; align-items: center; min-height: 44px; }

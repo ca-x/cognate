@@ -848,4 +848,13 @@ export const english: Record<string, string> = {
   "需要明确选项": "Explicit options required",
   "预览不收录、不创建资产、不下载技能。": "Preview does not collect repositories, create assets or download skills.",
   "本次确认的完整安全字段": "Complete safe fields for this confirmation",
+  "只展示明确公开的技能": "Only explicitly published skills",
+  "当前筛选": "Applied filters",
+  "搜索：{{value1}}": "Search: {{value1}}",
+  "全部公开技能": "All public skills",
+  "已按分类筛选": "Category filter applied",
+  "清除筛选": "Clear filters",
+  "暂时无法读取目录": "Catalog temporarily unavailable",
+  "明确公开 · 匿名浏览": "Explicitly published · Anonymous access",
+  "公开不等于安全审查": "Publication is not a security review",
 }
