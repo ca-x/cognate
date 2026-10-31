@@ -1,5 +1,30 @@
 # 开发预览验证
 
+## 2026-11-01：恢复读取 T2a 与数据库验真 T1 的独立门禁
+
+Web 后继 `699969f630d134ee01f358f88988b570c23c3a42` 的 Build `41237215863` 已现场读回
+**completed/success**；与此前 `3a8ca47`、`7942388` 的两次成功分别对应，不表示 GA。
+
+T2a 基线 `7942388`，作者 exact2 新建 `s3_restore.go` / `s3_restore_test.go`，独审限定
+Spec/Quality ACCEPT。报告 `/tmp/cognate-copyexact-independent-7942388-KwQ59D/REPORT.md`
+SHA256 `4b636d3b4539534e5430da3d4ea39c132eab956dc20c6e035ef9b53e83245644`。
+独立核对 patch/source/evidence、其余 1474 文件字节与类型/可执行位不变；实际 65 新叶子、
+62 既有回归叶子、4 组重复取消/并发共120叶子执行、另9个追加对抗叶子及其90次重复执行通过，
+受影响 vet 通过。作者占位行为 RED、非法 writer 计数 panic RED、hash/Close 两项负控保留，
+没有将作者旧证据计作本次新执行。主线 apply_patch 集成后两项源码 SHA 与冻结清单一致，
+新增实际 TLS 例与 backup vet 再次 exit 0，证据在主根 `copyexact-main-*`。
+
+读取通过 Afero 与固定有限 transport，显式对象/ciphertext hash/size 和全部物理响应关闭均成功后
+才返回 Verified。已有输出可能部分或完整但仍不可信，writer 不由库关闭，不能承诺失败回滚；
+任意 writer 必须从 Write 返回才能完成取消/排空。无头文件引导、产品恢复入口或外部供应商资格。
+
+T1 exact12 则为 **P1 BLOCK**，从未合入主线。独审完整复现作者 18 顶层/80 PASS 和 vet，
+另七个真实数据库反例证明 `after=0` 分页漏掉非正 ID，导致损坏 GitHub/config 密文、非法 Pack/
+分类仍有 Valid evidence。报告 `/tmp/cognate-t1-independent-7942388-3Wf81L/REPORT.md`
+SHA256 `fbeac7b4e0d01a9fdb13df510caac86a8be20482008abdfc1067b66d8012c919`。
+原 BLOCK/失败证据保留，已退回作者做全域准入根修，不以原绿色套件、正确 key 或 FK/integrity
+通过覆盖漏验。独审修后闭合前不得引入该候选；完整 C4/F4 与原正式版剩余门禁不变。
+
 ## 2026-11-01：npx 导入、Pack 附件与配置工作空间收口
 
 基线为已 SSH 推送的 `75d570ea1c4a0fbdab47ac11bfecdcc31b1f0faa`；本轮现场读回其 Build `41226952624` 为 completed/success，已有 CLI/GUI Release 仍为 prerelease。以下是新源码阶段证据，**尚不构成 GA、正式 tag 或 Docker/LPK 发布**。完整恢复、调度保留、十四 agent/设备应用与跨平台门禁不变。

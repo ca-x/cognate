@@ -80,4 +80,22 @@ Reconcile 在回写时重新读取已持久化取消，而非使用网络调用�
 
 ## 本阶段验收
 
+### 2026-11-01：内部恢复读取前置 T2a
+
+`S3Target.CopyExact(ctx, ref, output)` 增加显式对象的密文流式读取，复用 Afero S3 和既有
+受限 transport：固定安全 probe、HEAD、一次完整 GET，最多三个请求，不重试、不列举或修改
+远端对象；沿用两槽并发、120 秒操作期限及 target Close 取消/排空。
+
+只有精确长度与 SHA-256、全部响应物理关闭和操作健康状态共同成功，才返回
+`Verified, nil`。在此之前，writer 中即使已有完整字节也只是**不可信候选**；失败可能留下
+部分输出，不能承诺回滚。方法不关闭借入 writer；任意 writer 必须从 Write 返回，取消与
+target Close 才能完成排空。后继协调器必须写入私有暂存并按最终结果决定是否采用。
+
+exact2 已独审限定 Spec/Quality ACCEPT，报告
+`/tmp/cognate-copyexact-independent-7942388-KwQ59D/REPORT.md`，SHA256
+`4b636d3b4539534e5430da3d4ea39c132eab956dc20c6e035ef9b53e83245644`。
+独立 65 个新叶子、62 个既有回归叶子、9 个新增对抗叶子及重复取消/排空检查通过；主线合入后
+重新执行新增例和 backup vet，未用父子 PASS 事件冒充独立用例。此处没有头文件引导、数据库/
+归档闭包、恢复 CLI、运行代切换或撤销，因此不代表完整 C4/F4、外部 S3 供应商资格或 GA。
+
 2026-10-31，App/RPC 构造不明所有权经独立真实子进程反例及正控闭合；控制内核初审三项缺陷另经原生 close-EIO、新进程 fence、精确容量边界和并发取消的非作者复核后局部 ACCEPT。修后同组合全仓 7884 PASS / 161 SKIP / 0 FAIL，Buf 双模板 parity 与三组件十八目标 CGO0 构建通过。完整命令、冻结身份、初次失败与后继收据见 `VERIFICATION.md`；不是自动调度、管理 UI、保留清理、硬件断电、外部供应商或完整恢复的验收。
