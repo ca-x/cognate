@@ -31,7 +31,8 @@
 - [ ] 离线完整恢复与运行代切换，明确凭据撤销和回退策略；内部快照库不等于可用备份功能。
 - [x] 恢复传输前置 T2a：Afero S3 精确密文复制，完整验证与物理响应关闭后才可信；独审通过。没有恢复头引导、候选闭包或产品恢复入口。
 - [x] 恢复验真 T1：只读隔离数据库、原 key/policy 与全部保留密文检查；非正 ID 全域准入 P1 经原七反例独立闭合，exact12 主线集成与真实 worker 验证通过。不是归档闭包、运行代切换或恢复产品入口。
-- [ ] 恢复传输 T2b 头引导：显式私有 parent FD、有界只读 bootstrap/complete scope；候选实施中，未独审、未合入。
+- [x] 恢复传输 T2b 头引导：显式私有 parent FD、有界只读 bootstrap/complete scope；exact3 独审通过，隔离主线组合与旧 S3 回归通过。不是认证、候选发布或恢复产品入口。
+- [ ] 恢复 T2c inventory 检查与完整 T2 候选闭包：纯校验候选已冻结待独审，材料化/归档扫描与技能逐项验证未交付。
 - [ ] 用真实 GitHub 账号验证 device flow、Lists 选择、私有仓库权限和失权行为。
 - [x] 来源重新授权的 SQLite 517 六阶段修复及 N1 可取消准入：限定独审 Spec/Quality ACCEPT，新组合 395 条浏览器证据、取消/跨连接重复专项及修后全仓通过。只有精确 BUSY 的尚未开始 BEGIN 使用 5ms/10s 准入轮询，不重放业务、CAS、提交或网络，见 `SOURCES-UI.md`。
 - [x] 备份认证 SQLite `8714` 的确定性锁机制修复：O_PATH inode pin、父进程 metadata 检查和受限 worker 完整有界检查，非作者独审 ACCEPT；新组合 630 次 TLS/SQLite/S3-like 备份、管理页及修后全仓通过。不加恢复性重试，历史 v7 根因仍 UNKNOWN，不把此片当完整恢复，见 `BACKUP-SQLITE-LOCKS.md`。

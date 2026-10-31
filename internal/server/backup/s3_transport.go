@@ -195,6 +195,9 @@ func (operation *operation) RoundTrip(request *http.Request) (*http.Response, er
 	if operation.ctx.Err() != nil {
 		return nil, operation.ctx.Err()
 	}
+	if operation.mode == "restore-head" && !operation.healthy() {
+		return nil, ErrUnavailable
+	}
 	if request.URL.Scheme != "https" || request.URL.Scheme+"://"+request.URL.Host != options.endpoint {
 		return nil, ErrInvalid
 	}
@@ -237,6 +240,13 @@ func (operation *operation) RoundTrip(request *http.Request) (*http.Response, er
 			limit = 256 << 10
 		case request.Method == http.MethodHead:
 			_, dateError := http.ParseTime(response.Header.Get("Last-Modified"))
+			if operation.mode == "restore-head" && response.StatusCode == http.StatusOK && response.ContentLength > 0 && response.ContentLength <= operation.size {
+				operation.size = response.ContentLength
+			} else if operation.mode == "restore-head" {
+				body.Close()
+				operation.failed()
+				return nil, ErrUnavailable
+			}
 			if response.ContentLength != operation.size || dateError != nil {
 				body.Close()
 				operation.failed()

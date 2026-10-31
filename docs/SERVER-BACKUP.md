@@ -80,6 +80,19 @@ Reconcile 在回写时重新读取已持久化取消，而非使用网络调用�
 
 ## 本阶段验收
 
+### 2026-11-01：内部恢复头 scope T2b
+
+`S3Target.WithRestoreHead(ctx, parent, expected, consume)` 借入显式私有 parent FD，
+按 canonical attempt 顺序只读下载 bootstrap/complete；HEAD/范围 GET 各一次，共四请求。
+bootstrap 恰 156 bytes、complete 为 1..16384 bytes，复用 Afero、两槽与 120 秒期限。
+全部物理响应关闭及本地 Sync/关闭/只读重开通过才借给回调；最终本地清理成功才返回 nil。
+不 List/写远端/重试；新长度发现与坏流健康门仅在新 mode 生效，旧精确验证不放宽。
+
+回调必须合作返回，借 FD 不关闭/复制/逃逸，不能在回调中激活。后置关闭不明 retain 并隔离
+target，不能声称全部已释放或自动回滚。成功也不代表认证；仍须 BeginOpen，退出全部源
+scope 后才推进可激活候选。exact3 独审及排除并行 WIP 的 staged-tree 组合通过，精确证据
+见 `VERIFICATION.md` 首节；不是完整恢复或外部 S3 供应商资格。
+
 ### 2026-11-01：内部数据库恢复验真 T1
 
 后继只读候选数据库检查已合入：原 master key 与所有 retained GitHub/configuration 密文、

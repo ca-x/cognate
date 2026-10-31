@@ -1,5 +1,41 @@
 # 开发预览验证
 
+## 2026-11-01：T2b S3 恢复头借用 scope
+
+T1 阶段 `74c7f4596e88d865997202906682a5abafbab9b0` 已 SSH 推送读回；Build
+`41240209775` 现场读回 **completed/success**。T2b 作者基线 `db2b235` 的 exact3 经独审
+Spec/Quality 限定 ACCEPT：`s3_restore_head.go`、其测试与仅新增十行的 `s3_transport.go`。
+报告 `/tmp/cognate-t2b-independent-db2b235-W5fsJP/REPORT.md`，SHA256
+`343bbcda05b29eb4007eb3885706a9b0ef739c7f045a44eaa485cb2e7f9f2337`；patch SHA256
+`dcc2ff638f364b4f60be43364c6eccd8b7f4050974fb012855970ffb2bd85233`。
+
+`WithRestoreHead(ctx, parent, expected, consume)` 显式借入私有 parent FD，固定 canonical
+attempt 的 bootstrap/complete，只经 Afero 与既有 transport 顺序执行 HEAD/范围 GET 各一次，
+最多四个请求。bootstrap 恰 156 bytes，complete 为 1..16384 bytes；不 List/写入/重定向/
+重试，Afero 坏流自动重开被本 mode 的健康门阻止。两个头及全部物理响应 Close 成功、私有
+文件 Sync/RW Close/只读重开和身份检查后才调用 consume；借入 parent 不关闭。
+
+consume 必须合作返回，不能关闭、复制或逃逸借 FD，也不能在回调内激活。target Close
+取消并等待回调及清理排空；回调后的 RO Close、unlink、目录 Sync/discard 也决定最终结果。
+本地清理不明 retain/quarantine，不重试 Close 或继续准入；错误优先级与脱敏保持。此 API
+只返回 error，不提供认证或激活能力；头仍须交 BeginOpen，全部源 scope 成功后才能推进候选。
+
+独审本次实际运行 87 新叶、127 既有叶、150 并发叶次；另六个对抗叶及十轮重复，backup vet
+通过。追加覆盖旧 CopyExact/VerifyExact/InspectForDelete 严格 HEAD、不明清理取消另一个
+活跃 scope 的 FD 排空、物理 Close+取消+本地 Close 叠加优先级，没有放宽旧 mode。
+
+主线三文件 SHA 与冻结一致；为排除并行 T2c WIP，实际导出仅 exact3 的 staged tree，在
+Go 1.27.3/CGO0 下验证，证据仍在 `/tmp/cognate-npx-selection.TB9Vd2tL`：
+
+- `t2b-staged-backup.jsonl`：新头 scope、CopyExact、T1 密文→DB 和旧离线密文，共 28 顶层、
+  170 PASS 事件/155 叶，0 FAIL/SKIP。
+- `t2b-staged-old-s3.jsonl`：另 22 个既有 S3 顶层、68 PASS 事件/62 叶，0 FAIL/SKIP；
+  精确 regex 来自两份既有测试文件，未把 `^TestS3` 误称为所有旧 S3 测试。
+- `t2b-staged-vet.log`：隔离组合 backup vet exit 0；共 50 顶层、238 PASS 事件，不是全仓。
+
+T2b 不关闭候选 DB/inventory/archives 闭包、文件材料化/发布、停服锁、撤销、运行代切换、
+恢复产品入口或正式版门禁；T2c 纯 inventory 检查另待独审，仍无新正式 tag、Docker 或 LPK。
+
 ## 2026-11-01：T1 只读候选数据库验真与非正 ID 根修合入
 
 集成基线 `db2b235a68196527a88338e7a7282bc1838160e5`，其 Build `41238804826`
