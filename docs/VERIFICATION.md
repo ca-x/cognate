@@ -1,5 +1,19 @@
 # 开发预览验证
 
+## 2026-10-31：Grok 所有者客户端库 G1
+
+精确七个新库/测试叶经独立 Spec/Quality 接受，报告 SHA256 `bed19f33a4f6540dd1c1d0c0a0a19721d5a6110ce20abb3117051e5aa51f2f45`，源码包 SHA256 `c458549fea898ac661d682a9b5f7e1f386b147485e78bc801ea20aa828501354`。独立真实 App/TLS、第二 SQLite、九 RPC、凭据快照、Unknown 与关闭生命周期探针通过；五项可编译负控均普通 RED，恢复同一源码通过。仅接受库，不接受 CLI/TTY、GUI 或 native 应用。
+
+主线程从 `289dc98` 导出完整组合，七叶逐 SHA256 匹配；原 1,291 叶字节/可执行位不变。使用独立 HOME/XDG、合成账号/数据库及验证 CA 的回环 TLS，正常 npm ci/build 后，定向 62 个用例 PASS，零 SKIP/FAIL；全仓 7,129 个用例 PASS、48 个测试包 PASS、130 个显式用例 SKIP，另 78 个无测试包，零 FAIL。全仓 vet、module verify、库六目标构建、CLI/server 十二项 Go1.27.3/CGO0 构建及元数据检查均退出 0；库的生产依赖不含 server/moejs/importer/agentadapter。无 race、非 Linux 运行或浏览器验收声明。此后 `21bd8a0` 与 `deb8473` 只改发布 workflow/文档，Go/Web/运行资源未变；本次库源码保持签收原字节。
+
+首个本地启动器把 XDG 从旧 HOME 展开，已终止并保留为无效 setup，不计入上述结果；修正为先创建独立 HOME 再派生 XDG，才取得上述完整终态。未修改产品源码来冲洗失败。CLI 命令及真实终端确认仍待 G2，库保存不代表本机应用或完整 F12。
+
+## 2026-10-31：公开服务端 Docker 预览
+
+`server-v0.1.0-rc.1` 指向 `289dc98`。原发布 run `41149414526` 的共享 Go/Web/Buf 检查、amd64/arm64 完整容器 smoke 成功，OCI 原样上传；但第二次按同一 index digest 拉不同架构触发 Docker classic store `cannot overwrite digest`，原 run 保持 failure。`21bd8a0` 将检查拆为无发布写权限的独立 workflow，按 index 内各架构 child digest 分别拉取，禁止用重发镜像来重试验证。
+
+唯一只读 dispatch `41150799480` 在精确 `21bd8a0` completed/success：tag 与预期 index、双 child digest 绑定，真实 pull/architecture inspect/双 server `--help` 及无凭据访问均成功。主线程另独立匿名读回 index 字节，SHA256 为 `ac5c5721b5ad8eaa9469c14f0607ce0e7bb2b7c6c7aadf26e06fe715865f36fc`，只有 linux/amd64 和 linux/arm64。未重建、重推、移动 tag 或更新 latest；这只是公开 server preview，不是完整产品正式版、CLI/GUI 发布或新平台配置应用资格。拉取地址与不可变引用见 `RELEASING.md`。
+
 ## 2026-10-31：Codex effective ModelInfo v2 codec
 
 独立接受精确 source11 后继，源码包 SHA256 `4ccccfb5a833ccef8b4c5aa7a6c94268b7406f94464fe35502e831a781081c48`，报告 SHA256 `7af47f82252df888aa4f59023736846b4330e46abe752f6fe920857494539a62`。原 selected-instructions finding 仅在该后继的限定范围关闭；原 REJECT、旧 40 次与原反例保留。独审实际执行 codec 212 PASS、零 FAIL/SKIP，并核验新冻结的 42 个真实 POST/completed、主动 kill+Wait(-9)、TLS worker join 与 source/tuple/ELF 绑定，没有冒称重跑 42 次。两个合法空串补充案例通过存在性、完整文本和精确 item ID 证明 base-prefix 不发出，不与 absent/null 或默认文本混淆。

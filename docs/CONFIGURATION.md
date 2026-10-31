@@ -10,6 +10,8 @@ Grok Build 已接入既有所有者鉴权 `ConfigurationService` 的九个 RPC�
 
 登录后从“AI 配置”进入，或直接访问 `/configuration`。列表只读取当前账号的元数据；点击编辑后才读取脱敏草稿。当前不提供通用 raw JSON 编辑或原文凭据查看。
 
+Grok Build 另已交付所有者客户端库 `internal/grokclient`，覆盖九个 RPC、固定 revision 的本地审阅和单次提交、凭据动作及 Unknown 禁自动重放。该片尚未注册 CLI 命令或接通 MyGo，不表示专属编辑器或本机应用可用；输入文件当前仅支持 Linux。库的使用边界见 `GROK-OWNER-CLIENT.md`。
+
 1. 新建资产时先明确选择 Claude、Codex 或 Gemini；选定后不能在同一草稿里切换目标。Claude 支持原生登录、API key 或 Auth token 模式；Codex 当前仅支持自定义 HTTPS Responses/provider-key，不支持官方 ChatGPT/OAuth 登录。Gemini 支持 native-login 与 API key 资产模式，详见下节。
 2. Claude 可按需勾选自定义端点和 default/Haiku/Sonnet/Opus 模型。未勾选是 absent，不等于提交空字符串；模型不自动修剪或改变大小写。端点只保存，不由服务端探测。
 3. 每个凭据分别选择 keep、replace 或 clear。已有凭据只显示是否存在；clear 已存在的值需确认。切认证模式时必须显式清理不兼容的旧凭据，不自动删除或把占位符写回。
