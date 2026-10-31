@@ -1,0 +1,51 @@
+.pack-configurations { margin-block: 2rem; padding-block: 1.5rem; border-block: 1px solid var(--color-border); min-width: 0; }
+.pc-heading, .pc-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
+.pc-heading { justify-content: space-between; }
+.pc-heading h3 { font-weight: 650; font-size: 1.125rem; }
+.pc-boundary { display: flex; align-items: flex-start; gap: .75rem; margin-block: 1rem; color: var(--color-muted-foreground); font-size: .875rem; line-height: 1.65; }
+.pc-boundary svg { flex: 0 0 auto; margin-top: .25rem; }
+.pc-boundary > span { min-width: 0; }
+.pc-revisions, .pc-help, .pc-empty, .pc-status { font-size: .875rem; color: var(--color-muted-foreground); line-height: 1.65; }
+.pc-notice:not(:empty) { margin-block: 1rem; padding: var(--pc-inset, 1rem); border: 1px solid var(--color-border); border-radius: .75rem; background: var(--color-muted); font-size: .875rem; }
+.pc-references { display: grid; gap: .75rem; margin-block: 1rem; padding: 0; list-style: none; }
+.pc-reference { padding: 1rem; border: 1px solid var(--color-border); border-radius: .75rem; background: var(--color-background); min-width: 0; }
+.pc-reference-body { display: grid; gap: .375rem; min-width: 0; font-size: .875rem; }
+.pc-reference-body strong { font-weight: 600; }
+.pack-configurations code, .pc-dialog code { overflow-wrap: anywhere; font-size: .8125rem; }
+.pack-configurations p, .pc-dialog p, .pc-reference strong, .pc-context dd { overflow-wrap: break-word; }
+.pc-reference .pc-actions { margin-top: .75rem; }
+.pc-editor { margin-top: 1.5rem; padding: 1rem; background: var(--color-background); border: 1px solid var(--color-border); border-radius: .75rem; min-width: 0; }
+.pc-editor h4, .pc-dialog h4 { font-weight: 600; }
+.pc-editor > p { margin-block: .75rem; font-size: .875rem; line-height: 1.65; }
+.pc-candidate { display: grid; gap: .75rem; margin-block: 1rem; min-width: 0; }
+.pc-candidate > button[role=combobox] { width: 100%; height: auto; min-height: 2.75rem; white-space: normal; text-align: start; }
+.pc-select { max-width: calc(100vw - 2rem); }
+.pc-select [role=option] { white-space: normal; overflow-wrap: break-word; }
+.pc-dialog { max-width: 48rem; scroll-padding-block: 1rem; }
+.pc-context { display: grid; gap: .375rem; margin-block: 1rem; font-size: .875rem; }
+.pc-context dt { color: var(--color-muted-foreground); }
+.pc-context dd { margin: 0 0 .5rem; min-width: 0; }
+.pc-context dd code { display: block; }
+.pc-approval { display: flex; gap: .75rem; align-items: flex-start; margin-block: 1rem; font-size: .875rem; line-height: 1.65; }
+.pc-approval [role=checkbox] { margin-top: .25rem; }
+.pack-configurations button, .pc-dialog button { white-space: normal; height: auto; padding-block: .625rem; }
+.pack-configurations :focus-visible, .pc-dialog :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+@media (max-width: 40rem) {
+  .pack-configurations, .pc-dialog { --pc-inset: 12px; }
+  .pc-heading { align-items: stretch; }
+  .pc-heading h3 { font-size: .875rem; }
+  .pc-actions > button, .pc-heading > button { flex: 1 1 100%; }
+  .pc-editor, .pc-reference { padding: var(--pc-inset); }
+  .pc-editor { padding-inline: 0; border-inline: 0; border-radius: 0; }
+  .pc-editor .pc-reference { padding-inline: 0; border-inline: 0; border-radius: 0; }
+  .pc-actions > .button, .pc-heading > .button { padding-inline: .375rem; }
+  .pc-boundary { display: block; }
+  .pc-boundary > svg { display: block; margin: 0 0 .5rem; }
+  .pc-dialog { padding: .5rem; }
+  .pc-dialog h2 { font-size: 1rem; padding-inline-end: 40px; }
+  .pc-dialog > .button { width: 44px; height: 44px; min-height: 44px; right: 8px; top: 8px; padding: 0; }
+  .pc-approval { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pack-configurations *, .pc-dialog { animation: none !important; transition: none !important; }
+}

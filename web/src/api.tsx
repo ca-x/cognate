@@ -2,12 +2,13 @@ import { t, useNotice } from "./i18n"
 import { useTranslation } from "react-i18next"
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Code, ConnectError, createClient, type Client } from "@connectrpc/connect"
+import { Code, ConnectError, createClient, type Client, type Interceptor } from "@connectrpc/connect"
 import { createConnectTransport } from "@connectrpc/connect-web"
 import { AuthService } from "./gen/skillhub/auth/v1/auth_pb"
 import { GitHubService } from "./gen/skillhub/github/v1/github_pb"
 import { LibraryService } from "./gen/skillhub/library/v1/library_pb"
 import { PackService } from "./gen/skillhub/pack/v1/pack_pb"
+import { PackConfigurationService } from "./gen/skillhub/pack/configuration/v1/configuration_pb"
 import { CategoryService, PublicationService, PublicCatalogService } from "./gen/skillhub/catalog/v1/catalog_pb"
 import { MCPManagementService } from "./gen/skillhub/mcp/v1/mcp_pb"
 import { ImportService } from "./gen/skillhub/import/v1/import_pb"
@@ -23,6 +24,7 @@ type ApiContext = {
   github: Client<typeof GitHubService>
   library: Client<typeof LibraryService>
   packs: Client<typeof PackService>
+  packConfigurations: Client<typeof PackConfigurationService>
   categories: Client<typeof CategoryService>
   publications: Client<typeof PublicationService>
   publicCatalog: Client<typeof PublicCatalogService>
@@ -36,6 +38,50 @@ type ApiContext = {
 }
 
 const Api = createContext<ApiContext | null>(null)
+
+const packRefusals = new WeakMap<object, Code>()
+
+export function packConfigurationRefusal(error: unknown) {
+  return error instanceof ConnectError ? packRefusals.get(error) : undefined
+}
+
+async function packConfigurationFetch(input: RequestInfo | URL, init?: RequestInit) {
+  const response = await globalThis.fetch(input, { ...init, credentials: "omit" })
+  const codes: Record<string, [number, Code]> = {
+    invalid_argument: [400, Code.InvalidArgument], permission_denied: [403, Code.PermissionDenied],
+    unauthenticated: [401, Code.Unauthenticated], not_found: [404, Code.NotFound],
+    aborted: [409, Code.Aborted], failed_precondition: [400, Code.FailedPrecondition],
+    resource_exhausted: [429, Code.ResourceExhausted],
+  }
+  if (!response.ok && response.headers.get("Content-Type")?.split(";")[0] === "application/json") {
+    const reader = response.clone().body?.getReader()
+    if (reader) {
+      let encoded = ""
+      const decoder = new TextDecoder("utf-8", { fatal: true })
+      try {
+        for (;;) {
+          const chunk = await reader.read()
+          if (chunk.done) { encoded += decoder.decode(); break }
+          if (encoded.length + chunk.value.length > 8192) return response
+          encoded += decoder.decode(chunk.value, { stream: true })
+        }
+        const value = JSON.parse(encoded)
+        const match = codes[value?.code]
+        const unambiguous = encoded.replace(/"(?:[^"\\]|\\.)*"|\s+/g, token => token.startsWith('"') ? token : "") === JSON.stringify(value)
+        if (unambiguous && match && response.status === match[0] && typeof value.message === "string" && Object.keys(value).every(key => ["code", "message", "details"].includes(key)) && (value.details === undefined || Array.isArray(value.details) && value.details.length === 0)) {
+          const error = new ConnectError("owner attachment request refused", match[1])
+          packRefusals.set(error, match[1])
+          throw error
+        }
+      } catch (error) {
+        if (packConfigurationRefusal(error) !== undefined) throw error
+      } finally {
+        void reader.cancel().catch(() => {})
+      }
+    }
+  }
+  return response
+}
 
 export function ApiProvider({ children }: { children: ReactNode }) {
   useTranslation()
@@ -56,20 +102,20 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     updateSession(next)
   }, [queryClient])
   const clients = useMemo(() => {
+    const authenticate: Interceptor = (next) => async (request) => {
+      if (session) request.header.set("Authorization", `Bearer ${session.token}`)
+      try { return await next(request) } catch (error) {
+        if (session && current.current?.token === session.token && ConnectError.from(error).code === Code.Unauthenticated) setSession(null)
+        throw error
+      }
+    }
     const transport = createConnectTransport({
       baseUrl: window.location.origin,
       defaultTimeoutMs: 30_000,
-      interceptors: [(next) => async (request) => {
-        if (session) request.header.set("Authorization", `Bearer ${session.token}`)
-        try {
-          return await next(request)
-        } catch (error) {
-          if (session && current.current?.token === session.token && ConnectError.from(error).code === Code.Unauthenticated) setSession(null)
-          throw error
-        }
-      }],
+      interceptors: [authenticate],
     })
-    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport) }
+    const packTransport = createConnectTransport({ baseUrl: window.location.origin, defaultTimeoutMs: 20_000, interceptors: [authenticate], fetch: packConfigurationFetch })
+    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), packConfigurations: createClient(PackConfigurationService, packTransport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport) }
   }, [session, setSession])
   const value = { session, setSession, ...clients, publicCatalog, completingLogin, loginNotice }
   useEffect(() => {
