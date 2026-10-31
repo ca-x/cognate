@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 S3 CandidateSource exact4 经独审限定 ACCEPT，连同仅重命名的独立原密文探针晋升为五源；主 9bd 隔离组合 restore 51 顶层/253 PASS、0 FAIL/SKIP及 vet 通过。原 Capture 数据、双 owner 共享归档经 TLS 到真实 DB/完整候选门已贯通，但生产 CLI、真实 S3、startup/撤销/发布/回退仍待交付。私有 cleanup Sync hook 自身 panic 的更强 FD 保证未包含在签收中，详见 `VERIFICATION.md`。
 - 2026-11-01 四阶段已 SSH 推送读回 `82b212d` / `7b58bf5` / `a9bc97c` / `2efa940`。最终隔离组合全仓 8627 PASS、170 SKIP、0 FAIL及全 vet、正常 Web build、18 个 CGO0 构建和产物元数据均通过；前两远端 Build 成功，后两仍在运行。T3S legacy 启动准备片设计已批准隔离实施，未交付 startup/Resolve/离线恢复；本机绿测不关闭原完整 GA 门禁。详见 `VERIFICATION.md`。
 - 2026-11-01 Candidate Core7 fix1 的 staging panic 自等待 P2 经原独审增量 CLOSED、限定 ACCEPT；立即 defer 完成通知/取消、构造所有权及 fence FD 回收有八点真实 RED→GREEN，保留原 BLOCK。真实 DB/完整文件与共享技能绑定、可信源关闭屏障已经实现；与辅助 gate/CopyIndex 的主线隔离组合另验，不据此关闭 S3 Source、startup、撤销/发布/回退/离线 CLI 或完整 C4/F4/GA。
 - 2026-11-01 T1 配置排序/Pack 附件辅助关系 exact3 fix1 经原独审增量 ACCEPT，公开 MaxRecords 有效域收窄的 P2 CLOSED，SQL LIMIT 防溢出及无静默夹断有真实 RED→GREEN。原 BLOCK 保留，不外推为完整 Candidate/C4/F4/GA；主线组合证据见 `VERIFICATION.md`。

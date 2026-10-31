@@ -129,7 +129,7 @@ DDIA 对应取舍：以认证源数据为权威、缓存重新材料化；用单
 | Web/CLI/OIDC 站内 session | 删除全部 sessions，按真实 FK 顺序/级联清除 native challenges、native consumer sessions、apply preparations、materialization grants；备份后撤销而在备份中仍有效的 token 也必须失效。重启后旧 cookie/Bearer 401，重新登录可用 |
 | Pack share 与 MCP 管理 token | 全部 revoked_at 设置为该恢复操作固定的撤销时刻；MCP revision 正确推进，审计保留。旧 token 在 Pack manifest/download/MCP 真实入口拒绝，重新授权生成新 token 后业务读取正常 |
 | native 客户端公钥、bind、grant/consume 能力 | 随 session 链彻底退役；不恢复旧设备授权，不复活已消费/结果不明的远端 grant。本机 journal/密钥库不在服务端备份范围；客户端只可查安全状态并重新登录/授权，不能自动重放配置应用 |
-| GitHub OAuth/PAT 密文 | 验真全部密文后保留资产，置 needs_reauthorization，清除 refresh_attempt/sync_fetch_id/在途调度状态，提升现有代次栅栏的处理必须与其 AAD 规则一致；不改 generation 后保留旧 ciphertext。最小实现可保留原 generation 并依赖强制非 ready + 进程全退出，重新授权时沿用原有 PutCredential 事务重建。私有历史、选中 Lists 和业务配置保留，不因恢复变成匿名可取 |
+| GitHub OAuth/PAT 密文 | 验真全部密文后保留资产，置 needs_reauthorization，清除 refresh_attempt/sync_fetch_id/在途调度状态，提升现有代次栅栏的处理必须与其 AAD 规则一致；不改 generation 后保留旧 ciphertext。最小实现可保留原 generation 并依赖强制非 ready + 进程全退出。现有 PutCredential 只接受 ready，不能直接承诺重新授权可用；后继须补显式重新授权 CAS 及所有者取得预期 generation 的真实入口，在同一事务内生成新代/新密文并恢复 ready，拒绝 stale/refreshing 和旧票据。私有历史、选中 Lists 和业务配置保留，不因恢复变成匿名可取 |
 | provider/MCP 配置中的 API secrets | 保留原密文/owner/版本/AAD，所有者重新登录后可以原受权 API 读取/使用；不传给浏览器存储，不自动向 agent 写文件，不声称替用户撤销上游 key |
 | 本地密码、OIDC issuer+subject、管理员 | 保留原本地密码 hash 和明确绑定；不按邮箱合并，不自动提升任何账号。管理员 UUID 授权来自外置部署配置；没有可用本地账号的 OIDC-only 实例须由部署者重供对应 OIDC 环境，不能偷偷创建管理员后门 |
 | master key / 恢复 KEK / TLS、OIDC secret、S3 credentials | 两把原始 key 外部供应、内存使用后清零；不放 argv/env 原文、诊断或结果 DTO。恢复不轮换 master key 以免损坏站内密文；上游凭据/部署 secret 如需轮换由独立显式程序处理 |

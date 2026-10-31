@@ -1,5 +1,46 @@
 # 开发预览验证
 
+## 2026-11-01：可信 S3 CandidateSource 桥接
+
+`S3CandidateSource` 是冷函数，借 S3 options、私有 parent FD 和恢复 key 原 slice；调用期间
+保持这些借入参数稳定。每次调用自有 target、key 副本、engine/session/bundle 和一个密文
+输入 inode，所有正常错误/取消/关闭结果进入返回值；unknown/cleanup 优先，借入参数不清零。
+只读 GET/HEAD，不写远端、不发布候选。WithRestoreHead 内仅 BeginOpen，session 使用外层
+恢复 ctx；头 scope 全部成功关闭后才 NextRef/CopyExact/AcceptFile/Finish/consumer，不能
+把整个恢复放进头的 120 秒期限或占用槽。单密文文件复用 engine 已预留的 InputStagingBytes，
+不重复计费；每对象 Verified+nil、Sync、只读 FD/身份/长度检查之后才进原 AEAD 门。
+
+作者 exact4 patch SHA256 `12b18d75f03585afcc3491ae6f50904774375e7be50e8fdc85bb6d798267c308`。
+独审 `/tmp/cognate-source-s3-review-9bd0c3d-n9uhrq/REPORT.md`，SHA256
+`f6fad9df988dc5c4b674b71e97d6f06537d0f333f7889e942fdda5979eac6f53`，合同内 Spec/Quality
+限定 ACCEPT。旧 f674+单列依赖与真实 9bd 组合分别重建验证，不能借旧 overlay 冒称新组合。
+独审新组合整个 restore 48 顶层/238 PASS、backup 11/48、独立真实 CaptureSnapshot 原密文
+经 TLS 到 Prepare/WithVerified 的 3 顶层/15 PASS 及五个当前源码行为 RED 均实际执行。
+
+将独审 317 行探针提升为永久 `source_s3_candidate_linux_test.go`，仅改四个名称（五处引用），
+原 reviewer 逐字等价确认 ACCEPT；新增测试 SHA256
+`9ffd8d8affec4714ed31e4c43914f3d6b1fc3d5131798ece82399db41edb7a32`，原 exact4 字节不变。
+覆盖空业务与双 owner 共享 hidden/binary 原始归档、Pack/分类/配置附件；源全部明确关闭并
+移走后，原 Capture 的 6/7 个完整密文对象经真实本机 TLS 恢复。晚期 target unknown、
+bundle EIO+取消、consumer error、头 cleanup/unknown、末密文损坏、错业务 key 不放出 ready。
+同时核对 cap 过期/one-shot、原 key/options 可重用和非 Verified 结果不得进入 consumer。
+
+主线程 9bd+五源隔离组合完整 restore 为 **51 顶层/253 PASS、0 FAIL/SKIP**，restore/backup
+vet exit0，证据主根 `source-s3-main/05-promoted-probes-combination.*` 与 `06-promoted-vet.*`。
+另有忽略 Source 最终错误的编译成功行为 RED、Darwin/Windows 包级 CGO0 构建；对应
+`07-promoted-source-error-red.*` 为预期 exit1，`08-package-*` 全 exit0，不算目标平台运行资格。
+实际 staged-tree 五源 SHA 与已审冻结一致：restore 51 顶层/253 PASS、backup 定向
+26 顶层/168 PASS，共 77 顶层/421 PASS 事件、0 FAIL/SKIP，两包 vet exit0。收据为
+`09-staged-restore.*`、`10-staged-backup.*`、`11-staged-vet.*`，全为 Go1.27.3/CGO0。
+前四源码阶段及文档 `9bd0c3d` 的远端 Build 现均 completed/success，不替代本片新 CI 状态。
+早期主线程重新封装明文的原型测试 01/02/03 只保留为探索历史，不是这份永久原密文测试。
+
+剩余边界明确：普通 consumer panic 和输入 Sync panic 可正常 unwind；cleanup 自身的私有
+parent Sync hook 若 panic，Source parent 副本仍可能未显式关闭。独审已复现，未放出 ready，
+但不计作“任意 cleanup panic 安全”的 PASS，也无远程输入触发默认 os.File.Sync panic 的证据。
+本片不升级该更强保证，不重试未知 Close、不承诺全局预算或断电完成证书。真实 S3 IAM/
+供应商、生产离线 CLI、startup/Resolve、撤销/发布/回退仍未通过；不关闭完整 F4/GA。
+
 ## 2026-11-01：T2 Candidate 核心与源关闭屏障
 
 Core7 fix1 累计 patch SHA256
