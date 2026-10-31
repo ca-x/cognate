@@ -39,3 +39,23 @@ func TestConfigurationHeadDeepLink(test *testing.T) {
 		test.Fatal("configuration HEAD weakened the content security policy")
 	}
 }
+
+func TestBackupDeepLink(test *testing.T) {
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		response := httptest.NewRecorder()
+		web.Handler().ServeHTTP(response, httptest.NewRequest(method, "/server-backup", nil))
+		if response.Code != http.StatusOK || !strings.Contains(response.Header().Get("Content-Type"), "text/html") || method == http.MethodHead && response.Body.Len() != 0 {
+			test.Fatalf("backup deep link unavailable for %s: %d", method, response.Code)
+		}
+		if strings.Contains(response.Header().Get("Content-Security-Policy"), "unsafe-") || !strings.Contains(response.Header().Get("Content-Security-Policy"), "frame-ancestors 'none'") {
+			test.Fatal("backup deep link weakened content security policy")
+		}
+	}
+	for _, path := range []string{"/server-backup/", "/server-backup/settings.json", "/server-backup.json"} {
+		response := httptest.NewRecorder()
+		web.Handler().ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
+		if response.Code != http.StatusNotFound {
+			test.Fatalf("backup deep link accepted unrelated resource: %s", path)
+		}
+	}
+}

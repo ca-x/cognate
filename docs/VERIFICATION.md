@@ -1,5 +1,46 @@
 # 开发预览验证
 
+## 2026-10-31：成熟组件的管理员手动备份 Web
+
+基线 `1fb8ee6827dce691b84a972f2ad837fda3688d3a`，仅增加既有备份 RPC 的 Web 客户端、独立中英 namespace、管理页/布局、边界与 intent 回归、真实 App 浏览器 fixture 和生产 deep link。没有改控制内核、上传/恢复协议、数据库或依赖。React/TanStack 沿用现有版本，Button 沿用项目封装，Dialog/Checkbox 使用 Radix；未自研基础控件或新建动效系统。
+
+主线新组合证据 `/tmp/cognate-backup-web-final.e5wE4AWO`。Go 1.27.3，先 Web 生产 build 后编译 embed；全仓测试为 `env -i`、隔离 HOME/XDG/TMP/runtime、离线 readonly、显式 `CGO_ENABLED=0 go test -count=1 -timeout=600s -json ./...`：**7885 PASS / 162 SKIP / 0 FAIL**、49 测试包。full-go JSON SHA256 `a1c0d772e1e50a814c5679211c6f348b34922bb94d18198b37aeaf7b955d36e9`。fixture 只在显式环境下启动，新增一个预期 SKIP；不代表其它平台运行资格。
+
+全仓 vet、实际依赖的 24 MyGo 包 vet、tidy-diff/module verify、Buf lint/breaking 和 Go/Web 独立输出双生成逐文件 parity 全 exit0；备份 state **60 checks**、原 Grok 编辑/导入 state 也通过。server/CLI/GUI × Linux/Darwin/Windows × amd64/arm64 **18 CGO0 build 与 metadata** 均过；CLI/GUI 仍不依赖 server backup/moejs，server help 三备份参数存在。1303 项非文档输入与 Web dist 的前后 hash 一致，清单 SHA256 分别 `2788e2c5b21f74d0228a84096fb9227777c645bcff578d1fad18d8b4c8b874ea` 和 `53b7c8ab0bf6cd317cd25cb445411b1b8afea3001a1a011652dd83180a1589d4`。未运行 cgo 或 race。
+
+生产 Web → 真正 App、TLS Connect、SQLite 与 synthetic TLS S3-like 浏览器 v8：**88 条收据、56 组布局/焦点检查、exit0**，正常停止 fixture。目录 `/tmp/cognate-backup-web-browser-v8`；`receipts.json` SHA256 `851c6fd341e6149683c107c2b16ae7993a16145ad5b45ab0cb67c7a12178fb77`，`layouts.json` SHA256 `70dd1d0758f07ac769097ae55f2b072062356f367377e5c5f1cb4b6a0fda695e`。包含实际管理员/普通用户拒绝、独立 disabled App、错误/非法 DTO、实际 27 任务分页、后续页 error/invalid/empty 可回最新页；丢/坏 Start 回执后重载、同 ID 两次请求只登记一任务/一发布、记录中途丢失与 storage 写拒绝均不发新请求；Forget 不取消，held upload 实际取消，无 PUT 的精确只读对账；旧 owner 持有的 Start 回复在换身份后被 abort、无旧数据泄露。26 次 complete-last、157 个已封装对象，未把远端发布当恢复。
+
+中英/深浅 × 320/375 CSS px × 200% 根字号验证文本和控件无横向越界；实际 Tab/Space/Enter 触发并滚动揭示确认/详情按钮，完整矩形在弹层视口内。Escape 恢复触发器，确认后回稳定历史标题；ReduceMotion 无 dialog 入场动画。200% 根字号不是浏览器 zoom 或真实 OS 字体设置；未测 Safari/Firefox、真人读屏或外部 S3/完整恢复。
+
+复现：
+
+```sh
+export PATH=/home/czyt/.local/share/mise/installs/node/26.12.0/bin:/home/czyt/.local/share/mise/installs/go/1.27.3/bin:$PATH
+npm --prefix web run build
+node scripts/verify-backup-web-state.mjs
+CGO_ENABLED=0 go test -c ./internal/server -o /tmp/cognate-backup-web.test
+node scripts/verify-backup-web.mjs \
+  --fixture-bin /tmp/cognate-backup-web.test \
+  --browser-bin /home/czyt/.local/share/mise/installs/npm-agent-browser/0.39.1/node_modules/.bin/agent-browser \
+  --chrome-bin /opt/google/chrome/chrome --output /tmp/cognate-backup-web-fresh
+```
+
+**真实失败与局部资格：**
+
+- v1 截图真实 404，生产嵌入白名单漏了 `/server-backup`；永久 `TestBackupDeepLink` 先 GET 404 RED，补精确 GET/HEAD 路由后全 Web 测试 GREEN，未知子路径仍拒绝。没有在 fixture 中放宽生产 fallback。
+- v2/v3 的 malformed Start 注入没有生效，因为 recorder 的真实 gzip 响应未先解压；安全元数据确认 decode 未成功，修复 test-only 有界解压/Content-Length 后，原 ID 保留与同 ID 继续真实通过。不把这两轮当产品 DataLoss 证据。
+- v5 在 200% 详情异步加载后，自动聚焦的页底按钮落到弹层视口外；v6 使用 Radix 公开 initial-focus 事件聚焦稳定标题，再以真实 Tab/Enter 揭示并激活动作通过。不是加等待、强制点击、缩小字体或遮住溢出。
+- 原独审副本 `/tmp/cognate-backup-web-review.mnJLmFkj/REVIEW.md`：I1 后续页失败/非法/空时全部分页消失，M1 Continue/Forget 的触发器消失导致焦点回 body；主线修为独立返回导航/页级空文案和 Radix 确认后稳定落点。M2 同 owner client 更替依赖现有 ApiProvider `setSession` 先清 query cache 的补偿仍保留，不声称组件自身具有额外 client-ID 隔离。
+- v7 在 21 任务种子阶段 HTTP500，`/tmp/cognate-backup-web-browser-v7` 保留失败；当轮没有安全 stage/code，具体原因 **UNKNOWN**，不能由之后通过反推根因或宣称修复。新增 safe operation/Connect code/job phase/code 诊断后，v8 完整浏览器通过；另 fresh RPC-only 三批 21 个、共 63 次真实备份全部通过，证据 `/tmp/cognate-backup-seed-probe.JX9VOu/receipts.json` SHA256 `2fe03cef1f92b3781e361e51eaee228b51f824f08e61243f7fbade0b5efb4273`。没有 retry/sleep 掩盖旧失败。
+
+相同源码/二进制的第二个独立 fixture 完整轮 v9 也是 exit0、88/56，receipt hash 与 v8 相同。为尝试获取旧 seed 失败的阶段分类，另以 fail-first 的 fresh RPC-only probe 有界执行 20 批 × 21 次，420 次均实际发布，未出现可分类失败；目录 `/tmp/cognate-backup-seed-probe.UPMckc`。这只界定本次取证没有复现，并未关闭旧 UNKNOWN；后继追踪保留在 `TODO.md`，不追加无界重试来取得绿色。
+
+**非作者后继局部 ACCEPT。** Dewey 在新隔离副本仅覆盖冻结十二输入，独立重跑 31 个真实 React/TanStack/Radix 组件探针与 12 项真实键盘观察，I1 三种坏后续页实际返回原第一页、held 旧页 abort 后不能覆盖；M1 Continue/Forget 后回稳定 heading、Escape 回触发器、异步详情不推移初始焦点、320px/200% 操作完整揭示均通过。独立 state/build/Web route/既有 Grok 回归也通过；再只读解析最终 fullgate/v8/63 seed 的工件与输入 hash，移除等待这些门禁的条件。报告 `/tmp/cognate-backup-web-recheck.rxGGaZ1x/REVIEW.md` SHA256 `65da1f1823bd98ecc13b67f64287f6ee4543c5b8ed513178245b2927868b2f76`。原 REJECT 与中间 conditional 报告均保留；最终没有新 finding。M2 是主线程保留的生产清缓存补偿，不是人类用户另行确认，也不构成 client-only 局部隔离的新实现。
+
+阶段提交/推送身份紧随本次交付记录；未发布新 tag/Docker/LPK，未放行完整 F4 或首个正式版。来源页另有独审 BLOCK，作者交付未合入本次候选：无 UI RPC-only 可复现重新授权 GetCatalog/Sync Internal，且需补全 unexpected Internal 失败门禁，详见 `TODO.md`。上个后端提交 `1fb8ee6` 的 Build `41199035600` 已新查询 completed/success，精确 head 相同；它不是本轮 Web 的 CI 资格。
+
+本次 nmem CLI 定向查询 `Cognate C3手动管理员备份控制平面已推送1fb8ee6`，默认检索、server `search_mode=fast_bm25_vector`、default Space、上限1，无其它过滤；rank1 为 `b76d67c7-28eb-4900-981a-dbaf91b94fbb`、标题「Cognate阶段完成：C3手动管理员备份控制平面已推送1fb8ee6，来源页UI继续」、score0.99。CLI 无已证实同身份/Space 的浏览器图谱会话，未自动打开图谱。
+
 ## 2026-10-31：备份控制内核三项修复后的新组合门禁
 
 本段是初次 REJECT 候选的后继，不删除或改记下方原始失败。作者新冻结七文件见 `/tmp/cognate-control-fix.amkyrSXL/kernel-freeze.sha256`，清单 SHA256 `b94ed8d6dae8a3e7d4018be233367871e77a690a93e72a32de2fec61525725d1`。最后锁 close 前先持久化 private `control.fence`；不明时隔离旧能力，不能将返回错误等同于物理 flock 仍持有。确认物理释放后旧能力永久 closed，再删除/Sync 标记；此后的清理错误若删除已经可见，新进程可能进入，但旧能力不能再写或附着控制器。日志登记/catalog 发布预留全部后继记账，clean budget 拒绝不 poison；Reconcile 落盘重新合并当前取消。旧满额日志不自动迁移。这些修复仍需非作者的真实反例复核，不由下面绿色门禁代签。

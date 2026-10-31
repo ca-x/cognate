@@ -37,7 +37,7 @@ func Handler() http.Handler {
 
 func applicationRoute(path string) bool {
 	switch path {
-	case "/", "/repositories", "/account", "/packs", "/categories", "/explore", "/mcp-settings", "/configuration", "/server-logging":
+	case "/", "/repositories", "/account", "/packs", "/categories", "/explore", "/mcp-settings", "/configuration", "/server-logging", "/server-backup":
 		return true
 	}
 	id, ok := strings.CutPrefix(path, "/explore/")

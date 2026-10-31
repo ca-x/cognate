@@ -1,0 +1,43 @@
+.backup-page { min-width: 0; }
+.backup-page .page-heading { align-items: flex-start; flex-wrap: wrap; }
+.backup-page .button, .backup-dialog .button { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: normal; word-break: normal; padding-inline: clamp(8px, 2.5vw, 16px); line-height: 1.5; }
+.backup-panel { min-width: 0; padding: clamp(12px, 2vw, 24px); border: 1px solid var(--color-border); border-radius: .85rem; background: var(--color-card); box-shadow: var(--shadow-surface); }
+.backup-panel h2 { font-size: 1.0625rem; font-weight: 620; letter-spacing: -.015em; line-height: 1.5; }
+.backup-panel h3 { font-size: .9375rem; font-weight: 600; line-height: 1.6; }
+.backup-emblem { color: var(--color-primary); margin-bottom: 1rem; }
+.backup-help { margin-top: .6rem; color: var(--color-muted-foreground); font-size: .875rem; line-height: 1.8; }
+.backup-mode { display: flex; align-items: center; gap: .4rem; margin-bottom: .5rem; color: var(--color-muted-foreground); font-size: .75rem; line-height: 1.6; }
+.backup-mode svg { flex-shrink: 0; }
+.backup-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem 1.5rem; margin-bottom: 1.5rem; }
+.backup-section-heading > div { min-width: 0; flex: 1 1 18rem; }
+.backup-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; }
+.backup-task-list { list-style: none; padding: 0; margin: 0; }
+.backup-task-list > li { min-width: 0; padding-block: 1.5rem; border-top: 1px solid var(--color-border); }
+.backup-task-list .backup-actions { margin-top: 1.1rem; }
+.backup-phase { display: flex; align-items: flex-start; gap: .5rem; font-size: .9375rem; font-weight: 600; line-height: 1.6; }
+.backup-phase svg { flex-shrink: 0; margin-top: .15rem; }
+.backup-phase[data-phase="remote_committed"] { color: var(--color-success); }
+.backup-phase[data-phase="failed"], .backup-phase[data-phase="commit_unknown"] { color: var(--color-destructive); }
+.backup-job-id { display: block; margin-top: .5rem; color: var(--color-muted-foreground); font-size: .75rem; overflow-wrap: anywhere; }
+.backup-metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .8rem 1.5rem; margin-top: 1.1rem; font-size: .8125rem; line-height: 1.7; }
+.backup-metadata > div { min-width: 0; }
+.backup-metadata dt { color: var(--color-muted-foreground); }
+.backup-metadata dd { margin: .15rem 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.backup-flag { margin-top: .7rem; font-size: .8125rem; font-weight: 550; }
+.backup-identity { margin-block: 1rem; font-size: .8125rem; line-height: 1.8; }
+.backup-identity > span { display: block; color: var(--color-muted-foreground); }
+.backup-identity code { display: block; margin-top: .3rem; overflow-wrap: anywhere; }
+.backup-pending { min-width: 0; padding: clamp(12px, 2vw, 20px); margin-block: 1rem; border: 1px solid var(--color-border); border-radius: .6rem; background: var(--color-muted); }
+.backup-notice { margin-block: 1rem; font-size: .875rem; line-height: 1.8; }
+.backup-empty { padding-block: 1.5rem; border-top: 1px solid var(--color-border); }
+.backup-empty > svg { color: var(--color-muted-foreground); margin-bottom: 1rem; }
+.backup-empty p { max-width: 36rem; }
+.backup-context { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+.backup-config-flags { list-style: none; margin-top: 1rem; padding: 0; font-size: .75rem; line-height: 2; }
+.backup-config-flags code { overflow-wrap: anywhere; }
+.backup-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--color-border); padding-top: 1.25rem; color: var(--color-muted-foreground); font-size: .8125rem; }
+.backup-acknowledgement { display: flex; align-items: flex-start; gap: .75rem; min-height: 44px; padding-block: 1rem; margin-top: .5rem; line-height: 1.8; }
+.backup-acknowledgement [data-slot="checkbox"] { margin-top: .2rem; }
+.backup-dialog { padding: clamp(12px, 3vw, 24px); width: calc(100% - 1rem); }
+.backup-dialog > h2 { padding-inline-end: 44px; }
+.backup-dialog > [data-slot="button"] { top: 4px; right: 4px; width: 44px; height: 44px; min-height: 44px; padding: 0; }

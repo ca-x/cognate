@@ -11,6 +11,8 @@
 - C3 后继接入显式启用的 Linux App、独立恢复 KEK、私有加密任务日志与六个管理员 RPC：手动登记、状态分页、取消和只读精确对账。真实 TLS S3-like App 链路覆盖 HTTP 取消后继续、complete 最后、重启同 request ID 与终态操作；构造不明保留所有权的审查发现补以真实子进程锁回归。它不关闭自动调度、管理 Web 页、保留/孤儿清扫、外部供应商验证或 C4；见 `SERVER-BACKUP.md` 与后继 `VERIFICATION.md`。
 - C3 控制内核初次独审曾 REJECT：最后 guard-close 不明的 reopen fence、16MiB 后继记账预留与 clean-budget poison、Reconcile 覆盖取消。后继七文件修复经 Aquinas 独立三轮负面探针 30 PASS、必要回归 27 PASS 后，三项 finding 范围内 ACCEPT；旧拒绝与旧绿色均保留，不改记为修后证据。最后物理释放确认后若 marker 删除已可见，后续清理不明允许新进程进入，但旧能力永久 closed/quarantined，不能宣称所有不明都保留物理锁。公开目录 UI 已独立导出、独审、提交 `753f6a0` 并推送，逐页账本见 `UI-DESIGN.md`。
 - C3 修后新组合以隔离环境、Go 1.27.3、CGO0 重新执行全仓：7884 PASS / 161 SKIP / 0 FAIL、49 测试包；全仓/24 个实际 MyGo 包 vet、modules、Buf lint/breaking/双模板 parity、三组件十八目标构建和 metadata 通过，非文档输入与 Web 嵌入前后一致。收据及资格见 `VERIFICATION.md`；这关闭的是 Linux 手动管理员控制平面切片，不关闭完整 F4 或全产品 UI。
+- C3 后继增加 `/server-backup` 手动管理 Web，复用现有 React/TanStack/Button/Radix；全实例未预选确认、丢回复同 request ID 继续、记录清除/取消的非回滚语义、详情与安全分页、只读对账均有真实 TLS App/SQLite/S3-like 浏览器证据。原独审分页错误恢复与触发器卸载焦点问题已修，后继独立 31 组件/12 键盘探针和最终工件读回后局部 ACCEPT，报告与限定见 `VERIFICATION.md`；没有把调度、保留、孤儿清扫、完整恢复或外部供应商验收移出首发范围。
+- 此 Web 新组合全仓为 7885 PASS / 162 SKIP / 0 FAIL，49 包；vet、24 MyGo 使用包、modules、Buf 双生成 parity 与十八目标 CGO0 build/metadata 通过，1303 项非文档输入及嵌入前后一致。原 v7 浏览器 seed HTTP 500 缺原因分类，仍 UNKNOWN；后继安全诊断与 63 个真实 RPC 备份通过不等于修复该次失败。来源页独立验收另 BLOCK 于可复现的重新授权 Internal 与验收脚本漏计，未合入该候选，不能借本轮绿关闭来源页或完整 UI 门禁。
 - 上个切片最终组合为 7768 PASS / 158 SKIP / 0 FAIL，vet/modules/MyGo vet 和三组件十八目标 CGO0 构建通过；精确命令、源码身份、原始失败及证据边界见 `VERIFICATION.md`，不转记为后继 App/公开目录切片的验证。构建不等于真实平台安装，当前仍无完整正式版放行条件。
 
 ## 结论与证据口径
