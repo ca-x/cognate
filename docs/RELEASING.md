@@ -10,7 +10,7 @@ the entire Cognate product is complete.
 | `cli-v0.1.0-rc.1` | Full shared checks, six CLI/server cross-build checks, then a CLI-only **draft** GitHub Release with six archives, bundled Codex license and `SHA256SUMS`; no Docker publication or GUI packaging |
 | `gui-v0.1.0` | Existing native verification and all three OS packaging jobs, then an unsigned/ad-hoc **draft** GUI Release; no server or CLI release |
 
-Examples are naming conventions, not already published versions. Server and CLI
+Examples describe routing; actual delivery receipts are recorded below. Server and CLI
 accept `X.Y.Z`, optionally followed by `-alpha.N`, `-beta.N` or `-rc.N`, without
 leading zeroes. GUI tags must exactly match `gui-v` plus the version in
 `cmd/cognate-desktop/mygo.json`. Legacy `desktop-v*` and generic `v*` do not publish.
@@ -84,3 +84,52 @@ only CLI/GUI draft publishers have `contents: write`.
 Preview images retain the feature and platform limitations described in README
 and the acceptance documents. Full backup/restore, the complete agent matrix and
 automatic client configuration application remain separate acceptance gates.
+
+## First three-component preview (2026-10-31)
+
+All three source tags bind commit `2bb9b137e124a89833d3c66f1c59018d7e8e44c5`.
+
+| Component | Delivery | Successful Actions run |
+| --- | --- | --- |
+| Server | `ghcr.io/ca-x/cognate:server-v0.1.0-rc.2`, Linux amd64/arm64 | `41157352875` |
+| CLI | [cli-v0.1.0-rc.1](https://github.com/ca-x/cognate/releases/tag/cli-v0.1.0-rc.1), six archives plus checksums | `41157361455` |
+| GUI | [gui-v0.1.0](https://github.com/ca-x/cognate/releases/tag/gui-v0.1.0), eight native packages plus checksums | `41157371791` |
+
+The server index digest is
+`sha256:52c8bdc6d3f0959d51469de730306eeddf93e3c41b59b087c2c6909bad1c622c`.
+Both tested OCI architectures passed promotion and digest-specific pull/help
+verification; main also fetched the anonymous index, hashed its actual bytes and
+confirmed exactly those two platforms. The old rc.1 tag and image remain unchanged.
+
+All fourteen CLI/GUI release archives/installers were downloaded and matched
+their published `SHA256SUMS`. The six CLI payloads also matched the source SHA,
+Go 1.27.3, CGO0 and target platform metadata, contained the exact Codex license,
+and the downloaded Linux amd64 CLI ran `--help` in an isolated environment.
+GUI Linux archives passed source/CGO0 checks and both Debian payload licenses
+were read back; the native workflow separately checked actual DMG and NSIS
+license payloads, source metadata and a Linux native window smoke.
+
+Only after those gates were the CLI/GUI drafts made public as prereleases,
+without promoting either to latest. Slow ordinary downloads were stopped only
+after independently fetched range-completed bytes passed their full expected
+hashes; final checksums covered every complete delivered file. The interrupted
+transfer commands are not product-test failures or evidence of missing assets.
+Preview packaging does not qualify macOS/Windows installation or configuration
+application; see `PREVIEW-RELEASE.md` and `TODO.md`.
+
+## LazyCat Exec distribution
+
+The separately versioned packaging repository is
+[lazycat-contrib/cognate-lzcapp](https://github.com/lazycat-contrib/cognate-lzcapp).
+It pins the same upstream source and uses the reusable LazyCat Action with Go
+1.27.3, Node 26.12.0 and CGO0. Only MiaoMiao is enabled; the official store is off.
+
+Run `41159355144` built and published
+`community.lazycat.app.cognate-v0.1.0-rc.2.lpk` (67,970,048 bytes), SHA256
+`c1bb1b0eee244a8504bdb22bbc2401b97503e0e76a49430b65832f2f71381b63`.
+The private-store response accepted application `670`, version `3752`, with the
+exact GitHub Release Asset URL and same SHA256. Its GitHub Release is marked
+prerelease. This proves build and store submission, not real-device installation,
+storefront visibility, platform OIDC success or full-product acceptance.
+The first rc.1 failed before LPK creation due to a missing root Node cache lock;
+its failure and tag are retained, not rewritten as success.
