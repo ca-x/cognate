@@ -11,26 +11,7 @@ func (model *Model) View(context *ui.Context) {
 	if model.Origin != model.originInput {
 		model.SetOrigin(model.Origin)
 	}
-	ui.Column(context).Fill().Padding(20).Gap(12).Children(func() {
-		ui.Row(context).Gap(12).Children(func() {
-			if model.Logo != nil {
-				ui.Image(context, model.Logo).Width(40).Height(40)
-			}
-			ui.Text(context, "Cognate").FontSize(26).Bold()
-		})
-		ui.Text(context, "原生客户端 · 仅连接你的 Cognate 服务")
-		before := model.Origin
-		ui.TextInput(context.Key("origin"), &model.Origin).Label("服务地址").Placeholder("https://skills.example.com").FillWidth()
-		if model.Origin != before {
-			model.SetOrigin(model.Origin)
-		}
-		ui.Row(context).Gap(8).Children(func() {
-			for index, title := range []string{"公开目录", "Pack 订阅", "Magpie 导入", "账号", "AI 配置", "Grok Build"} {
-				if ui.Button(context.Key(fmt.Sprintf("page-%d", index)), title).Clicked() {
-					model.configurationNavigate(index)
-				}
-			}
-		})
+	model.nativeShell(context, func() {
 		switch model.Page {
 		case 0:
 			model.catalogView(context)
@@ -44,15 +25,6 @@ func (model *Model) View(context *ui.Context) {
 			model.configurationView(context)
 		case 5:
 			model.grokView(context)
-		}
-		ui.Row(context).Gap(8).Children(func() {
-			if ui.Button(context.Key("cancel"), "取消任务").Disabled(!model.Busy && !model.WatchActive && !model.WatchStopping).Clicked() {
-				model.Cancel()
-			}
-			ui.Text(context, model.Status).Grow(1)
-		})
-		if model.Page != 1 && model.watchLocksLocal() {
-			ui.Text(context, model.WatchStatus)
 		}
 	})
 }
@@ -167,7 +139,7 @@ func (model *Model) packsView(context *ui.Context) {
 	model.packList.Selected = &model.PackSelected
 	model.packList.Key = func(index int) any { return model.Subscriptions[index].ID }
 	model.packList.Label = func(index int) string { return model.Subscriptions[index].Name }
-	ui.List(context.Key("packs"), &model.packList, len(model.Subscriptions)).Label("Pack 订阅列表").Grow(1).Rows(func(row ui.ListRow) {
+	ui.List(context.Key("packs"), &model.packList, len(model.Subscriptions)).Label("Pack 订阅列表").Grow(1).MinHeight(context.Theme().Rem(8)).MaxHeight(context.Theme().Rem(16)).Rows(func(row ui.ListRow) {
 		record := model.Subscriptions[row.Index]
 		ui.Column(row.Context).Padding(8).Gap(4).Children(func() {
 			ui.Text(row.Context, record.Name).Bold()
