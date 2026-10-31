@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"crypto/cipher"
 	"crypto/subtle"
 	"fmt"
 	"strconv"
@@ -40,12 +41,8 @@ func (store *Store) verifyDatabaseKey(ctx context.Context) error {
 	} else if err != nil {
 		return fmt.Errorf("read server key verification: %w", err)
 	} else {
-		if metadata.KeyID != store.state.keyID {
-			return fmt.Errorf("server credential encryption key does not match database")
-		}
-		proof, err := store.state.aead.Open(nil, nil, metadata.KeyProof, []byte(keyMetadataName+":"+store.state.keyID))
-		if err != nil || subtle.ConstantTimeCompare(proof, []byte(keyMetadataName)) != 1 {
-			return fmt.Errorf("server credential encryption key verification failed")
+		if err := verifyStoredKeyProof(store.state.aead, store.state.keyID, metadata.KeyID, metadata.KeyProof); err != nil {
+			return err
 		}
 	}
 	if err := store.verifyObservationPolicy(ctx, tx); err != nil {
@@ -71,10 +68,27 @@ func (store *Store) verifyObservationPolicy(ctx context.Context, tx *ent.Tx) err
 	if err != nil {
 		return fmt.Errorf("read catalog observation policy: %w", err)
 	}
-	if metadata.KeyID != store.state.keyID {
+	return verifyStoredObservationProof(store.state.aead, store.state.keyID, metadata.KeyID, metadata.KeyProof, policy)
+}
+
+func verifyStoredKeyProof(aead cipher.AEAD, keyID, actualID string, encoded []byte) error {
+	if actualID != keyID {
+		return fmt.Errorf("server credential encryption key does not match database")
+	}
+	proof, err := aead.Open(nil, nil, encoded, []byte(keyMetadataName+":"+keyID))
+	defer clear(proof)
+	if err != nil || subtle.ConstantTimeCompare(proof, []byte(keyMetadataName)) != 1 {
+		return fmt.Errorf("server credential encryption key verification failed")
+	}
+	return nil
+}
+
+func verifyStoredObservationProof(aead cipher.AEAD, keyID, actualID string, encoded, policy []byte) error {
+	if actualID != keyID {
 		return fmt.Errorf("catalog observation policy key mismatch")
 	}
-	stored, err := store.state.aead.Open(nil, nil, metadata.KeyProof, aad)
+	stored, err := aead.Open(nil, nil, encoded, []byte(observationMetadataName+":"+keyID))
+	defer clear(stored)
 	if err != nil || subtle.ConstantTimeCompare(stored, policy) != 1 {
 		return fmt.Errorf("catalog observation policy does not match database")
 	}

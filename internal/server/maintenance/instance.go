@@ -185,6 +185,9 @@ func lockDirectory(ctx context.Context, entry *directoryEntry) error {
 	if err := errors.Join(inspectLock(entry.root, lock), ctx.Err()); err != nil {
 		return errors.Join(err, lock.Close())
 	}
+	if err := snapshotGuardAvailable(entry.root); err != nil {
+		return errors.Join(err, lock.Close())
+	}
 	entry.lock = lock
 	return nil
 }

@@ -33,6 +33,7 @@ type storeState struct {
 	observationMaxAge time.Duration
 	now               func() time.Time
 	maintenance       *storeMaintenance
+	snapshotSource    *localSnapshotSource
 }
 
 type Options struct {
@@ -177,6 +178,18 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		_ = client.Close()
 		return nil, fmt.Errorf("initialize private repository history: %w", err)
 	}
+	if managed != nil {
+		store.state.snapshotSource, err = retainLocalSnapshotSource(path)
+		if err != nil {
+			closeError := client.Close()
+			if closeError != nil || errors.Is(err, ErrLocalSnapshotUncertain) {
+				retainSnapshotResource(store)
+				retained = true
+				return nil, ErrLocalSnapshotUncertain
+			}
+			return nil, err
+		}
+	}
 	retained = true
 	return store, nil
 }
@@ -251,7 +264,17 @@ func (store *Store) Close() error {
 		return nil
 	}
 	if store.state.maintenance != nil {
-		return store.state.maintenance.close(store.state.client.Close)
+		return store.state.maintenance.close(func() error {
+			if err := store.state.client.Close(); err != nil {
+				retainSnapshotResource(store)
+				return err
+			}
+			if err := store.state.snapshotSource.close(); err != nil {
+				retainSnapshotResource(store)
+				return err
+			}
+			return nil
+		})
 	}
 	return store.state.client.Close()
 }

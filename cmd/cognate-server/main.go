@@ -1,5 +1,15 @@
 package main
 
-import "github.com/ca-x/cognate/internal/servercli"
+import (
+	"os"
 
-func main() { servercli.Execute() }
+	"github.com/ca-x/cognate/internal/server/state"
+	"github.com/ca-x/cognate/internal/servercli"
+)
+
+func main() {
+	if handled, code := state.SnapshotWorkerDispatch(os.Args); handled {
+		os.Exit(code)
+	}
+	servercli.Execute()
+}

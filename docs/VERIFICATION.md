@@ -1,5 +1,15 @@
 # 开发预览验证
 
+## 2026-10-31：本地 SQLite 快照 Core27 闭合 catalog 后继
+
+签收 source27 SHA256 `18a1e22305c59643af5b0ef849d32d9bc2be6bf40d40b449c7a465059eac2336`。相对前版仅 worker 与测试两叶根修，完整读取 92 条 schema 记录并核对两个内部完整元组，不再按 sqlite 名称前缀豁免；原应用 90 条的双指纹保留，真实 SQL NULL 与非法投影 NULL 分开处理。独立报告 SHA256 `bbf007e664bac5fc2225e8ad0a743796c8b00cdbced0e290383653eae2c17698`：Spec/Quality 接受，145 项具名用例与恢复后的 63 项通过，三个可编译控制均普通 RED；只关闭新后继的 B2-CORE-01/02，原两版 REJECT 与三个反例字节不变，不重新签资源数值资格。
+
+主线程在 `33b68f2` 上组合精确 27 叶，核对全部 SHA256、七个前置与二十个新增路径无冲突。当前组合具名测试 141 PASS、零 SKIP/FAIL，包含 CLI/server 两种真实 binary、八种页大小、非空 WAL 及独立恢复 SQL；全仓第一次运行 7,295 个测试 PASS、49 个测试包 PASS、131 个显式用例 SKIP，另 77 个无测试包，零 FAIL。定向 vet、module verify、十二项 Go1.27.3/CGO0 二进制构建及 CLI 生产依赖检查通过。CLI 现在合法包含 state/maintenance/Ent 数据层，不能再声称零 server 前缀；生产闭包仍不包含 moejs/agentadapter/importer/httpapi 或 server App/bootstrap。
+
+使用独立空环境与合成 HOME/XDG/TMP，无真实账号、密钥或外部业务端点；正常 npm ci/build 仅供应本次 embed，不是新浏览器验收。仅将既有 modernc/libc 从间接提升为直接依赖，版本与 go.sum 不变。数据库候选不是完整备份：App 受管接线、skill 内容闭包、任务入口、S3 发布与完整恢复尚未交付，见 `LOCAL-SNAPSHOT.md`。
+
+该全仓绿属于本次新 B2 组合，不回写先前 Darwin 候选及 auth 候选的旧 watch 断言失败。独立诊断已用真实首次 attempt 到期证明旧断言会误拒成功前合法重试；两次原失败缺少 buffer，精确触发仍 UNKNOWN。测试阶段边界窄修另行独审，本片未修改原 watch 测试，不将偶然通过当作该问题已修复。
+
 ## 2026-10-31：Grok 所有者客户端库 G1
 
 精确七个新库/测试叶经独立 Spec/Quality 接受，报告 SHA256 `bed19f33a4f6540dd1c1d0c0a0a19721d5a6110ce20abb3117051e5aa51f2f45`，源码包 SHA256 `c458549fea898ac661d682a9b5f7e1f386b147485e78bc801ea20aa828501354`。独立真实 App/TLS、第二 SQLite、九 RPC、凭据快照、Unknown 与关闭生命周期探针通过；五项可编译负控均普通 RED，恢复同一源码通过。仅接受库，不接受 CLI/TTY、GUI 或 native 应用。

@@ -8,13 +8,15 @@ import (
 )
 
 type storeMaintenance struct {
-	instance   *maintenance.Instance
-	mutex      sync.Mutex
-	closing    bool
-	active     int
-	changed    chan struct{}
-	closeOnce  sync.Once
-	closeError error
+	instance                        *maintenance.Instance
+	mutex                           sync.Mutex
+	closing                         bool
+	active                          int
+	changed                         chan struct{}
+	closeOnce                       sync.Once
+	closeError                      error
+	snapshotOps                     map[*localSnapshotScope]struct{}
+	snapshotPoison, snapshotCleanup bool
 }
 
 type storeWriter struct {
@@ -34,6 +36,9 @@ func (store *Store) enterWriter(ctx context.Context) (context.Context, func(), e
 func (managed *storeMaintenance) enter(ctx context.Context) (context.Context, func(), error) {
 	managed.mutex.Lock()
 	defer managed.mutex.Unlock()
+	if managed.snapshotPoison {
+		return nil, nil, ErrLocalSnapshotUncertain
+	}
 	parent, _ := ctx.Value(storeWriterContextKey{}).(*storeWriter)
 	if parent != nil && parent.owner == managed && !parent.live {
 		return nil, nil, maintenance.ErrLease
@@ -65,13 +70,23 @@ func (managed *storeMaintenance) close(closeClient func() error) error {
 	managed.closeOnce.Do(func() {
 		managed.mutex.Lock()
 		managed.closing = true
+		for operation := range managed.snapshotOps {
+			if operation.queued {
+				operation.cancel()
+			}
+		}
 		close(managed.changed)
 		managed.changed = make(chan struct{})
-		for managed.active != 0 {
+		for managed.active != 0 || len(managed.snapshotOps) != 0 {
 			changed := managed.changed
 			managed.mutex.Unlock()
 			<-changed
 			managed.mutex.Lock()
+		}
+		if managed.snapshotPoison {
+			managed.closeError = ErrLocalSnapshotUncertain
+			managed.mutex.Unlock()
+			return
 		}
 		managed.mutex.Unlock()
 		managed.closeError = closeClient()
