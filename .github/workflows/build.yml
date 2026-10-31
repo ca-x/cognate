@@ -2,8 +2,15 @@ name: Build
 
 on:
   push:
+    branches: ['**']
   pull_request:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      component:
+        description: Component whose distribution artifacts are required
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -118,6 +125,7 @@ jobs:
       - run: CGO_ENABLED=0 go vet ./...
 
   binaries:
+    if: inputs.component != 'server'
     needs: test
     runs-on: ubuntu-latest
     strategy:
@@ -180,6 +188,7 @@ jobs:
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -
 
   docker:
+    if: inputs.component != 'cli'
     needs: test
     runs-on: ubuntu-latest
     strategy:

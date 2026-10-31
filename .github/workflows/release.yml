@@ -1,0 +1,133 @@
+name: Server and CLI release
+
+on:
+  push:
+    tags: ['server-v*', 'cli-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  identify:
+    runs-on: ubuntu-24.04
+    outputs:
+      component: ${{ steps.tag.outputs.component }}
+    steps:
+      - name: Validate component version tag
+        id: tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^(server|cli)-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.(0|[1-9][0-9]*))?$ ]]; then
+            echo 'Expected server-vX.Y.Z or cli-vX.Y.Z, optionally -alpha.N, -beta.N or -rc.N.' >&2
+            exit 1
+          fi
+          printf 'component=%s\n' "${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: identify
+    uses: ./.github/workflows/build.yml
+    with:
+      component: ${{ needs.identify.outputs.component }}
+
+  server:
+    if: needs.identify.outputs.component == 'server'
+    needs: [identify, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cognate-docker-*
+          path: images
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Install OCI promotion tool
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends skopeo
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote tested OCI images without rebuilding
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for arch in amd64 arm64; do
+            archive="images/cognate-docker-$arch/cognate-$arch.tar"
+            test -f "$archive"
+            skopeo copy --all --preserve-digests --authfile "$HOME/.docker/config.json" \
+              "oci-archive:$archive" "docker://$image:$RELEASE_TAG-$arch"
+          done
+          docker buildx imagetools create --tag "$image:$RELEASE_TAG" \
+            "$image:$RELEASE_TAG-amd64" "$image:$RELEASE_TAG-arm64"
+          docker buildx imagetools inspect --raw "$image:$RELEASE_TAG" > manifest.json
+          jq -e '[.manifests[] | select(.platform.os == "linux") | .platform.architecture] | sort == ["amd64", "arm64"]' manifest.json
+          digest="$(skopeo inspect --authfile "$HOME/.docker/config.json" --format '{{.Digest}}' "docker://$image:$RELEASE_TAG")"
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          for arch in amd64 arm64; do
+            docker pull --platform "linux/$arch" "$image@$digest"
+            docker run --rm --platform "linux/$arch" --network none --read-only \
+              --cap-drop ALL --security-opt no-new-privileges "$image@$digest" --help >/dev/null
+          done
+          printf '### Server image\n\n`%s:%s`\n\n`%s@%s`\n\nNo latest tag is updated.\n' \
+            "$image" "$RELEASE_TAG" "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
+      - name: Check anonymous registry access
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          skopeo inspect --no-creds "docker://$image:$RELEASE_TAG" >/dev/null
+
+  cli:
+    if: needs.identify.outputs.component == 'cli'
+    needs: [identify, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cognate-*
+          path: artifacts
+      - name: Package only CLI binaries and license
+        run: |
+          set -euo pipefail
+          mkdir release
+          for os in linux darwin windows; do
+            for arch in amd64 arm64; do
+              name="cognate-$os-$arch"
+              directory="artifacts/$name"
+              suffix=''
+              if [ "$os" = windows ]; then suffix='.exe'; fi
+              test -f "$directory/$name$suffix"
+              printf '%s  %s\n' 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6 "$directory/CODEX-0.166.0-LICENSE.txt" | sha256sum -c -
+              if [ "$os" = windows ]; then
+                (cd "$directory" && python3 -m zipfile -c "$GITHUB_WORKSPACE/release/$name.zip" "$name$suffix" CODEX-0.166.0-LICENSE.txt)
+              else
+                chmod 0755 "$directory/$name"
+                tar -czf "release/$name.tar.gz" -C "$directory" "$name" CODEX-0.166.0-LICENSE.txt
+              fi
+            done
+          done
+          (cd release && sha256sum *.tar.gz *.zip > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - name: Create component-specific draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" release/* --verify-tag --draft \
+            --title "Cognate CLI $RELEASE_TAG" \
+            --notes 'CLI-only draft. See docs/RELEASING.md and the documented feature/platform limitations; this is not a complete-product release.'

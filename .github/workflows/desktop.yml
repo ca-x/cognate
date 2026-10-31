@@ -16,7 +16,7 @@ on:
       - 'go.sum'
       - '.github/workflows/desktop.yml'
   push:
-    tags: ['desktop-v*']
+    tags: ['gui-v*']
   workflow_dispatch:
     inputs:
       publish:
@@ -24,7 +24,7 @@ on:
         type: boolean
         default: false
       tag:
-        description: Existing desktop-v0.1.0 tag to publish (must match checked out ref)
+        description: Existing gui-v0.1.0 tag to publish (must match checked out ref)
         type: string
         default: ''
 
@@ -38,7 +38,25 @@ env:
   CODEX_LICENSE_SHA256: 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6
 
 jobs:
+  release-tag:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify GUI tag matches package version and checked out commit
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version cmd/cognate-desktop/mygo.json)
+          test "$RELEASE_TAG" = "gui-v$version"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+
   verify:
+    needs: release-tag
+    if: always() && (needs.release-tag.result == 'success' || needs.release-tag.result == 'skipped')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -316,7 +334,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
     needs: package
     runs-on: ubuntu-24.04
     permissions:
@@ -333,11 +351,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
         run: |
           set -euo pipefail
           version=$(jq -r .version cmd/cognate-desktop/mygo.json)
-          test "$RELEASE_TAG" = "desktop-v$version"
+          test "$RELEASE_TAG" = "gui-v$version"
           test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
           mapfile -d '' files < <(find packages -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.tar.gz' -o -name '*-setup-*.exe' \) -print0)
           test "${#files[@]}" -ge 8
