@@ -553,3 +553,25 @@ CGO0、readonly modules 和离线模块解析下运行原
 用户 rc.5 设备日志显示安全的 32 字节密钥及私有叶目录，但第二级祖先为无 sticky bit 的 `0777`。本地同条件回归证明程序继续因可写祖先拒绝，而非密钥生成方式错误；错误保留具体非敏感原因，不输出内容。没有更改平台目录权限或降低核心检查，也没有发布新的 LPK；包装仍固定 rc.3 服务端，切换程序内初始化须与持久卷安全适配一起交付。
 
 续接检索使用 nmem CLI，查询 `Cognate 懒猫 rc.5 诊断`，默认模式/default Space、结果上限 1，首位记忆 `db2cde48-d389-4105-b620-7eda7215c4bd`，标题“Cognate 懒猫 rc.5 诊断包已提交喵喵：缺失自动生 key，设备根因仍 UNKNOWN”，score 0.99。此处以新设备证据更新旧 UNKNOWN 判断；CLI 无可信浏览器会话，未自动生成图谱。
+
+## 懒猫 root 私有卷适配及 rc.6（2026-10-31）
+
+用户明确要求修复 root 运行的懒猫适配并显式传递数据目录。`root` 不被核心校验拒绝，真正触发点为 rc.5 日志中无 sticky bit 的 `0777` 祖先。核对本地官方 SDK 源码 `gitee.com/linakesi/lzc-sdk`，commit `f5bd0470167da6df10f5ebb396525d9a12706d7c` 的 `docs/app-runtime.md` 与 `docs/other.md`：`/lzcapp/var` 是应用自己的备份数据，目录约定为应用所属用户与 `0700`。没有把共享的平台路径当作应用私有卷。
+
+包装源码 `9381130fd60140081d00ee2bb30fbe0a47e109d7`，版本 `v0.1.0-rc.6`，仅在使用 `/lzcapp/var` 下状态目录时，写入前验证 `/` 与 `/lzcapp` 的类型、属主和非可写权限，验证固定卷为当前用户拥有的真实目录，然后仅收紧该卷到 `0700` 并复查；不 chown、不递归 chmod、不修改其他祖先。显式传递数据目录、key 路径及 `--init-key-if-missing`，删除原 shell 随机生成逻辑。固定上游 `server-v0.1.0-rc.4` / `a576aeb5c8adf4bda98c1431bcd6072c642d3660`，无 Go 安全校验放宽。
+
+新增持久回归 `cognate-lzcapp/tests/startup.py`。先在旧包装上观察 health 门禁 RED，再用新包装与实际二进制通过；另直接在 namespace UID 0、`0777` 卷、`0700` 叶目录及合规已有 key 上验证具体的 ancestor-writable 拒绝。独立 user/mount/network namespace 的根目录为本次创建的 tmpfs，数据卷为临时目录绑定，未修改开发机器的 `/lzcapp`。测试验证新安装、原 key inode 与字节保留、管理员原密码和日志授权、真实 `/proc` 中的显式路径参数及秘密清除、卷权限再次回到 `0777` 后重启；只读/符号链接卷、不可信平台父目录、自定义外部可写祖先、公开/多硬链接 key、已有数据丢 key 均拒绝且不生成替代 key。CI 增加同一 root 启动门禁，成功后才运行 reusable LPK 发布任务。
+
+本地完整源构建、Web typecheck/build、Shell 语法、actionlint、同版 Action v1.3.7 原始 Manifest 预检与真实 LPK 构建通过。从实际 LPK 解出二进制和包装脚本，与构建输入逐字节比较一致，再以这两份解包产物运行全部 namespace 用例通过。该本地 LPK 为 68,036,608 字节，SHA256 `96793d6f0a768df7a9e5b446bebf571ce8014f6b365524e2df965ce885544e2f`；这只是本地产物身份，不替代 CI 最终资产校验。本轮没有更改 Go 代码；上游 `a576aeb` 的 Build `41168903301` 与 Platform `41168903181` 已 success，新增 server tag 的发布另行核验。
+
+影响范围检查：严格 `ReadMasterKey` 和所有 Unix 文件安全检查保持不变；标准 Docker 镜像原有 UID 10001/`0700 /data` 已显式配置，不属于本次错误；只有单 Exec 懒猫应用卷进入收紧分支，自定义外部祖先仍拒绝。没有新增 token 日志，也没有触碰用户现有 key 或数据库。不将本地通过称为真机安装或 OIDC 验收。
+
+rc.6 CI `41171336131` 在 namespace 挂载 runner checkout 中的测试脚本时报告 `Permission denied`，应用启动门禁未执行，后续 LPK 与商店发布均 skipped；保留该 tag 与失败。rc.7 源码 `58256406a2bf003fe97248cc2bbc6d1a64b044a0` 将测试脚本复制到测试用户拥有的私有临时目录后挂载，应用脚本与上游代码不变，不修改 runner home 权限、不绕过测试。rc.7 的本地 LPK 解包一致性与完整 namespace 启动回归也通过；本地产物 68,036,608 字节，SHA256 `205ef24ed2883a5856a038310abffb1b3fcc8fde304016a1a071abf7ea512e93`，与 CI 最终资产分别记录。
+
+rc.7 Actions `41171750570` completed/success：真实 root `startup-smoke`、LPK 构建与喵喵提交、预览标记全部成功。GitHub API 核验公开且非 draft 的 prerelease，最终 `community.lazycat.app.cognate-v0.1.0-rc.7.lpk` 为 68,036,096 字节，digest `sha256:047ea3a9d71029470a086fd91316eed39f531dbae0399b8b5d7ecdfb114b29c1`。喵喵回执 published=true、skipped=false，app `670` / version `3757`，使用相同版本化 GitHub Asset URL 和 SHA256；官方商店仍关闭。该回执不是商店前台可见或设备安装成功的证明。
+
+服务端 `server-v0.1.0-rc.4` 的发布 run `41170966158` completed/success，包括完整测试、amd64/arm64 Docker、镜像提升和实际镜像验证；不更新 latest。代码与包装 tag 均 SSH push 并读回一致，不移动 rc.6 tag。
+
+最终 GitHub Asset 下载探针限时 90 秒，实际 exit 124，只有部分字节；不宣称下载成功、SHA256 复算通过或已启动 CI 最终 LPK。上述最终资产身份来自 GitHub Asset digest 与喵喵回执交叉核对；本地解包实跑与 CI 构建后二进制的 root 启动回归分别有证据，不能替代最终下载验收。
+
+本次续接以 nmem CLI 查询 `Cognate rc.5 777 祖先 程序内`，默认模式/default Space、上限 1，首位 `c8ded42f-836e-48e3-9ed1-423338bb4ad1`，score 0.99；未扩展图谱，CLI 无可信浏览器会话。以新适配与真实回归更新其中“LPK 适配未完成”的阶段状态。
