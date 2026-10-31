@@ -18,9 +18,33 @@ mock 代替。被动身份 getter 不 SELECT 密文或解密，普通 Credential
 18 SKIP、0 FAIL及四包 vet exit0，收据 `runtime-r4-main/01-four-packages.*`、`02-vet.*`。
 此前 T3S 全仓 8838 PASS 不冒称本 nineteen-source 组合的单次全仓运行。
 该组合六目标 server CGO0 构建及实际 Go/OS/架构元数据检查全部通过，见
-`runtime-r4-main/03-*`；CLI/MyGo 生产依赖列表确认不含 `internal/server/`，未引入服务端
-SQL/helper 或 moejs。前一组 18 产品构建仍绑定 T3S tree，不混记为本次 18 构建。
+`runtime-r4-main/03-*`。更正：最初的客户端依赖探针误把“无任何 internal/server”当作
+现状，实际 exit1；客户端联合依赖清单包含 server/state/ent，直接引用来自 CLI 主入口的
+既有 SnapshotWorkerDispatch，不能声称完全无服务端包或 SQL。收据 `04-client-deps.*`
+保留；窄检查确认不含 moejs、server/backup 或 AWS SDK，见 `05-server-only-deps.*`。
+不为此夹带已有依赖图重构；补跑最新组合客户端 12 目标构建及元数据检查全通过，
+加上该组合 server 六目标，共 18 个当前源 CGO0 构建，见 `06-*`。这是两个批次，
+不是把前一组 T3S 的 18 构建移记到当前源。
+最新产物真实公开安装链八步再次 exit0、46 skills、自建 fixture 清理，见
+`runtime-r4-main/07-public-live.*`；新旧独立代表及此主线程复跑的范围保持区分。
 没有新 wire/UI/依赖；不是用户真实 GitHub/OIDC 账号、完整恢复或正式发布资格。
+
+## 2026-11-01：真实 MinIO 有限 QA，上传稳定性仍开放
+
+官方两个预编译校验端点返回 410 后，主线程批准从官方源码固定 tag 构建私有测试工具：
+`RELEASE.2025-09-07T16-13-09Z`，peeled commit
+`07c3a429bfed433e49018cb0f78a52145d4bedeb`。Go1.27.3/CGO0 构建及 metadata/静态 ELF
+核验通过，不是官方预编译发布包，也不加入产品依赖。报告
+`/tmp/cognate-real-s3-src-38c-XfJWKRUG/REPORT.md`，SHA256
+`8aaadd2782318d37006cf8285f99579b39b67cfe4afccbde3ae70d825a64b9e0`。
+
+固定 38c 产品代码、私有 HOME/数据、字面回环与合成可信 TLS/凭据；真实 Capture 密文
+经 MinIO 的条件上传和精确回读、Source→Candidate，以及错误/匿名凭据、错误原 master
+拒绝均实际运行。最终五个新进程 25 叶次通过，但保留一次 Capture.WithFiles/上传阶段
+ErrInvalid 尚未定位，不能用后继绿次关闭。首次建桶的精确 503/XMinioServerNotInitialized
+属于已定位的 fixture readiness；只在 fixture 等待，不为产品增加重试。
+错误凭据的 Source 公开类实际为 uncertain，不改写成干净 denied。上传失败继续有界取证，
+本段不是稳定性验收、当前 App 恢复闭环、AWS/IAM/其它供应商或 GA 资格。
 
 ## 2026-11-01：恢复凭据撤销事务内核
 

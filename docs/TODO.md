@@ -40,6 +40,7 @@
 - [x] T2 Candidate 核心：材料化真实 DB/inventory/归档文件集合，绑定 T1 和完整共享仓库技能；源关闭屏障、累计预算及关闭生命周期经独审，staging panic 自等待 P2 已闭合。不包含远端 Source 或发布能力。
 - [x] T2 可信 S3 Source bridge 内部 API：头 scope 外完成全对象认证，所有解封/输入 scope 关闭成功后才开放候选验证；原 Capture 密文经 TLS 到真实 Candidate 的组合经独审，不含生产 CLI 或真实云供应商资格。
 - [ ] 生产离线恢复命令与真实 S3 权限/供应商验收：接通原始 key、S3 Source、候选和运行代全过程；内部 API 通过不等于用户已能执行恢复。
+- [ ] 定位真实 MinIO QA 一次 Capture.WithFiles/上传 ErrInvalid；已固定官方源码 CGO0 工具并跑通真实密文链及拒绝场景，但后继五进程通过不关闭原失败。只加固定类别阶段取证，不先给产品加重试；见 `VERIFICATION.md`。
 - [x] R4 恢复凭据撤销内部事务 helper：五类会话链、share/MCP、GitHub 在途状态按固定时刻退役，保留业务及原密文/AAD；非作者独审和主 T3S 组合定向通过。非幂等，不含事务 coordinator、发布或恢复产品入口。
 - [x] GitHub needs_reauthorization 的明确重新授权 CAS：所有者经现有 Catalog 取得预期 generation，沿 PAT/device flow 验新凭据后原子生成新代/新密文并转 ready；旧 AAD、stale/refreshing/跨 owner 与旧票据门保持。非作者独审通过，不代表恢复产品或真实账号已验收。
 - [x] T1 辅助配置关系 gate：在既有只读 worker 核验排序及 Pack 附件的 owner/分区/成员/序号；公开预算域和 LIMIT 溢出 P2 经原独审闭合，不改变合法 stale/Unsupported 读取语义。

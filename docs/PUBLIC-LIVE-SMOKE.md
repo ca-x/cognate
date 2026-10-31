@@ -15,6 +15,13 @@ CGO_ENABLED=0、`-trimpath -buildvcs=false` 构建：CLI SHA256
 编排只更新产物/输出路径与 source tree 标识，保留原 pipe helper 和所有业务断言。
 这是主线程的新组合运行，不将下述旧独立代表签收冒称本 tree 的新独审；原范围限制不变。
 
+后继 T3S+撤销+GitHub 重新授权 tree `61e267232439960a0c9a4d4c8da3ab001eb843c6`
+重建后同八步再次 exit0，自建 fixture 清理、观察 46 skills。CLI SHA256
+`ac289a022304873a38916c13d158095df12ec6ec6b35fb7911721523464225f4`，server SHA256
+`174d1fadcc67575edd3c2b75914c071e41e897ae8b5c9a6dc944713d59268287`；构建参数同上。
+收据在 `/tmp/cognate-npx-selection.TB9Vd2tL/runtime-r4-main/07-public-live.*`。
+仍是主线程复跑，不扩张为本 tree 的独立全产品验收。
+
 ## 被测版本与隔离
 
 被测 source tree 为 `1c3edd309c581dff2b9ad4a585b52a8205117db6`；与 `2efa940` 和
