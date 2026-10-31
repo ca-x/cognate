@@ -1,5 +1,13 @@
 # 开发预览验证
 
+## 2026-11-01：真实公开链 smoke
+
+源码与两 Linux 二进制经独立重建/哈希绑定；真实无凭据 GitHub 整仓采集、默认私有及
+owner 隔离、分类/显式公开、匿名 API 与实际 CLI 安装、取消公开拒绝再次安装、正常
+退出清理的八步在独立清环境沙箱复跑 exit0。无实际安装却返回成功的 fakeCLI 在文件
+断言处真实 RED；不把单纯退出 0 当安装成功。限定 ACCEPT，报告及完整范围见
+`PUBLIC-LIVE-SMOKE.md`。这不等于所有文件 hash/二进制、UI、私有仓库、OIDC、跨平台或 GA。
+
 ## 2026-11-01：可信 S3 CandidateSource 桥接
 
 `S3CandidateSource` 是冷函数，借 S3 options、私有 parent FD 和恢复 key 原 slice；调用期间
