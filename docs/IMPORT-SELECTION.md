@@ -1,10 +1,10 @@
 # 技能、仓库与配置选择导入
 
-仓库页默认提供三类选择导入。来源为 cc-switch schema 24 的独立 SQLite 快照或 Magpie `library.json`；浏览器和客户端不运行 moejs，来源适配器只在服务端执行。旧版仅仓库流程仍可显式切换使用，旧 RPC 保留兼容。
+仓库页默认提供三类选择导入。来源为 cc-switch schema 24 的独立 SQLite 快照、Magpie `library.json` 或 [npx skills v3 global lock](NPX-SKILLS-IMPORT.md)；浏览器和客户端不运行 moejs，来源适配器只在服务端执行。旧版仅仓库流程仍可显式切换使用，只保留原有两种来源，旧 RPC 保留兼容。
 
 ## 使用流程
 
-1. 选择来源和导出文件，再点击上传预览；仅选择文件不会上传。cc-switch 原始快照上限 16 MiB，Magpie 上限 1 MiB。SQLite 必须是一致、自包含的 rollback-mode 导出，不能忽略运行中数据库的 WAL；制作方法见 [CCSWITCH-SNAPSHOT.md](CCSWITCH-SNAPSHOT.md)。整个文件可能包含凭据，只能授权上传到自己信任的服务器。
+1. 选择来源和导出文件，再点击上传预览；仅选择文件不会上传。cc-switch 原始快照上限 16 MiB，Magpie 与 npx 上限 1 MiB。SQLite 必须是一致、自包含的 rollback-mode 导出，不能忽略运行中数据库的 WAL；制作方法见 [CCSWITCH-SNAPSHOT.md](CCSWITCH-SNAPSHOT.md)。整个文件可能包含凭据，只能授权上传到自己信任的服务器。
 2. 分别查看技能、仓库和配置候选。三类默认都不勾选，可以选择任意非空组合；不支持的候选明确显示，不会静默导入。当前 cc-switch provider 配置支持 Claude、Codex 和 Gemini，不代表其它 agent、MCP 或 instructions 已支持导入。
 3. 按需要明确选择认证模式、Gemini key transport 或不冲突的配置名称，再重新预览。更改选项会使旧预览失效并清除选择。技能需要绑定已收录的服务端内容，核对仓库、分支、归档和完整技能身份；没有内容时先收录仓库，再重新预览，不根据同名文件猜测绑定。
 4. 阅读并确认所有排除项和内容未比较提示，勾选需要的候选后进入确认。预览与确认本身不写入导入资产或收录仓库；提交才执行选择。票据五分钟有效，过期需重新预览。

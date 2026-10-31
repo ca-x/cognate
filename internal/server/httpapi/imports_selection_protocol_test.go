@@ -67,7 +67,7 @@ func TestImportSelectionDescriptorAdditive(test *testing.T) {
 func TestImportSelectionEnumLedger(test *testing.T) {
 	file := importv1.File_skillhub_import_v1_import_proto
 	for name, values := range map[protoreflect.Name]string{
-		"ImportSelectionSource":       "UNSPECIFIED CCSWITCH_SCHEMA24 MAGPIE_LIBRARY_JSON",
+		"ImportSelectionSource":       "UNSPECIFIED CCSWITCH_SCHEMA24 MAGPIE_LIBRARY_JSON NPX_SKILLS_LOCK",
 		"ImportCandidateStatus":       "UNSPECIFIED READY NEEDS_CHOICE NEEDS_REPOSITORY_IMPORT UNRESOLVED UNSUPPORTED_AGENT UNSUPPORTED_KIND UNSUPPORTED_FIELD NAME_CONFLICT",
 		"ImportNoticeCode":            "UNSPECIFIED CREDENTIALS_OMITTED METADATA_EXCLUDED OTHER_SOURCE_DATA_EXCLUDED SOURCE_CONTENT_NOT_COMPARED UNKNOWN_SOURCE_SECTION_EXCLUDED",
 		"ImportReceiptPhase":          "UNSPECIFIED RESERVED COLLECTING COMPLETED PARTIAL FAILED",

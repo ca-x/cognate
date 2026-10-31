@@ -380,6 +380,8 @@ func importSelectionInput(source importv1.ImportSelectionSource, data []byte, op
 		selected, maximum = importer.SelectionCCSwitch24, importer.MaxCCSwitchSnapshotBytes
 	case importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON:
 		selected, maximum = importer.SelectionMagpie, importer.MaxMagpieExportBytes
+	case importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK:
+		selected, maximum = importer.SelectionNPXSkills, importer.MaxNPXSkillsLockBytes
 	default:
 		return "", importer.SelectionOptions{}, importer.ErrSelectionInvalid
 	}

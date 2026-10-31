@@ -108,11 +108,9 @@ func NewSelectionCommitRequest(input SelectionCommitInput) (SelectionCommitReque
 	if len(input.Ticket) != 290 || input.OperationID == [16]byte{} || len(input.Options.Candidates) > 160 || len(input.RepositoryIDs) > 16 || len(input.SkillIDs) > 128 || len(input.ConfigurationIDs) > 32 || len(input.AckNoticeIDs) > 2048 || len(input.RepositoryIDs)+len(input.SkillIDs)+len(input.ConfigurationIDs) == 0 {
 		return SelectionCommitRequest{}, ErrSelectionInvalid
 	}
-	maximum := MaxMagpieExportBytes
-	if input.Source == SelectionCCSwitch24 {
-		maximum = MaxCCSwitchSnapshotBytes
-	} else if input.Source != SelectionMagpie {
-		return SelectionCommitRequest{}, ErrSelectionUnsupported
+	maximum, err := selectionSourceLimit(input.Source)
+	if err != nil {
+		return SelectionCommitRequest{}, err
 	}
 	if len(input.SourceData) == 0 || len(input.SourceData) > maximum {
 		return SelectionCommitRequest{}, ErrSelectionLimit
@@ -265,16 +263,14 @@ func (service *SelectionService) Preview(call *SelectionCall, source SelectionSo
 	}
 	defer exit()
 	ctx := call.ctx
-	if source == SelectionMagpie {
+	if source == SelectionMagpie || source == SelectionNPXSkills {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithDeadline(ctx, call.started.Add(5*time.Second))
 		defer cancel()
 	}
-	maximum := MaxMagpieExportBytes
-	if source == SelectionCCSwitch24 {
-		maximum = MaxCCSwitchSnapshotBytes
-	} else if source != SelectionMagpie {
-		return SelectionPreview{}, ErrSelectionUnsupported
+	maximum, err := selectionSourceLimit(source)
+	if err != nil {
+		return SelectionPreview{}, err
 	}
 	if len(raw) == 0 || len(raw) > maximum {
 		return SelectionPreview{}, ErrSelectionLimit
@@ -648,7 +644,7 @@ func (SelectionPreview) LogValue() slog.Value {
 	return slog.StringValue("[redacted selection preview]")
 }
 
-//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go source_grok.go selection_service.go
+//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go source_grok.go source_npx.go selection_service.go
 var selectionHostSources embed.FS
 
 type selectionTranscript struct {
@@ -913,7 +909,7 @@ func selectionOptionsDigest(options SelectionOptions) ([32]byte, error) {
 
 func selectionHostDigest() ([32]byte, error) {
 	transcript := selectionTranscriptFor("cognate/import-selection/v1/go-host-source")
-	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "selection_service.go"}
+	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "source_npx.go", "selection_service.go"}
 	transcript.count(len(paths))
 	for _, path := range paths {
 		data, err := selectionHostSources.ReadFile(path)
@@ -1075,7 +1071,13 @@ func selectionMapNotices(digest, kind, candidate string, notices []SelectionNoti
 
 func selectionGlobalNotices(ctx context.Context, source SelectionSource, raw []byte, view SelectionView) ([]state.ImportReceiptNotice, error) {
 	counts := [3]int{}
-	if source == SelectionCCSwitch24 {
+	if source == SelectionNPXSkills {
+		var err error
+		counts, err = npxGlobalExclusions(raw)
+		if err != nil {
+			return nil, err
+		}
+	} else if source == SelectionCCSwitch24 {
 		err := readSelectionSnapshot(ctx, raw, func(ctx context.Context, connection *sql.Conn) error {
 			return connection.QueryRowContext(ctx, `SELECT count(*) FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('skill_repos','skills','providers','provider_endpoints','mcp_servers','prompts')`).Scan(&counts[2])
 		})
@@ -1241,7 +1243,7 @@ func (service *SelectionService) resolve(ctx context.Context, owner string, sour
 			var matches []state.ImportSkillBinding
 			for _, skill := range current.Skills {
 				binding := state.ImportSkillBinding{RepositoryID: current.ID, ArchiveHash: current.ArchiveHash, SkillID: skill.ID, LogicalPath: skill.Path, ContentHash: skill.ContentHash, Repository: current.NameWithOwner, Branch: current.Branch}
-				if source == SelectionMagpie && candidate.Path != nil && *candidate.Path == skill.Path || source == SelectionCCSwitch24 && candidate.Binding != nil && selectionBinding(*candidate.Binding) == binding {
+				if source == SelectionMagpie && candidate.Path != nil && *candidate.Path == skill.Path || (source == SelectionCCSwitch24 || source == SelectionNPXSkills) && candidate.Binding != nil && selectionBinding(*candidate.Binding) == binding {
 					matches = append(matches, binding)
 				}
 			}
@@ -1284,9 +1286,16 @@ func (service *SelectionService) resolve(ctx context.Context, owner string, sour
 	if err != nil {
 		return result, err
 	}
-	profile := state.ImportSourceMagpie
-	if source == SelectionCCSwitch24 {
+	var profile state.ImportSourceProfile
+	switch source {
+	case SelectionCCSwitch24:
 		profile = state.ImportSourceCCSwitch24
+	case SelectionMagpie:
+		profile = state.ImportSourceMagpie
+	case SelectionNPXSkills:
+		profile = state.ImportSourceNPXSkills
+	default:
+		return result, ErrSelectionInvalid
 	}
 	result.claims = state.ImportTicketClaims{SourceProfile: profile, SourceDigest: sha256.Sum256(raw), ProjectionDigest: projectionDigest, AdapterDigest: adapterDigest, ResolutionDigest: resolutionDigest, OptionsDigest: optionsDigest}
 	if len(selectionAllNotices(result.preview)) > 2048 {

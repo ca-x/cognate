@@ -20,7 +20,7 @@ func newImportSelectionCommand() *cobra.Command {
 	var repositories, skills, configurations []int
 	var notices []string
 	command := &cobra.Command{Use: "select", Short: "明确选择导入技能引用、仓库与配置资产（不安装、不迁移凭据）", Args: cobra.NoArgs,
-		Long: "默认只上传授权快照并预览。--apply 必须固定原文 SHA256、显式选择序号和逐项排除提示，再在控制终端确认。提交结果未知时只使用 import status，不重新提交。配置仅存服务端，技能仅引用已收录内容。整个文件可能含秘密，仅上传到可信服务端。",
+		Long: "默认只上传授权快照并预览。npx-skills 仅接受显式选择的 v3 global lock（≤1 MiB），只导入 GitHub 仓库与明确绑定的技能引用。--apply 必须固定原文 SHA256、显式选择序号和逐项排除提示，再在控制终端确认。提交结果未知时只使用 import status，不重新提交。配置仅存服务端，技能仅引用已收录内容。整个文件可能含秘密，仅上传到可信服务端。",
 		RunE: func(command *cobra.Command, _ []string) error {
 			if !tokenStdin {
 				return errors.New("必须使用 --token-stdin 从标准输入提供会话令牌")
@@ -31,8 +31,10 @@ func newImportSelectionCommand() *cobra.Command {
 				sourceID = importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24
 			case "magpie":
 				sourceID = importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON
+			case "npx-skills":
+				sourceID = importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK
 			default:
-				return errors.New("--source 必须是 cc-switch 或 magpie")
+				return errors.New("--source 必须是 cc-switch、magpie 或 npx-skills")
 			}
 			if apply && (expected == "" || len(repositories)+len(skills)+len(configurations) == 0) {
 				return errors.New("--apply 必须固定 --expected-sha256 并显式选择候选")
@@ -100,8 +102,8 @@ func newImportSelectionCommand() *cobra.Command {
 			return errors.Join(commitErr, showSelectionStatus(output, result))
 		}}
 	command.Flags().StringVar(&server, "server", "", "可信 HTTPS origin（显式 loopback HTTP 可用）")
-	command.Flags().StringVar(&path, "file", "", "授权的独立快照 regular 文件；cc-switch ≤16 MiB，Magpie ≤1 MiB")
-	command.Flags().StringVar(&source, "source", "", "cc-switch 或 magpie")
+	command.Flags().StringVar(&path, "file", "", "授权的独立快照 regular 文件；cc-switch ≤16 MiB，Magpie ≤1 MiB，npx-skills v3 global lock ≤1 MiB")
+	command.Flags().StringVar(&source, "source", "", "cc-switch、magpie 或 npx-skills")
 	command.Flags().StringVar(&optionsPath, "options-file", "", "≤64 KiB ProtoJSON {options:[...]}，仅候选名称、认证模式或完整 skill binding；不含密钥")
 	command.Flags().BoolVar(&tokenStdin, "token-stdin", false, "有界非TTY stdin 会话令牌，不表示批准")
 	command.Flags().BoolVar(&apply, "apply", false, "显式选择后在控制终端确认（默认只预览）")

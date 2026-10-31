@@ -102,6 +102,7 @@ func TestImportSelectionInput(test *testing.T) {
 	}{
 		{importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24, importer.SelectionCCSwitch24, importer.MaxCCSwitchSnapshotBytes},
 		{importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON, importer.SelectionMagpie, importer.MaxMagpieExportBytes},
+		{importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, importer.SelectionNPXSkills, importer.MaxNPXSkillsLockBytes},
 	} {
 		for _, length := range []int{1, source.maximum} {
 			actual, options, err := importSelectionInput(source.wire, data[:length], []*importv1.ImportCandidateOptions{{Name: new("Renamed")}})
@@ -120,7 +121,7 @@ func TestImportSelectionInput(test *testing.T) {
 			}
 		}
 	}
-	for _, source := range []importv1.ImportSelectionSource{0, -1, 3, 99} {
+	for _, source := range []importv1.ImportSelectionSource{0, -1, 4, 99} {
 		actual, options, err := importSelectionInput(source, data[:1], nil)
 		if !errors.Is(err, importer.ErrSelectionInvalid) || actual != "" || len(options.Candidates) != 0 {
 			test.Fatal("unknown source was accepted")

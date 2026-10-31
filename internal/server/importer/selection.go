@@ -30,6 +30,7 @@ type SelectionNoticeCode string
 const (
 	SelectionCCSwitch24         SelectionSource     = "ccswitch-schema24"
 	SelectionMagpie             SelectionSource     = "magpie-library"
+	SelectionNPXSkills          SelectionSource     = "npx-skills-lock"
 	SelectionReady              SelectionStatus     = "ready"
 	SelectionNeedsChoice        SelectionStatus     = "needs-choice"
 	SelectionNeedsBinding       SelectionStatus     = "needs-binding"
@@ -132,11 +133,9 @@ func ProjectSelection(ctx context.Context, source SelectionSource, raw []byte) (
 	if err := ctx.Err(); err != nil {
 		return SourceProjection{}, err
 	}
-	maximum := MaxMagpieExportBytes
-	if source == SelectionCCSwitch24 {
-		maximum = MaxCCSwitchSnapshotBytes
-	} else if source != SelectionMagpie {
-		return SourceProjection{}, ErrSelectionUnsupported
+	maximum, err := selectionSourceLimit(source)
+	if err != nil {
+		return SourceProjection{}, err
 	}
 	if len(raw) == 0 {
 		return SourceProjection{}, ErrSelectionInvalid
@@ -146,10 +145,12 @@ func ProjectSelection(ctx context.Context, source SelectionSource, raw []byte) (
 	}
 	digest := sha256.Sum256(raw)
 	view := SelectionView{Source: source, SourceDigest: hex.EncodeToString(digest[:]), Repositories: []SelectionRepository{}, Skills: []SelectionSkill{}, Configurations: []SelectionConfiguration{}, Notices: []SelectionNotice{}}
-	var err error
-	if source == SelectionMagpie {
+	switch source {
+	case SelectionMagpie:
 		err = projectMagpieSelection(ctx, raw, &view)
-	} else {
+	case SelectionNPXSkills:
+		err = projectNPXSelection(ctx, raw, &view)
+	default:
 		err = projectCCSwitchSelection(ctx, raw, &view)
 	}
 	if canceled := ctx.Err(); canceled != nil {
@@ -272,8 +273,23 @@ func selectionModule(source SelectionSource) (string, error) {
 		return ccSwitchModule, nil
 	case SelectionMagpie:
 		return magpieModule, nil
+	case SelectionNPXSkills:
+		return npxSkillsModule, nil
 	default:
 		return "", ErrSelectionUnsupported
+	}
+}
+
+func selectionSourceLimit(source SelectionSource) (int, error) {
+	switch source {
+	case SelectionCCSwitch24:
+		return MaxCCSwitchSnapshotBytes, nil
+	case SelectionMagpie:
+		return MaxMagpieExportBytes, nil
+	case SelectionNPXSkills:
+		return MaxNPXSkillsLockBytes, nil
+	default:
+		return 0, ErrSelectionUnsupported
 	}
 }
 

@@ -1,6 +1,7 @@
 import { useId, useRef, useState, type ChangeEvent, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { clone } from "@bufbuild/protobuf"
+import { Code } from "@connectrpc/connect"
 import { t, formatNumber, savePreference } from "./i18n"
 import { ClaudeAuthMode, CodexAuthMode, GeminiAuthMode, GeminiKeyTransport, GrokBuildMode, CodexModality, CodexReasoningEffort, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { ImportCandidateOptionsSchema, ImportCandidateStatus, ImportCommitObservation, ImportReceiptPhase, type ImportCandidateOptions, type ImportConfigurationCandidate, type SkillBinding } from "./gen/skillhub/import/v1/import_pb"
@@ -10,8 +11,9 @@ import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./components/ui/dialog"
+import { isImportSource, npxImportText, selectionSources, type ImportSource } from "./npx-import-i18n"
 
-export type ImportSource = "magpie" | "cc-switch"
+export type { ImportSource } from "./npx-import-i18n"
 export type BindingChoice = { label: string; binding: SkillBinding }
 export type BindingRepositoryChoice = { id: string; repository: string; branch: string; archiveHash: string }
 export type ImportSelectionFormProps = {
@@ -100,6 +102,10 @@ function Column({ title, children }: { title: string; children: ReactNode }) {
   return <fieldset className="min-w-0 space-y-3 rounded-lg border border-border p-4"><legend className="px-1 font-semibold">{title}</legend>{children}</fieldset>
 }
 
+function NPXMessage({ text }: { text: string }) {
+  return <>{text.split(/(ResourceExhausted)/).map((part, index) => part === "ResourceExhausted" ? <code key={index} className="break-all font-mono">{part}</code> : part)}</>
+}
+
 function ConfirmSelectionDetails({ state }: { state: SelectionState }) {
   const preview = state.preview
   if (!preview) return null
@@ -112,7 +118,7 @@ function ConfirmSelectionDetails({ state }: { state: SelectionState }) {
 }
 
 export function ImportSelectionForm(props: ImportSelectionFormProps) {
-  useTranslation()
+  const { i18n } = useTranslation()
   const { state, source } = props
   const id = useId()
   const confirmTrigger = useRef<HTMLButtonElement>(null)
@@ -127,11 +133,12 @@ export function ImportSelectionForm(props: ImportSelectionFormProps) {
     <div className="source-card-heading"><div><h2 id={`${id}-heading`} data-import-selection-heading ref={heading} tabIndex={-1} className="font-semibold">{t("选择导入技能、仓库与配置")}</h2><p className="mt-1 text-sm text-muted-foreground">{t("三类独立选择，默认不选；保存资产不等于设备应用。")}</p></div></div>
     <div className="source-card-body space-y-4">
       <p className="text-sm leading-6">{t("整个导出可能含密钥。仅点击上传后发送到当前受信任服务端；原文、文件名和密钥不会显示或持久保存在浏览器。")}</p>
-      <div className="space-y-2"><label htmlFor={`${id}-source`}>{t("导入来源")}</label><Select value={source} disabled={state.phase === "unknown" || state.phase === "committing"} onValueChange={(value) => { if (value === "magpie" || value === "cc-switch") props.onSource(value) }}><SelectTrigger id={`${id}-source`} className="sm:max-w-md"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="magpie">Magpie JSON · 1 MiB</SelectItem><SelectItem value="cc-switch">cc-switch schema24 SQLite · 16 MiB</SelectItem></SelectContent></Select></div>
+      <div className="space-y-2"><label htmlFor={`${id}-source`}>{t("导入来源")}</label><Select value={source} disabled={state.phase === "unknown" || state.phase === "committing"} onValueChange={(value) => { if (isImportSource(value)) props.onSource(value) }}><SelectTrigger id={`${id}-source`} data-import-selection-source className="h-auto min-h-11 whitespace-normal text-left sm:max-w-md" aria-describedby={source === "npx-skills" ? `${id}-npx-boundaries ${id}-npx-binding` : undefined}><SelectValue /></SelectTrigger><SelectContent>{Object.entries(selectionSources).map(([value, option]) => <SelectItem key={value} value={value}>{option.label}</SelectItem>)}</SelectContent></Select></div>
       {source === "cc-switch" && <p className="text-sm text-muted-foreground">{t("仅接受自包含 rollback-mode SQLite 一致性快照，不接受 WAL 主数据库副本。")}</p>}
-      <div className="space-y-2"><label htmlFor={`${id}-file`}>{t("授权导出文件")}</label><Input id={`${id}-file`} type="file" disabled={locked} accept={source === "magpie" ? ".json,application/json" : ".db,.sqlite,.sqlite3"} onChange={props.onFile} className="h-auto min-h-11 py-2" /><p className="text-sm text-muted-foreground">{props.hasFile ? t("已选择导出文件。点击上传并预览后才会发送。") : t("预览不收录、不创建资产、不下载技能。")}</p></div>
+      {source === "npx-skills" && <div className="space-y-2 text-sm leading-6 text-muted-foreground"><p id={`${id}-npx-boundaries`}><NPXMessage text={npxImportText("boundaries", i18n.resolvedLanguage)} /></p><p id={`${id}-npx-binding`}>{npxImportText("binding", i18n.resolvedLanguage)}</p></div>}
+      <div className="space-y-2"><label htmlFor={`${id}-file`}>{t("授权导出文件")}</label><Input id={`${id}-file`} type="file" disabled={locked} accept={selectionSources[source].accept} onChange={props.onFile} className="h-auto min-h-11 py-2" /><p className="text-sm text-muted-foreground">{props.hasFile ? t("已选择导出文件。点击上传并预览后才会发送。") : t("预览不收录、不创建资产、不下载技能。")}</p></div>
       <div className="flex flex-wrap gap-3"><Button disabled={locked || !props.hasFile} onClick={props.onPreview}>{state.stale ? t("重新预览同一快照") : t("上传并预览")}</Button>{busy && <Button variant="outline" onClick={props.onCancel}>{t("停止等待及后续操作")}</Button>}{!busy && state.phase !== "unknown" && (preview || props.hasFile || state.error !== undefined) && <Button variant="ghost" onClick={props.onClear}>{t("清除导入草稿")}</Button>}</div>
-      {state.error !== undefined && <p role="alert" className="text-sm text-destructive">{t("导入请求未完成或未通过校验；不会回显输入或自动重试。")}</p>}
+      {state.error !== undefined && <p role="alert" className="text-sm text-destructive">{source === "npx-skills" && [Code.InvalidArgument, Code.FailedPrecondition, Code.ResourceExhausted].includes(state.error) && !["unknown", "committing", "terminal"].includes(state.phase) ? <NPXMessage text={npxImportText(state.error === Code.ResourceExhausted ? "exhausted" : "invalid", i18n.resolvedLanguage)} /> : t("导入请求未完成或未通过校验；不会回显输入或自动重试。")}</p>}
       {busy && <p role="status" aria-live="polite" className="text-sm">{t(state.phase === "committing" ? "正在提交选择；停止等待不代表撤销写入。" : "正在读取并预览；尚未确认导入。")}</p>}
       {state.stale && <p role="status" className="text-sm">{t("选项已变更，旧票据不可提交。请重新预览并再次选择、确认提示。")}</p>}
       {preview && <>
@@ -169,5 +176,13 @@ export function ImportSelectionForm(props: ImportSelectionFormProps) {
 export function ImportSelectionDiscard({ open, onCancel, onDiscard }: { open: boolean; onCancel: () => void; onDiscard: () => void }) {
   const cancel = useRef<HTMLButtonElement>(null)
   const previous = useRef<HTMLElement | null>(null)
-  return <Dialog open={open} onOpenChange={(value) => { if (!value) onCancel() }}><DialogContent onOpenAutoFocus={(event) => { event.preventDefault(); previous.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; cancel.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); if (previous.current?.isConnected) previous.current.focus(); else document.querySelector<HTMLElement>("[data-import-selection-heading]")?.focus(); previous.current = null }}><DialogTitle>{t("放弃当前导入草稿？")}</DialogTitle><DialogDescription>{t("将清除文件、票据与选择。停止等待不能撤销已经提交的操作。")}</DialogDescription><ImportLanguage /><div className="mt-5 flex flex-wrap gap-3"><Button ref={cancel} variant="outline" onClick={onCancel}>{t("取消")}</Button><Button onClick={onDiscard}>{t("放弃导入草稿")}</Button></div></DialogContent></Dialog>
+  return <Dialog open={open} onOpenChange={(value) => { if (!value) onCancel() }}><DialogContent onOpenAutoFocus={(event) => { event.preventDefault(); previous.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; cancel.current?.focus() }} onCloseAutoFocus={(event) => {
+    event.preventDefault()
+    const trigger = previous.current
+    const usable = trigger?.isConnected && trigger.matches("button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled)") && !trigger.closest('[role="listbox"], [role="menu"], [role="dialog"]')
+    const target = usable ? trigger : document.querySelector<HTMLElement>("[data-import-selection-source]:not(:disabled)")
+    target?.focus()
+    if (!target || document.activeElement !== target) document.querySelector<HTMLElement>("[data-import-selection-heading]")?.focus()
+    previous.current = null
+  }}><DialogTitle>{t("放弃当前导入草稿？")}</DialogTitle><DialogDescription>{t("将清除文件、票据与选择。停止等待不能撤销已经提交的操作。")}</DialogDescription><ImportLanguage /><div className="mt-5 flex flex-wrap gap-3"><Button ref={cancel} variant="outline" onClick={onCancel}>{t("取消")}</Button><Button onClick={onDiscard}>{t("放弃导入草稿")}</Button></div></DialogContent></Dialog>
 }

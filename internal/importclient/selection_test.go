@@ -121,11 +121,20 @@ func (fixture *selectionRPC) GetImportCommitStatus(_ context.Context, request *c
 }
 
 func TestSelectionOneShotAndStatus(test *testing.T) {
-	for _, lost := range []bool{false, true} {
-		test.Run(map[bool]string{false: "receipt", true: "lost"}[lost], func(test *testing.T) {
+	for _, entry := range []struct {
+		name   string
+		source importv1.ImportSelectionSource
+		lost   bool
+	}{{"receipt", 2, false}, {"lost", 2, true}, {"npx-receipt", importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, false}, {"npx-lost", importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, true}} {
+		test.Run(entry.name, func(test *testing.T) {
 			client, fixture, path := selectionFixture(test)
-			fixture.lost = lost
-			preview, err := client.PreviewFile(test.Context(), importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON, path, "", nil)
+			fixture.lost = entry.lost
+			if entry.source == importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK {
+				path = exportFile(test, []byte(`{"version":3,"skills":{"tool":{"source":"example/toolkit","sourceType":"github","skillPath":"tool/SKILL.md"}}}`))
+				fixture.preview.Configurations = nil
+				fixture.preview.Notices[0].Code = importv1.ImportNoticeCode_IMPORT_NOTICE_CODE_SOURCE_CONTENT_NOT_COMPARED
+			}
+			preview, err := client.PreviewFile(test.Context(), entry.source, path, "", nil)
 			if err != nil {
 				test.Fatalf("preview rejected: %v", err)
 			}
@@ -146,14 +155,14 @@ func TestSelectionOneShotAndStatus(test *testing.T) {
 			view.Repositories[0].Id = strings.Repeat("0", 64)
 			choice.Repositories[0] = 999
 			result, err := operation.CommitFile(test.Context(), path)
-			if lost {
+			if entry.lost {
 				if !errors.Is(err, importclient.ErrSelectionUnknown) || strings.Contains(err.Error(), "private-upstream-secret") {
 					test.Fatal("lost reply not safely unknown")
 				}
 			} else if err != nil || result.Repositories != 1 || result.Skills != 1 {
 				test.Fatalf("bad commit result: %+v %v", result, err)
 			}
-			if fixture.last.RepositoryIds[0] != strings.Repeat("a", 64) || len(fixture.last.SourceData) == 0 {
+			if fixture.last.Source != entry.source || fixture.last.RepositoryIds[0] != strings.Repeat("a", 64) || len(fixture.last.SourceData) == 0 {
 				test.Fatal("caller mutated commit")
 			}
 			if _, err := operation.CommitFile(test.Context(), path); err == nil || fixture.commits.Load() != 1 {
@@ -184,6 +193,76 @@ func TestSelectionExplicitChoiceAndPin(test *testing.T) {
 	}
 	if _, err := client.PreviewFile(test.Context(), importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON, path, strings.Repeat("0", 64), nil); err == nil {
 		test.Fatal("mismatched source pin accepted")
+	}
+}
+
+func TestSelectionNPXFileBoundaries(test *testing.T) {
+	for _, size := range []int{0, 1 << 20, (1 << 20) + 1} {
+		test.Run(strconv.Itoa(size), func(test *testing.T) {
+			client, fixture, _ := selectionFixture(test)
+			data := bytes.Repeat([]byte{' '}, size)
+			copy(data, `{"version":3,"skills":{}}`)
+			path := exportFile(test, data)
+			preview, err := client.PreviewFile(test.Context(), importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, path, "", nil)
+			if size == 1<<20 {
+				if err != nil || fixture.previews.Load() != 1 {
+					test.Fatal("npx global lock at 1 MiB was rejected")
+				}
+				preview.Close()
+			} else if err == nil || fixture.previews.Load() != 0 {
+				test.Fatal("empty or oversized npx file was uploaded")
+			}
+			if fixture.commits.Load() != 0 {
+				test.Fatal("file validation committed")
+			}
+		})
+	}
+	client, fixture, path := selectionFixture(test)
+	for _, source := range []importv1.ImportSelectionSource{-1, 0, 4, 99} {
+		if _, err := client.PreviewFile(test.Context(), source, path, "", nil); err == nil {
+			test.Fatal("unknown source was accepted")
+		}
+	}
+	if fixture.previews.Load() != 0 || fixture.commits.Load() != 0 {
+		test.Fatal("unknown source reached the server")
+	}
+}
+
+func TestSelectionNPXOwnerAndSourcePin(test *testing.T) {
+	client, fixture, _ := selectionFixture(test)
+	path := exportFile(test, []byte(`{"version":3,"skills":{}}`))
+	preview, err := client.PreviewFile(test.Context(), importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, path, "", nil)
+	if err != nil {
+		test.Fatal(err)
+	}
+	defer preview.Close()
+	choice := importclient.SelectionChoice{Repositories: []int{1}, AcknowledgedNotices: []string{strings.Repeat("f", 64)}}
+	other, _, _ := selectionFixture(test)
+	if _, err := other.BeginSelection(preview, choice); err == nil {
+		test.Fatal("foreign client consumed npx preview")
+	}
+	if _, err := client.BeginSelection(preview, importclient.SelectionChoice{Repositories: []int{1}}); err == nil {
+		test.Fatal("npx exclusion was not acknowledged")
+	}
+	operation, err := client.BeginSelection(preview, choice)
+	if err != nil {
+		test.Fatal(err)
+	}
+	defer operation.Close()
+	if err := os.WriteFile(path, []byte(`{"version":3,"skills":{},"changed":true}`), 0o600); err != nil {
+		test.Fatal(err)
+	}
+	if _, err := operation.CommitFile(test.Context(), path); err == nil || fixture.commits.Load() != 0 {
+		test.Fatal("changed npx global lock was committed")
+	}
+	ctx, cancel := context.WithCancel(test.Context())
+	cancel()
+	if _, err := operation.CommitFile(ctx, path); !errors.Is(err, context.Canceled) || fixture.commits.Load() != 0 {
+		test.Fatal("canceled npx operation was dispatched")
+	}
+	client.Close()
+	if _, err := client.Status(test.Context(), operation.ID()); err == nil || fixture.statuses.Load() != 0 {
+		test.Fatal("closed owner session queried npx status")
 	}
 }
 
@@ -546,7 +625,7 @@ func TestSelectionProcedureBudgets(test *testing.T) {
 	for _, entry := range []struct {
 		source importv1.ImportSelectionSource
 		budget int64
-	}{{2, 5000}, {1, 15000}} {
+	}{{2, 5000}, {1, 15000}, {importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK, 5000}} {
 		preview, err := client.PreviewFile(test.Context(), entry.source, path, "", nil)
 		if err != nil {
 			test.Fatal(err)

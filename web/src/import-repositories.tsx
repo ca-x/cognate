@@ -7,13 +7,14 @@ import { Code, ConnectError } from "@connectrpc/connect"
 import { FileUp } from "lucide-react"
 import { useApi } from "./api"
 import { t, formatNumber } from "./i18n"
-import { ExportFormat, ImportSelectionSource, ImportReceiptPhase, ImportCandidateStatus, ImportCandidateOptionsSchema, SkillBindingSchema, type RepositoryCandidate, type ImportCandidateOptions } from "./gen/skillhub/import/v1/import_pb"
+import { ExportFormat, ImportReceiptPhase, ImportCandidateStatus, ImportCandidateOptionsSchema, SkillBindingSchema, type RepositoryCandidate, type ImportCandidateOptions } from "./gen/skillhub/import/v1/import_pb"
 import { ImportSelectionForm, ImportSelectionDiscard, type BindingChoice, type BindingRepositoryChoice, type ImportSource } from "./import-selection-form"
 import { acceptSelectionReceipt, acceptSelectionStatus, acknowledgeSelection, canConfirmSelection, changeSelectionOption, chooseSelection, initialSelectionState, selectionPlan, withSelectionPreview, type SelectionPlan, type SelectionState } from "./import-selection-state"
 import { Button } from "./components/ui/button"
 import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
+import { selectionSources } from "./npx-import-i18n"
 
 type Outcome = "pending" | "in_flight" | "collected" | "failed" | "unknown" | "not_attempted"
 type Candidate = Pick<RepositoryCandidate, "repository" | "branch" | "existingRepositoryId" | "sourceEnabled"> & { outcome: Outcome; code?: Code }
@@ -376,7 +377,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     if (!selected || current.current.phase === "unknown" || current.current.phase === "committing") return
     requestReset(() => {
       reset()
-      if (selected.size === 0 || selected.size > sourceOptions[source].maximumBytes) { setState((previous) => ({ ...previous, error: Code.ResourceExhausted })); return }
+      if (selected.size === 0 || selected.size > selectionSources[source].maximumBytes) { setState((previous) => ({ ...previous, error: selected.size === 0 ? Code.InvalidArgument : Code.ResourceExhausted })); return }
       file.current = selected
       setHasFile(true)
     })
@@ -406,9 +407,9 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
         bytes.current = read
       }
       const raw = bytes.current
-      if (!raw.length || raw.length > sourceOptions[source].maximumBytes) throw new ConnectError("", Code.ResourceExhausted)
+      if (!raw.length || raw.length > selectionSources[source].maximumBytes) throw new ConnectError("", Code.ResourceExhausted)
       setState((value) => ({ ...value, phase: "previewing" }))
-      const response = await imports.previewImportSelection({ source: source === "magpie" ? ImportSelectionSource.MAGPIE_LIBRARY_JSON : ImportSelectionSource.CCSWITCH_SCHEMA24, sourceData: raw, options: previous.options }, { signal: controller.signal, timeoutMs: source === "magpie" ? 5000 : 15000 })
+      const response = await imports.previewImportSelection({ source: selectionSources[source].source, sourceData: raw, options: previous.options }, { signal: controller.signal, timeoutMs: selectionSources[source].timeoutMs })
       if (!isCurrent(attempt, captured, controller)) { response.ticket.fill(0); return }
       let next: SelectionState
       try { next = withSelectionPreview(previous, response) } catch (failure) { response.ticket.fill(0); throw failure }
@@ -497,7 +498,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     expiry.current = null
     setState((value) => ({ ...value, phase: "committing", error: undefined }))
     try {
-      const response = await imports.commitImportSelection({ ticket: ticket.current, source: source === "magpie" ? ImportSelectionSource.MAGPIE_LIBRARY_JSON : ImportSelectionSource.CCSWITCH_SCHEMA24, sourceData: bytes.current, options: plan.options, operationId: id, repositoryIds: plan.repositoryIds, skillIds: plan.skillIds, configurationIds: plan.configurationIds, ackNoticeIds: plan.ackNoticeIds }, { signal: controller.signal, timeoutMs: 120000 })
+      const response = await imports.commitImportSelection({ ticket: ticket.current, source: selectionSources[source].source, sourceData: bytes.current, options: plan.options, operationId: id, repositoryIds: plan.repositoryIds, skillIds: plan.skillIds, configurationIds: plan.configurationIds, ackNoticeIds: plan.ackNoticeIds }, { signal: controller.signal, timeoutMs: 120000 })
       if (!isCurrent(attempt, captured, controller)) return
       const receipt = acceptSelectionReceipt(response.receipt, id, plan)
       const terminal = [ImportReceiptPhase.COMPLETED, ImportReceiptPhase.PARTIAL, ImportReceiptPhase.FAILED].includes(receipt.phase)

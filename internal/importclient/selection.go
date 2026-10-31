@@ -206,7 +206,7 @@ func selectionReadFile(ctx context.Context, source importv1.ImportSelectionSourc
 	limit := 1 << 20
 	if source == importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_CCSWITCH_SCHEMA24 {
 		limit = 16 << 20
-	} else if source != importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON {
+	} else if source != importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_MAGPIE_LIBRARY_JSON && source != importv1.ImportSelectionSource_IMPORT_SELECTION_SOURCE_NPX_SKILLS_LOCK {
 		return nil, "", errSelection
 	}
 	if expected != "" && !validHash(expected) {

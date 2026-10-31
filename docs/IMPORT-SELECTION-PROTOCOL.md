@@ -46,7 +46,10 @@ Protobuf omission alone does not make a required business value valid.
 | ImportRepositoryOutcome | candidate_id=1; code=2 ImportRepositoryOutcomeCode; repository_id=3 optional string |
 
 All unspecified enum values are zero and invalid as a selected business state.
-`source` uses ImportSelectionSource: CCSWITCH_SCHEMA24=1, MAGPIE_LIBRARY_JSON=2.
+`source` uses ImportSelectionSource: CCSWITCH_SCHEMA24=1, MAGPIE_LIBRARY_JSON=2,
+NPX_SKILLS_LOCK=3. The latter accepts explicitly uploaded v3 global lock JSON;
+see [NPX-SKILLS-IMPORT.md](NPX-SKILLS-IMPORT.md). Existing source numbers and
+the 290-byte sealed ticket format remain unchanged.
 The auth and transport enums reuse configuration.v1, including their existing
 numbers; no new import-specific auth interpretation exists.
 

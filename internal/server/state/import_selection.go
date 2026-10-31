@@ -82,6 +82,7 @@ type ImportSourceProfile uint8
 const (
 	ImportSourceCCSwitch24 ImportSourceProfile = 1
 	ImportSourceMagpie     ImportSourceProfile = 2
+	ImportSourceNPXSkills  ImportSourceProfile = 3
 )
 
 type ImportTicketClaims struct {
@@ -174,7 +175,7 @@ func importTicketAAD(keyID, owner, origin string) []byte {
 }
 
 func importProfileValid(profile ImportSourceProfile) bool {
-	return profile == ImportSourceCCSwitch24 || profile == ImportSourceMagpie
+	return profile == ImportSourceCCSwitch24 || profile == ImportSourceMagpie || profile == ImportSourceNPXSkills
 }
 
 func importClaimsValid(claims ImportTicketClaims) bool {
