@@ -232,6 +232,23 @@ T2 的 `WithRestoreHead` 还必须显式接收 caller 的私有 parent FD，用�
 不能在无目录能力的 API 中悄悄采用系统临时目录。借入 parent 与两个只读头文件的生命周期、
 清理错误和源 scope 关闭在实现前单独冻结。该设计修正不扩大 T1/T2a 的已授权写集。
 
+T2c 先以不接产品入口的纯 inventory 检查片实施：新 `internal/server/restore/inventory.go`
+及其单元/真实生产者测试。只消费既有 SealMetadata、受控 reader 与 T1 canonical references
+的长度/hash/计数；在显式 inventory/archive/content 预算内核对完整 inventory 字节、严格 v1
+必填头、CutID、引用字节与记录数、repository/pack owner 去重数、仓库归档集合双向相等和
+既有 NUL 域 closure 公式。不会创建数据库/归档或签发 Candidate/VerifiedCandidate；归档安全
+扫描、每仓库技能核对、文件与目录生命周期仍属于完整 T2。reader 必须合作返回，取消不另起
+无法排空的 goroutine；原始读取/JSON 错误脱敏，不关闭借入 reader。不另造备份格式或复制
+旧 snapshot 验真规则；canonical bytes 的权威仍由 T1/生产 snapshot 产生。
+
+T2c 后继已独审限定 ACCEPT，三源 SHA 与冻结一致；真实生产者/源移走后的 T1 对接和主
+staged-tree 组合通过，详细命令与边界见 `VERIFICATION.md`。不是完整 Candidate：后继须
+绑定真实 DB evidence 的全部身份字段，实际核验归档与每仓库技能，不能只信被动期望。
+T2d 归档语义叶片另以新 `internal/server/restore/archive.go` / `archive_test.go` 隔离实施：
+只消费有界 borrowed bytes 与 canonical 仓库技能期望，复用 repository.InspectArchive，
+不修改 T2c、不添加文件/网络或激活能力；完整 T2 的文件材料化/关闭与 Candidate 生命周期
+仍由后继协调器负责。
+
 | 任务 / 精确预期写集 | 消费 / 产出接口与验收 |
 |---|---|
 | **T2 完整候选闭包**：新 `internal/server/restore/candidate.go`、`inventory.go`、`verify.go`、对应 `_test.go`；新 `internal/server/state/restore_assets.go`（T1 helper 仅在真实所需时扩展）；新 `internal/server/backup/s3_restore.go` 及测试 | 消费 bundle 和 T1 evidence；`StageCandidate(ctx context.Context, bundle backup.CryptoVerifiedBundle, parent *os.File, originalMasterKey []byte, limits CandidateLimits) (*Candidate, error)` 只借 bundle，返回自有文件/密钥副本的 Candidate，不授予激活权限；`(*Candidate).Close() error` 明确取消/排空/清零与精确清理。协调器先完成 §3.12 的源清理，再调用 `(*Candidate).WithVerified(ctx context.Context, consume func(context.Context, VerifiedCandidate) error) error`；CandidateLimits 在 candidate.go 定义显式资源上界，VerifiedCandidate 只在该回调有效。完整双向集合/closure/AEAD/附件关系通过才进入回调；不把候选编成新的持久导入格式。错切点/少私有 owner/缺或多 archive/伪 header/count/closure/损坏分类全有 RED；脱离源目录、禁止上游 fetch 的多 owner fixture GREEN；追加“头文件最终 close 故障时绝不调用 Activate”的顺序测试 |

@@ -80,6 +80,17 @@ Reconcile 在回写时重新读取已持久化取消，而非使用网络调用�
 
 ## 本阶段验收
 
+### 2026-11-01：内部 inventory 检查 T2c
+
+新增恢复包的纯检查接收既有 metadata 与权威 canonical references 三元组，在显式预算内
+验证完整 inventory 字节、严格 v1 必填头/CutID、精确引用尾、owner 去重、仓库归档集合及
+既有 closure 摘要。只借 reader、不关闭、不写文件/联网；不另造备份格式或 snapshot 规则。
+三文件经独审限定 ACCEPT，真实生产快照移走源后与 T1 evidence 对接及 staged-tree 组合
+通过；详细冻结、RED/GREEN、运行范围与额外内存开销边界见 `VERIFICATION.md` 首节。
+
+三元组本身只是被动期望，后继仍须绑定真实 DB evidence、材料化并核验实际归档与每个仓库
+的技能。此处没有 Candidate/激活能力、恢复入口、运行代切换或完整 C4/F4 资格。
+
 ### 2026-11-01：内部恢复头 scope T2b
 
 `S3Target.WithRestoreHead(ctx, parent, expected, consume)` 借入显式私有 parent FD，

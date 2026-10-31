@@ -1,5 +1,43 @@
 # 开发预览验证
 
+## 2026-11-01：T2c 纯 inventory 与内容闭包摘要检查
+
+T2b `1ba9896c4d845a9871eeee2d1fd57f707612479a` 已提交 SSH 推送并读回一致。后继 T2c
+新增 `internal/server/restore/` 三文件，冻结基线 `74c7f45`；exact3 patch SHA256
+`6ee87a4c1a7e07c356e86f122bc2cb548dedc4e39b47a9e5389fcd9a28c844d8`。独立 Spec/Quality
+限定 ACCEPT，报告 `/tmp/cognate-t2c-review-74c7f45-RHwp1I/REPORT.md`，SHA256
+`5b81b63217366116f9766cde89760171d13d02abf1c3b576ca154762aed737d8`。
+
+该内部同步检查只借 reader，至多读取声明 inventory 长度+1；64MiB inventory、100000
+archives 与 1TiB 内容预算均显式封顶，archive JSON 在逐条分配前受 metadata count 限制。
+检查完整字节长度/hash、严格 v1 必填头/CutID、T1 canonical references 的精确尾长度/hash/
+记录数、repository+pack owner 并集、仓库与头的归档集合双向相等/唯一升序、正长度及剩余
+预算无溢出累加、既有实际 NUL 域/原始摘要/BE64 closure。错误脱敏，不 Close 借入 reader、
+不启动 goroutine、无磁盘/网络/激活副作用；reader 必须合作返回，取消不是 CPU 即时抢占。
+
+本片接收的 references 三元组只是被动期望，不是 T1 capability。后继 Candidate 仍须将
+metadata.Database bytes/hash、schema、key 等绑定到真实 T1 evidence，并验证实际归档
+文件集合、安全扫描与每个相关仓库的技能；本片不因为自洽摘要而授予候选发布资格。
+
+独审实际执行原 9 顶层/60 PASS 事件与 vet；新增 8 顶层/54 PASS 事件及两次预期失败的
+临时变异。追加包括五个头成员缺失/null/重名、pack-only owner、等长非投影引用变造、独立
+多字节 BE64 向量、七种 closure 负控、短读/EOF/错误/取消检查点，以及 DB 被动绑定边界。
+64MiB 输入与 100000 archive 实际解码正控通过；1TiB 只是声明长度预算算术，不是实际文件
+压力测试，输入量上限也不是 RSS/Go heap 硬限制。
+
+作者证据保留 API 编译 RED、可编译占位的实际行为 RED、archive count 预算 RED 与 GREEN；
+两次生产者 fixture setup 失败（字段误用、dispatcher 需完整 os.Args）不计作安全行为 RED。
+最终真实生产者覆盖空业务+多余 user，以及双 owner 共享归档、Pack/分类；源目录移走后
+复制的数据库通过 T1，inventory 检查与真实 DB/reference 摘要相符，不靠投影 golden 替代。
+
+主线三文件 SHA 仍等于冻结；排除其它 WIP 的 staged-tree 新组合在 Go 1.27.3/CGO0 验证：
+`t2c-staged-tests.jsonl` 为 9 顶层/60 PASS 事件；`t2c-staged-backup-link.jsonl` 为 T1、
+头→BeginOpen 与 CopyExact 四顶层/6 PASS 事件；共 13 顶层/66 PASS 事件、0 FAIL/SKIP，
+restore/backup vet exit 0。证据仍在 `/tmp/cognate-npx-selection.TB9Vd2tL`，没有重跑全仓。
+
+完整 T2 材料化/归档验真与 T3–T5、调度保留和原 GA 门禁继续开放；没有恢复产品入口或
+正式 tag/Docker/LPK。T2d 归档语义叶片另在私有目录实施，不计入本次已验收范围。
+
 ## 2026-11-01：T2b S3 恢复头借用 scope
 
 T1 阶段 `74c7f4596e88d865997202906682a5abafbab9b0` 已 SSH 推送读回；Build

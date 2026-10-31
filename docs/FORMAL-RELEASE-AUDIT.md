@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 T2b 已推 `1ba9896`。T2c 纯 inventory 检查三文件经独审限定 ACCEPT，新增独立向量/大输入预算/取消与绑定边界探针通过；主 staged-tree 13 顶层/66 PASS 事件及 restore/backup vet 通过。被动 references 期望不等于 T1 evidence 或 Candidate 发布能力，实际归档/技能、完整 T2–T5 与 GA 门禁仍开。
 - 2026-11-01 T1 `74c7f45` 已推送且 Build `41240209775` completed/success。T2b 有界 S3 头 scope 经 exact3 独审限定 ACCEPT；主线排除 T2c WIP 的 staged-tree 组合 50 顶层/238 PASS 事件及 backup vet 通过。只提供未认证头的安全借用与完整清理，不是完整 T2/C4/F4；T2c 纯校验另待独审，正式版门禁不变。
 - 2026-11-01 T1 fix1 非正 ID 全域准入 P1 经原七反例独立增量复审 CLOSED，累计 exact12 已主线集成；35 个定向顶层/185 PASS 事件（含 CopyExact 与既有回归）、三包 vet 及真实生产 worker 通过。S3 `db2b235` 的 Build `41238804826` 已 completed/success。T1 不是完整候选闭包或恢复入口，T2b 另线实施中；C4/F4 和正式版门禁不关闭，详见 `VERIFICATION.md` 首节。
 - 2026-11-01 Web `699969f` 的远端 Build 已 completed/success。恢复读取 T2a exact2 独审 ACCEPT，主线实际 TLS 新例及 vet 通过；只提供完整验证后才可信的 S3 密文复制。T1 离线 DB 验真候选反因非正 ID 分页漏验获 P1 BLOCK，尚未合主线，已退回根修。两者不相互抵销，不关闭 C4/F4 或正式版门禁，见 `VERIFICATION.md` 首节。
