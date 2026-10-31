@@ -1,4 +1,6 @@
 export const english: Record<string, string> = {
+  "可编辑：Claude Code、Codex、Gemini、OpenCode、Grok Build": "Editors: Claude Code, Codex, Gemini, OpenCode, Grok Build",
+  "查看支持范围与操作边界": "Support scope and operation boundaries",
   "存在": "Present",
   "不存在": "Absent",
   "切换到自定义模型后需填写完整模型字段并显式选择 backend；不会推断默认值或读取本机凭据。取消保留非秘密草稿，但清除尚未提交的新凭据。": "A custom model requires all model fields and an explicitly chosen backend. No defaults or device credentials are inferred. Cancel preserves non-secret drafts but discards new, unsubmitted credentials.",

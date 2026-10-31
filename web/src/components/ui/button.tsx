@@ -14,5 +14,5 @@ const buttonVariants = cva("button inline-flex min-h-11 items-center justify-cen
 })
 
 export function Button({ className, variant, type = "button", ...props }: ComponentProps<"button"> & VariantProps<typeof buttonVariants>) {
-  return <button type={type} data-slot="button" className={cn(buttonVariants({ variant, className }))} {...props} />
+  return <button type={type} data-slot="button" data-variant={variant ?? "default"} className={cn(buttonVariants({ variant, className }))} {...props} />
 }

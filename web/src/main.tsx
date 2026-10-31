@@ -1,12 +1,13 @@
 import { t } from "./i18n"
 import "./server-logging-i18n"
 import { useTranslation } from "react-i18next"
-import { lazy, StrictMode, Suspense, useState } from "react"
+import { lazy, StrictMode, Suspense, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { createRootRoute, createRoute, createRouter, Link, Outlet, RouterProvider, useRouterState } from "@tanstack/react-router"
 import { Compass, FileText, FolderGit2, GitFork, KeyRound, Layers, LogOut, Server, Settings, Tags } from "lucide-react"
 import { ApiProvider, useApi } from "./api"
 import { Button } from "./components/ui/button"
+import { useMotionRef } from "./lib/motion"
 import { validateCatalogSearch } from "./catalog"
 import { Preferences } from "./preferences"
 import logo from "../../assets/branding/server-web.png"
@@ -40,6 +41,21 @@ function PublicWorkspace() {
 }
 
 function Workspace() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const pageRef = useMotionRef<HTMLDivElement>()
+  useEffect(() => {
+    const keyboard = () => {
+      document.documentElement.dataset.input = "keyboard"
+      document.querySelectorAll<HTMLElement>('[data-motion="on"]').forEach((node) => { node.dataset.motion = "off" })
+    }
+    const pointer = () => { document.documentElement.dataset.input = "pointer" }
+    document.addEventListener("keydown", keyboard, true)
+    document.addEventListener("pointerdown", pointer, true)
+    return () => {
+      document.removeEventListener("keydown", keyboard, true)
+      document.removeEventListener("pointerdown", pointer, true)
+    }
+  }, [])
   useTranslation()
   const { session, setSession, auth, completingLogin } = useApi()
   const [leaving, setLeaving] = useState(false)
@@ -60,8 +76,8 @@ function Workspace() {
       <div className="sidebar-bottom"><Server size={15} aria-hidden="true" /><span>{t("自托管工作空间")}</span></div>
     </aside>
     <div className="workspace-body">
-      <header className="topbar"><span className="text-sm text-muted-foreground">{t("我的资料库")}</span><Preferences /><div className="flex min-w-0 items-center gap-3"><span className="max-w-36 truncate text-sm">{session.username}</span><Button variant="ghost" disabled={leaving} onClick={() => { void logout().catch(() => {}) }}><LogOut size={16} aria-hidden="true" />{leaving ? t("退出中…") : t("退出")}</Button></div></header>
-      <main id="main" className="page-content" tabIndex={-1}><Suspense fallback={<p role="status">{t("正在读取工作空间…")}</p>}><Outlet /></Suspense></main>
+      <header className="topbar"><span className="workspace-context"><Layers size={16} aria-hidden="true" />{t("我的资料库")}</span><Preferences /><div className="flex min-w-0 items-center gap-3"><span className="max-w-36 truncate text-sm">{session.username}</span><Button variant="ghost" disabled={leaving} onClick={() => { void logout().catch(() => {}) }}><LogOut size={16} aria-hidden="true" />{leaving ? t("退出中…") : t("退出")}</Button></div></header>
+      <main id="main" className="page-content" tabIndex={-1}><div key={pathname} ref={pageRef} className="page-view"><Suspense fallback={<p role="status">{t("正在读取工作空间…")}</p>}><Outlet /></Suspense></div></main>
       <footer className="workspace-footer">Cognate <span aria-hidden="true">·</span> {t(" 开发预览")}</footer>
     </div>
   </div>
