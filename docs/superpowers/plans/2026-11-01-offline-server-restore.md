@@ -2,6 +2,10 @@
 
 > **For agentic workers:** 后继实施按 `executing-plans` 原生逐片执行；本次只设计，不 spawn、不实现、不 commit/push/branch/worktree。每片独立红绿验收后才推进下一片。主线程在 2026-11-01 授权实施 §6 T1，只读验真先行；R2–R6 与 T2–T5 仍待后继设计核对和独立验收，不阻塞正在进行的界面集成。
 
+2026-11-01 续执行注：上段保留初次设计历史；T1、T2a–T2d 已按限定写集独审及主线验证后
+逐片实施。它们不是完整 T2/Candidate 或恢复产品入口；R2–R6 与 T3–T5 仍须设计核对、
+实现与独立验收，具体冻结与真实状态见 `VERIFICATION.md`，不能以本计划文本宣称已交付。
+
 **Goal:** 从既有 S3 认证密文恢复全实例数据库及归档闭包，经凭据安全处理、隔离候选发布和离线运行代切换，真实重启后通过业务 API 读取；失败保留可核实的旧代与显式回退路径。
 
 **Architecture:** 沿用 `SealEngine → OpenSession → CryptoVerifiedBundle`，增加候选语义验真和运行根目录协调；数据库与归档作为一个不可拆分的运行代。稳定根上的停服锁、发布意图和单一 current 选择记录协调文件系统与启动，任何不明均先拒绝服务，再显式核对。
@@ -248,6 +252,13 @@ T2d 归档语义叶片另以新 `internal/server/restore/archive.go` / `archive_
 只消费有界 borrowed bytes 与 canonical 仓库技能期望，复用 repository.InspectArchive，
 不修改 T2c、不添加文件/网络或激活能力；完整 T2 的文件材料化/关闭与 Candidate 生命周期
 仍由后继协调器负责。
+
+T2d 后继已独审限定 ACCEPT，两源与冻结 SHA 一致，主 staged-tree 组合通过。下一实施
+应完成完整 Candidate 而不是把纯检查升级为发布能力：从已验真的 canonical inventory
+引用建立仓库/技能期望（根技能目录为 `.`，不自行加 SKILL.md），避免再造独立 SQL 扫描；
+实际 DB 的 bytes/hash/schema/key 必须与 T1 evidence 绑定，所有归档文件集合双向相等，
+单次 archive 预算必须纳入整个候选的累计预算。材料化、借入源关闭、私有 FD/目录身份与
+清理不明、WithVerified 的作用域及后继发布所有权转移须在编码前冻结并测试。
 
 | 任务 / 精确预期写集 | 消费 / 产出接口与验收 |
 |---|---|

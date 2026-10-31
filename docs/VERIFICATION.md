@@ -1,5 +1,40 @@
 # 开发预览验证
 
+## 2026-11-01：T2d 有界归档语义检查
+
+T2b `1ba9896` 的 Build `41241972010`、T2c `720287a` 的 Build `41242531269`
+现已现场读回 **completed/success**；T1 `74c7f45` 的 Build `41240209775` 同样成功。
+本次仍是源码阶段，不发布正式标签、Docker 或 LPK。
+
+T2d exact2 新增 `restore/archive.go` / `archive_test.go`，基线为 `1ba9896` 加冻结
+T2c 三源只读依赖；patch SHA256
+`e503e58273fc5388c829bd0ab588b62c65cfb9cb6a4d4081c475adc3f767357e`。
+独立 Spec/Quality 限定 ACCEPT，报告 `/tmp/cognate-t2d-review-1ba9896-EcvOgu/REPORT.md`，
+SHA256 `b4f294917dc4d8999426e9619b48eb1973a7bdccd3af7a16567c9142dd666805`。
+
+内部 `verifyArchive` 只借用 bytes 与被动仓库期望，不修改/清零/保留输入，无文件、网络、
+数据库或 goroutine。显式压缩 bytes 上限沿用 `repository.MaxArchiveBytes` 32MiB，单次
+合计 references 上限 1000000：每个 repo 加其每项技能都计费，共享归档不省略工作量。
+先验证预算、精确长度和整体 hash，再复用 `repository.InspectArchive` 的 Afero 安全解包与
+扫描；对每一个共享仓库核对完整技能 count、map cardinality、目录 path 和内容 hash。
+根技能 path 是 `.`，不自行补 SKILL.md 或规范化；内容 hash 沿用 producer，包含目录内容、
+执行位及空目录语义，不仅是文档正文。错误只返回 bare 类别/context，不透传 parser/cause。
+
+独审实际重跑 T2d 8 顶层/45 PASS 事件、T2c 9/60、repository 定向 5/10 和 vet；追加
+6 顶层/17 PASS 事件，八个独立 overlay 安全门变异均产生预期行为 RED。新增覆盖真正
+压缩 bytes 恰好 32MiB 的合法归档、512/513 技能边界、根/嵌套目录内容向量和共享引用计费。
+链接沿用 producer 的安全忽略行为，不跟随，也不 blanket 拒绝所有含链接的合法归档。
+实际 1000000 引用正控不是进程硬 RSS/CPU 证明；取消在有界阶段/循环检查点观察。
+
+主线两源与冻结 SHA 一致，导出仅 exact2 的 staged tree，在 Go 1.27.3/CGO0 下运行：
+`t2d-staged-restore.jsonl` 为 17 顶层/105 PASS 事件；`t2d-staged-repository.jsonl`
+为 5 顶层/10 PASS 事件；共 22 顶层/115 PASS 事件、0 FAIL/SKIP，restore/repository vet、
+gofmt、diff check 均通过。证据根仍为 `/tmp/cognate-npx-selection.TB9Vd2tL`，非全仓复跑。
+
+expected 不认证来源；单次预算不能替代全 Candidate 累计预算。后继必须从真实 T1/canonical
+引用构造期望，绑定实际 DB、inventory 与归档文件集合，管理私有暂存/FD/清理及源关闭顺序。
+该片没有 Candidate/激活 capability、恢复 CLI、运行代切换或完整 C4/F4/GA 资格。
+
 ## 2026-11-01：T2c 纯 inventory 与内容闭包摘要检查
 
 T2b `1ba9896c4d845a9871eeee2d1fd57f707612479a` 已提交 SSH 推送并读回一致。后继 T2c

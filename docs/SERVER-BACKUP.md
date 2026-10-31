@@ -80,6 +80,17 @@ Reconcile 在回写时重新读取已持久化取消，而非使用网络调用�
 
 ## 本阶段验收
 
+### 2026-11-01：内部归档语义检查 T2d
+
+新增纯 `verifyArchive`：只借 bytes/被动仓库期望，先按显式 32MiB/合计 references 预算
+验证精确长度与 hash，再复用 repository.InspectArchive 的 Afero 解包/扫描；每个共享
+仓库的完整技能数、目录 path 与内容 hash 均须匹配，不只检查第一仓库或压缩 hash。
+输入不修改/清零、不保留，无文件/网络/激活副作用；沿用 producer 链接安全忽略及内容
+hash 语义，错误脱敏。exact2 经独审与主 staged-tree 组合验证通过，见 `VERIFICATION.md`。
+
+该片不认证声明来源，不证明实际候选文件集合、FD/持久化/清理或完整 Candidate。全局
+累计预算与真实 DB/canonical references 绑定、恢复入口及运行代切换仍待后继，不改变 GA 门禁。
+
 ### 2026-11-01：内部 inventory 检查 T2c
 
 新增恢复包的纯检查接收既有 metadata 与权威 canonical references 三元组，在显式预算内
