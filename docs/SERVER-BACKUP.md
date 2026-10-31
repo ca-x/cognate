@@ -31,6 +31,11 @@ S3 的运行资格，不是外部供应商 IAM/一致性证书，也未提供生
 真实 MinIO 源码构建工具的有限 QA 已跑通密文链和拒绝场景，但一次上传/WithFiles
 ErrInvalid 仍待定因；后继通过不等于该稳定性问题已解决，不扩大上述验收范围。
 
+后继两次新复现定位到条件 PUT 的 HTTP412 缺 APIError 误分类，协议级修复已独审：
+412 只进入原完整回读，不直接信为 Existing；条件 DELETE 只报 Conflict，不声称删除。
+修后固定源五次真实 MinIO 回归通过，但观测412均有 APIError；无 APIError 分支由确定性
+TLS/SDK 回归证明。最早未诊断事件与 MinIO 更深原因仍 UNKNOWN，不以绿色次数抹去历史。
+
 凭据撤销内部 helper 已通过独审：仅借入已验真的隔离事务执行撤销及后置检查，保留业务和
 原密文/AAD。它不拥有 Commit/Rollback/Close，也不是幂等操作；提交不明不得自动重放。
 生产撤销 coordinator、运行代切换/回退、离线 CLI 及真实重启业务回读仍待交付，不能手工

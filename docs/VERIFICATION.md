@@ -1,5 +1,40 @@
 # 开发预览验证
 
+## 2026-11-01：S3 条件请求 HTTP 412 协议修复
+
+真实 MinIO 后继诊断两次复现：第二次条件 PUT 已通过本地 bind/Stat/size/hash，服务层
+一次明确为 HTTP412 但无 smithy.APIError；旧代码只识别 API 码，未进入完整回读便返回
+Unavailable，外层 sealError 又映射为 Invalid。诊断报告
+`/tmp/cognate-minio-invalid-diag-38c-lggG94vR/REPORT.md`，SHA256
+`0e15e8a2d60c7fda0c76910eedfdfc43f3984e378d9d934e5e6fd249351f4533`。
+这定位了两次新复现的转换链，不给原291行事件补造同一原因，也未证明 MinIO 为什么缺 APIError。
+
+exact2 只改 S3Target 和新增测试，patch SHA256
+`6f90bff35583c2292bf150460676d8f28a6634789888c1641c2570f5c32fd86b`，source tree
+`7c6feeb702176a849ac298cae4e7554757caa47a`。共用 helper 保留原 typed PreconditionFailed，
+兼认准确 HTTP412；PUT 仍须原完整长度/hash/read/close/health 回读才 Existing，DELETE
+同型分支只 Conflict、不算已删除。不增加重试、无条件写/删、SDK、时限或错误正文日志。
+
+新 TLS malformedXML 测试实际确证相同 SDK 错误形状，旧源码行为 RED；同长度异密文、
+missing/denied、409/500、If-None-Match/If-Match 和单次 mutation 均有断言。一次新测试
+误要求原 PutConflict 必须带 error，修正为原 Conflict+nil 合同，保留历史失败；不是产品修复。
+主 clean-export backup/restore 两包完整 809 PASS、0 FAIL/SKIP及两包 vet，六目标 server
+CGO0 构建和 metadata 全通过；收据 `s3-conditional-main/02-*`、`04-*` 至 `07-*`。
+
+非作者 Spec/Quality 限定 ACCEPT：`/tmp/cognate-s3-412-review-2706-4weVVbW7/REPORT.md`，
+SHA256 `56a4d82a6d30da5ff3c7f31abcd51c72312e4fb3c4de97de4dbc25968d7e2c77`。
+独立新增11 PASS、相关25 PASS、vet 通过；旧源码、跳过回读、放宽状态、伪报已删除四组
+行为 RED 均命中。不改其它 sealError 映射，不能宣称所有 Invalid 表象消失。
+
+修后固定源真实 MinIO 五新进程均通过，前两轮原样 QA、后三轮仅固定布尔观测；
+实际 Capture→7 密文对象条件上传→Source→Candidate 及正确/错误/匿名凭据、错误原 master
+路径通过。21 次观测412均带 APIError，完整 verify 后才 Existing；本次没有再命中新 fallback，
+不能将其冒称真后端无 APIError 分支的直接证据。报告
+`/tmp/cognate-s3-fixed-real-minio-2706-lZ43pEGw/REPORT.md`，SHA256
+`3c97baa952436525895eff636980d0408f4db714c710fcaa716cc439411289cc`。
+DELETE 真后端、原291具体来源及缺 APIError 的更深机制仍未证明；不是 AWS/IAM、完整
+生产恢复、无限稳定性或 GA 资格。原受限 MinIO 历史段继续保留。
+
 ## 2026-11-01：GitHub 明确重新授权与 T3S/R4 组合
 
 GitHub exact5 patch SHA256

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -119,7 +120,7 @@ func (target *S3Target) PutSealed(ctx context.Context, ref ObjectRef, source *os
 	_, err = operation.client("PutObject").PutObject(operation.ctx, &s3.PutObjectInput{Bucket: new(options.bucket), Key: new(operation.key), ContentLength: new(data.size), ChecksumSHA256: new(base64.StdEncoding.EncodeToString(data.digest[:])), IfNoneMatch: new("*"), Body: contextSection{io.NewSectionReader(source, 0, data.size), operation.ctx}})
 	existing := false
 	if err != nil {
-		if api, ok := errors.AsType[smithy.APIError](err); ok && api.ErrorCode() == "PreconditionFailed" {
+		if conditionalPreconditionFailed(err) {
 			existing = true
 		} else {
 			return PutUnknown, safeServiceError(operation.ctx, err)
@@ -140,6 +141,15 @@ func (target *S3Target) PutSealed(ctx context.Context, ref ObjectRef, source *os
 	}
 	return VerifiedNew, nil
 }
+
+func conditionalPreconditionFailed(err error) bool {
+	if api, ok := errors.AsType[smithy.APIError](err); ok && api.ErrorCode() == "PreconditionFailed" {
+		return true
+	}
+	response, ok := errors.AsType[*smithyhttp.ResponseError](err)
+	return ok && response.HTTPStatusCode() == http.StatusPreconditionFailed
+}
+
 func safeServiceError(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -237,7 +247,7 @@ func (target *S3Target) DeleteExact(ctx context.Context, permit DeletePermit) (D
 	options := target.options.read()
 	_, err = operation.client("DeleteObject").DeleteObject(operation.ctx, &s3.DeleteObjectInput{Bucket: new(options.bucket), Key: new(operation.key), IfMatch: new(data.etag)})
 	if err != nil {
-		if api, ok := errors.AsType[smithy.APIError](err); ok && api.ErrorCode() == "PreconditionFailed" {
+		if conditionalPreconditionFailed(err) {
 			return DeleteConflict, nil
 		}
 		return DeleteUnknown, safeServiceError(operation.ctx, err)

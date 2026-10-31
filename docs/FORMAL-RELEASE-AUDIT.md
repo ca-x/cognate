@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 起的后继交付，不改写下面独立审计的原始基线结论。
 
+- S3 HTTP412 无 APIError 的条件请求误分类已按 exact2 修复并获非作者限定 ACCEPT；PUT 必须完整回读，DELETE 只冲突，无重试或授权放宽。主两包809 PASS/零FAIL-SKIP、vet、六目标 CGO0 构建及修后真实 MinIO 五进程通过；新 fallback 的直接证据来自确定 TLS/SDK 负控，不伪称真后端已再命中。原291/供应商深因、完整恢复与 GA 仍不据此关闭；见 `VERIFICATION.md`。
 - GitHub Needs 明确重授权 exact5 经非作者 ACCEPT，Catalog 被动身份和现有 PAT/device flow 的 expected-generation CAS 已闭合，普通内容读取门不放宽。主与 T3S/撤销同树四包完整组合 2782 PASS、18 SKIP、0 FAIL及 vet 通过；不是完整恢复或真实 GitHub 账号验收，见 `GITHUB-SYNC.md`、`VERIFICATION.md`。
 - R4 撤销事务内部 exact2 经非作者限定 ACCEPT，主 T3S 组合 114 PASS、0 FAIL/SKIP；保留业务与原 AAD，非幂等且不拥有 caller 事务。生产 coordinator、提交不明隔离及发布/恢复仍未交付，不算完整 F4；见 `VERIFICATION.md`。
 - T3S fix1 三测试合同修订已获非作者增量限定 ACCEPT，原三项冲突 CLOSED；六生产源及 kernel 不变。原字节三 FAIL 与后继 240s 包预算超时均保留；标准 10m 重跑完整组合实际 8838 PASS、170 SKIP、0 FAIL，全 vet 通过。18 个 CGO0 构建/元数据和新 binary 真实公开链通过，不借此关闭恢复或完整 GA；见 `VERIFICATION.md`。
