@@ -33,6 +33,21 @@ owner must make it public in GitHub package settings and verify anonymous access
 do not blindly repeat the publishing job. Likewise, a failed post-upload check
 does not mean the registry write was rolled back. Inspect remote state first.
 
+`Verify published server image` is a separate read-only workflow, reusable by the
+publisher or manually dispatched with the existing tag and expected index digest.
+It never builds or pushes images. Each architecture is pulled using its distinct
+child manifest digest from that index: pulling both platforms using one index
+digest into a classic Docker image store can fail with `cannot overwrite digest`.
+If a post-upload verification fails, repair or rerun this verifier, not the
+publisher. Keep the failed run as evidence.
+
+The first `server-v0.1.0-rc.1` run (41149414526, source `289dc98`) passed shared
+checks and both full container smokes, uploaded both platform artifacts and index
+`sha256:ac5c5721b5ad8eaa9469c14f0607ce0e7bb2b7c6c7aadf26e06fe715865f36fc`,
+then failed at the second platform pull because of that local Docker store
+conflict. It is not a successful public-release receipt; independent verification
+of the same uploaded digest is required without rewriting the tag or image.
+
 Use a new version tag for new source; do not move published tags. Same-tag runs
 are serialized. Protect release tags with GitHub repository rulesets and limit
 push permission to maintainers. Only the server publisher has `packages: write`;

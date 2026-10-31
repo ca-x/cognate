@@ -1,0 +1,78 @@
+name: Verify published server image
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+      digest:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing server-vX.Y.Z tag (verification only, never pushes)
+        type: string
+        required: true
+      digest:
+        description: Expected published sha256 index digest
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Validate verification inputs
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          IMAGE_DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^server-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.(0|[1-9][0-9]*))?$ ]]
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Install registry inspection tool
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends skopeo
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify published index and both distinct platform manifests
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          IMAGE_DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          actual="$(skopeo inspect --authfile "$HOME/.docker/config.json" --format '{{.Digest}}' "docker://$image:$RELEASE_TAG")"
+          test "$actual" = "$IMAGE_DIGEST"
+          docker buildx imagetools inspect --raw "$image@$IMAGE_DIGEST" > manifest.json
+          jq -e '[.manifests[] | select(.platform.os == "linux") | .platform.architecture] | sort == ["amd64", "arm64"]' manifest.json
+          for arch in amd64 arm64; do
+            platform_digest="$(jq -r --arg arch "$arch" '.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest' manifest.json)"
+            [[ "$platform_digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+            docker pull --platform "linux/$arch" "$image@$platform_digest"
+            test "$(docker image inspect --format '{{.Architecture}}' "$image@$platform_digest")" = "$arch"
+            docker run --rm --platform "linux/$arch" --network none --read-only \
+              --cap-drop ALL --security-opt no-new-privileges "$image@$platform_digest" --help >/dev/null
+          done
+          printf '### Verified server image\n\n`%s:%s`\n\n`%s@%s`\n' \
+            "$image" "$RELEASE_TAG" "$image" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
+      - name: Check anonymous registry access
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          IMAGE_DIGEST: ${{ inputs.digest }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          actual="$(skopeo inspect --no-creds --format '{{.Digest}}' "docker://$image:$RELEASE_TAG")"
+          test "$actual" = "$IMAGE_DIGEST"

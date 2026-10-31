@@ -42,12 +42,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      digest: ${{ steps.promote.outputs.digest }}
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: cognate-docker-*
           path: images
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - name: Install OCI promotion tool
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends skopeo
@@ -57,6 +58,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Promote tested OCI images without rebuilding
+        id: promote
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
@@ -74,20 +76,19 @@ jobs:
           jq -e '[.manifests[] | select(.platform.os == "linux") | .platform.architecture] | sort == ["amd64", "arm64"]' manifest.json
           digest="$(skopeo inspect --authfile "$HOME/.docker/config.json" --format '{{.Digest}}' "docker://$image:$RELEASE_TAG")"
           [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
-          for arch in amd64 arm64; do
-            docker pull --platform "linux/$arch" "$image@$digest"
-            docker run --rm --platform "linux/$arch" --network none --read-only \
-              --cap-drop ALL --security-opt no-new-privileges "$image@$digest" --help >/dev/null
-          done
+          printf 'digest=%s\n' "$digest" >> "$GITHUB_OUTPUT"
           printf '### Server image\n\n`%s:%s`\n\n`%s@%s`\n\nNo latest tag is updated.\n' \
             "$image" "$RELEASE_TAG" "$image" "$digest" >> "$GITHUB_STEP_SUMMARY"
-      - name: Check anonymous registry access
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          skopeo inspect --no-creds "docker://$image:$RELEASE_TAG" >/dev/null
+
+  verify-server:
+    needs: server
+    uses: ./.github/workflows/verify-server-image.yml
+    permissions:
+      contents: read
+      packages: read
+    with:
+      tag: ${{ github.ref_name }}
+      digest: ${{ needs.server.outputs.digest }}
 
   cli:
     if: needs.identify.outputs.component == 'cli'
