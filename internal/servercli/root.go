@@ -55,6 +55,7 @@ func New() *cobra.Command {
 	command.Flags().StringVar(&config.BootstrapAdminUsername, "bootstrap-admin-username", "", "仅空实例创建的首位本地管理员用户名；重启须保持一致，不自动提升已有账号")
 	command.Flags().StringVar(&config.BootstrapAdminPasswordFile, "bootstrap-admin-password-file", "", "首次管理员密码的私有文件（8–1024 字节，原样读取）；重启不读取、不覆盖已有密码")
 	command.Flags().StringVar(&config.MasterKeyFile, "key-file", configurationEnvironment("MASTER_KEY_FILE"), "包含 32 字节原始主密钥的私有文件，或 COGNATE_MASTER_KEY_FILE（兼容 SKILLHUB_MASTER_KEY_FILE）")
+	command.Flags().BoolVar(&config.InitializeMasterKey, "init-key-if-missing", false, "仅空实例缺失主密钥时由程序安全生成；已有密钥不覆盖，已有数据缺失密钥则拒绝")
 	command.Flags().StringVar(&listen, "listen", "127.0.0.1:8080", "HTTP 监听地址")
 	command.Flags().StringVar(&config.TLSCertificate, "tls-cert", "", "TLS 证书文件")
 	command.Flags().StringVar(&config.TLSKey, "tls-key", "", "TLS 私钥文件")

@@ -44,6 +44,7 @@ type Config struct {
 	BootstrapAdminPasswordFile string
 	DataDirectory              string
 	MasterKeyFile              string
+	InitializeMasterKey        bool
 	TLSCertificate             string
 	TLSKey                     string
 	AllowHTTP                  bool
@@ -143,7 +144,13 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
 	}
-	key, err := state.ReadMasterKey(config.MasterKeyFile)
+	var key []byte
+	var err error
+	if config.InitializeMasterKey {
+		key, err = state.InitializeMasterKey(ctx, config.MasterKeyFile, config.DataDirectory)
+	} else {
+		key, err = state.ReadMasterKey(config.MasterKeyFile)
+	}
 	if err != nil {
 		return nil, err
 	}
