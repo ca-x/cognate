@@ -14,9 +14,15 @@ Linux SH/EX 运行根 lease 内核及 legacy App 启动参与已实现：普通/
 创建，但必须由 live Runtime 证明只有两件具体协调对象，不能笼统忽略点文件；原失钥
 保护不变。发现保留的 current/generations/restore/intent 痕迹时只拒绝，不自动选旧库。
 
-这还不是全系统停服或运行代选择：不合作旧程序须停用，worker 父死/FD 交接和进程退出
-后的业务故障 fence 尚未完成；也不保证根/协调 inode 被整体替换后的同路径全局互斥。
+这还不是全系统停服或运行代选择：不合作旧程序须停用，worker 父死/FD 交接及恢复操作级
+持久 intent 尚未完成；也不保证根/协调 inode 被整体替换后的同路径全局互斥。
 部署必须维持稳定命名，不可删除协调或恢复痕迹来强行回退旧 binary。
+
+技术澄清：普通进程意外退出，在全部 writer 退役后仍允许原 SQLite/WAL/journal 恢复，
+不增加全局启动脏标记。非 SQLite 的 layout/current/rollback 必须在修改前建立自己的
+持久操作 intent；仅在错误返回后补写 poison 不能覆盖中途死亡窗口。worker 接线与
+自动备份整片现已批准并行实施，计划见 `superpowers/plans/2026-11-01-runtime-worker-lease.md`
+和 `superpowers/plans/2026-11-01-backup-automatic.md`，不能将设计批准当作已交付。
 
 可信 S3 Source 内部 API 已接通原密文对象认证与真实 Candidate，头 scope 不承载整个恢复，
 自有资源全部正常关闭成功后才开放验证。它只执行 GET/HEAD；目前仅有真实本机 TLS 合成
