@@ -22,8 +22,10 @@ Linux SH/EX 运行根 lease 内核及 legacy App 启动参与已实现：普通/
 自有资源全部正常关闭成功后才开放验证。它只执行 GET/HEAD；目前仅有真实本机 TLS 合成
 S3 的运行资格，不是外部供应商 IAM/一致性证书，也未提供生产恢复命令。
 
-凭据撤销、运行代切换/回退、离线 CLI 及真实重启业务回读仍待交付，不能手工移动 Candidate
-到活目录冒充恢复。准确证据与异常安全边界见 `VERIFICATION.md`。
+凭据撤销内部 helper 已通过独审：仅借入已验真的隔离事务执行撤销及后置检查，保留业务和
+原密文/AAD。它不拥有 Commit/Rollback/Close，也不是幂等操作；提交不明不得自动重放。
+生产撤销 coordinator、运行代切换/回退、离线 CLI 及真实重启业务回读仍待交付，不能手工
+移动 Candidate 到活目录冒充恢复。准确证据与异常安全边界见 `VERIFICATION.md`。
 
 ## Web 手动管理
 

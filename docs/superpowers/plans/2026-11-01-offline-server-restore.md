@@ -136,6 +136,11 @@ DDIA 对应取舍：以认证源数据为权威、缓存重新材料化；用单
 
 以上处理在候选事务原子提交，失败不发布。先完整验源，再撤销，最后重新验候选。rollback 必须施加相同或更严格策略，不能从 previous 或更早备份恢复已撤销 bearer；客户端自动更新器也不得用旧 share 恢复授权。
 
+实施进度：上述撤销 SQL 已交付为未导出的 `revokeRestoreCredentialsTx` 借事务 helper，
+exact2 经非作者限定 ACCEPT。它不拥有事务终结、不证明候选 provenance、不提供激活能力；
+固定撤销时刻不是幂等键，未知 commit 后禁止自动再调。完整生产 coordinator、写后再验、
+关闭/提交不明隔离与发布仍须后继接通；独审和主组合定向证据见 `VERIFICATION.md`。
+
 ## 6. 第一实施片 T1：只读离线候选数据库验真（最小可合入）
 
 后继执行状态：fix1 已独立增量复审限定 ACCEPT，原 P1 CLOSED；累计 exact12 合入主线，

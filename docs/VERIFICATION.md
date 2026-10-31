@@ -1,5 +1,22 @@
 # 开发预览验证
 
+## 2026-11-01：恢复凭据撤销事务内核
+
+新增 `state/revokeRestoreCredentialsTx` 的内部借事务实现及测试，exact2 patch SHA256
+`173de73a031a368b28389506fd69d3fc83501bf81c309afe053f6f07d603307a`。
+非作者在 38c 提交版 archive 组合限定 ACCEPT，报告
+`/tmp/cognate-r4-review-38c246b-3C8XpU/REPORT.md`，SHA256
+`853a7ae5c8a10e39dd3965471c33bbafd3b64300337233c5434e479d4b5ac166`。
+独立实跑 114 PASS 事件（106 行为叶）、39 个相关回归 PASS、4 个新增探针 PASS及 vet；
+FK、revision 写前溢出、取消遮盖 unknown、AAD 破坏四个减门对照均行为 RED。
+主线程在 T3S 与该两源组合实跑同组 114 PASS、0 FAIL/SKIP，见 `t4-main/01-revoke.*`。
+
+helper 要求 caller 已验真的隔离可写事务及 FK=1，不开/提交/回滚/关闭该事务；依次清除
+五类会话能力、统一撤销 share/MCP 并推进 MCP revision，将 GitHub 标为需重授权且清理
+在途标记。全部业务、配置、原密文/AAD/代次与私有历史保留，并检查后置条件。
+函数非幂等：固定撤销时刻不是重放许可，提交不明不得再次调用。它没有生产 coordinator、
+候选发布或恢复 CLI，测试侧 commit-unknown 不作为产品交付；完整 F4/R4 仍开放。
+
 ## 2026-11-01：T3S Linux legacy 启动参与与排空
 
 exact10 从 `2efa940` 独立构建，patch SHA256

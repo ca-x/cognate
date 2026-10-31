@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 起的后继交付，不改写下面独立审计的原始基线结论。
 
+- R4 撤销事务内部 exact2 经非作者限定 ACCEPT，主 T3S 组合 114 PASS、0 FAIL/SKIP；保留业务与原 AAD，非幂等且不拥有 caller 事务。生产 coordinator、提交不明隔离及发布/恢复仍未交付，不算完整 F4；见 `VERIFICATION.md`。
 - T3S fix1 三测试合同修订已获非作者增量限定 ACCEPT，原三项冲突 CLOSED；六生产源及 kernel 不变。原字节三 FAIL 与后继 240s 包预算超时均保留；标准 10m 重跑完整组合实际 8838 PASS、170 SKIP、0 FAIL，全 vet 通过。18 个 CGO0 构建/元数据和新 binary 真实公开链通过，不借此关闭恢复或完整 GA；见 `VERIFICATION.md`。
 
 - 2026-11-01 T3S exact10 的 Linux legacy startup/key/HTTP/资源排空经独审限定 ACCEPT：220 个定向行为叶、19 个独立边界、八组行为 RED 与恢复 GREEN；同形懒猫 namespace fresh/restart/祖先拒绝保持旧权限合同。主线最新组合另跑全仓，不能拿基线独审代替。R2/R3、worker 父死、durable 业务 fence、Resolve/撤销发布回退/离线 CLI 与完整 GA 仍开放。
