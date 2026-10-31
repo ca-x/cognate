@@ -91,6 +91,7 @@ export function PackConfigurations({ packId, packRevision, readFailed }: { packI
   const editTrigger = useRef<HTMLButtonElement>(null)
   const editFocus = useRef<{ previous: HTMLElement; target: () => HTMLButtonElement | null } | null>(null)
   const alive = useRef(false)
+  const refreshing = useRef(false)
   const current = useRef({ session: api.session, packRevision, readFailed })
   current.current = { session: api.session, packRevision, readFailed }
   const active = useRef<{ controller: AbortController; dispatched: boolean; revision: bigint; session: typeof api.session } | null>(null)
@@ -139,14 +140,19 @@ export function PackConfigurations({ packId, packRevision, readFailed }: { packI
   }
 
   async function refresh() {
-    if (active.current || query.isFetching) return
-    const result = await query.refetch()
-    if (!alive.current) return
-    if (result.isSuccess) {
-      if (phase === "unknown") setPhase("blocked")
-      setNotice(phase === "unknown" ? "只读核对完成；旧草稿仅供检查。后续替换必须重新编辑和审阅。" : "已重新读取元数据。不会覆盖草稿或提交替换。")
-      void queryClient.invalidateQueries({ queryKey: ["pack", api.session?.userId, packId] })
-      void queryClient.invalidateQueries({ queryKey: ["packs", api.session?.userId] })
+    if (refreshing.current || active.current || query.isFetching) return
+    refreshing.current = true
+    try {
+      const result = await query.refetch()
+      if (!alive.current) return
+      if (result.isSuccess) {
+        if (phase === "unknown") setPhase("blocked")
+        setNotice(phase === "unknown" ? "只读核对完成；旧草稿仅供检查。后续替换必须重新编辑和审阅。" : "已重新读取元数据。不会覆盖草稿或提交替换。")
+        void queryClient.invalidateQueries({ queryKey: ["pack", api.session?.userId, packId] })
+        void queryClient.invalidateQueries({ queryKey: ["packs", api.session?.userId] })
+      }
+    } finally {
+      refreshing.current = false
     }
   }
 

@@ -89,12 +89,12 @@ node /tmp/cognate-ui-polish/verify-ui.mjs \
 | --- | --- | --- |
 | 未登录工作空间 / `AuthScreen` | 七文件切片及 I1/M1 修复已独审 ACCEPT；新组合本地注册/登录与 OIDC loading/error/取消、32 组布局和 49 安全图通过 | 本页局部 UI 签收不覆盖外部 OIDC 成功或客户端 device flow；见 `AUTH-UI.md` |
 | `/` GitHub 来源 | 517 六阶段与 N1 可取消准入修复均获限定独审 ACCEPT；新组合 395 条浏览器检查、121 组几何、140 安全图通过 | Lists/授权局部证据不覆盖真实 GitHub 外部授权；锁准入精确 BUSY 轮询不等于业务自动重试，见 `SOURCES-UI.md` |
-| `/repositories` 仓库/技能 | 仓库/分类七文件切片及 F1/F2 修复独审 ACCEPT；新组合 65 条证据、24 组布局通过 | 真实私有 GitHub 权限、其它浏览器/平台仍需各自证据；见 `REPOSITORIES-UI.md` |
-| `/packs` 与内嵌分享管理 | 七文件切片与 F1 修复均已独审 ACCEPT；最终组合 CRUD/分享/撤销/Unknown 132 条证据、另五项焦点观察通过 | 配置附件消费另缺实现，不只是样式；本页不表示设备已同步，见 `PACKS-UI.md` |
+| `/repositories` 仓库/技能 | 仓库/分类七文件切片及 F1/F2 修复独审 ACCEPT；新组合 65 条证据、24 组布局通过。后继 npx v3 选择导入与弃稿 W1 独审 ACCEPT，35 条收据/16 布局/26 图及严格终态通过 | 真实私有 GitHub 权限、其它浏览器/平台仍需各自证据；npx 不含锁写回、MyGo 或完整 F6，见 `REPOSITORIES-UI.md`、`NPX-SKILLS-IMPORT-WEB.md` |
+| `/packs` 与内嵌分享管理 | 七文件切片与 F1 修复均已独审 ACCEPT；最终组合 CRUD/分享/撤销/Unknown 132 条证据、另五项焦点观察通过。后继附件所有者元数据 Web 的 PC-F1 焦点与 PC-P3 同步读取去重均独审 CLOSED | 配置附件消费另缺实现，不只是样式；元数据管理不读取正文/密钥，不表示设备已同步，见 `PACKS-UI.md`、`PACK-CONFIGURATION-WEB.md` |
 | `/categories` 分类 | 同一仓库/分类切片已覆盖 CRUD、长名、失败保留草稿及丢回执后稳定错误/焦点，独审 ACCEPT | 以上为本页局部 Chromium UI 签收，不扩大成全部 F9 或真实平台验收 |
 | `/account` 账号 | 与登录同一切片，I1/M1 已独审；身份、显式绑定、后台错误焦点与注销的新组合专项通过 | 外部 provider 成功绑定、真人读屏及跨浏览器仍 OPEN；不枚举或推断已有绑定清单 |
 | `/mcp-settings` | 八文件管理页切片及撤销焦点 F1 已独审；主线真实权限/一次显示/轮换/撤销/过期、CAS/Unknown、160 组联合矩阵通过 | 本页局部签收不覆盖外部剪贴板成功复制、其它浏览器/真人读屏或客户端 MCP 配置资产；见 `MANAGEMENT-UI.md` |
-| `/configuration` | 共享与关键配置/Grok 编辑切片已独审，见本文件前文 | 所有已支持 agent 的空/列表/编辑/只读未知/冲突/Unknown 场景逐一覆盖 OPEN；十四 agent 功能缺口不以 UI 填空代替 |
+| `/configuration` | 后继配置工作空间 exact8 已独审 ACCEPT；五 provider 的 pending 保存与取消重读 P2 在143/156旧各15 FAIL→新各31 PASS；156后继80布局、只读未知/CAS/Unknown 与排序窄证据见 `CONFIGURATION-UI.md` | 仍不覆盖所有可选字段/凭据组合、真人读屏或跨平台原生应用；十四 agent 功能缺口不以 UI 填空代替 |
 | `/server-logging` | 同管理切片已独审；真实普通用户拒绝、管理员策略/保留确认、草稿与 CAS/Unknown、健康样本未知和窄屏键盘通过 | 不代表持续监控或完整外部磁盘故障资格；全产品与平台门禁仍 OPEN，见 `MANAGEMENT-UI.md` |
 | `/server-backup` | 管理员手动页，真实 TLS App/SQLite/S3-like 88 条收据及 56 组布局/焦点检查 | 中英深浅、320/375px/200%、真实键盘滚动与 ReduceMotion 已有本页证据；全产品、外部供应商及完整恢复仍 OPEN，见 `SERVER-BACKUP.md` |
 | `/explore`、`/explore/$skillId` | 公开目录/详情局部 ACCEPT；24 份 200% 几何、复制完整词、真实分页/错误/匿名边界，见 `PUBLIC-CATALOG-UI.md` | 自动化验收限本机 Chromium；真人读屏、触屏、真实公开安装与其它浏览器仍 OPEN |

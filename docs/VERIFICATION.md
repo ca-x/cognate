@@ -34,6 +34,16 @@ npx 的恰 32 路径阶段已提交并 SSH 推送 `3a8ca4723121fbaa8fa8917b352bc
 
 上述片段不关闭完整恢复、备份调度/保留、完整来源/agent 配置导入、Pack 配置消费和自动应用、客户端 OIDC、跨平台实际安装/恢复或签名门禁。阶段提交另记；当前没有新增正式 tag、Docker 或 LPK。
 
+### 两阶段推送后与 P3 后继
+
+npx `3a8ca47` 的 Build `41235578933`、配置工作空间 `79423887903393d01ef17b8738234cc21b535d38` 的 Build `41235706942` 后继均已现场读回 **completed/success**；上面的 in_progress 是首次查询状态，不是最终结论。两次 SSH push 的远端 SHA 均与本地相同。配置阶段恰 12 路径（原 exact8、CI 一行与三份账本），不是签收其余未实现能力。
+
+Pack PC-P3 / PC-N1 已由非作者限定 Spec/Quality ACCEPT：独立旧/新构建在156复现两组读取 RED→一组读取 GREEN，七个读取计数、失败释放、Unknown 零重放与原十项焦点通过。报告 `/tmp/pack-pc-p3-independent-iiX9My02/REVIEW-PC-P3.md` SHA256 `cd6ebe03e065523eb3421b1b2f88b571e7b5b9d3891177f5937c371cc941edbe`。主用 apply_patch 集成 exact3，初次三项 SHA 全匹配；新组合 binary 的143 `--phase reads` **9/9**、七次读均 `1/1/0`，fixture `0/null`。只限当前组件的显式读取，不推广到所有查询。
+
+此组合再次完成 Web build、CGO0 fixture 编译，以及 Linux amd64/arm64 server 两个 CGO0 build 与 Go1.27.3 metadata 核验，证据 `final-combined-*`。它包含后继 OpenCode 排序文案候选，不是发布工件或逐 OS 运行资格。文案旧版本在真实页面以新永久回归 RED，新构建在两语言、320px/200%/深色/reduced-motion 下通过四条收据与两项几何，读提示没有触发配置写入；最终 runner 与文案的独立复核另行留据，不将其冒充已独审。首个完整正式版目标仍在推进。
+
+该文案 P3 后继也由非作者限定 Spec/Quality ACCEPT / CLOSED：独立156旧/新构建、最终 runner 的中英提示/两项几何/关闭后排序按钮存在且启用，以及五类 mutation 计数不增通过，七案终态自测通过。报告 `/tmp/opencode-ordering-copy-review-2YCpKrJ8/REVIEW-OPENCODE-COPY-P3.md` SHA256 `a3888e8436e5944cd8cc8d0b16e58998a2e3d08061b90ce6b283264f7d156d03`；主核对 exact3 全部 SHA 一致。文案没有修改提交、凭据或 native 能力。最终两个 runner syntax/自测、两包 vet 与 diff whitespace 检查通过。旧 P2、PC-F1 原报告保留；此增量只关闭两个明确的 UI P3，不关闭完整 GA。
+
 ## 2026-11-01：MCP 与日志管理页候选集成及 F1 焦点修复
 
 主线程把 Newton 的恰八文件候选应用至 `e2003855c69e2e72e05962d011faa8f788abd733`，逐文件 SHA 与交付清单一致，未改生产 Go 或协议。累计 patch SHA256 `29d47abd5ab902f2fca0fd691b85adfee770c1b3f333828d0a4cc204a193cfd8`，八文件清单 SHA256 `61caabfae412dde9dbb34f7a9ff72b97e1a2feeb90f7bf8d2020442271139902`。首次非作者审查为 Spec/Quality BLOCK，唯一 P2 是下面的 F1；不能用作者或主线组合 GREEN 覆盖这个独立反例。

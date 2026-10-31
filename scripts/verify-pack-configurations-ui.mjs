@@ -43,9 +43,11 @@ const terminal = new Promise(done => fixture.once("exit", (code, signal) => done
 const session = `pack-configuration-${process.pid}`
 const evidence = []
 const geometryEvidence = []
+const readEvidence = []
 const fullExpected = ["owner-attachment-entry", "cancel-zero-writes", "ordered-replacement-dual-revisions", "remove-and-clear", "maximum-and-no-duplicates", "stale-explicit-revision", "missing-reference-retained", "asset-CAS-refusal", "pack-CAS-refusal", "configuration-CAS-refusal", "preflight-changed-no-write", "known-owner-refusal", "lost-committed-unknown", "malformed-committed-unknown", "malformed-error-unknown", "duplicate-error-unknown", "malformed-details-unknown", "cancel-after-commit-unknown", "cancel-before-dispatch", "read-errors-preserve-draft", "pack-switch-stale-review", "layout-keyboard-motion", "owner-isolation", "skills-shares-unchanged", "unsupported-retained", "delete-invalidates", "logout-invalidates", "metadata-only-storage"]
 const focusExpected = ["owner-attachment-entry", "focus-refresh", "focus-background-refresh", "focus-add", "focus-move-up", "focus-move-down", "focus-remove", "focus-remove-last", "focus-clear", "focus-discard"]
-const expected = values.phase === "focus" ? focusExpected : values.phase === "layout" ? ["owner-attachment-entry", "layout-keyboard-motion"] : fullExpected
+const readExpected = ["owner-attachment-entry", "read-singleflight-attachments", "read-singleflight-assets", "read-explicit-again", "read-error-release", "read-after-error", "unknown-committed-once", "unknown-read-singleflight", "unknown-read-explicit-again"]
+const expected = values.phase === "reads" ? readExpected : values.phase === "focus" ? focusExpected : values.phase === "layout" ? ["owner-attachment-entry", "layout-keyboard-motion"] : fullExpected
 const delay = duration => new Promise(done => setTimeout(done, duration))
 let ready, failure
 function browser(args, input) {
@@ -166,6 +168,55 @@ async function focusRegressions() {
   record("focus-discard")
   capture("focus-stable")
 }
+async function explicitRead(label, target = "GetAttachments", fault = "slow", activations = 2) {
+  const procedures = ["GetAttachments", "ListAssets", "ReplaceAttachments"]
+  const before = (await control("state")).counts
+  await mode(fault, target)
+  assert(evaluate(`(() => {
+    const button = document.querySelector('.pc-refresh');
+    if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
+    button.focus();
+    for (let index = 0; index < ${activations}; index++) button.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+    return true;
+  })()`), `${label}: explicit read unavailable`)
+  await until(() => evaluate("document.querySelector('.pc-refresh')?.getAttribute('aria-disabled') === 'false'"), `${label}: read did not finish`)
+  const after = (await control("state")).counts
+  const delta = Object.fromEntries(procedures.map(procedure => [procedure, (after[procedure] ?? 0) - (before[procedure] ?? 0)]))
+  readEvidence.push({ label, activations, target, fault, before, after, delta })
+  assert.deepEqual(delta, { GetAttachments: 1, ListAssets: 1, ReplaceAttachments: 0 }, `${label}: explicit activation must send one read group and zero replacements`)
+  assert(activeWithin(".pc-refresh"), `${label}: read lost reload focus`)
+  record(label)
+}
+async function readRegressions() {
+  await explicitRead("read-singleflight-attachments")
+  await explicitRead("read-singleflight-assets", "ListAssets")
+  await explicitRead("read-explicit-again", "GetAttachments", "normal", 1)
+  await explicitRead("read-error-release", "GetAttachments", "error")
+  assert(text().includes("Read failed or Pack revision is unverified"), "read failure was not shown")
+  assert.equal(evaluate("document.querySelector('.pc-edit').disabled"), true)
+  await explicitRead("read-after-error", "GetAttachments", "normal", 1)
+  assert.equal(evaluate("document.querySelector('.pc-edit').disabled"), false, "read failure permanently blocked explicit reading")
+  assert.equal(await count("ReplaceAttachments"), 0, "read regressions dispatched a replacement")
+
+  await newEdit(); await add(0); review()
+  const before = await control("state")
+  await mode("lost"); confirm()
+  await until(() => text().includes("Submission is Unknown"), "committed response loss did not become Unknown")
+  const committed = await control("state")
+  assert.equal(committed.snapshot.ConfigurationRevision, before.snapshot.ConfigurationRevision + 1, "Unknown fault did not follow a real SQLite commit")
+  assert.equal(committed.counts.ReplaceAttachments, (before.counts.ReplaceAttachments ?? 0) + 1)
+  assert.equal(evaluate("document.querySelector('.pc-edit').disabled"), true)
+  assert.equal(evaluate("!!document.querySelector('.pc-confirm, .pc-review')"), false)
+  const draft = evaluate("[...document.querySelectorAll('.pc-editor .pc-reference')].map(reference => ({ id: reference.dataset.reference, text: reference.textContent }))")
+  record("unknown-committed-once")
+  await explicitRead("unknown-read-singleflight")
+  assert(text().includes("old draft is for inspection only"), "Unknown reconciliation did not complete")
+  await explicitRead("unknown-read-explicit-again", "GetAttachments", "normal", 1)
+  assert.deepEqual(evaluate("[...document.querySelectorAll('.pc-editor .pc-reference')].map(reference => ({ id: reference.dataset.reference, text: reference.textContent }))"), draft, "read-only reconciliation changed the preserved draft")
+  assert.equal(evaluate("!!document.querySelector('.pc-confirm, .pc-review')"), false, "reconciliation resurrected write controls")
+  assert.equal(await count("ReplaceAttachments"), committed.counts.ReplaceAttachments, "Unknown reconciliation replayed a replacement")
+  capture("reads-stable")
+}
 function geometry(label) {
   const result = evaluate(`(() => {
     const root = document.querySelector('[role=dialog]') || document.querySelector('.pack-configurations');
@@ -257,7 +308,7 @@ try {
   record("owner-attachment-entry")
   capture("owner-attachments")
 
-  if (values.phase === "focus") { await focusRegressions() } else if (values.phase === "layout") { await newEdit(); await add(1); review(); confirm(); await success(); await layoutMatrix() } else {
+  if (values.phase === "reads") { await readRegressions() } else if (values.phase === "focus") { await focusRegressions() } else if (values.phase === "layout") { await newEdit(); await add(1); review(); confirm(); await success(); await layoutMatrix() } else {
   click("Create share token")
   await until(() => evaluate("!!document.querySelector('#created-share-token')"), "real share creation absent")
   const distribution = evaluate("(async()=>{ const response = await fetch('/skillhub.pack.v1.DistributionService/GetManifest',{method:'POST',headers:{'Content-Type':'application/json','Connect-Protocol-Version':'1',Authorization:'Bearer '+document.querySelector('#created-share-token').value},body:'{}'}); const body=await response.json(); return {status:response.status,skills:body.skills?.length,hasConfiguration:Object.keys(body).some(key=>/configuration|secret/i.test(key))} })()")
@@ -437,7 +488,7 @@ finally {
   if (!exit) { fixture.kill("SIGTERM"); exit = { ...await terminal, timeout: true } }
   closeSync(log)
   rmSync(directory, { recursive: true, force: true })
-  const receipt = { ok: !failure, expected: expected.length, completed: evidence.length, failure: failure?.message ?? null, evidence, geometry: geometryEvidence }
+  const receipt = { ok: !failure, expected: expected.length, completed: evidence.length, failure: failure?.message ?? null, evidence, geometry: geometryEvidence, reads: readEvidence }
   try { terminalGate(exit, receipt) } catch (error) { failure ??= error }
   writeFileSync(join(output, "receipts.json"), JSON.stringify({ ...receipt, ok: !failure, failure: failure?.message ?? null, exit }, null, 2), { mode: 0o600 })
 }

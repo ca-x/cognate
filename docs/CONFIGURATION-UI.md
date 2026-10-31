@@ -42,6 +42,15 @@ Mainline integration initially matched all eight source hashes; this closure
 note is a separate documentation delta. This is not whole-product UI, native
 configuration-application, or GA acceptance.
 
+The later OpenCode ordering-copy P3 is also closed by a separate exact3 review.
+Only its stale sentence and English translation change in production; the new
+`--ordering-copy` regression checks both locales at 320px/200% with reduced
+motion, the available ordering trigger after closing the editor, and zero
+mutation increments. Independent old/new builds reproduce RED then GREEN.
+Report: `/tmp/opencode-ordering-copy-review-2YCpKrJ8/REVIEW-OPENCODE-COPY-P3.md`,
+SHA256 `a3888e8436e5944cd8cc8d0b16e58998a2e3d08061b90ce6b283264f7d156d03`.
+Historical mentions of an open P3 below describe the earlier exact8 freeze.
+
 ### Focus fix 1 — incremental review
 
 Laplace's original independent review BLOCK is retained, with F1 (pending save loses focus) and F2 (cancel reconciliation leaves BODY). This revision is an author fix for incremental non-author review, not an independent closure.

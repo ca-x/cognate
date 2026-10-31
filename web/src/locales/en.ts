@@ -82,7 +82,7 @@ export const english: Record<string, string> = {
   "请修正字段后再保存": "Correct these fields before saving",
   "非秘密变更摘要": "Non-secret change summary",
   "引用 {{count}} 个资产内凭据槽；不展示任何值。": "References {{count}} asset-local credential slots. No values are shown.",
-  "字段与集合的未设置、显式空值及顺序分别保留。提供方列表持久排序仍待独立后端片。": "Field absence, explicit empty values and collection order remain distinct. Persistent provider-list ordering requires a separate backend slice.",
+  "字段与集合的未设置、显式空值及顺序分别保留。关闭此编辑器后，可在配置工作空间的排序区域单独调整提供方列表。": "Field absence, explicit empty values and collection order remain distinct. Close this editor to adjust provider-list order in the configuration workspace's ordering section.",
   "确认移除最后引用并 CLEAR？": "Remove the last reference and CLEAR?",
   "这些已保存槽在新草稿中不再被引用；确认会在同一次 CAS 保存中显式 CLEAR。取消保留原草稿。": "These saved slots are no longer referenced in the new draft. Confirming includes explicit CLEAR in the same revision-checked save. Cancel keeps the original draft.",
   "确认移除引用并 CLEAR": "Remove references and confirm CLEAR",

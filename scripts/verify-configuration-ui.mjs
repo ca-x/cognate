@@ -8,6 +8,7 @@ const { values } = parseArgs({ options: {
   "fixture-bin": { type: "string" }, "browser-bin": { type: "string" }, "chrome-bin": { type: "string" }, output: { type: "string" },
   "self-test": { type: "boolean" }, red: { type: "boolean" }, "skip-matrix": { type: "boolean" }, "matrix-smoke": { type: "boolean" },
   "focus-regression": { type: "boolean" },
+  "ordering-copy": { type: "boolean" },
 } })
 const delay = (duration) => new Promise((done) => setTimeout(done, duration))
 
@@ -218,6 +219,34 @@ async function run() {
     await until(()=>evaluate("!!document.querySelector('[role=dialog] form')"),"Claude editor missing")
     assert(evaluate("document.activeElement?.matches('[data-configuration-editor-title]')"),"RED: editor initial focus must land on stable title, not language selector")
     evidence.push("stable-editor-initial-focus")
+    if(values["ordering-copy"]) {
+      browser(["press","Escape"])
+      browser(["set","viewport","320","900"])
+      browser(["set","media","dark","reduced-motion"])
+      evaluate("document.documentElement.style.fontSize='32px'")
+      const before=(await control("state")).requests
+      for(const locale of ["en","zh-CN"]) {
+        if(locale==="zh-CN") { await choose("Interface language","简体中文");language=locale }
+        await row("OpenCode synthetic",locale==="en"?"Edit configuration":"编辑配置")
+        await until(()=>evaluate("!!document.querySelector('[role=dialog] form')"),"OpenCode editor missing")
+        const content=evaluate("document.querySelector('[role=dialog] form').textContent")
+        assert(content.includes(locale==="en"?"Close this editor to adjust provider-list order in the configuration workspace's ordering section.":"关闭此编辑器后，可在配置工作空间的排序区域单独调整提供方列表。"),"OpenCode ordering guidance does not match the available workspace")
+        assert(!content.includes("requires a separate backend slice")&&!content.includes("仍待独立后端片"),"OpenCode ordering guidance still claims the feature is unavailable")
+        geometry('[role=dialog]',{surface:"OpenCode ordering guidance",locale,font:200,motion:"reduce"})
+        capture(`OpenCode-ordering-copy-${locale}`)
+        evidence.push(`OpenCode-ordering-guidance-${locale}`)
+        browser(["press","Escape"])
+        const orderingLabel=locale==="en"?"Arrange configurations":"排列配置"
+        assert(evaluate(`[...document.querySelectorAll('button')].some(button=>button.textContent.trim()===${JSON.stringify(orderingLabel)}&&!button.disabled)`),"workspace ordering entry described by the guidance is unavailable")
+      }
+      const after=(await control("state")).requests
+      for(const method of ["CreateAsset","UpdateAsset","CopyAsset","DeleteAsset","ReplaceAssetOrder"]) {
+        const route=`/skillhub.configuration.v1.ConfigurationService/${method}`
+        assert.equal(after[route]??0,before[route]??0,"reading ordering guidance dispatched a business mutation")
+      }
+      evidence.push("ordering-guidance-read-only")
+      return
+    }
     if(values["focus-regression"]) { await focusRegressions();return }
     if(values.red) return
     fill("Configuration asset name","non-secret preserved draft")

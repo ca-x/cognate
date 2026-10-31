@@ -75,4 +75,36 @@ Main first adds a permanent `--phase focus` regression and runs it against the a
 
 Fresh production Web and Go fixture builds pass. Both Chromium 143 and 156 then pass ten focus receipts, including external-focus retention and zero replacement writes; each fixture exits `0` / no signal. Evidence is `/tmp/cognate-npx-selection.TB9Vd2tL/pack-focus-{red-156,green-143,green-156}`. These are narrow focus checks, not a rerun of the author's complete business/layout matrix.
 
-The subsequent non-author review independently builds the candidate and passes ten focus checks in each browser, including external focus, add/clear/discard and no replacement writes. **PC-F1 CLOSED; limited Spec/Quality ACCEPT**, with the original BLOCK retained. Report `/tmp/cognate-pack-configuration-independent.kgyP2Dpb/work/REVIEW-PC-F1.md`, SHA256 `255b8423c86328d23f3f669b514ff3e3042ecc28037dfdbc90cb453547f8e9d4`. A nonblocking P3 remains: two synchronous explicit reload activations can send two read groups before React reflects fetching. The current guard must not be described as strict synchronous single-flight; no business write is observed. This is not native consumption, full F12 or GA acceptance.
+The subsequent non-author review independently builds the candidate and passes ten focus checks in each browser, including external focus, add/clear/discard and no replacement writes. **PC-F1 CLOSED; limited Spec/Quality ACCEPT**, with the original BLOCK retained. Report `/tmp/cognate-pack-configuration-independent.kgyP2Dpb/work/REVIEW-PC-F1.md`, SHA256 `255b8423c86328d23f3f669b514ff3e3042ecc28037dfdbc90cb453547f8e9d4`. At that review point, a nonblocking P3 remained: two synchronous explicit reload activations could send two read groups before React reflected fetching. That guard was not strict synchronous single-flight; no business write was observed. This is not native consumption, full F12 or GA acceptance.
+
+## Synchronous explicit-read deduplication: PC-P3 (2026-11-01)
+
+The independent follow-up closes PC-P3 / PC-N1 with limited Spec/Quality ACCEPT.
+It independently builds old and new bytes, reproduces 2/2/0 read counts on the
+old UI, and verifies all seven new 1/1/0 read groups, failure release, Unknown
+without replay, and the ten existing focus receipts on Chromium 156. Report:
+`/tmp/pack-pc-p3-independent-iiX9My02/REVIEW-PC-P3.md`, SHA256
+`cd6ebe03e065523eb3421b1b2f88b571e7b5b9d3891177f5937c371cc941edbe`.
+Mainline initially matches all three frozen source hashes; this closure note is
+a separate documentation delta. The new combined fixture also passes nine read
+receipts on Chromium 143. Neither result claims the entire UI matrix or GA.
+
+`refresh()` now acquires a component-local ref synchronously before calling `query.refetch()`. It holds the guard across the complete awaited read and its result handling, then releases it in `finally`, including read failure and unmount return paths. Same-task duplicate activations send one attachment/asset read group; a later explicit activation can read again. The focusable `aria-disabled` reload control and PC-F1 focus lifecycle are retained. The application adds no timer, global listener or automatic business action. Unknown reconciliation preserves the proposed references for inspection and sends no replacement. GA scope and acceptance requirements are unchanged.
+
+The permanent browser regression is `--phase reads`. It dispatches two bubbling click events synchronously in one browser evaluation, then checks the real fixture's RPC counters. Separate cases delay `GetAttachments` and `ListAssets`, check a subsequent explicit read, and verify release after a failed read. A real SQLite commit followed by response loss establishes Unknown before repeating the duplicate/read-again checks; only that deliberate reviewed submission may increment `ReplaceAttachments`. Receipts include each read's before/after counters and deltas, even on failure.
+
+Run the existing fixture build and terminal self-test above, then use:
+
+```bash
+node scripts/verify-pack-configurations-ui.mjs --phase reads \
+  --fixture-bin /tmp/pack-configuration-fixture.test \
+  --browser-bin /home/czyt/.local/share/mise/installs/npm-agent-browser/0.39.1/node_modules/.bin/agent-browser \
+  --chrome-bin /opt/google/chrome/chrome \
+  --output /tmp/pack-configuration-read-evidence-156
+```
+
+Repeat with `/home/czyt/.cache/ms-playwright/chromium-1200/chrome-linux64/chrome` for Chrome 143, and retain the existing `--phase focus` checks on both executables.
+
+This fix is exported from `f0e194baf0836a93889f68ed0e67abe9720de26a` with `git archive HEAD` into `/tmp/skillhub-pack-p3-exact3.TNA6W3`, linking only the existing Web dependencies. The cumulative source write set is exactly `web/src/pack-configurations.tsx`, `scripts/verify-pack-configurations-ui.mjs` and this document. No branch, worktree, commit, push, shared source or shared `dist` write is involved.
+
+Fresh evidence is retained in `/tmp/skillhub-pack-p3-exact3.TNA6W3-delivery`: both `red-143` and `red-156` fail the permanent regression against the original production build with deltas `GetAttachments=2`, `ListAssets=2`, `ReplaceAttachments=0`, while each fixture exits cleanly. Both `green-reads-143` and `green-reads-156` pass 9/9 receipts, each explicit read yielding `1/1/0`; the sole deliberate Unknown setup write is not replayed. Both `green-focus-143` and `green-focus-156` pass the unchanged 10/10 focus receipts, including external-focus retention and zero replacement writes. All four GREEN fixtures exit with code 0 and no signal. Production Web and Go fixture builds, script syntax and the terminal self-test pass. This is targeted P3/focus evidence; the previously recorded business/layout evidence is not rerun here.
