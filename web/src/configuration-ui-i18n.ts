@@ -1,0 +1,46 @@
+import i18n from "./i18n"
+
+const english = {
+  workspace: "Configuration workspace",
+  saved: "Saved assets",
+  group: "{{agent}} · {{count}} saved assets",
+  editable: "Provider editor available",
+  readonly: "Read-only format",
+  credentials: "Credential status is read only when you open an editor. The list contains metadata, never saved secrets.",
+  readiness: "Credential structure",
+  complete: "Complete declaration — not a connectivity or device check",
+  missing: "Needs credentials — may be saved as a draft",
+  unknown: "Not read — no credential or application status inferred",
+  current: "Current metadata",
+  refreshing: "Refreshing metadata — existing drafts stay visible; writes wait for a successful read.",
+  stale: "Current metadata unavailable. Cached assets cannot authorize changes. Your open draft is retained; refresh before saving.",
+  waiting: "Writes are paused until the asset list is read successfully. This does not discard your draft or replay a request.",
+  native: "Saved here, not applied to a device",
+  nativeDetail: "An editable server asset does not establish native eligibility. Claude has a separate Linux manual workflow; Codex production eligibility remains closed. Gemini, OpenCode and Grok Build have no device application in this page. No provider is selected here.",
+  revision: "Revision {{revision}} · checked again on save",
+  danger: "Delete from server",
+  cancel: "Cancel",
+}
+const chinese: Record<keyof typeof english, string> = {
+  workspace: "配置工作空间",
+  saved: "已保存资产",
+  group: "{{agent}} · {{count}} 项已保存资产",
+  editable: "可用专属编辑器",
+  readonly: "只读格式",
+  credentials: "打开编辑器后才读取凭据状态。列表仅包含元数据，从不包含已保存的秘密。",
+  readiness: "凭据结构",
+  complete: "声明完整 — 未验证连通性或设备状态",
+  missing: "待补凭据 — 可保存为草稿",
+  unknown: "尚未读取 — 不推断凭据或应用状态",
+  current: "当前元数据",
+  refreshing: "正在刷新元数据 — 保留现有草稿，成功读取前暂停写入。",
+  stale: "当前元数据不可用。缓存资产不能授权更改。已保留打开的草稿，请刷新后再保存。",
+  waiting: "成功读取资产列表前暂停写入。不会丢弃草稿，也不会重放请求。",
+  native: "保存在此处，不代表应用到设备",
+  nativeDetail: "可编辑服务端资产不等于取得原生资格。Claude 另有 Linux 手动工作流；Codex 生产资格仍关闭。Gemini、OpenCode 与 Grok Build 不在本页应用到设备。本页不选择 provider。",
+  revision: "版本 {{revision}} · 保存时再次校验",
+  danger: "从服务端删除",
+  cancel: "取消",
+}
+i18n.addResourceBundle("en", "configurationUI", english, true, true)
+i18n.addResourceBundle("zh-CN", "configurationUI", chinese, true, true)

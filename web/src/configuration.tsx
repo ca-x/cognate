@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useBlocker } from "@tanstack/react-router"
@@ -23,14 +23,20 @@ import { configurationError, metadata, requireConfigurationView, supportsClaude,
 import { Button } from "./components/ui/button"
 import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "./components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
+import "./configuration-ui-i18n"
+import "./configuration-ui.css"
 
 type ConfigurationClient = Client<typeof ConfigurationService>
 type Action = { kind: "create" } | { kind: "edit"; asset: AssetMetadata } | { kind: "copy"; asset: AssetMetadata } | { kind: "delete"; asset: AssetMetadata }
 type Result = { kind: "saved" | "copied" | "deleted"; readiness?: CredentialReadiness }
 const titles = { create: "新建配置资产", edit: "编辑配置资产", copy: "复制配置资产", delete: "删除配置资产" }
 const kindLabels: Record<number, string> = { [AssetKind.PROVIDER]: "Provider 配置", [AssetKind.MCP]: "MCP connection 配置", [AssetKind.PROMPT]: "提示词配置", [AssetKind.AGENT_SETTINGS]: "Agent 全局配置", [AssetKind.WORKSPACE]: "工作区配置" }
+
+function editableAsset(asset: AssetMetadata) {
+  return supportsClaude(asset) || supportsCodex(asset) || supportsGemini(asset) || supportsOpenCode(asset) || supportsGrok(asset)
+}
 
 function ConfigurationLanguage() {
   const { i18n } = useTranslation()
@@ -46,13 +52,43 @@ function writeView(view?: DraftView) {
   try { return requireConfigurationView(view) } catch { throw new ConnectError("", Code.DataLoss) }
 }
 
-function ConfigurationEditor({ client, action, invalidate, onDone, onDirtyChange, onReload }: { client: ConfigurationClient; action: Action & { kind: "create" | "edit" }; invalidate: () => void; onDone: (result: Result) => void; onDirtyChange: (dirty: boolean) => void; onReload: () => void }) {
+function ConfigurationReload({ onReload, editorTitle }: { onReload: () => void; editorTitle: RefObject<HTMLHeadingElement | null> }) {
+  const [open, setOpen] = useState(false)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const content = useRef<HTMLDivElement>(null)
+  const cancel = useRef<HTMLButtonElement>(null)
+  const ownedFocus = useRef(false)
+  const changeOpen = (next: boolean) => {
+    ownedFocus.current = !next && Boolean(content.current?.contains(document.activeElement))
+    setOpen(next)
+  }
+  return <Dialog open={open} onOpenChange={changeOpen}>
+    <DialogTrigger asChild><Button ref={trigger} type="button" variant="outline" className="mt-3">{t("放弃草稿并重新读取")}</Button></DialogTrigger>
+    <DialogContent ref={content} className="configuration-editor" onOpenAutoFocus={(event) => { event.preventDefault(); cancel.current?.focus() }} onCloseAutoFocus={(event) => {
+      event.preventDefault()
+      const owned = ownedFocus.current
+      ownedFocus.current = false
+      if (!owned) return
+      const active = document.activeElement
+      if (active instanceof HTMLElement && active !== document.body && active.isConnected && !(event.target instanceof HTMLElement && event.target.contains(active)) && active !== editorTitle.current?.closest("[role=dialog]")) return
+      if (trigger.current?.isConnected && !trigger.current.disabled) trigger.current.focus()
+      else editorTitle.current?.focus()
+    }}>
+      <DialogTitle>{t("确认放弃此非秘密草稿并重新读取最新版本？")}</DialogTitle>
+      <DialogDescription>{t("仅在明确确认后刷新元数据并重新读取草稿；不合并、不重放旧写入，也不恢复新凭据。")}</DialogDescription>
+      <div className="mt-5 flex flex-wrap justify-end gap-3"><Button ref={cancel} type="button" variant="outline" onClick={() => changeOpen(false)}>{t("继续编辑")}</Button><Button type="button" onClick={() => { ownedFocus.current = Boolean(content.current?.contains(document.activeElement)); onReload() }}>{t("放弃草稿并重新读取")}</Button></div>
+    </DialogContent>
+  </Dialog>
+}
+
+function ConfigurationEditor({ client, action, fresh, invalidate, onDone, onDirtyChange, onReload, editorTitle }: { client: ConfigurationClient; action: Action & { kind: "create" | "edit" }; fresh: boolean; invalidate: () => void; onDone: (result: Result) => void; onDirtyChange: (dirty: boolean) => void; onReload: () => void; editorTitle: RefObject<HTMLHeadingElement | null> }) {
   const { i18n } = useTranslation()
+  const { t: ui } = useTranslation("configurationUI")
   const request = useConfigurationRequest(invalidate)
   const [view, setView] = useState<ConfigurationView>()
   const [target, setTarget] = useState<"claude" | "codex" | "gemini" | "opencode" | "grok">()
   const targetId = useId()
-  const [reloadOpen, setReloadOpen] = useState(false)
+  const saving = useRef(false)
   const [attempt, setAttempt] = useState(0)
   const id = action.kind === "edit" ? action.asset.id : undefined
   const { run } = request
@@ -67,11 +103,15 @@ function ConfigurationEditor({ client, action, invalidate, onDone, onDirtyChange
   }, [client, id, run, attempt, i18n.resolvedLanguage, view])
 
   async function save(draft: ConfigurationDraft, secrets: SecretChanges) {
+    if (!fresh || saving.current || request.pending || request.blocked) return false
     const openCodeInput = draft.payload?.case === "opencodeProvider" ? create(OpenCodeProviderSchema, draft.payload.value) : undefined
     const geminiInput = draft.payload?.case === "geminiProvider" ? create(GeminiProviderSchema, draft.payload.value) : undefined
     const geminiPresent = secrets[0]?.action?.case === "replace" || secrets[0]?.action?.case === "keep" && view?.kind === "gemini" && view.view.present
     const grokInput = draft.payload?.case === "grokbuildProvider" ? create(GrokBuildProviderSchema, draft.payload.value) : undefined
     const grokPresent = secrets[0]?.action?.case === "replace" || secrets[0]?.action?.case === "keep" && view?.kind === "grok" && view.view.present
+    saving.current = true
+    const active = document.activeElement
+    if (active instanceof HTMLElement && active.closest("form")?.closest("[role=dialog]") === editorTitle.current?.closest("[role=dialog]")) editorTitle.current?.focus()
     const result = await run(async (signal) => {
       if (view && view.kind !== "claude" && view.view.mode === "readonly") throw new ConnectError("", Code.FailedPrecondition)
       if (openCodeInput) {
@@ -98,17 +138,17 @@ function ConfigurationEditor({ client, action, invalidate, onDone, onDirtyChange
         }
       }
       return saved
-    }, true)
+    }, true).finally(() => { saving.current = false })
     if (!result) return false
     onDone({ kind: "saved", readiness: result.view.readiness })
     return true
   }
 
   const selected = view?.kind ?? target
-  return <><RequestStatus request={request} />{view && view.kind !== "claude" && request.blocked && action.kind === "edit" && <><Button type="button" variant="outline" className="mt-3" onClick={() => setReloadOpen(true)}>{t("放弃草稿并重新读取")}</Button><Dialog open={reloadOpen} onOpenChange={setReloadOpen}><DialogContent><DialogTitle>{t("确认放弃此非秘密草稿并重新读取最新版本？")}</DialogTitle><DialogDescription>{t("仅在明确确认后刷新元数据并重新读取草稿；不合并、不重放旧写入，也不恢复新凭据。")}</DialogDescription><div className="mt-5 flex flex-wrap justify-end gap-3"><Button type="button" variant="outline" autoFocus onClick={() => setReloadOpen(false)}>{t("继续编辑")}</Button><Button type="button" onClick={onReload}>{t("放弃草稿并重新读取")}</Button></div></DialogContent></Dialog></>}{action.kind === "create" && <div className="mt-5 space-y-2"><label htmlFor={targetId}>{t("创建目标")}</label><Select value={target ?? "unselected"} disabled={target !== undefined || request.pending || request.blocked} onValueChange={(value) => { if (value === "claude" || value === "codex" || value === "gemini" || value === "opencode" || value === "grok") setTarget(value) }}><SelectTrigger id={targetId} className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unselected" disabled>{t("请选择目标 agent")}</SelectItem><SelectItem value="claude">Claude</SelectItem><SelectItem value="codex">{t("Codex API provider")}</SelectItem><SelectItem value="gemini">{t("Gemini provider 资产")}</SelectItem><SelectItem value="opencode">{t("OpenCode provider 资产")}</SelectItem><SelectItem value="grok">Grok Build</SelectItem></SelectContent></Select><p className="text-sm text-muted-foreground">{t("选择后目标固定；更换目标请关闭并重新新建，未保存更改仍需确认。")}</p></div>}{action.kind === "edit" && !view ? <div className="mt-5 space-y-3"><p role="status" className="text-sm text-muted-foreground">{request.pending ? t("正在读取脱敏编辑草稿…") : t("尚未读取可编辑草稿，不会显示原始配置或凭据。")}</p>{!request.pending && <Button variant="outline" onClick={() => setAttempt((current) => current + 1)}>{t("重新读取配置草稿")}</Button>}</div> : <>{view && <p className="mt-4 text-sm text-muted-foreground">{t("编辑基于版本 {{revision}}；保存时仍需通过 CAS 校验。", { revision: formatNumber(view.view.asset.revision) })}</p>}{selected === "claude" ? <ConfigurationForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-claude"} original={view?.kind === "claude" ? view.view : undefined} pending={request.pending} blocked={request.blocked} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "codex" ? <ConfigurationCodexForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-codex"} original={view?.kind === "codex" ? view.view : undefined} pending={request.pending} blocked={request.blocked} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "gemini" ? <ConfigurationGeminiForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-gemini"} original={view?.kind === "gemini" ? view.view : undefined} pending={request.pending} blocked={request.blocked} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "opencode" ? <ConfigurationOpenCodeForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-opencode"} original={view?.kind === "opencode" ? view.view : undefined} pending={request.pending} blocked={request.blocked} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "grok" ? <ConfigurationGrokForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-grok"} original={view?.kind === "grok" ? view.view : undefined} pending={request.pending} blocked={request.blocked} onSubmit={save} onDirtyChange={onDirtyChange} /> : null}</>}</>
+  return <>{!fresh && <p role="status" className="configuration-editor-state">{ui("waiting")}</p>}{view && <div className="configuration-editor-state"><strong>{ui("readiness")}</strong><p>{ui(view.view.readiness === CredentialReadiness.NEEDS_CREDENTIAL ? "missing" : "complete")}</p><p>{ui("native")}</p></div>}<RequestStatus request={request} />{view && request.blocked && action.kind === "edit" && <ConfigurationReload onReload={onReload} editorTitle={editorTitle} />}{action.kind === "create" && <div className="mt-5 space-y-2"><label htmlFor={targetId}>{t("创建目标")}</label><Select value={target ?? "unselected"} disabled={target !== undefined || request.pending || request.blocked} onValueChange={(value) => { if (value === "claude" || value === "codex" || value === "gemini" || value === "opencode" || value === "grok") setTarget(value) }}><SelectTrigger id={targetId} className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unselected" disabled>{t("请选择目标 agent")}</SelectItem><SelectItem value="claude">Claude</SelectItem><SelectItem value="codex">{t("Codex API provider")}</SelectItem><SelectItem value="gemini">{t("Gemini provider 资产")}</SelectItem><SelectItem value="opencode">{t("OpenCode provider 资产")}</SelectItem><SelectItem value="grok">Grok Build</SelectItem></SelectContent></Select><p className="text-sm text-muted-foreground">{t("选择后目标固定；更换目标请关闭并重新新建，未保存更改仍需确认。")}</p></div>}{action.kind === "edit" && !view ? <div className="mt-5 space-y-3"><p role="status" className="text-sm text-muted-foreground">{request.pending ? t("正在读取脱敏编辑草稿…") : t("尚未读取可编辑草稿，不会显示原始配置或凭据。")}</p>{!request.pending && <Button variant="outline" onClick={() => setAttempt((current) => current + 1)}>{t("重新读取配置草稿")}</Button>}</div> : <>{view && <p className="mt-4 text-sm text-muted-foreground">{t("编辑基于版本 {{revision}}；保存时仍需通过 CAS 校验。", { revision: formatNumber(view.view.asset.revision) })}</p>}{selected === "claude" ? <ConfigurationForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-claude"} original={view?.kind === "claude" ? view.view : undefined} pending={request.pending} blocked={request.blocked || !fresh} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "codex" ? <ConfigurationCodexForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-codex"} original={view?.kind === "codex" ? view.view : undefined} pending={request.pending} blocked={request.blocked || !fresh} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "gemini" ? <ConfigurationGeminiForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-gemini"} original={view?.kind === "gemini" ? view.view : undefined} pending={request.pending} blocked={request.blocked || !fresh} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "opencode" ? <ConfigurationOpenCodeForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-opencode"} original={view?.kind === "opencode" ? view.view : undefined} pending={request.pending} blocked={request.blocked || !fresh} onSubmit={save} onDirtyChange={onDirtyChange} /> : selected === "grok" ? <ConfigurationGrokForm key={view ? `${view.view.asset.id}:${view.view.asset.revision}` : "new-grok"} original={view?.kind === "grok" ? view.view : undefined} pending={request.pending} blocked={request.blocked || !fresh} onSubmit={save} onDirtyChange={onDirtyChange} /> : null}</>}</>
 }
 
-function ConfigurationMetadataOperation({ client, action, invalidate, onDone, onDirtyChange }: { client: ConfigurationClient; action: Action & { kind: "copy" | "delete" }; invalidate: () => void; onDone: (result: Result) => void; onDirtyChange: (dirty: boolean) => void }) {
+function ConfigurationMetadataOperation({ client, action, fresh, invalidate, onDone, onDirtyChange }: { client: ConfigurationClient; action: Action & { kind: "copy" | "delete" }; fresh: boolean; invalidate: () => void; onDone: (result: Result) => void; onDirtyChange: (dirty: boolean) => void }) {
   const { i18n } = useTranslation()
   const request = useConfigurationRequest(invalidate)
   const id = useId()
@@ -129,7 +169,7 @@ function ConfigurationMetadataOperation({ client, action, invalidate, onDone, on
   useLayoutEffect(() => { onDirtyChange(request.pending || action.kind === "copy" && name !== "") }, [action.kind, name, request.pending, onDirtyChange])
   const copyReadonly = copyView && copyView.kind !== "claude" && copyView.view.mode === "readonly"
   const guardedCopy = supportsCodex(action.asset) || supportsGemini(action.asset) || supportsOpenCode(action.asset) || supportsGrok(action.asset)
-  const blocked = request.pending || request.blocked || action.kind === "copy" && guardedCopy && (!copyView || copyReadonly)
+  const blocked = !fresh || request.pending || request.blocked || action.kind === "copy" && guardedCopy && (!copyView || copyReadonly)
   async function submit() {
     if (blocked) return
     if (action.kind === "copy") {
@@ -161,6 +201,7 @@ function ConfigurationMetadataOperation({ client, action, invalidate, onDone, on
 
 function ConfigurationSession({ owner, client }: { owner: string; client: ConfigurationClient }) {
   const { i18n, t: orderText } = useTranslation("configurationOrder")
+  const { t: ui } = useTranslation("configurationUI")
   const queryClient = useQueryClient()
   const [action, setAction] = useState<Action | null>(null)
   const [result, setResult] = useState<Result>()
@@ -172,10 +213,33 @@ function ConfigurationSession({ owner, client }: { owner: string; client: Config
   const editorContent = useRef<HTMLDivElement>(null)
   const discardTrigger = useRef<HTMLElement | null>(null)
   const discardCancel = useRef<HTMLButtonElement>(null)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const editorTitle = useRef<HTMLHeadingElement>(null)
+  const lastFocus = useRef<HTMLElement | null>(null)
+  const workspace = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const track = (event: FocusEvent) => {
+      const target = event.target
+      lastFocus.current = target instanceof HTMLElement && (workspace.current?.contains(target) || editorContent.current?.contains(target)) ? target : null
+    }
+    document.addEventListener("focusin", track)
+    return () => document.removeEventListener("focusin", track)
+  }, [])
+  useLayoutEffect(() => {
+    const previous = lastFocus.current
+    const active = document.activeElement
+    if (action === null && previous?.closest(".configuration-editor")) return
+    if (previous && (!previous.isConnected || previous.matches(":disabled")) && (active === document.body || active === previous)) {
+      if (editorTitle.current?.isConnected) editorTitle.current.focus()
+      else heading.current?.focus()
+    }
+  })
   const restoreTrigger = () => {
+    const active = document.activeElement
+    if (active instanceof HTMLElement && active !== document.body && active.isConnected && !editorContent.current?.contains(active)) return
     const trigger = actionTrigger.current
     if (trigger?.isConnected && !trigger.disabled) trigger.focus()
-    else if (createTrigger.current?.isConnected) createTrigger.current.focus()
+    else heading.current?.focus()
   }
   const shouldBlockFn = useCallback(() => dirty, [dirty])
   const blocker = useBlocker({ shouldBlockFn, withResolver: true, enableBeforeUnload: dirty })
@@ -193,30 +257,35 @@ function ConfigurationSession({ owner, client }: { owner: string; client: Config
     },
   })
   const invalidate = useCallback(() => { void queryClient.invalidateQueries({ queryKey: ["configuration-assets", owner] }) }, [queryClient, owner])
-  const open = (next: Action, trigger: HTMLButtonElement) => { actionTrigger.current = trigger; setResult(undefined); setDirty(false); setAction(next) }
-  const done = (next: Result) => { if (next.kind === "deleted") actionTrigger.current = createTrigger.current; setResult(next); setDirty(false); setDiscardOpen(false); setAction(null); blocker.reset?.() }
+  const fresh = query.isSuccess && !query.isFetching
+  const open = (next: Action, trigger: HTMLButtonElement) => { if (!fresh) return; actionTrigger.current = trigger; setResult(undefined); setDirty(false); setAction(next) }
+  const done = (next: Result) => { if (next.kind === "deleted") actionTrigger.current = null; setResult(next); setDirty(false); setDiscardOpen(false); setAction(null); blocker.reset?.() }
+  const groups = new Map<string, AssetMetadata[]>()
+  for (const asset of query.data ?? []) groups.set(asset.agentId, [...(groups.get(asset.agentId) ?? []), asset])
   const date = (seconds: bigint) => {
     const milliseconds = Number(seconds) * 1000
     return Number.isFinite(milliseconds) && !Number.isNaN(new Date(milliseconds).getTime()) ? formatDate(milliseconds) : t("时间不可用")
   }
-  return <div className="min-w-0">
-    <div className="page-heading flex-wrap"><div className="min-w-0"><h1>{t("AI 配置")}</h1><p>{t("管理私有配置资产。保存不选择 provider，不修改设备文件，也不表示已经应用。")}</p></div><Button ref={createTrigger} onClick={(event) => open({ kind: "create" }, event.currentTarget)}><Plus size={17} aria-hidden="true" />{t("新建配置资产")}</Button></div>
+  return <div ref={workspace} className="configuration-ui min-w-0">
+    <div className="page-heading flex-wrap"><div className="min-w-0"><p className="configuration-eyebrow">{ui("workspace")}</p><h1 ref={heading} tabIndex={-1} data-configuration-heading>{t("AI 配置")}</h1><p>{t("管理私有配置资产。保存不选择 provider，不修改设备文件，也不表示已经应用。")}</p></div><Button ref={createTrigger} disabled={!fresh} onClick={(event) => open({ kind: "create" }, event.currentTarget)}><Plus size={17} aria-hidden="true" />{t("新建配置资产")}</Button></div>
     <section className="configuration-scope min-w-0 rounded-xl border border-border bg-card" aria-label={t("配置支持范围")}>
       <div className="configuration-capabilities"><Settings2 size={18} className="shrink-0 text-primary" aria-hidden="true" /><p>{t("可编辑：Claude Code、Codex、Gemini、OpenCode、Grok Build")}</p></div>
-      <details><summary>{t("查看支持范围与操作边界")}</summary><div className="space-y-3"><p className="text-sm leading-6 text-muted-foreground">{orderText("scope")}</p><p className="text-sm leading-6 text-muted-foreground">{t("尚未接通 provider 切换、设备应用、来源配置迁移、MCP connections、prompts 或 OpenClaw 专属面板；它们不是已完成能力。")}</p></div></details>
+      <p className="px-4 pb-3 text-sm text-muted-foreground">{ui("nativeDetail")}</p><details><summary>{t("查看支持范围与操作边界")}</summary><div className="space-y-3"><p className="text-sm leading-6 text-muted-foreground">{orderText("scope")}</p><p className="text-sm leading-6 text-muted-foreground">{t("尚未接通 provider 切换、设备应用、来源配置迁移、MCP connections、prompts 或 OpenClaw 专属面板；它们不是已完成能力。")}</p></div></details>
     </section>
     <div role="status" aria-live="polite" className="configuration-notice my-4 min-h-6 text-sm leading-6">{result && <><p>{t(result.kind === "saved" ? "配置资产已保存，未应用到设备。" : result.kind === "copied" ? "已复制非秘密配置，未选择或应用。" : "服务端配置资产已删除，设备状态未更改。")}</p>{result.readiness !== undefined && <p className="text-muted-foreground">{t(result.readiness === CredentialReadiness.NEEDS_CREDENTIAL ? "此资产仍需补充凭据；没有被标记为可应用。" : "凭据结构完整，但未验证连通性或本地应用能力。")}</p>}</>}</div>
+    {query.isFetching && <p role="status" className="configuration-editor-state">{ui("refreshing")}</p>}{query.isError && <p role="alert" className="configuration-editor-state">{ui("stale")}</p>}
     <ConfigurationOrderControl owner={owner} client={client} assets={query.data ?? []} disabled={action !== null || query.isFetching || query.isError} invalidate={invalidate} />
     <section className="configuration-assets min-w-0" aria-labelledby="configuration-assets-title" aria-busy={query.isFetching}><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 id="configuration-assets-title" className="font-semibold">{t("配置资产列表")}</h2><Button variant="outline" disabled={query.isFetching} onClick={() => { void query.refetch() }}><RefreshCw size={16} aria-hidden="true" />{t("刷新配置元数据")}</Button></div><p className="mb-4 text-sm text-muted-foreground">{t("浏览列表只读取元数据；点击编辑后才请求脱敏草稿，已保存凭据从不返回原文。")}</p>
-      {query.isPending ? <p role="status" className="py-6">{t("正在读取配置元数据…")}</p> : query.isError ? <p role="alert" className="text-sm text-destructive">{t(configurationError(ConnectError.from(query.error).code))}</p> : query.data.length === 0 ? <div className="empty-state rounded-xl border border-border bg-card"><div className="empty-icon"><Settings2 size={24} aria-hidden="true" /></div><h3 className="font-semibold">{t("还没有配置资产")}</h3><p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">{t("从 Claude、Codex、Gemini、OpenCode 或 Grok Build 专属表单创建私有资产；不会读取当前设备配置。")}</p></div> : <ul className="space-y-3">{query.data.map((asset) => <li key={asset.id} className="configuration-asset min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5">
-        <h3 className="flex items-start gap-3 break-words font-semibold [overflow-wrap:anywhere]"><Settings2 size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />{asset.name}</h3>
+      {query.isPending ? <p role="status" className="py-6">{t("正在读取配置元数据…")}</p> : query.isError ? <p role="alert" className="text-sm text-destructive">{t(configurationError(ConnectError.from(query.error).code))}</p> : query.data.length === 0 ? <div className="empty-state rounded-xl border border-border bg-card"><div className="empty-icon"><Settings2 size={24} aria-hidden="true" /></div><h3 className="font-semibold">{t("还没有配置资产")}</h3><p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">{t("从 Claude、Codex、Gemini、OpenCode 或 Grok Build 专属表单创建私有资产；不会读取当前设备配置。")}</p></div> : [...groups].map(([agent, assets]) => <section className="configuration-group" key={agent} aria-label={agent}><h3>{ui("group", { agent, count: formatNumber(assets.length) })}</h3><ul className="space-y-3">{assets.map((asset) => <li key={asset.id} className="configuration-asset min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="configuration-asset-heading"><h3 className="flex items-start gap-3 break-words font-semibold [overflow-wrap:anywhere]"><Settings2 size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span>{asset.name}</span></h3><span className="configuration-badge">{ui(editableAsset(asset) ? "editable" : "readonly")}</span></div>
+        <p className="configuration-credentials">{ui("credentials")}</p>
         <dl className="asset-metadata mt-4 grid min-w-0 gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4"><div><dt className="text-muted-foreground">{t("目标 agent")}</dt><dd className="mt-1 break-all font-mono">{asset.agentId}</dd></div><div><dt className="text-muted-foreground">{t("资产类型")}</dt><dd className="mt-1">{kindLabels[asset.kind] ? t(kindLabels[asset.kind]) : t("未知配置类型")}</dd></div><div><dt className="text-muted-foreground">{t("Schema / revision")}</dt><dd className="mt-1 break-all font-mono">{formatNumber(asset.schemaVersion)} / {formatNumber(asset.revision)}</dd></div><div><dt className="text-muted-foreground">{t("配置更新时间")}</dt><dd className="mt-1">{date(asset.updatedAtUnix)}</dd></div></dl>
-        {!(supportsClaude(asset) || supportsCodex(asset) || supportsGemini(asset) || supportsOpenCode(asset) || supportsGrok(asset)) && <p className="mt-3 text-sm text-muted-foreground">{t("此资产仅支持元数据浏览及 CAS 删除；未读取其 payload，不代表支持该 agent 的编辑或应用。")}</p>}
-        <div className="asset-actions mt-5 flex flex-wrap gap-3">{(supportsClaude(asset) || supportsCodex(asset) || supportsGemini(asset) || supportsOpenCode(asset) || supportsGrok(asset)) && <><Button variant="outline" onClick={(event) => open({ kind: "edit", asset }, event.currentTarget)}>{t("编辑配置")}</Button><Button variant="outline" onClick={(event) => open({ kind: "copy", asset }, event.currentTarget)}>{t("复制（不带凭据）")}</Button></>}<Button variant="ghost" onClick={(event) => open({ kind: "delete", asset }, event.currentTarget)}>{t("删除配置资产")}</Button></div>
-      </li>)}</ul>}
+        {!editableAsset(asset) && <p className="mt-3 text-sm text-muted-foreground">{t("此资产仅支持元数据浏览及 CAS 删除；未读取其 payload，不代表支持该 agent 的编辑或应用。")}</p>}
+        <div className="asset-actions mt-5 flex flex-wrap gap-3">{editableAsset(asset) && <><Button variant="outline" onClick={(event) => open({ kind: "edit", asset }, event.currentTarget)}>{t("编辑配置")}</Button><Button variant="outline" onClick={(event) => open({ kind: "copy", asset }, event.currentTarget)}>{t("复制（不带凭据）")}</Button></>}<Button variant="ghost" onClick={(event) => open({ kind: "delete", asset }, event.currentTarget)}>{t("删除配置资产")}</Button></div>
+      </li>)}</ul></section>)}
     </section>
-    <Dialog open={action !== null} onOpenChange={(opened) => { if (!opened) close() }}><DialogContent ref={editorContent} className="min-w-0 sm:max-w-2xl" onCloseAutoFocus={(event) => { event.preventDefault(); restoreTrigger() }}><DialogTitle>{action && t(titles[action.kind])}</DialogTitle><DialogDescription>{t("仅操作此账号的服务端资产。离开未保存草稿前需确认放弃；确认后清除表单并停止等待，不撤销已提交的修改。语言切换保留非秘密草稿，清除新凭据并取消在途请求。")}</DialogDescription><ConfigurationLanguage />{action && (action.kind === "create" || action.kind === "edit" ? <ConfigurationEditor onReload={() => { setDirty(false); setDiscardOpen(false); blocker.reset?.(); invalidate(); setEditorVersion((current) => current + 1) }} key={`${action.kind === "create" ? "create" : action.asset.id}:${editorVersion}`} client={client} action={action} invalidate={invalidate} onDone={done} onDirtyChange={setDirty} /> : <ConfigurationMetadataOperation key={`${action.kind}:${action.asset.id}`} client={client} action={action} invalidate={invalidate} onDone={done} onDirtyChange={setDirty} />)}</DialogContent></Dialog>
-    <Dialog open={discardOpen || blocker.status === "blocked"} onOpenChange={(opened) => { if (!opened) cancelDiscard() }}><DialogContent onOpenAutoFocus={(event) => { if (!discardTrigger.current) discardTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; event.preventDefault(); discardCancel.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); const content = editorContent.current; const trigger = discardTrigger.current; discardTrigger.current = null; if (content?.isConnected) { if (trigger?.isConnected && content.contains(trigger) && !trigger.matches(":disabled")) trigger.focus(); else content.focus() } else restoreTrigger() }}><DialogTitle>{t("放弃未保存的配置更改？")}</DialogTitle><DialogDescription>{t("取消将保留当前草稿，包括尚未提交的新凭据。确认放弃将清除草稿和新凭据并离开，但不会撤销已提交的服务端修改。")}</DialogDescription><ConfigurationLanguage /><div className="mt-5 flex flex-wrap justify-end gap-3"><Button ref={discardCancel} variant="outline" onClick={cancelDiscard}>{t("继续编辑")}</Button><Button variant="outline" className="text-destructive" onClick={discard}>{t("放弃更改")}</Button></div></DialogContent></Dialog>
+    <Dialog open={action !== null} onOpenChange={(opened) => { if (!opened) close() }}><DialogContent ref={editorContent} className="configuration-editor min-w-0 sm:max-w-2xl" onOpenAutoFocus={(event) => { event.preventDefault(); editorTitle.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); restoreTrigger() }}><DialogTitle ref={editorTitle} tabIndex={-1} data-configuration-editor-title>{action && t(titles[action.kind])}</DialogTitle><DialogDescription>{t("仅操作此账号的服务端资产。离开未保存草稿前需确认放弃；确认后清除表单并停止等待，不撤销已提交的修改。语言切换保留非秘密草稿，清除新凭据并取消在途请求。")}</DialogDescription><ConfigurationLanguage />{action && (action.kind === "create" || action.kind === "edit" ? <ConfigurationEditor editorTitle={editorTitle} onReload={() => { setDirty(false); setDiscardOpen(false); blocker.reset?.(); invalidate(); setEditorVersion((current) => current + 1) }} key={`${action.kind === "create" ? "create" : action.asset.id}:${editorVersion}`} client={client} action={action} fresh={fresh} invalidate={invalidate} onDone={done} onDirtyChange={setDirty} /> : <ConfigurationMetadataOperation key={`${action.kind}:${action.asset.id}`} client={client} action={action} fresh={fresh} invalidate={invalidate} onDone={done} onDirtyChange={setDirty} />)}</DialogContent></Dialog>
+    <Dialog open={discardOpen || blocker.status === "blocked"} onOpenChange={(opened) => { if (!opened) cancelDiscard() }}><DialogContent className="configuration-editor" onOpenAutoFocus={(event) => { if (!discardTrigger.current) discardTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; event.preventDefault(); discardCancel.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); const content = editorContent.current; const trigger = discardTrigger.current; discardTrigger.current = null; if (content?.isConnected) { if (trigger?.isConnected && content.contains(trigger) && !trigger.matches(":disabled")) trigger.focus(); else content.focus() } else restoreTrigger() }}><DialogTitle>{t("放弃未保存的配置更改？")}</DialogTitle><DialogDescription>{t("取消将保留当前草稿，包括尚未提交的新凭据。确认放弃将清除草稿和新凭据并离开，但不会撤销已提交的服务端修改。")}</DialogDescription><ConfigurationLanguage /><div className="mt-5 flex flex-wrap justify-end gap-3"><Button ref={discardCancel} variant="outline" onClick={cancelDiscard}>{t("继续编辑")}</Button><Button variant="outline" className="text-destructive" onClick={discard}>{t("放弃更改")}</Button></div></DialogContent></Dialog>
   </div>
 }
 

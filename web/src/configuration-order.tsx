@@ -28,11 +28,20 @@ function OrderGroup({ owner, client, partition, generation, invalidate, reload }
   })
   const request = useConfigurationRequest(invalidate)
   const rows = useRef(new Map<string, HTMLLIElement>())
+  const focusOwner = useRef<HTMLElement | null>(null)
   const [moved, setMoved] = useState<{ id: string; name: string; position: number; total: number }>()
-  useLayoutEffect(() => { if (moved) rows.current.get(moved.id)?.focus() }, [moved])
+  useLayoutEffect(() => {
+    const previous = focusOwner.current
+    const active = document.activeElement
+    if (moved && previous && (active === previous || active === document.body && !previous.isConnected)) rows.current.get(moved.id)?.focus()
+  }, [moved])
   const move = async (id: string, direction: -1 | 1) => {
     const previous = query.data
-    if (!previous || request.pending || request.blocked || query.isFetching) return
+    if (!previous || request.pending || request.blocked || query.isFetching || query.isError) return
+    const row = rows.current.get(id)
+    const active = document.activeElement
+    focusOwner.current = active instanceof HTMLElement && row?.contains(active) ? row : null
+    if (focusOwner.current) row?.focus()
     const ids = movedOrder(previous, id, direction)
     const snapshot = await request.run(async (signal) => requireOrderAcknowledgment((await client.replaceAssetOrder({ ...partition, expectedRevision: previous.revision, assetIds: ids }, { signal })).snapshot, previous, ids), true)
     if (!snapshot) return
@@ -40,7 +49,7 @@ function OrderGroup({ owner, client, partition, generation, invalidate, reload }
     const asset = snapshot.assets.find((entry) => entry.id === id)
     if (asset) setMoved({ id, name: asset.name, position: ids.indexOf(id) + 1, total: ids.length })
   }
-  return <div className="mt-5 min-w-0 space-y-4" aria-busy={query.isFetching || request.pending}>
+  return <div className="mt-5 min-w-0 space-y-4" data-configuration-order-group aria-busy={query.isFetching || request.pending}>
     {query.isPending ? <p role="status">{t("loading")}</p> : query.isError ? <p role="alert" className="text-sm text-destructive">{translate(configurationError(ConnectError.from(query.error).code))}</p> : <>
       {query.data.assets.length === 0 ? <p>{t("empty")}</p> : <ol className="space-y-3">{query.data.assets.map((asset, index) => <li key={asset.id} tabIndex={-1} ref={(element) => { if (element) rows.current.set(asset.id, element); else rows.current.delete(asset.id) }} aria-label={asset.name} className="min-w-0 rounded-xl border border-border p-3 outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
         <p className="break-words font-medium [overflow-wrap:anywhere]">{asset.name}</p>
@@ -63,12 +72,17 @@ export function ConfigurationOrderControl({ owner, client, assets, disabled, inv
   const [selected, setSelected] = useState("")
   const [generation, setGeneration] = useState(0)
   const id = useId()
+  const title = useRef<HTMLHeadingElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
   const partitions = orderPartitions(assets)
   const partition = partitions.find((entry) => partitionKey(entry) === selected)
-  const reload = useCallback(() => setGeneration((current) => current + 1), [])
+  const reload = useCallback(() => {
+    if (document.activeElement?.closest("[data-configuration-order-group]")) title.current?.focus()
+    setGeneration((current) => current + 1)
+  }, [])
   return <div className="my-4 flex flex-wrap items-center gap-3"><Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) { setSelected(""); setGeneration((current) => current + 1) } }}>
-    <DialogTrigger asChild><Button type="button" variant="outline" disabled={disabled || partitions.length === 0}><ListOrdered size={16} aria-hidden="true" />{t("title")}</Button></DialogTrigger>
-    <DialogContent className="min-w-0 sm:max-w-2xl"><DialogTitle>{t("title")}</DialogTitle><DialogDescription>{t("description")}</DialogDescription><div className="mt-5 space-y-2"><label htmlFor={id}>{t("partition")}</label><Select value={selected} onValueChange={(value) => { setSelected(value); setGeneration((current) => current + 1) }}><SelectTrigger id={id} className="w-full"><SelectValue placeholder={t("choose")} /></SelectTrigger><SelectContent>{partitions.map((entry) => <SelectItem key={partitionKey(entry)} value={partitionKey(entry)}>{entry.agentId} · {t(kindKeys[entry.kind])}</SelectItem>)}</SelectContent></Select></div>
+    <DialogTrigger asChild><Button ref={trigger} type="button" variant="outline" disabled={disabled || partitions.length === 0}><ListOrdered size={16} aria-hidden="true" />{t("title")}</Button></DialogTrigger>
+    <DialogContent className="configuration-order min-w-0 sm:max-w-2xl" onOpenAutoFocus={(event) => { event.preventDefault(); title.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); const active = document.activeElement; if (active !== document.body && active instanceof HTMLElement && !active.closest(".configuration-order")) return; if (trigger.current?.isConnected && !trigger.current.disabled) trigger.current.focus(); else document.querySelector<HTMLElement>("[data-configuration-heading]")?.focus() }}><DialogTitle ref={title} tabIndex={-1}>{t("title")}</DialogTitle><DialogDescription>{t("description")}</DialogDescription><div className="mt-5 space-y-2"><label htmlFor={id}>{t("partition")}</label><Select value={selected} onValueChange={(value) => { setSelected(value); setGeneration((current) => current + 1) }}><SelectTrigger id={id} className="w-full"><SelectValue placeholder={t("choose")} /></SelectTrigger><SelectContent>{partitions.map((entry) => <SelectItem key={partitionKey(entry)} value={partitionKey(entry)}>{entry.agentId} · {t(kindKeys[entry.kind])}</SelectItem>)}</SelectContent></Select></div>
       {partition && <OrderGroup key={`${selected}:${generation}`} owner={owner} client={client} partition={partition} generation={generation} invalidate={invalidate} reload={reload} />}
     </DialogContent>
   </Dialog>{partitions.length === 0 && <p className="text-sm text-muted-foreground">{t("noGroups")}</p>}</div>

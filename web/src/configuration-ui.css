@@ -1,0 +1,52 @@
+.configuration-ui { min-width: 0; }
+.configuration-ui .page-heading { align-items: flex-start; gap: 1.25rem; }
+.configuration-ui .page-heading > div { flex: 1 1 24rem; }
+.configuration-ui .page-heading h1:focus,
+.configuration-editor h2:focus,
+.configuration-order h2:focus { outline: 2px solid var(--color-primary); outline-offset: .3rem; border-radius: .25rem; }
+.configuration-eyebrow { color: var(--color-primary); font-size: .75rem; font-weight: 600; letter-spacing: .06em; margin-bottom: .5rem; }
+.configuration-ui .configuration-scope { margin-bottom: 1rem; }
+.configuration-ui .configuration-notice:empty { display: none; }
+.configuration-ui .configuration-notice:not(:empty) { border-inline-start: 2px solid var(--color-primary); padding: .75rem 1rem; background: var(--color-card); border-radius: .5rem; }
+.configuration-group { margin-top: 1.5rem; }
+.configuration-group > h3 { font-size: .875rem; color: var(--color-muted-foreground); font-weight: 600; margin-bottom: .75rem; }
+.configuration-ui .configuration-asset { box-shadow: 0 1px 2px rgb(0 0 0 / .025); }
+.configuration-asset-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .75rem; }
+.configuration-asset-heading h3 { flex: 1 1 18rem; min-width: 0; }
+.configuration-badge { display: inline-block; border: 1px solid var(--color-border); border-radius: .375rem; padding: .25rem .5rem; color: var(--color-muted-foreground); font-size: .75rem; line-height: 1.5; }
+.configuration-ui .asset-actions { border-top: 1px solid var(--color-border); padding-top: 1rem; align-items: stretch; }
+.configuration-ui .asset-actions > button:last-child { margin-inline-start: auto; }
+.configuration-credentials { margin-top: .75rem; font-size: .875rem; color: var(--color-muted-foreground); line-height: 1.6; }
+.configuration-editor, .configuration-order { scroll-padding: 1.25rem; }
+.configuration-editor form { border-top: 1px solid var(--color-border); padding-top: 1.25rem; }
+.configuration-editor fieldset { border: 1px solid var(--color-border); padding: .875rem; border-radius: .75rem; }
+.configuration-editor legend:not(.sr-only) { padding-inline: .3rem; }
+.configuration-editor-state { display: grid; gap: .4rem; border-inline-start: 2px solid var(--color-primary); padding: .75rem; margin-top: 1rem; background: var(--color-muted); border-radius: .375rem; font-size: .875rem; line-height: 1.6; }
+.configuration-ui button:not([role=checkbox]), .configuration-editor button:not([role=checkbox]), .configuration-order button:not([role=checkbox]) { min-height: 2.75rem; height: auto; white-space: normal; overflow-wrap: normal; word-break: normal; }
+.configuration-ui button { max-width: 100%; min-width: 0; padding-inline: .5rem; }
+.configuration-ui p, .configuration-editor p, .configuration-order p,
+.configuration-ui dt, .configuration-ui dd, .configuration-editor label, .configuration-order label { overflow-wrap: break-word; }
+.configuration-editor [role=combobox], .configuration-order [role=combobox] { min-width: 0; height: auto; min-height: 2.75rem; text-align: start; }
+.configuration-editor [role=combobox] > span, .configuration-order [role=combobox] > span { white-space: normal; overflow: visible; overflow-wrap: break-word; }
+.configuration-editor :is(input,textarea,[role=combobox],button), .configuration-order button { scroll-margin-block: 1.25rem; }
+@media (max-width: 40rem) {
+  .configuration-ui .page-heading h1 { font-size: 1.25rem; }
+  .configuration-ui .configuration-scope details > div { padding-inline: .5rem; }
+  .configuration-ui .configuration-scope summary { margin-inline: .5rem; }
+  .configuration-ui .configuration-capabilities { flex-wrap: wrap; padding-inline: .5rem; }
+  .configuration-ui .asset-metadata { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .configuration-ui .asset-actions > button { flex: 1 1 14rem; }
+  .configuration-ui .asset-actions > button:last-child { margin-inline-start: 0; }
+  .configuration-editor, .configuration-order { width: calc(100% - 1rem); padding: .75rem; }
+  .configuration-editor { padding-inline: .25rem; }
+  .configuration-editor fieldset { border-inline: 0; padding-inline: 0; }
+  .configuration-editor form label:has(> [role=checkbox]) { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: .4rem; }
+  .configuration-editor form label { overflow-wrap: normal; word-break: normal; }
+  .configuration-editor [data-field-path] label { font-size: .75rem; }
+  .configuration-editor form label > span { max-width: 100%; flex: 1 1 12rem; overflow-wrap: normal; word-break: normal; }
+  .configuration-editor fieldset .rounded-lg { border-inline: 0; padding-inline: 0; }
+  .configuration-editor [role=combobox], .configuration-order [role=combobox] { padding-inline: .4rem; gap: .25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .configuration-ui *, .configuration-editor *, .configuration-order * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

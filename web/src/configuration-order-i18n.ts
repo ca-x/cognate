@@ -25,7 +25,7 @@ const english = {
   blocked: "Read the current order before making another change. No application-level write is retried automatically.",
   uncertain: "The server did not confirm this change; it may already be saved. Closing this dialog does not undo a committed change.",
   saved: "Order saved on the server.",
-  readOnly: "Unknown configuration formats can be arranged without reading their contents.",
+  readOnly: "Unknown configuration formats can be arranged without reading their contents. Saved order is not an active provider or device state.",
 }
 
 const chinese: Record<keyof typeof english, string> = {
@@ -53,7 +53,7 @@ const chinese: Record<keyof typeof english, string> = {
   blocked: "继续调整前请读取当前顺序。程序不会自动重试写入。",
   uncertain: "服务端未确认此更改，它可能已保存。关闭对话框不会撤销已提交的更改。",
   saved: "顺序已保存到服务端。",
-  readOnly: "未知格式也可调整顺序，无需读取配置内容。",
+  readOnly: "未知格式也可调整顺序，无需读取配置内容。已保存顺序不代表当前 provider 或设备状态。",
 }
 
 i18n.addResourceBundle("en", "configurationOrder", english, true, true)

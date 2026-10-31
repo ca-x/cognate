@@ -1,5 +1,39 @@
 # 开发预览验证
 
+## 2026-11-01：npx 导入、Pack 附件与配置工作空间收口
+
+基线为已 SSH 推送的 `75d570ea1c4a0fbdab47ac11bfecdcc31b1f0faa`；本轮现场读回其 Build `41226952624` 为 completed/success，已有 CLI/GUI Release 仍为 prerelease。以下是新源码阶段证据，**尚不构成 GA、正式 tag 或 Docker/LPK 发布**。完整恢复、调度保留、十四 agent/设备应用与跨平台门禁不变。
+
+主线程证据 `/tmp/cognate-npx-selection.TB9Vd2tL`，Go 1.27.3、所有 Go 命令显式 `CGO_ENABLED=0`：
+
+- npx 固定上游 v3 global lock → 只读投影 → 服务端 moejs → owner/origin/source/options 绑定票据 → 选择回执；新增枚举和密封 source profile 3，旧 1/2 与 290-byte 格式保持。CLI 与现代 Web 提供来源，legacy 仍只有 cc-switch/Magpie。树 SHA 不作为内容哈希，真实扫描路径归一为目录，必须显式绑定 owner 已收录内容。
+- domain、profile、HTTP source mapping、单批上限和内容提示计数先有实际 RED；后来完整 importer 回归发现 host golden 失效，并补上原清单遗漏的新 parser。独立 Node 长度分帧重算 host/三源绑定摘要，保留旧两模块摘要不变。旧预览需重新预览，不把安全拒绝写成兼容完成。
+- 修后完整 `importer` + `state` 两包为 **1288 PASS / 3 SKIP / 0 FAIL**（`importer-state-final.jsonl`）；旧 **1287 / 3 / 1 FAIL** 保留。真实 TLS Connect 的 JSON/proto、目录/file 四条主链和十六项 schema/auth 反例通过，owner 拒绝和幂等/status 不多下载。首次 core 独审发现永久 enum ledger 未更新；主复现 RED，只追加来源 3 的固定账本，Descriptor/Enum/NPXHTTP 组合 GREEN，不删除或放宽旧断言。
+- `httpapi` + `importclient` + `cli` 完整三包另为 **1677 PASS / 33 SKIP / 0 FAIL**（`http-cli-regression.jsonl`）；五个相关包 vet 通过。这不是全仓重跑，两个组计数不叠加它们之外的定向命令。CLI 六个 OS/arch、Linux server 两架构共八个 no-cgo 构建及 Go1.27.3 metadata 检查通过，本机两个 help 执行通过；不是对应 OS 的安装运行资格，也不是最终发布产物。
+- Buf 1.75.0 lint、对 HEAD breaking、Go/TS 双模板重新生成逐目录 parity 通过，无新增依赖。最初一次主 vet 因并发 Vite 清理 dist 导致 embed 输入消失，真实 exit1 保留在 `core-vet.log`；停止共享 dist 并发写后 `combined-vet.log` exit0，不为构建竞争修改产品逻辑。
+
+### 界面独审与修复边界
+
+- npx 作者六文件：真实生产 Web/TLS/SQLite **35 条证据、16 布局**，fixture `0/null`，原入口缺失 RED 保留于 `/tmp/cognate-npx-web-evidence`。核心与 Web 的非作者最终验收另行记录；不能把作者测试当作独审。
+- Pack 作者八文件：28 业务收据、36 布局与有界终止自测；独立审核仍因 **PC-F1/P2** 阻断。143/156 的读取完成、移到边界、移除当前引用落 BODY；独立 14 项协议/隔离与 4 项几何绿色不覆盖此反例。原报告 `/tmp/cognate-pack-configuration-independent.kgyP2Dpb/work/REVIEW.md` SHA256 `252db0853721959729a78e48076eda6e953e0ae789a284a0a37fd19c4851053c`。
+- 主先加永久 `--phase focus`，旧作者二进制 156 实际 RED；再仅按实际拥有焦点的同步草稿动作回可用逻辑目标，读取用 aria-disabled 保持焦点及显式 guard，无 timer/全局监听/业务重放。新生产构建和 fixture 下，**143/156 各 10 收据，fixture 均 0/null**；add/clear/discard 同形操作及外部焦点保留也覆盖。该 narrow GREEN 仍待非作者 PC-F1 闭合，不冒称完整矩阵重跑。
+- 配置总览作者八文件：最终字节 80 布局、18 业务、20 键盘通过，旧精修前 960 布局不能转记为最终重跑。独审复现两个 P2：pending 保存和取消重新读取回 BODY；原 BLOCK 报告 `/tmp/newton-exact8-review-Jy2tGoJj/REVIEW.md` SHA256 `402a429c9d756fbed701a1522d8d1b45895b00fca23f3041b6a6278185a0cd8f`。作者正在原隔离副本根修，未把未验候选合入主线。
+
+本轮状态是并行补齐功能、独立发现与修复发布阻断，不是预览改标签。未发正式版；最终合成构建、独审闭合、提交/SSH push 与远端 CI 需分别留据。
+
+### 后继闭合与主线集成
+
+- Pack 的 PC-F1 已由非作者独立新构建在 143/156 各 10 项焦点收据关闭，限定 Spec/Quality ACCEPT；报告 `REVIEW-PC-F1.md` SHA256 `255b8423c86328d23f3f669b514ff3e3042ecc28037dfdbc90cb453547f8e9d4`，位于上述独审目录。exact8 与 TODO 已提交并 SSH 推送 `f0e194baf0836a93889f68ed0e67abe9720de26a`，远端读回一致；现场查询 Build `41233172751` 为 **completed/success**。原 BLOCK 保留，非阻断同步只读去重 P3 另跟踪，不冒称严格单飞。
+- npx core21 逐 SHA 与冻结交付一致，独立增量 26 PASS 关闭 enum ledger 缺失，限定 ACCEPT。报告 `/tmp/cognate-npx-independent.pBpipKng/evidence/v3/CORE-CLOSURE.md` SHA256 `ff9f5f48e61e4c2ebe52228fea963a53d4d130bba51a339dd8344cec8e0f19e3`。这不替代 Web、写侧兼容或完整 F6 验收。
+- npx Web 初审 W1/P2 为未上传文件的来源弃稿取消/确认后落 BODY。主先以永久回归在旧 binary 复现真实 RED，再根修稳定来源控件的焦点交接；新 143 行为 19 项、156 完整 35 项/16 布局/26 图，fixture 均 `0/null`、已回收。严格终态门禁另有 39 个自测，不以零收据或仅 Go PASS 当成功。新 exact6 独立增量复审限定 Spec/Quality ACCEPT、W1 CLOSED；独立原反例/扩展探针、完整 35/16/26 与 CI exact2 检查通过。报告 `/tmp/cognate-npx-independent.pBpipKng/evidence/web-v2/FINAL-REVIEW.md` SHA256 `472c4067953b240975c198847e01c2a6612c7ff28a625c79db804ad4f64eeb37`。CI 实际仍是 Node `26`，仅本地固定 26.12.0；完整 actionlint 与基线相同的两项 SC2016 和一项 SC2034 不称全绿。
+- 配置总览 focus-fix1 的 F1/F2 已由 Laplace 独立旧/新构建在 143/156 复现并闭合：旧各 15 FAIL、新各 31 PASS；原探针双版本、156 的 80 smoke 与额外外部焦点/Unknown 回归通过，终态 7/7。报告 `/tmp/newton-exact8-review-Jy2tGoJj/FOCUS-FIX1-REVIEW.md` SHA256 `b31bac8bac0915847d3c3dd1fa9e2d49375c21f774a7f0c100902ab2e9405182`，限定 exact8 ACCEPT。主线用累计 patch 集成，八文件初次逐 SHA 全匹配；没有把旧 960 布局转记为新组合证据。OpenCode provider 表单旧排序文案 P3 仍未修，不扩大十四 agent 或设备应用资格。
+
+主线组合 Web build、CGO0 fixture 编译通过；同一新 binary 的配置 focus-regression 在 156 为 31 PASS，npx 在 143 为 19 项行为收据，均正常终止；38 条定向 Go 测试事件、两包退出 0。组合未重跑全部布局或全仓，也未将此前完整五包回归转记为新组合全仓证据。三份 runner 的终态自测分别通过（配置 7、npx 39、Pack 8 负收据与 5 异常子进程）。相关证据为主线程根下的 `combined-*`。
+
+npx 的恰 32 路径阶段已提交并 SSH 推送 `3a8ca4723121fbaa8fa8917b352bce23c5596fbd`，远端读回一致。提交前将 staged tree `ecad0c1a3f9c6c05dfc8f8f1206bd9f4cfc8a609` 独立导出至 `/tmp/cognate-npx-staged.FHU81CXj`，排除配置界面 WIP 后重建 Web、定向 HTTP/CLI **36 PASS / 0 SKIP / 0 FAIL**、五包 vet 全部 exit 0，证据 `npx-staged-*`。该提交 Build `41235578933` 当前 **in_progress**，尚未称远端成功。配置界面的七项生产/runner/fixture hash 仍与独审相同，闭合文档单列增量；七案终态 self-test 接入 CI，新增命令 shellcheck 与禁 shellcheck 的 workflow 检查 exit 0，不改记完整 shellcheck 基线全绿。
+
+上述片段不关闭完整恢复、备份调度/保留、完整来源/agent 配置导入、Pack 配置消费和自动应用、客户端 OIDC、跨平台实际安装/恢复或签名门禁。阶段提交另记；当前没有新增正式 tag、Docker 或 LPK。
+
 ## 2026-11-01：MCP 与日志管理页候选集成及 F1 焦点修复
 
 主线程把 Newton 的恰八文件候选应用至 `e2003855c69e2e72e05962d011faa8f788abd733`，逐文件 SHA 与交付清单一致，未改生产 Go 或协议。累计 patch SHA256 `29d47abd5ab902f2fca0fd691b85adfee770c1b3f333828d0a4cc204a193cfd8`，八文件清单 SHA256 `61caabfae412dde9dbb34f7a9ff72b97e1a2feeb90f7bf8d2020442271139902`。首次非作者审查为 Spec/Quality BLOCK，唯一 P2 是下面的 F1；不能用作者或主线组合 GREEN 覆盖这个独立反例。
