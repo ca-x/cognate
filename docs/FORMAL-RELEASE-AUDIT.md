@@ -8,7 +8,10 @@
 
 - C1 的原生 Grok 编辑窄范围已由 `88d3a99` 交付，仍不是本机应用或完整十四 agent。Web 共享视觉之后，本轮完成原生共享外壳、用途状态过渡及短窗可达性，独立代表复核发现均闭合；全产品首发 UI 门禁仍保持打开，见 `UI-DESIGN.md`、`NATIVE-UI-DESIGN.md`。
 - C2 后继新增同切点完整引用/归档闭包与 `CaptureSnapshot` 内部密文连接，经独立 source/content 审查、密文离线回读、空实例和双页 manifest 验证；不能据此关闭 C3 产品任务/S3/管理入口、C4 生产恢复/代切换或完整 F4。
-- 本轮最终组合为 7768 PASS / 158 SKIP / 0 FAIL，vet/modules/MyGo vet 和三组件十八目标 CGO0 构建通过；精确命令、源码身份、原始失败及证据边界见 `VERIFICATION.md`。构建不等于真实平台安装，当前仍无完整正式版放行条件。
+- C3 后继接入显式启用的 Linux App、独立恢复 KEK、私有加密任务日志与六个管理员 RPC：手动登记、状态分页、取消和只读精确对账。真实 TLS S3-like App 链路覆盖 HTTP 取消后继续、complete 最后、重启同 request ID 与终态操作；构造不明保留所有权的审查发现补以真实子进程锁回归。它不关闭自动调度、管理 Web 页、保留/孤儿清扫、外部供应商验证或 C4；见 `SERVER-BACKUP.md` 与后继 `VERIFICATION.md`。
+- C3 控制内核初次独审曾 REJECT：最后 guard-close 不明的 reopen fence、16MiB 后继记账预留与 clean-budget poison、Reconcile 覆盖取消。后继七文件修复经 Aquinas 独立三轮负面探针 30 PASS、必要回归 27 PASS 后，三项 finding 范围内 ACCEPT；旧拒绝与旧绿色均保留，不改记为修后证据。最后物理释放确认后若 marker 删除已可见，后续清理不明允许新进程进入，但旧能力永久 closed/quarantined，不能宣称所有不明都保留物理锁。公开目录 UI 已独立导出、独审、提交 `753f6a0` 并推送，逐页账本见 `UI-DESIGN.md`。
+- C3 修后新组合以隔离环境、Go 1.27.3、CGO0 重新执行全仓：7884 PASS / 161 SKIP / 0 FAIL、49 测试包；全仓/24 个实际 MyGo 包 vet、modules、Buf lint/breaking/双模板 parity、三组件十八目标构建和 metadata 通过，非文档输入与 Web 嵌入前后一致。收据及资格见 `VERIFICATION.md`；这关闭的是 Linux 手动管理员控制平面切片，不关闭完整 F4 或全产品 UI。
+- 上个切片最终组合为 7768 PASS / 158 SKIP / 0 FAIL，vet/modules/MyGo vet 和三组件十八目标 CGO0 构建通过；精确命令、源码身份、原始失败及证据边界见 `VERIFICATION.md`，不转记为后继 App/公开目录切片的验证。构建不等于真实平台安装，当前仍无完整正式版放行条件。
 
 ## 结论与证据口径
 

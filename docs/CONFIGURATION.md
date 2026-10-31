@@ -119,6 +119,10 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 
 完整来源配置导入矩阵、十四类 agent 的完整专属交互、Pack 配置附件、完整历史枚举与值级/文件 diff、非 Linux 配置应用，以及明确选择后的自动应用仍为后续门禁。已交付的部分来源导入和 Claude CLI/MyGo 手动流程不替代这些能力。完整目标见 `REQUIREMENTS.md`、`CCSWITCH-CONFIGURATION-MATRIX.md` 和 `VERIFICATION.md`，不以已交付部分缩减首发范围。
 
+# 服务端实例备份
+
+可通过显式 `--backup-enabled`、私有 S3 配置文件及独立恢复 key 文件启用 Linux 手动备份控制平面。复用站内管理员会话，Connect RPC 提供状态、登记、查询、取消和只读对账。完整参数、预算、秘密文件、重启与不确定结果边界见 [服务端实例备份](SERVER-BACKUP.md)。自动调度、管理 Web 页、保留清理和完整恢复仍未交付，不以 `remote_committed` 代替恢复验收。
+
 # Codex CLI：显式本机编排，生产资格仍关闭
 
 `config apply --target codex.config` 接入既有 Codex 编排、原生消费与多文件发布合同；**当前生产资格登记仍为空，普通构建拒绝新 Codex apply，不表示 Codex/v2/全部十四类 agent 已可应用。** 专用私有编译fixture的真实consumer/PTY验收不是生产登记或真实账号资格。此节不替代前文历史交付与未交付记录，也不启用随Pack自动应用或MyGo流程。

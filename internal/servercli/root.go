@@ -51,11 +51,14 @@ func New() *cobra.Command {
 		},
 	}
 	command.Flags().StringVar(&config.DataDirectory, "data-dir", "", "服务端私有数据目录，默认 ~/.local/share/skillhub-server")
-	command.Flags().StringArrayVar(&config.AdminUserIDs, "admin-user-id", nil, "允许管理全局日志设置的账号 UUID；可重复，默认无人有权限（后台日志页可查看自己的账号 ID）")
+	command.Flags().StringArrayVar(&config.AdminUserIDs, "admin-user-id", nil, "允许管理全局日志和备份的账号 UUID；可重复，默认无人有权限（后台日志页可查看自己的账号 ID）")
 	command.Flags().StringVar(&config.BootstrapAdminUsername, "bootstrap-admin-username", "", "仅空实例创建的首位本地管理员用户名；重启须保持一致，不自动提升已有账号")
 	command.Flags().StringVar(&config.BootstrapAdminPasswordFile, "bootstrap-admin-password-file", "", "首次管理员密码的私有文件（8–1024 字节，原样读取）；重启不读取、不覆盖已有密码")
 	command.Flags().StringVar(&config.MasterKeyFile, "key-file", configurationEnvironment("MASTER_KEY_FILE"), "包含 32 字节原始主密钥的私有文件，或 COGNATE_MASTER_KEY_FILE（兼容 SKILLHUB_MASTER_KEY_FILE）")
 	command.Flags().BoolVar(&config.InitializeMasterKey, "init-key-if-missing", false, "仅空实例缺失主密钥时由程序安全生成；已有密钥不覆盖，已有数据缺失密钥则拒绝")
+	command.Flags().BoolVar(&config.BackupEnabled, "backup-enabled", false, "显式启用全实例管理员备份及受管维护屏障；默认关闭，不启用自动备份或恢复")
+	command.Flags().StringVar(&config.BackupS3ConfigFile, "backup-s3-config-file", "", "S3 目标、凭据及备份预算的外置私有 JSON 文件，不接受命令行密钥")
+	command.Flags().StringVar(&config.BackupRecoveryKeyFile, "backup-recovery-key-file", "", "独立备份恢复密钥的外置私有文件，必须为 32 个原始字节，不随备份上传")
 	command.Flags().StringVar(&listen, "listen", "127.0.0.1:8080", "HTTP 监听地址")
 	command.Flags().StringVar(&config.TLSCertificate, "tls-cert", "", "TLS 证书文件")
 	command.Flags().StringVar(&config.TLSKey, "tls-key", "", "TLS 私钥文件")

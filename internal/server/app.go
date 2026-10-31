@@ -45,6 +45,9 @@ type Config struct {
 	DataDirectory              string
 	MasterKeyFile              string
 	InitializeMasterKey        bool
+	BackupEnabled              bool
+	BackupS3ConfigFile         string
+	BackupRecoveryKeyFile      string
 	TLSCertificate             string
 	TLSKey                     string
 	AllowHTTP                  bool
@@ -59,6 +62,7 @@ type Config struct {
 }
 
 type App struct {
+	backups          *serverBackup
 	logs             *logging.Manager
 	store            *state.Store
 	handler          http.Handler
@@ -79,6 +83,9 @@ type App struct {
 
 func Open(ctx context.Context, config Config) (*App, error) {
 	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if err := validateServerBackupConfig(ctx, config); err != nil {
 		return nil, err
 	}
 	if len(config.AdminUserIDs) > 32 {
@@ -158,7 +165,7 @@ func Open(ctx context.Context, config Config) (*App, error) {
 	if err := state.PrepareDirectory(config.DataDirectory); err != nil {
 		return nil, err
 	}
-	store, err := state.Open(ctx, filepath.Join(config.DataDirectory, "server.db"), key)
+	store, err := state.OpenWithOptions(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled})
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +210,7 @@ func Open(ctx context.Context, config Config) (*App, error) {
 			return nil, err
 		}
 	}
-	cache, err := library.OpenArchiveCacheWithOptions(ctx, filepath.Join(config.DataDirectory, "archives"), library.CacheOptions{MaxBytes: config.ArchiveCacheBytes})
+	cache, err := library.OpenArchiveCacheWithOptions(ctx, filepath.Join(config.DataDirectory, "archives"), library.CacheOptions{MaxBytes: config.ArchiveCacheBytes, MaintenanceManaged: config.BackupEnabled})
 	if err != nil {
 		if login != nil {
 			login.Close()
@@ -256,6 +263,12 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		}
 	}
 	app := &App{store: store, tlsConfig: tlsConfig, allowHTTP: config.AllowHTTP, device: device, oidc: login, library: collection, packs: distribution, scheduler: listScheduler}
+	if config.BackupEnabled {
+		app.backups, err = openServerBackup(ctx, config, key, collection)
+		if err != nil {
+			return nil, errors.Join(err, app.Close())
+		}
+	}
 	app.mcpConfiguration, err = httpapi.NewMCPConfigurationHandler(service, store)
 	if err != nil {
 		_ = app.Close()
@@ -305,7 +318,11 @@ func Open(ctx context.Context, config Config) (*App, error) {
 		_ = app.Close()
 		return nil, fmt.Errorf("cannot initialize server logging")
 	}
-	app.handler = httpapi.NewWithOptions(service, httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native})
+	options := httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native}
+	if app.backups != nil {
+		options.Backups = app.backups.controller
+	}
+	app.handler = httpapi.NewWithOptions(service, options)
 	return app, nil
 }
 
@@ -315,6 +332,14 @@ func (app *App) Close() (result error) {
 			result = errors.Join(result, app.logs.Close())
 		}
 	}()
+	if app.backups != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := app.backups.Close(ctx); err != nil {
+			uncertainBackupApps.Store(app, struct{}{})
+			return err
+		}
+	}
 	if app.mcpConfiguration != nil {
 		if err := app.mcpConfiguration.Close(); err != nil {
 			return err

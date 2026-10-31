@@ -5,6 +5,31 @@ import (
 	"time"
 )
 
+func TestBackupFlagsRemainExplicitAndSecretFree(test *testing.T) {
+	command := New()
+	enabled, err := command.Flags().GetBool("backup-enabled")
+	if err != nil || enabled {
+		test.Fatal("server backup must remain opt-in")
+	}
+	for _, name := range []string{"backup-s3-config-file", "backup-recovery-key-file"} {
+		value, err := command.Flags().GetString(name)
+		if err != nil || value != "" {
+			test.Fatal("backup secret file has an implicit default")
+		}
+	}
+	for _, name := range []string{"backup-secret-access-key", "backup-session-token", "backup-recovery-key", "backup-master-key"} {
+		if command.Flags().Lookup(name) != nil {
+			test.Fatal("raw backup secret is accepted in argv")
+		}
+	}
+	if err := command.Flags().Parse([]string{"--backup-enabled", "--backup-s3-config-file=/private/s3.json", "--backup-recovery-key-file=/private/recovery.key"}); err != nil {
+		test.Fatal("explicit backup startup flags unavailable", err)
+	}
+	if enabled, _ := command.Flags().GetBool("backup-enabled"); !enabled {
+		test.Fatal("explicit backup enable flag was lost")
+	}
+}
+
 func TestBootstrapAdministratorFlags(test *testing.T) {
 	command := New()
 	for _, name := range []string{"bootstrap-admin-username", "bootstrap-admin-password-file"} {

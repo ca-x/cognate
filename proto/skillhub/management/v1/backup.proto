@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package skillhub.management.v1;
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/management/v1;managementv1";
+
+service BackupManagementService {
+  rpc GetBackupStatus(GetBackupStatusRequest) returns (GetBackupStatusResponse);
+  rpc StartBackup(StartBackupRequest) returns (StartBackupResponse);
+  rpc GetBackupJob(GetBackupJobRequest) returns (GetBackupJobResponse);
+  rpc ListBackupJobs(ListBackupJobsRequest) returns (ListBackupJobsResponse);
+  rpc CancelBackupJob(CancelBackupJobRequest) returns (CancelBackupJobResponse);
+  rpc ReconcileBackupJob(ReconcileBackupJobRequest) returns (ReconcileBackupJobResponse);
+}
+
+message BackupJob {
+  string id = 1;
+  string phase = 2;
+  string error_code = 3;
+  int64 created_unix_millis = 4;
+  int64 updated_unix_millis = 5;
+  uint32 objects = 6;
+  int64 ciphertext_bytes = 7;
+  bool cancel_requested = 8;
+}
+
+message GetBackupStatusRequest {}
+
+message GetBackupStatusResponse {
+  bool enabled = 1;
+  string scope = 2;
+  bool automatic_enabled = 3;
+  bool restore_available = 4;
+}
+
+message StartBackupRequest {
+  string request_id = 1;
+}
+
+message StartBackupResponse {
+  BackupJob job = 1;
+}
+
+message GetBackupJobRequest {
+  string job_id = 1;
+}
+
+message GetBackupJobResponse {
+  BackupJob job = 1;
+}
+
+message ListBackupJobsRequest {
+  int32 limit = 1;
+  string cursor = 2;
+}
+
+message ListBackupJobsResponse {
+  repeated BackupJob jobs = 1;
+  string next_cursor = 2;
+}
+
+message CancelBackupJobRequest {
+  string job_id = 1;
+}
+
+message CancelBackupJobResponse {
+  BackupJob job = 1;
+}
+
+message ReconcileBackupJobRequest {
+  string job_id = 1;
+}
+
+message ReconcileBackupJobResponse {
+  BackupJob job = 1;
+}

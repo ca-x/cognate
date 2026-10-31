@@ -1,5 +1,41 @@
 # 开发预览验证
 
+## 2026-10-31：备份控制内核三项修复后的新组合门禁
+
+本段是初次 REJECT 候选的后继，不删除或改记下方原始失败。作者新冻结七文件见 `/tmp/cognate-control-fix.amkyrSXL/kernel-freeze.sha256`，清单 SHA256 `b94ed8d6dae8a3e7d4018be233367871e77a690a93e72a32de2fec61525725d1`。最后锁 close 前先持久化 private `control.fence`；不明时隔离旧能力，不能将返回错误等同于物理 flock 仍持有。确认物理释放后旧能力永久 closed，再删除/Sync 标记；此后的清理错误若删除已经可见，新进程可能进入，但旧能力不能再写或附着控制器。日志登记/catalog 发布预留全部后继记账，clean budget 拒绝不 poison；Reconcile 落盘重新合并当前取消。旧满额日志不自动迁移。这些修复仍需非作者的真实反例复核，不由下面绿色门禁代签。
+
+主线专项在隔离环境中执行 `go test -count=1 -timeout=180s -run '^Test(ServerBackup|BackupManagement|BackupFlagsRemain|Control)' -json ./internal/server/backup ./internal/server ./internal/server/httpapi ./internal/servercli`，**115 PASS / 2 SKIP / 0 FAIL**；四包 vet exit0。证据 `/tmp/cognate-backup-fixed-product.gZgY9xoG`。与 App 独审的统计范围不同，不混加。
+
+新组合使用 Go 1.27.3、`env -i`、隔离 HOME/XDG（含 runtime）/TMP，`GOPROXY=off GOSUMDB=off GOFLAGS=-mod=readonly GOTOOLCHAIN=local CGO_ENABLED=0`；先重新生产构建 Web，再编译 Go 嵌入。`go test -count=1 -timeout=600s -json ./...` 为 **7884 PASS / 161 SKIP / 0 FAIL**、49 测试包。SKIP 包含显式 fixture helper 和平台相关边界，不是未运行平台的资格证明；未运行 race 或 cgo。证据 `/tmp/cognate-control-fixed-final.RgJD7BHZ/full-go.json`，SHA256 `dfd7da110d4329bdb24eb4e54c1a4f89f1e63b06de0c13238540748b4e8928da`。
+
+同一冻结组合下，全仓 `go vet ./...`、24 个实际使用 MyGo 包的 vet、`go mod tidy -diff`、`go mod verify` 通过；`buf lint`、相对 `HEAD` 的 `buf breaking`、Go/Web 两模板在独立输出目录重新生成并逐文件 parity 全通过。不是 MyGo 未使用 audio 包的 wildcard vet 资格。三组件 `cognate-server` / `cognate` / `cognate-desktop` × Linux/Darwin/Windows × amd64/arm64 **18 项 `go build -trimpath`** 及 `go version -m` 的 CGO0/OS/arch 校验通过；CLI/GUI 依赖闭包不含 server backup 或 moejs，实际 server help 包含三项备份参数。Web build、Grok 编辑/导入 state 与公开目录验收脚本语法通过。全部日志、状态和 metadata 在同一目录；非文档源码输入及 `web/dist` 的前后 SHA256 逐项一致，源码清单 SHA256 `21fd3f6b5f6537316c915509170eb7825ef6455f4ca3090504341f55397974dd`。
+
+**非作者后继复核：三项 finding 范围内 ACCEPT。** Aquinas 在 `git archive 8a701c5` 只覆盖冻结七文件的独立副本中，以原生 syscall-exit 注入“实际 close 已完成但返回 EIO”，真实新进程被先持久化的 marker 拒开；另验证 partial marker、正常释放和确认释放后清理不明的精确分界。独立预算构造分别覆盖零余量干净拒绝、256 字节余量下 catalog 失败仍可持久 failed/budget 并重启/取消/幂等、2048 字节余量成功提交。并发取消、已取消终态、取消持久化不明优先、complete-unknown 和最终精确验真例外均通过，无 PUT 重发。原“恰满 pending 必须批准”旧断言的预期失败单独保留，不冒作 GREEN。十项独立探针三轮 **30 PASS**，九项必要回归三轮 **27 PASS**，均零 FAIL/SKIP；独立 vet/build exit0。报告 `/tmp/cognate-kernel-recheck.KZcIAz/REVIEW.md` 记录完整命令、证据与冻结身份，审前/后七文件一致。这个局部 ACCEPT 不重做先前 App/RPC 审查，也不替代主线组合门禁。
+
+本轮不发布 tag、Docker 或 LPK；不代表真实外部 S3、硬件断电、完整恢复、全产品 UI 或正式版放行。残留 fence 与旧满额日志没有自动清理、迁移或恢复资格。阶段代码提交/推送与持续功能开发另行记录，不把本切片等同 GA。
+
+提交前默认 `git diff --cached --check` 曾 exit2，唯一输出是 `backup_pb.ts` 的生成器末尾空行。为保持 Buf 重新生成逐字节一致，不手改生成物；其它文件保留默认空白检查，只有这一个 TypeScript 生成文件使用 `git -c core.whitespace=-blank-at-eof diff --cached --check -- web/src/gen/skillhub/management/v1/backup_pb.ts` 检查其余空白规则，不修改仓库 Git 配置或新增忽略规则。
+
+## 2026-10-31：公开目录精致化与实例备份控制平面
+
+基线为 `8a701c5`。UI 仍是首发重要目标，本轮采用现有 React/TanStack/Radix/Lucide 与系统字体，不增加依赖或改变安装、权限及插件边界。目录改为标题优先的索引，搜索/分类/已提交条件和两套分页分层；详情将来源身份与匿名命令分区，明确“公开不等于安全审查”和“仅复制、未执行”。方向反馈仅精细指针 hover 的 150ms/2px 箭头，键盘与 ReduceMotion 静态。实图、永久浏览器入口与边界见 `PUBLIC-CATALOG-UI.md`。
+
+**备份实现：** Linux 显式 opt-in 的真实 App 将受管 Store/cache、同切点内容 Capture、既有密文容器与 S3 条件发布相连。独立外置 KEK 与私有 S3 JSON 不进入 RPC/日志；控制日志为私有、有界、AES-GCM/HKDF 与原子发布，最多一个活动任务，不无限排队。管理员六个 Connect RPC 支持状态、幂等手动登记、查询分页、取消及仅精确回读的对账。全部 ObjectRef 目录与 complete 发送意图先持久化再发生副作用；PUT unknown 不自动重发，generation 不匹配不探测旧目标。正常 Close 先排空任务，关键不明保留 App、根能力与实例锁。细节见 `SERVER-BACKUP.md` 与 `superpowers/plans/2026-10-31-backup-control.md`。
+
+**真实产品链路：** 独立子进程以合成 `SSL_CERT_FILE` 信任本次测试 CA，不给生产 target 增加 TLS 绕过。真实 App/SQLite、站内 bootstrap 管理员、普通账号及六个 TLS RPC 验证授权先于配置探测、输入/错误脱敏与 no-store；HTTP 请求取消后已登记任务仍完成，complete 最后，正常 Close 后重启同 request ID 不重发；终态 Cancel 不假称回滚，Reconcile 仅回读。另覆盖默认关闭无备份目录、managed 配对、同 master/坏 KEK/坏配置拒绝、损坏日志不重建、普通初始化错误可回收。前两轮 fixture 失败分别是漏接 AWS SDK 的 `x-id` 操作 query、将 `page` 命名误写为 `manifest`，均修测试协议而非放宽生产边界；日志保留在 `/tmp/cognate-backup-control-main.ijoiukHl`。
+
+**独立 App/RPC 审查：** Herschel 发现构造返回关键不明时，原 cleanup 可能以成功 Close 消去不明并释放依赖。补丁在清理前固化关键错误，保留 runtime 与 App。初版同进程 Store probe 不能证明物理锁，因为 maintenance registry 允许共享；旧日志保留但撤回其锁证据推断，没有据此增加第二个生产补丁。永久测试改为真实子进程，必须因 `maintenance.ErrLock` 被拒；原补丁移除的 overlay 普通行为 RED，修复后三轮 GREEN。独立 reviewer 另验证正常活 App 拒绝/正常 Close 允许的正控，局部 ACCEPT；独立三包专项 50 PASS、2 个预期 worker SKIP、0 FAIL，证据 `/home/czyt/.cache/backup-app-review.EjugbcnY/independent-physical-red-green.json`。主线程三包专项为 47 PASS、2 SKIP、0 FAIL，统计范围不同，不混加。
+
+**作者控制内核证据：** 初次冻结七文件在 `/tmp/cognate-control-evidence/kernel-freeze.sha256`，清单 SHA256 `e05d56e525f444182db38a63ede318ee79f59a2b2ab1d057c48121c61907a8dd`。三轮控制用例 63 个顶层 PASS，backup 单包 97 个顶层 PASS；vet/build 均 exit0。包含持久化屏障、catalog/意图顺序、未知结果重启对账、取消、source 屏障在网络前释放、Close 与 journal Sync 竞争。作者没有穷尽最后 guard-FD/os.Root Close 的故障注入，不外推硬件断电或外部供应商，不以作者绿色替代非作者验收。
+
+**控制内核首次独审：REJECT。** Aquinas 独立原单包 97 顶层 PASS、vet/build通过，但另外真实反例稳定复现三项：最后 guard close 实际完成却报告 EIO 时，root 保留不代表物理 flock 仍持有，新 opener 可进入；16MiB 边界没有为后继状态预留记账空间，干净容量拒绝会 poison 并卡住重启；Reconcile 回写能把已 canceled 或对账期间显式取消的任务覆盖成 interrupted。三类独立三轮证据及原生 syscall-exit 注入在 `/tmp/cognate-kernel-review.thd6PQ/REVIEW.md`。该冻结候选未提交；修复与新独审尚在收口，下面的全仓绿色不能抵消这些反例，也不能转记为修后签收。
+
+**公开目录最后集成：** Godel 的公开目录、200% 几何与复制完整词三轮局部 ACCEPT 已闭合全部发现。主线干净 `git archive 8a701c5` 只覆盖七文件，重建 Web 与 Go 嵌入后，真实 TLS/SQLite `--checks-only` 浏览器回归 pass=true、82 项证据/71 PNG、fixture exit0；15 项定向 Go 测试零 skip/fail、vet、TS/生产 build 均通过。独立范围未包含任何备份 WIP，见 `/tmp/cognate-catalog-standalone.raeuY6AR` 和 `PUBLIC-CATALOG-UI.md`。UI 提交 `753f6a0`、逐页验收账本 `c120214`，SSH 推送并读回；全产品视觉与真人跨平台门禁仍 OPEN。
+
+**第一轮组合门禁：** Go 1.27.3、隔离 HOME/XDG/TMP、离线 readonly、显式 CGO0：`go test -count=1 -timeout=600s -json ./...` 为 **7865 PASS / 161 SKIP / 0 FAIL**、49 测试包。161 包含仅供子进程/浏览器启动的显式 fixture helper，不代表平台资格。全仓 vet、24 个实际使用的 MyGo 包 vet、tidy-diff、module verify 通过；三组件 × 三 OS × 两架构十八次 CGO0 build 及实际 metadata 校验通过，CLI/GUI 不依赖 backup/moejs；实际 server help 包含三项备份参数，Web 生产 build、Grok 两套 state 回归与新脚本语法通过。证据 `/tmp/cognate-control-catalog-final.hkEAUHrk`，1295 项非文档输入清单，full Go JSON SHA256 `e8a8f3cdcaf7091b6ff14194a9fab03511eb48fb695614c0818402cfe92f0242`。本轮额外尝试 MyGo 全模块 wildcard vet，因未使用的音频包缺少 go.sum 条目而退出1；保留 `mygo-vet.log`，没有为此添加无关依赖，不宣称 wildcard 全绿。最终 UI 嵌入组合以最后收口记录为准。
+
+没有新 GA tag、没有移动预览标签，也不把远端密文 `remote_committed` 称为恢复验证。自动调度、管理 Web 页、retention/孤儿清扫、完整离线恢复/运行代切换、全产品 UI 与十四 agent/Pack 附件及真实平台门禁仍保持打开。
+
 ## 2026-10-31：原生共享外壳与同切点密文内容管线
 
 本轮以 `88d3a99` 为基线，交付 MyGo 原生共享外壳和 F4 内部内容管线，未开放 App/S3 备份任务或生产恢复入口。UI 仍是首发重要门禁，不把本轮共享组件验收扩张为全产品或真人跨平台验收。
