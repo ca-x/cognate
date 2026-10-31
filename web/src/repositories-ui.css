@@ -1,0 +1,64 @@
+.repositories-ui, .categories-ui { min-width: 0; }
+:is(.repositories-ui, .categories-ui) .page-heading { flex-wrap: wrap; }
+:is(.repositories-ui, .categories-ui) .page-heading > div { flex: 1 1 18rem; min-width: 0; }
+:is(.repositories-ui, .categories-ui) .page-heading p { max-width: 48rem; }
+.repositories-ui .source-card { box-shadow: var(--shadow-surface); }
+.repositories-ui .collection-fields { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.repositories-ui .collection-fields > div { min-width: 0; }
+.repositories-ui .section-toolbar > div:first-child { min-width: 0; }
+.repository-count { display: inline-block; margin-inline-start: .5rem; padding: .1rem .55rem; border: 1px solid var(--color-border); border-radius: .45rem; color: var(--color-muted-foreground); font-size: .8125rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.repositories-ui .library-workbench { align-items: start; box-shadow: var(--shadow-surface); }
+.repositories-ui .collected-repositories { align-self: stretch; min-width: 0; }
+.repositories-ui .publication-control { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.repositories-ui .publication-control [role=status] { min-width: 0; flex-wrap: wrap; }
+.repository-choice-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem; }
+.repository-choice-heading > span:first-child { flex: 1 1 9rem; min-width: 0; overflow-wrap: anywhere; }
+.repository-selected { font-family: inherit; font-size: .75rem; font-weight: 600; color: var(--color-primary); }
+.repository-choice-branch { display: block; margin-top: .5rem; color: var(--color-muted-foreground); font: .75rem/1.6 ui-monospace, monospace; overflow-wrap: anywhere; }
+.repositories-ui .collected-repository-select { min-height: 2.75rem; }
+.snapshot-heading { display: flex; align-items: start; justify-content: space-between; gap: .75rem; }
+.snapshot-eyebrow { margin-bottom: .6rem; font-size: .75rem; color: var(--color-muted-foreground); font-weight: 500; }
+.snapshot-branch { display: flex; align-items: baseline; gap: .5rem; margin-top: .6rem; font: .8125rem/1.6 ui-monospace, monospace; color: var(--color-muted-foreground); }
+.snapshot-branch svg { align-self: start; flex-shrink: 0; margin-top: .2em; }
+.snapshot-branch span, .snapshot-hash code { min-width: 0; overflow-wrap: anywhere; }
+.snapshot-hash { margin-top: .75rem; font-size: .75rem; line-height: 1.7; color: var(--color-muted-foreground); }
+.snapshot-hash code { display: block; }
+.snapshot-unknown { margin-block: .75rem; padding: .75rem 1rem; border: 1px solid var(--color-border); border-inline-start: 3px solid var(--color-destructive); border-radius: .5rem; background: var(--color-card); color: var(--color-foreground); font-size: .875rem; line-height: 1.7; }
+.repository-category-select { width: 100%; text-align: start; }
+.repository-category-select > span { min-width: 0; white-space: normal; overflow-wrap: normal; }
+.repository-category-options { max-width: calc(100vw - 2rem); }
+.repository-category-options [role=option] { white-space: normal; overflow-wrap: normal; }
+.repositories-ui .skill-card { background: var(--color-background); padding: 1.1rem; }
+.repositories-ui .skill-metadata { padding-top: .75rem; border-top: 1px solid var(--color-border); font-size: .75rem; }
+.categories-ui .category-record { align-items: start; gap: 1.25rem; }
+.categories-ui .category-record > div:first-child { flex: 1 1 16rem; }
+.category-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.categories-ui .list-surface { box-shadow: var(--shadow-surface); }
+:is(.repositories-ui, .categories-ui) .error-notice { align-items: start; flex-wrap: wrap; }
+:is(.repositories-ui, .categories-ui) .error-notice p { min-width: 0; flex: 1 1 12rem; }
+:is(.repositories-ui, .categories-ui) .button,
+.repositories-ui-dialog .button,
+body:has(.repositories-ui) [role=dialog] .button { max-width: 100%; flex-shrink: 1; white-space: normal; word-break: normal; overflow-wrap: normal; height: auto; padding-block: .6rem; line-height: 1.5; }
+:is(.repositories-ui, .categories-ui) .button svg,
+.repositories-ui-dialog .button svg { flex-shrink: 0; }
+.repositories-ui-dialog { overflow-wrap: normal; }
+.repositories-ui-dialog p { word-break: normal; overflow-wrap: normal; }
+@media (hover: hover) and (pointer: fine) {
+  .repositories-ui .collected-repository-select:hover { background: var(--color-accent-surface); }
+  .repositories-ui .collected-repository-select:active:not(:focus-visible) { opacity: .8; }
+}
+@media (max-width: 600px) {
+  body:has(.repositories-ui, .categories-ui) .page-content { padding-inline: 12px; }
+  .repositories-ui .collection-fields { grid-template-columns: minmax(0, 1fr); }
+  .repositories-ui .source-card-heading { padding: .85rem; }
+  .repositories-ui .source-card-body { padding: 0 .85rem .85rem; }
+  .repositories-ui .library-detail, .categories-ui .category-record { padding: .75rem; }
+  .repositories-ui .collected-repository-select { padding: .85rem; }
+  .repositories-ui .skill-card { padding: .65rem; }
+  .repositories-ui .skill-card > div:first-child > svg { display: none; }
+  .repositories-ui .publication-control { padding: .5rem; }
+  .repositories-ui-dialog { padding: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .repositories-ui .collected-repository-select { transition: none; }
+}

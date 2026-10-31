@@ -3,20 +3,23 @@ import { t, useNotice } from "./i18n"
 import { useTranslation } from "react-i18next"
 import { useEffect, useState, type FormEvent, type ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { create } from "@bufbuild/protobuf"
 import { Code, ConnectError } from "@connectrpc/connect"
 import { CircleAlert, ExternalLink, FolderGit2, GitFork, LockKeyhole, RefreshCw, Search, ShieldCheck } from "lucide-react"
-import { CatalogSchema } from "./gen/skillhub/github/v1/github_pb"
 import { errorMessage, useApi } from "./api"
 import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import { Checkbox } from "./components/ui/checkbox"
 import { DeviceFlow } from "./device-auth"
+import "./sources.css"
 
 function useCatalog() {
   const { github, session } = useApi()
   const key = ["github-catalog", session?.userId]
-  const query = useQuery({ queryKey: key, refetchInterval: 30_000, queryFn: async ({ signal }) => (await github.getCatalog({}, { signal })).catalog ?? create(CatalogSchema) })
+  const query = useQuery({ queryKey: key, refetchInterval: 30_000, queryFn: async ({ signal }) => {
+    const result = await github.getCatalog({}, { signal })
+    if (!result.catalog) throw new ConnectError("catalog unavailable", Code.Unavailable)
+    return result.catalog
+  } })
   const [, wakeAtExpiry] = useState(0)
   const deadline = query.data?.connected ? Number(query.data.validUntilUnix) * 1000 : 0
   useEffect(() => {
@@ -85,20 +88,47 @@ export function SourcesPage() {
   })
   const busy = sync.isPending || subscription.isPending
   const connected = () => { refresh(); sync.mutate() }
-  const lists = catalog.data?.lists.filter((list) => `${list.name} ${list.slug}`.toLocaleLowerCase().includes(filter.toLocaleLowerCase())) ?? []
-  return <>
-    <div className="page-heading"><div><h1>{t("你的 skill 来源")}</h1><p>{t("连接 GitHub，选择要同步的收藏列表。")}</p></div>{catalog.data?.connected && <Button variant="outline" disabled={busy} onClick={() => { setNotice(""); sync.mutate() }}><RefreshCw size={16} aria-hidden="true" />{sync.isPending ? t("同步中…") : t("立即同步")}</Button>}</div>
-    <div className="source-card">
-      <div className="source-card-heading"><div className="service-icon"><GitFork size={25} aria-hidden="true" /></div><div className="flex-1"><h2 className="font-semibold">GitHub</h2><p className="mt-1 text-sm text-muted-foreground">{t("Star Lists · 按你已有的分类收录仓库")}</p></div>{catalog.data?.connected && <span className="connection-state"><ShieldCheck size={15} aria-hidden="true" />{t("已连接")}</span>}</div>
-      {catalog.isPending ? <p className="px-6 pb-6 text-sm text-muted-foreground" role="status">{t("正在读取连接状态…")}</p> : catalog.isError ? <div className="px-6 pb-6"><ErrorNotice error={catalog.error} retry={refresh} /></div> : catalog.data?.connected ? <div className="source-card-body"><p className="mb-4 text-sm text-muted-foreground">{t("选择列表后，Cognate 将同步其中的仓库。列表内容只对你的账号可见。")}</p><details><summary>{t("重新授权或更换 token")}</summary><div className="pt-4"><SourceForm generation={catalog.data.credentialGeneration} deviceEnabled={catalog.data.deviceFlowEnabled} onConnected={connected} /></div></details></div> : <div className="source-card-body">{catalog.data?.authorizationRequired && <p role="status" className="mb-4 text-sm text-muted-foreground">{t("GitHub 凭据已过期，请重新授权。旧来源内容已隐藏。")}</p>}<SourceForm generation={catalog.data?.credentialGeneration} deviceEnabled={catalog.data?.deviceFlowEnabled} onConnected={connected} /><p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground"><LockKeyhole size={14} aria-hidden="true" />{t("token 不会通过查询接口返回。")}</p></div>}
+  const source = catalog.isError ? undefined : catalog.data
+  const lists = source?.lists.filter((list) => `${list.name} ${list.slug}`.toLocaleLowerCase().includes(filter.toLocaleLowerCase())) ?? []
+  const listsUnavailable = source?.lists.length === 0 && (busy || sync.isError || subscription.isError)
+  return <div className="sources-page">
+    <div className="page-heading">
+      <div><h1>{t("GitHub 来源")}</h1><p>{t("连接 GitHub，选择要同步的收藏列表。")}</p></div>
+      {source?.connected && <Button variant="outline" disabled={busy} onClick={() => { setNotice(""); sync.mutate() }}><RefreshCw size={16} aria-hidden="true" />{sync.isPending ? t("同步中…") : t("立即同步")}</Button>}
     </div>
-    {catalog.data?.connected && <section className="list-section" aria-labelledby="lists-title" aria-busy={busy}>
-      <div className="section-toolbar"><div><h2 id="lists-title" className="font-semibold">{t("收藏列表 ")}<span className="ml-2 font-normal text-muted-foreground">{formatNumber(catalog.data.lists.length)}</span></h2><p className="mt-1 text-sm text-muted-foreground">{t("已选择 ")}{formatNumber(catalog.data.lists.filter((list) => list.subscribed).length)} {t(" 个列表")}</p></div><div className="filter-field"><Search size={16} aria-hidden="true" /><Input aria-label={t("筛选收藏列表")} placeholder={t("筛选列表…")} value={filter} onChange={(event) => setFilter(event.target.value)} /></div></div>
-      {lists.length === 0 ? <EmptyState icon={<GitFork size={24} aria-hidden="true" />} title={filter ? t("没有匹配的列表") : t("还没有收藏列表")}>{filter ? t("试试其他名称，或清空筛选。") : t("在 GitHub 整理 Star Lists 后，点击“立即同步”获取。")}</EmptyState> : <div className="list-surface">{lists.map((list) => <div className="source-list-row" key={list.id}><label className="list-selection" htmlFor={`list-${list.id}`}><Checkbox id={`list-${list.id}`} checked={list.subscribed} disabled={busy} onCheckedChange={(checked) => { setNotice(""); subscription.mutate({ listId: list.id, subscribed: checked === true }) }} /><span><span className="flex flex-wrap items-center gap-2 font-medium">{list.name}{list.private && <LockKeyhole size={13} aria-label={t("私有列表")} />}</span><span className="mt-1 block font-mono text-xs text-muted-foreground">{list.slug}</span></span></label><span className="text-xs text-muted-foreground">{list.subscribed ? t("已订阅") : t("未订阅")}</span></div>)}</div>}
-      {sync.isError && <ErrorNotice error={sync.error} />}{subscription.isError && <ErrorNotice error={subscription.error} />}
-      <p className="mt-3 min-h-6 text-sm text-muted-foreground" role="status" aria-live="polite">{busy ? t("正在保存并同步，请稍候…") : notice}</p>
+    <section className="source-card" aria-labelledby="github-source-title" aria-busy={catalog.isPending}>
+      <div className="source-card-heading">
+        <div className="service-icon"><GitFork size={23} aria-hidden="true" /></div>
+        <div className="sources-service"><h2 id="github-source-title">GitHub</h2><p>{t("Star Lists · 按你已有的分类收录仓库")}</p></div>
+        {source?.connected ? <span className="connection-state"><ShieldCheck size={15} aria-hidden="true" />{t("已连接")}</span> : <span className="sources-state">{catalog.isPending ? t("正在读取…") : catalog.isError ? t("状态待确认") : source?.authorizationRequired ? t("需要重新授权") : t("未连接")}</span>}
+      </div>
+      {catalog.isPending ? <div className="source-card-body"><p className="sources-loading" role="status">{t("正在读取连接状态…")}</p></div> : catalog.isError ? <div className="source-card-body"><ErrorNotice error={catalog.error} retry={refresh} /></div> : source?.connected ? <div className="source-card-body">
+        <dl className="sources-identity"><dt>{t("GitHub 账号 ID")}</dt><dd>{source.viewerId}</dd></dl>
+        <p className="sources-description">{t("选择列表后，Cognate 将同步其中的仓库。列表内容只对你的账号可见。")}</p>
+        <details><summary>{t("重新授权或更换 token")}</summary><div className="pt-4"><SourceForm generation={source.credentialGeneration} deviceEnabled={source.deviceFlowEnabled} onConnected={connected} /></div></details>
+      </div> : <div className="source-card-body">
+        {source?.authorizationRequired && <p role="status" className="sources-expiry">{t("GitHub 凭据已过期，请重新授权。旧来源内容已隐藏。")}</p>}
+        <SourceForm generation={source?.credentialGeneration} deviceEnabled={source?.deviceFlowEnabled} onConnected={connected} />
+        <p className="sources-security"><LockKeyhole size={14} aria-hidden="true" />{t("token 不会通过查询接口返回。")}</p>
+      </div>}
+    </section>
+    {source?.connected && <section className="list-section" aria-labelledby="lists-title" aria-busy={busy}>
+      <div className="section-toolbar">
+        <div><h2 id="lists-title">{t("收藏列表 ")}{!listsUnavailable && <span className="sources-count">{formatNumber(source.lists.length)}</span>}</h2><p className="sources-selection-count">{listsUnavailable ? t("列表待确认") : t("已选择 {{selected}} / {{total}} 个列表", { selected: formatNumber(source.lists.filter((list) => list.subscribed).length), total: formatNumber(source.lists.length) })}</p></div>
+        <div className="filter-field"><Search size={16} aria-hidden="true" /><Input aria-label={t("筛选收藏列表")} placeholder={t("筛选列表…")} value={filter} onChange={(event) => setFilter(event.target.value)} /></div>
+      </div>
+      <p className="sources-list-help" id="lists-help">{t("勾选即保存订阅并同步仓库；取消勾选会停止订阅。")}</p>
+      {lists.length === 0 ? listsUnavailable ? <p className="sources-list-help" role="status">{busy ? t("正在读取收藏列表…") : t("同步未完成，暂时无法确认列表。请重试同步。")}</p> : <div className="list-surface"><EmptyState icon={<GitFork size={24} aria-hidden="true" />} title={filter ? t("没有匹配的列表") : t("还没有收藏列表")}>{filter ? t("试试其他名称，或清空筛选。") : t("在 GitHub 整理 Star Lists 后，点击“立即同步”获取。")}</EmptyState></div> : <div className="list-surface" role="group" aria-labelledby="lists-title" aria-describedby="lists-help">{lists.map((list) => <label className="source-list-row" data-subscribed={list.subscribed} key={list.id} htmlFor={`list-${list.id}`}>
+        <Checkbox id={`list-${list.id}`} aria-labelledby={`list-name-${list.id}`} checked={list.subscribed} disabled={busy} onCheckedChange={(checked) => { setNotice(""); subscription.mutate({ listId: list.id, subscribed: checked === true }) }} />
+        <span className="sources-list-content"><span className="sources-list-name" id={`list-name-${list.id}`}>{list.name}</span><span className="sources-list-meta"><span className="sources-list-slug">{list.slug}</span>{list.private && <span className="sources-private"><LockKeyhole size={13} aria-hidden="true" />{t("私有列表")}</span>}</span></span>
+        <span className="sources-subscription">{list.subscribed ? t("已订阅") : t("未订阅")}</span>
+      </label>)}</div>}
+      <div className="sources-feedback">
+        {sync.isError && <ErrorNotice error={sync.error} />}{subscription.isError && <ErrorNotice error={subscription.error} />}
+        <p role="status" aria-live="polite" aria-atomic="true">{subscription.isPending ? t("正在保存订阅并同步仓库…") : sync.isPending ? t("正在同步 GitHub 来源…") : notice}</p>
+      </div>
     </section>}
-  </>
+  </div>
 }
 
 export function DiscoveredRepositories({ onCollect, busy }: { onCollect: (name: string) => void; busy: boolean }) {

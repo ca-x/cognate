@@ -1,5 +1,78 @@
 # 开发预览验证
 
+## 2026-11-01：四组工作空间 UI 与 SQLite 修复的最终组合
+
+本阶段基于 `59da539509f6d7aa10c28f652b72c879157be63c`，接收来源、登录/账号、仓库/分类、Pack/分享四组 UI，以及 GitHub 写事务、备份源文件锁和 Linux Secret Service 测试就绪修复。以下证据属于最终冻结组合，不覆盖后文旧候选、失败或拒绝记录。MCP/日志页面另有作者候选，尚未包含于本节。
+
+证据目录 `/tmp/cognate-integrated-release.JWDjDE0I`。1319 项非文档/非 workflow 输入与隔离副本 `frozen-stage` 一致，52 项 Web dist 在运行门禁前后逐项相同；三组件构建后仅修改测试就绪文件，生产输入重新核验未变。主线提交前也重新核验源码清单；主线忽略的旧 dist 先未匹配冻结产物，重新生产 build 后单独核验，不能把第一次不匹配写成通过。
+
+| 最终门禁 | 实际结果 |
+| --- | --- |
+| 隔离环境、Go 1.27.3、`CGO_ENABLED=0 go test -p 4 -count=1 -json ./...` | **7919 PASS / 166 SKIP / 0 FAIL**；49 测试包通过，77 包级 SKIP；`repaired.status` 为 `full_go=0` |
+| 全仓 vet、24 个实际 MyGo 依赖包 vet、两个 MyGo 目录 vet | exit0；不是 macOS/Windows 真实运行 |
+| module verify、tidy-diff、Buf lint/breaking、Go/Web 双生成 parity | 全部 exit0，见 `protocol.status` |
+| server、CLI、GUI × Linux/Darwin/Windows × amd64/arm64 | **18 个 CGO0 build 和 metadata 检查通过**，见 `binaries.status`；不等于相应平台安装资格 |
+| 三个 Build CI 门禁的本地自测 | 来源 59、备份锁 10、Auth 4 案通过，见 `ci-gates.status`；不声称远端 CI 已运行完整浏览器矩阵 |
+| workflow 检查 | 结构 actionlint exit0；完整 ShellCheck 的两个 SC2016、一个 SC2034 与基线相同，仍保留，不宣称全部 lint 通过 |
+
+最终生产 Web → 真实 TLS/Connect/SQLite 浏览器结果如下。全部 fixture 正常退出、无 signal；安全截图不包含合成秘密原文。矩阵及操作细节见各专项文档，不外推真人读屏、外部账号、其它浏览器或平台。
+
+| 切片 | 最终结果 |
+| --- | --- |
+| 来源 | 395 条证据、121 组几何/完整词检查、140 张安全截图 |
+| 登录/账号 | 8 个业务场景、32 组布局、49 张安全截图 |
+| 仓库/分类 | 65 条证据、24 组布局、55 张安全截图，包含删除丢回执与触发器卸载后的永久 F1/F2 |
+| Pack/分享 | 132 条证据、56 张安全截图；另 6 个焦点场景、5 项焦点/恢复观察，写入计数不变 |
+| 备份手动管理 | 88 条证据、43 张安全截图；原专项另有 56 组布局/焦点检查 |
+
+同组合的三组 fresh fixture × 10 seed × 21 次备份共 **630 次真实 TLS/SQLite/S3-like 备份通过**，没有恢复性 retry。GitHub 六阶段、跨连接及 N1 四格取消回归各十轮通过。GitHub 修复**确实包含写锁准入轮询**：仅专用池中尚未开始的 `BEGIN IMMEDIATE` 精确 SQLITE_BUSY，以 5ms 间隔、最多 10 秒且可取消；不重试 517、CAS、业务、提交或网络，普通连接池 pragma 不变。
+
+备份 8714 修复由确定性子进程证明普通 DB/SHM FD close 会释放进程 POSIX 锁，并在 DMS 锁下用受控 3-byte 截短触发同类映射故障。父进程改用 O_PATH inode pin 与 metadata 检查，受限 worker 保留完整有界内容检查；不取消预算、cleanup 或结果不明 fence。该受控反例不是暂停真实 worker syscall，也不表示历史 v7 已全部归因，见 `BACKUP-SQLITE-LOCKS.md`。
+
+**原全仓失败保留。** `final-full-go.json` 为 7910 PASS / 166 SKIP / 1 FAIL，失败在 `TestValidReplyDoesNotBypassWaitAndCancellation` 的 `fixture-connect`，不是旧等待断言或 `fixture-open-session`。真实 daemon 的 listen 入口延迟 200ms，旧 fixture 出现 bind 成功但 listen 未完成即 connect/ECONNREFUSED；改为有界 PID 管道就绪握手后同一测试通过。只改测试，不加 connect/RPC retry、sleep 或预算，不弱化等待/取消/隐私断言。专项 30 轮、正确 package cwd 整包 5 轮及上表修后全仓通过。独审独立编译新旧二进制复现相同 RED→GREEN；原当轮缺 syscall trace，旧历史原因仍 UNKNOWN，见 `SECRET-SERVICE-FIXTURE-READINESS.md`。
+
+非作者审查：来源 N1、备份锁、Auth I1/M1、仓库 F1/F2、Pack F1 及测试就绪分别给出限定 Spec/Quality ACCEPT；CSS/i18n、三行 CI 接线和覆盖账本的联合检查为 LIMITED ACCEPT、无新增集成阻断。不把作者矩阵或上述局部结论写成完整 GA 放行。
+
+| 冻结文件或独审报告 | SHA256 |
+| --- | --- |
+| `repaired-full-go.json` | `69dce0e6db103d8938b4a7c88425752094a8b5e6e36af9294ae8efe64cefedd2` |
+| `repaired-source.sha256` | `c45ceb4e0a1294540d57e91c81f3a66ff7bf24e779d8c1bb3bc334f523963aa2` |
+| `final-dist.sha256` | `04c5f8bc60e38f3e6b7928f9af288fc1f36fdc1cf4227b32da0f1a3d12c09898` |
+| `FINAL-SUMMARY.json` | `bd2935ecde9bbd78290f816d182c2455c18762d332d0535327a75eec153a1e6e` |
+| 来源 N1 `/tmp/cognate-sources-review-v2-YHluhh/work/REVIEW-N1.md` | `c9771a94d050805195a5487dad75ac372ca9c7a1615746dcac738b14a8bcfd67` |
+| 备份 `/tmp/skillhub-backup-independent.3XqsMFhR/delivery/REVIEW.md` | `a66f668b7a4504f915f7b91af9c88539244e689811d44ec7aaf3672749649636` |
+| Auth `/tmp/cognate-task1-auth-recheck.H09Suta7/REVIEW.md` | `824ac25d2b7fcd36875115ecba3b77fbfdcb8fcb6ead14f0d9ecbaacf9acdd73` |
+| 仓库 `/tmp/skillhub-task2-f1f2-independent-q0GuUDjo/REVIEW.md` | `80956fee87614d0c277e83322bab913cd34a91c7c18e8cb8c9571dbc9af9fcd8` |
+| Pack `/tmp/cognate-task3-f1-rereview.WrN3BQV5/delivery/REVIEW.md` | `4011b2f308bdc6f8e2d343701d4b332e1dd108ad37059dc4c274ac1ea81ac489` |
+| 集成 `/tmp/cognate-integration-successor-independent.xyULNvSg/INTEGRATION-REVIEW-ADDENDUM.md` | `d02cbe63cf3efefc869bd8732d12fe1c76321bef9e326111b1c542ffe240d197` |
+| 测试就绪 `/tmp/cognate-ss-readiness-review.hHqqVROq/work/REVIEW.md` | `45206faa97ea887bd56e5501628256f28f117b41adfcada770d674fefef48113` |
+
+本节是阶段交付而非正式版：完整恢复/代切换、调度保留、十四 agent 与选择导入、Pack 配置附件消费、客户端 MCP/OIDC 及真实跨平台门禁继续按 `TODO.md` 和 `FORMAL-RELEASE-AUDIT.md` 推进，不能用测试数字替代未实现的功能。没有新正式 tag、Docker 或 LPK。
+
+## 2026-10-31：GitHub 来源候选组合与并行开发
+
+来源候选作者基线为 `c120214210c8fb790c84b9c1d30217dc72e74849`，累计十一文件补丁 SHA256 `f232865023d953de8cf861763343b51d5f8ec8edb8cc8220a1f4f8a75184df1c`。主线程将其应用至 `59da539509f6d7aa10c28f652b72c879157be63c`，逐文件核验冻结清单一致；本节旧组合数字属于该候选，不能覆盖随后 N1 增量。原独审对原 P1/P2 的 Spec ACCEPT、Quality 因写锁取消等待 N1 仍 BLOCK；主线程四格 RED→GREEN 和相关五包通过，独立准入池增量及复审边界见 `SOURCES-UI.md`。没有新 tag、Docker、LPK 或正式版发布。
+
+沿用 React/TanStack、项目 Button/Input 与 Radix Checkbox/DeviceFlow。生产改变是来源 UI/CSS/英语文案，以及 GitHub 六处事务在读取前通过零增量 UPDATE 取得 SQLite 写锁；不改 generation、序列值、凭据密文或网络请求协议。六阶段确定性回归覆盖 catalog/credential/begin/claim/commit/subscription 的旧快照升级，独立连接池并发回归不依赖进程 mutex。作者 RED/对照证据与修复边界见 `SOURCES-UI.md`，不将此故障归因扩张到所有历史 Internal。
+
+主线程证据目录 `/tmp/cognate-sources-main.cxZAL9iu`：
+
+- Web 生产 build exit0 后编译真实 TLS/Connect/SQLite fixture；六阶段专项 `-count=10` 通过。
+- `sources-rpc` 无 UI 的 100 轮 RPC-only exit0，无恢复性重试；门禁 self-test 59 项通过，并接入 Build workflow。
+- `sources-browser` 真实浏览器 exit0：395 条证据、121 组几何/完整词检查，140 张安全原图；`receipts.json` SHA256 `e33cbc630f5895580b81168ab18ba67a9b3dc78673a62339c2890210872f238c`。范围包括中英/深浅、320/375/1440 CSS px、200% 根字号、实际键盘、ReduceMotion、授权/过期/generation/订阅/同步和未知状态，不是外部 GitHub 真账号或其它浏览器验收。真实入口为 `/`，没有新增 `/sources` 路由。
+- fresh `env -i`、隔离 HOME/XDG/TMP/runtime、Go 1.27.3、离线 readonly、`CGO_ENABLED=0 go test -p 4 -count=1 -json ./...` 为 **7894 PASS / 163 SKIP / 0 FAIL**，49 通过测试包、另 77 包级 SKIP；`full-go.json` SHA256 `9d0709d2128f4ca411cb4f2690652afae006691aa9984eabfdc4730ae8953514`。
+- 全仓 vet、24 个实际 MyGo 依赖包 vet、modules/tidy-diff、Buf lint/breaking 和 Go/Web 双生成 parity 均 exit0；三组件 × 三 OS × 两 arch 共 18 个 CGO0 build/metadata 通过，不等于对应平台实际安装运行。
+- 1308 项非文档输入与 48 项 Web dist 在上述运行门禁前后完全一致。输入清单 SHA256 `de077078ba11c6fb020173e71a1afd1412f8b3907d3ff8a71f1aaa3638156ed9`，dist 清单 SHA256 `7f97f4166fc4e9b1bebac63b01419d3116809db08f48a12fb1b6fe9daea9432f`。此后只增加 CI 的 self-test 接线和文档；运行源码再次核对未变。
+- workflow 结构 actionlint exit0；带 ShellCheck 的完整检查 exit1，两个 SC2016 与一个 SC2034 在 `59da539` 的原始 workflow 也逐项存在，保留基线与候选日志，没有以禁用 ShellCheck 冒充全 lint 通过。初次工具 shim 无版本的错误也未当作产品失败。
+
+**未通过的组合回归必须保留。** 初次把 `httpapi.test` 传给备份脚本，该二进制无目标测试，日志明确 `no tests to run`；这是主线程编排错误，不是产品启动失败。随后用正确 `go test -c ./internal/server` 二进制运行 `backup-browser-correct-package`，在 seed 返回 HTTP500，安全账本为 `operation=wait` / `code=internal`、25 次 complete，存储 fixture 的 violation=false；此轮 exit1，不能称整组合全部绿色。
+
+主线程进一步在隔离的旧 `59da539` 副本只增加安全诊断，不修改生产行为：`SessionUser` 仅记录 SQLite 数字码、取消/超时 bool，fixture 仅记录允许列表中的错误边界。三个完整浏览器场景通过后，第四个在 `backup-diagnostic-4` 再现 seed500：`boundary=authentication`、`operation=wait` / `code=internal`，SQLite **8714 / SQLITE_IOERR_IN_PAGE**，非取消或超时。该数字码由当前依赖 `modernc.org/sqlite@v1.60.1` 的 `lib/sqlite.go` 和 `lib/seh.go` 核对为 WAL 映射内存故障保护；触发原因仍待确定性验证，与来源页的 517 不同。没有将诊断日志加入生产，没有添加 retry，也不能据此反推历史 v7 每次失败已归因。
+
+用户要求加速后，登录/账号、仓库/分类、Pack/分享分别在隔离副本按不重叠写集并行实现；第四条服务端线接上述映射故障的根因及最小修复，主线程负责集成。任务与边界见 `superpowers/plans/2026-10-31-parallel-workspace-ui.md`；未接收、未独审切片保持 OPEN。备份完整恢复、十四 agent、本机应用、Pack 附件与真实平台等正式门禁不缩减。
+
+续接检索使用 nmem CLI，default Space、normal 输入/服务端 `fast_bm25_vector`、无标签过滤、上限 1：query `Cognate 手动备份Web已推送59da539 来源UI独审BLOCK修复中`，rank 1 为 `82fe4846-eda2-4814-a9ea-9da47344aed0`，同名阶段事件、score 0.99。正式范围另 query `Cognate 正式版 全部范围 十四agent 完整备份 恢复 门禁`，rank 1 为 `308322e5-56a6-46fb-8844-0dba76b862d7`，标题“Cognate阶段完成：原生UI与同切点密文管线已推送，7768测试通过”，score 0.8768186479356365；只作既有范围续接，不替代需求。CLI 无已验证的同身份/Space 浏览器图谱会话，未开启图谱。
+
 ## 2026-10-31：成熟组件的管理员手动备份 Web
 
 基线 `1fb8ee6827dce691b84a972f2ad837fda3688d3a`，仅增加既有备份 RPC 的 Web 客户端、独立中英 namespace、管理页/布局、边界与 intent 回归、真实 App 浏览器 fixture 和生产 deep link。没有改控制内核、上传/恢复协议、数据库或依赖。React/TanStack 沿用现有版本，Button 沿用项目封装，Dialog/Checkbox 使用 Radix；未自研基础控件或新建动效系统。

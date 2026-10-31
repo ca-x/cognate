@@ -87,18 +87,17 @@ node /tmp/cognate-ui-polish/verify-ui.mjs \
 
 | 入口 | 已有本轮证据 | 后继 UI 门禁 |
 | --- | --- | --- |
-| 未登录工作空间 / `AuthScreen` | 复用已审共享偏好和控件 | 本地登录/注册、OIDC/device flow 的 loading/error/取消、窄屏与焦点完整视觉签收仍 OPEN |
-| `/` 来源发现 | 已有功能与共享外壳 | 搜索/选中/收录/失败重试层级、空状态、分页/长名称及 200% 文字 OPEN |
-| `/repositories` 仓库/技能 | 已有树、刷新与公开控件 | 私有/公开来源、分支、刷新结果、分类操作与不可见来源的明确区分 OPEN |
-| `/packs` 与内嵌分享管理 | 已有 Pack/分享功能 | 重合技能、撤销/过期、同步状态、危险操作及键盘/窄屏 OPEN；配置附件消费尚缺实现，不只是样式 |
-| `/categories` 分类 | 已有功能 | 空/长分类、数量语义、编辑/删除边界和中英窄屏 OPEN |
-| `/account` 账号 | 已有账号功能 | 身份来源、登录绑定/注销状态、错误和密钥不回显的逐场景视觉签收 OPEN |
+| 未登录工作空间 / `AuthScreen` | 七文件切片及 I1/M1 修复已独审 ACCEPT；新组合本地注册/登录与 OIDC loading/error/取消、32 组布局和 49 安全图通过 | 本页局部 UI 签收不覆盖外部 OIDC 成功或客户端 device flow；见 `AUTH-UI.md` |
+| `/` GitHub 来源 | 517 六阶段与 N1 可取消准入修复均获限定独审 ACCEPT；新组合 395 条浏览器检查、121 组几何、140 安全图通过 | Lists/授权局部证据不覆盖真实 GitHub 外部授权；锁准入精确 BUSY 轮询不等于业务自动重试，见 `SOURCES-UI.md` |
+| `/repositories` 仓库/技能 | 仓库/分类七文件切片及 F1/F2 修复独审 ACCEPT；新组合 65 条证据、24 组布局通过 | 真实私有 GitHub 权限、其它浏览器/平台仍需各自证据；见 `REPOSITORIES-UI.md` |
+| `/packs` 与内嵌分享管理 | 七文件切片与 F1 修复均已独审 ACCEPT；最终组合 CRUD/分享/撤销/Unknown 132 条证据、另五项焦点观察通过 | 配置附件消费另缺实现，不只是样式；本页不表示设备已同步，见 `PACKS-UI.md` |
+| `/categories` 分类 | 同一仓库/分类切片已覆盖 CRUD、长名、失败保留草稿及丢回执后稳定错误/焦点，独审 ACCEPT | 以上为本页局部 Chromium UI 签收，不扩大成全部 F9 或真实平台验收 |
+| `/account` 账号 | 与登录同一切片，I1/M1 已独审；身份、显式绑定、后台错误焦点与注销的新组合专项通过 | 外部 provider 成功绑定、真人读屏及跨浏览器仍 OPEN；不枚举或推断已有绑定清单 |
 | `/mcp-settings` | 已有站点 MCP token 管理 | 权限/一次显示/撤销/过期、长工具说明、复制反馈与键盘 OPEN；不同于客户端 MCP 配置资产 |
 | `/configuration` | 共享与关键配置/Grok 编辑切片已独审，见本文件前文 | 所有已支持 agent 的空/列表/编辑/只读未知/冲突/Unknown 场景逐一覆盖 OPEN；十四 agent 功能缺口不以 UI 填空代替 |
 | `/server-logging` | 已有管理员设置功能 | 普通用户权限提示、配置/保留参数、错误/保存反馈及窄屏 OPEN |
 | `/server-backup` | 管理员手动页，真实 TLS App/SQLite/S3-like 88 条收据及 56 组布局/焦点检查 | 中英深浅、320/375px/200%、真实键盘滚动与 ReduceMotion 已有本页证据；全产品、外部供应商及完整恢复仍 OPEN，见 `SERVER-BACKUP.md` |
 | `/explore`、`/explore/$skillId` | 公开目录/详情局部 ACCEPT；24 份 200% 几何、复制完整词、真实分页/错误/匿名边界，见 `PUBLIC-CATALOG-UI.md` | 自动化验收限本机 Chromium；真人读屏、触屏、真实公开安装与其它浏览器仍 OPEN |
-| 备份管理页 | 尚无生产页面，不虚构入口 | 后端管理员控制平面签收后再接状态/手动任务/取消/只读对账；自动调度/恢复仍是独立实现门禁 |
 
 各后继切片统一验收：深浅/跟随系统、中英、不丢未提交草稿、375px 与 320px/200% 文字、真实 loading/empty/error、键盘与焦点恢复、ReduceMotion。动效只服务定位、直接反馈与状态关系，不加持续背景装饰、假统计、假进度或输入延迟。破坏性与含密钥动作保持现有授权/确认语义；没有实现的能力明确标记不可用，不用动画或按钮假装完成。
 
@@ -117,3 +116,7 @@ MyGo 原生验收仍单独跟踪 `NATIVE-UI-DESIGN.md`，不能用 Web 页面矩
 实图目录 `/tmp/cognate-backup-web-browser-v8`：深色 English 1440px 空/成功、中英深浅 320/375px/200% 的历史/确认/详情/键盘揭示、普通账号拒绝和真实 disabled App。主线程查看 `light-en-320-200pct-confirm-revealed.png`，确认完整按钮及焦点环在可见区域内；v5 `failure.png` 保留详情自动焦点在屏外的 RED。复用共享按压/入场 tokens；频繁刷新数据不增加位移，键盘和 ReduceMotion 没有入场动画。
 
 来源页另有六文件交付，但独立完整轮和无 UI 的 RPC-only 复现重新授权 Internal，且原验收脚本存在漏计其它阶段 Internal 的假绿风险；目前仍 BLOCK、未合入，不将该页 121 组零越界或来源页截图视作签收。
+
+后继来源候选见 `SOURCES-UI.md`：累计十一文件已接入 `59da539` 的主线组合，新增六阶段 SQLite 517 的确定性 RED/GREEN、读前写锁及全阶段失败账本。新的真实浏览器 395 条检查和 121 组几何/整词检查通过，但作者冻结和主线程组合绿不能自行撤销原独审 BLOCK。真实入口为 `/`；作者历史报告中的 `/sources` 是页面称呼，不是新增路由。
+
+用户随后要求加速并行，登录/账号、仓库/分类、Pack/分享已拆为互不重叠的实现写集，分别独立 CSS/i18n 注册且沿用既有框架组件；主线程统一组合验收及阶段提交，不让每条实现线重复全仓测试。三线在收到冻结工件与独审前都保持 OPEN，见 `superpowers/plans/2026-10-31-parallel-workspace-ui.md`。

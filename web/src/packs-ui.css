@@ -1,0 +1,79 @@
+.packs-ui { min-width: 0; }
+.packs-ui .page-heading { align-items: flex-start; }
+.packs-ui .page-heading h1 { letter-spacing: -.035em; }
+.packs-ui .packs-eyebrow { display: flex; align-items: center; gap: .5rem; margin: 0 0 .65rem; color: var(--color-primary); font-size: .7rem; font-weight: 650; letter-spacing: .08em; }
+.packs-boundary { display: flex; align-items: flex-start; gap: .7rem; padding: 1rem 1.15rem; margin-bottom: 1.5rem; border: 1px solid var(--color-border); border-radius: .75rem; background: var(--color-card); color: var(--color-muted-foreground); font-size: .8125rem; line-height: 1.7; }
+.packs-boundary > svg { flex-shrink: 0; margin-top: .15rem; color: var(--color-primary); }
+.packs-ui .library-workbench { grid-template-columns: minmax(12rem, .65fr) minmax(0, 2fr); border-radius: 1rem; box-shadow: var(--shadow-surface); }
+.packs-ui .library-detail { padding: clamp(1rem, 2.5vw, 2rem); }
+.packs-ui .collected-repository-select { min-height: 5rem; line-height: 1.6; }
+.packs-ui .collected-repository-select[aria-pressed="true"] { box-shadow: inset 3px 0 var(--color-primary); }
+.packs-ui .pack-detail-heading { flex-wrap: wrap; }
+.packs-ui .pack-detail-heading h2 { font-size: 1.25rem; letter-spacing: -.02em; }
+.packs-timestamp { margin-top: .6rem; color: var(--color-muted-foreground); font-size: .75rem; font-variant-numeric: tabular-nums; }
+.packs-ui .skill-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .75rem; }
+.packs-ui .skill-card { margin: 0; padding: 1rem; border: 1px solid var(--color-border); border-radius: .75rem; background: var(--color-background); }
+.packs-ui .skill-metadata { row-gap: .4rem; }
+.packs-ui .pack-sharing { margin-top: 1.5rem; }
+.packs-scope { margin-top: .75rem; padding-left: .85rem; border-left: 2px solid var(--color-border); color: var(--color-muted-foreground); font-size: .8125rem; line-height: 1.75; }
+.packs-ui .pack-danger { padding: 1.25rem; border: 1px solid color-mix(in srgb, var(--color-destructive) 35%, var(--color-border)); border-radius: .75rem; }
+.packs-ui .pack-danger h3 { color: var(--color-destructive); }
+.packs-ui .pack-editor > fieldset > section { padding-top: 1.25rem; margin-top: 1.5rem; border-top: 1px solid var(--color-border); }
+.packs-ui .pack-choices { max-height: 20rem; overscroll-behavior: contain; }
+.packs-ui .pack-skill-choice:has([data-state="checked"]) { background: var(--color-accent-surface); }
+.packs-ui .pack-picked { background: var(--color-background); }
+.packs-ui .pack-picked > .button { min-width: 2.75rem; }
+.packs-section-heading, .packs-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.packs-section-heading { justify-content: space-between; }
+.packs-status { font-weight: 600; }
+.packs-status[data-state="active"] { color: var(--color-success); }
+.packs-ui .share-record { align-items: flex-start; }
+.packs-ui .share-secret { border-width: 1px; box-shadow: var(--shadow-surface); }
+.packs-ui .button, .packs-ui-dialog .button { min-width: 0; max-width: 100%; height: auto; white-space: normal; overflow-wrap: normal; word-break: normal; line-height: 1.6; padding-block: .65rem; }
+.packs-ui .button > svg, .packs-ui-dialog .button > svg { flex-shrink: 0; }
+.packs-ui [data-slot="select-trigger"] { height: auto; white-space: normal; text-align: left; line-height: 1.65; }
+.packs-ui [data-slot="select-trigger"] > span { min-width: 0; overflow-wrap: normal; word-break: normal; }
+.packs-ui-select { max-width: min(32rem, calc(100vw - 2rem)); }
+.packs-ui-select [role="option"] { white-space: normal; overflow-wrap: normal; }
+.packs-ui :is(p, h2, h3, h4, code, label), .packs-ui-dialog :is(p, h2) { overflow-wrap: anywhere; }
+.packs-ui .button, .packs-ui-dialog .button { overflow-wrap: normal; }
+.packs-ui .error-notice { margin-block: 1rem; }
+.packs-ui-dialog { line-height: 1.65; }
+.packs-ui-dialog .packs-actions > .button { flex: 1 1 10rem; }
+.packs-ui .collected-repository-select { transition: transform 150ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .packs-ui .collected-repository-select:hover { background: var(--color-accent-surface); }
+  .packs-ui .collected-repository-select:active:not(:focus-visible) { transform: scale(.98); }
+}
+@media (max-width: 1100px) {
+  .packs-ui .library-workbench { grid-template-columns: minmax(0, 1fr); }
+  .packs-ui .collected-repositories { border-right: 0; border-bottom: 1px solid var(--color-border); max-height: 16rem; overflow-y: auto; }
+}
+@media (max-width: 600px) {
+  .packs-ui .page-heading { gap: 1rem; }
+  .packs-ui .packs-boundary { display: block; padding: .625rem; }
+  .packs-ui .packs-boundary > svg { margin: 0 0 .5rem; }
+  .packs-ui .packs-scope { padding-left: .5rem; }
+  .packs-ui .library-detail { padding: .5rem; }
+  .packs-ui .collected-repository-select { padding: .75rem .625rem; }
+  .packs-ui .pack-detail-heading h2 { font-size: 1.125rem; }
+  .packs-ui .pack-sharing > h3 { display: block; font-size: .9375rem; }
+  .packs-ui .pack-sharing > h3 > svg { display: inline-block; vertical-align: -.15em; margin-inline-end: .5rem; }
+  .packs-ui .pack-danger, .packs-ui .pack-picked, .packs-ui .share-record { padding: .625rem; }
+  .packs-ui .pack-skill-choice { padding: .625rem; gap: .5rem; }
+  .packs-ui .pack-share-controls > div { flex: auto; }
+  .packs-ui .pack-picked { grid-template-columns: minmax(0, 1fr) auto; }
+  .packs-ui .pack-picked > div:first-child { grid-column: 1 / -1; }
+  .packs-ui .pack-picked > div:nth-child(2) { grid-column: 1 / -1; }
+  .packs-ui .pack-picked > .button { grid-column: 2; }
+  .packs-ui .section-toolbar { align-items: flex-start; }
+  .packs-ui .packs-actions > .button { flex: 1 1 8rem; }
+  .packs-ui-dialog { padding: .75rem; }
+  .packs-ui-dialog h2 { font-size: 1rem; padding-inline-end: 40px; }
+  .packs-ui-dialog > .button { width: 44px; height: 44px; min-height: 44px; right: 8px; top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .packs-ui .collected-repository-select { transition: none; }
+  .packs-ui .collected-repository-select:active { transform: none; }
+}
+html[data-input="keyboard"] .packs-ui .collected-repository-select { transition: none; transform: none; }

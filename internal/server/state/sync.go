@@ -45,7 +45,7 @@ func (store *Store) BeginListSync(ctx context.Context, userKey, generation strin
 	if generation == "" {
 		return ListSyncTicket{}, ErrSyncSuperseded
 	}
-	tx, err := store.state.client.Tx(ctx)
+	tx, err := store.beginGitHubTransaction(ctx, userKey)
 	if err != nil {
 		return ListSyncTicket{}, fmt.Errorf("start GitHub synchronization transaction: %w", err)
 	}
@@ -124,7 +124,7 @@ func (store *Store) claimListRead(ctx context.Context, ticket ListSyncTicket, fe
 		return admissionError
 	}
 	defer releaseWriter()
-	tx, err := store.state.client.Tx(ctx)
+	tx, err := store.beginGitHubTransaction(ctx, ticket.userKey)
 	if err != nil {
 		return fmt.Errorf("start GitHub synchronization read claim: %w", err)
 	}
@@ -171,7 +171,7 @@ func (store *Store) CommitListSync(ctx context.Context, result ListSyncResult, a
 		return ErrSyncSuperseded
 	}
 	return client.CommitSnapshot(ctx, snapshot, func(ctx context.Context, snapshot github.ListsSnapshot) error {
-		tx, err := store.state.client.Tx(ctx)
+		tx, err := store.beginGitHubTransaction(ctx, ticket.userKey)
 		if err != nil {
 			return fmt.Errorf("start GitHub synchronization commit: %w", err)
 		}

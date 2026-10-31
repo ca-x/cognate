@@ -509,7 +509,13 @@ func snapshotWorkerCopy(ctx context.Context, request snapshotWorkerRequest, resp
 	observation, inspectionError := inspectLocalSnapshotSource(ctx, parent, database, snapshotSourcePrefixBudget)
 	databaseClose, parentClose := database.Close(), parent.Close()
 	if databaseClose != nil || parentClose != nil {
-		return ErrLocalSnapshotUncertain
+		return ErrLocalSnapshotCleanup
+	}
+	if errors.Is(inspectionError, errSnapshotSourceCleanup) {
+		return ErrLocalSnapshotCleanup
+	}
+	if errors.Is(inspectionError, errSnapshotSourceBudget) {
+		return ErrLocalSnapshotBudget
 	}
 	if inspectionError != nil || observation.decision != snapshotSourceNeedsCertificate {
 		return ErrLocalSnapshotInvalid

@@ -46,7 +46,7 @@ func (store *Store) PutCredential(ctx context.Context, userKey, viewerID, expect
 			return err
 		}
 		ciphertext := append([]byte{1}, store.state.aead.Seal(nil, nil, material, aad)...)
-		tx, err := store.state.client.Tx(ctx)
+		tx, err := store.beginGitHubTransaction(ctx, userKey)
 		if err != nil {
 			return fmt.Errorf("start GitHub credential transaction: %w", err)
 		}

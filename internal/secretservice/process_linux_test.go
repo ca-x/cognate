@@ -513,12 +513,12 @@ type fixture struct {
 	session    dbus.ObjectPath
 }
 
-func startProcess(test *testing.T, environment []string, input io.Reader, name string, args ...string) {
+func startProcess(test *testing.T, environment []string, input io.Reader, output io.Writer, name string, args ...string) *exec.Cmd {
 	test.Helper()
 	command := exec.Command(name, args...)
 	command.Env = environment
 	command.Stdin = input
-	command.Stdout = io.Discard
+	command.Stdout = output
 	command.Stderr = io.Discard
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if command.Start() != nil {
@@ -539,6 +539,7 @@ func startProcess(test *testing.T, environment []string, input io.Reader, name s
 			}
 		}
 	})
+	return command
 }
 
 func connectTest(test *testing.T, socket string, options ...dbus.ConnOption) *dbus.Conn {
@@ -589,16 +590,20 @@ func newFixture(test *testing.T, withKeyring bool) fixture {
 		test.Fatal("fixture-config")
 	}
 	environment := []string{"PATH=/usr/sbin:/usr/bin:/bin", "HOME=" + home, "XDG_RUNTIME_DIR=" + runtime, "XDG_CONFIG_HOME=" + filepath.Join(home, "config"), "XDG_DATA_HOME=" + filepath.Join(home, "data"), "XDG_CACHE_HOME=" + filepath.Join(home, "cache"), "DBUS_SESSION_BUS_ADDRESS=unix:path=" + socket, "DBUS_SYSTEM_BUS_ADDRESS=unix:path=" + filepath.Join(root, "no-system-bus"), "SYSTEMD_BYPASS_USERDB=1", "SYSTEMD_NSS_DYNAMIC_BYPASS=1", "LANG=C", "LC_ALL=C"}
-	startProcess(test, environment, nil, fixtureExecutable(test, "dbus-daemon"), "--nofork", "--nopidfile", "--config-file="+configPath)
+	readiness, announcement, err := os.Pipe()
+	if err != nil {
+		test.Fatal("fixture-broker-pipe")
+	}
+	test.Cleanup(func() { _ = readiness.Close(); _ = announcement.Close() })
+	broker := startProcess(test, environment, nil, announcement, fixtureExecutable(test, "dbus-daemon"), "--nofork", "--nopidfile", "--print-pid=1", "--config-file="+configPath)
+	if announcement.Close() != nil {
+		test.Fatal("fixture-broker-pipe-close")
+	}
 	deadline := time.Now().Add(3 * time.Second)
-	for {
-		if _, err := os.Lstat(socket); err == nil {
-			break
-		}
-		if time.Now().After(deadline) {
-			test.Fatal("fixture-broker-ready")
-		}
-		time.Sleep(10 * time.Millisecond)
+	readyContext, cancelReady := context.WithDeadline(test.Context(), deadline)
+	defer cancelReady()
+	if !fixtureBrokerReady(readyContext, socket, broker.Process.Pid, readiness) {
+		test.Fatal("fixture-broker-ready")
 	}
 	connection := connectTest(test, socket)
 	fixture := fixture{options: readerOptions{Socket: socket, InputBytes: 256 << 10}, admin: connection}
@@ -612,7 +617,7 @@ func newFixture(test *testing.T, withKeyring bool) fixture {
 	input := []byte(base64.StdEncoding.EncodeToString(password))
 	clear(password)
 	test.Cleanup(func() { clear(input) })
-	startProcess(test, environment, bytes.NewReader(input), fixtureExecutable(test, "gnome-keyring-daemon"), "--foreground", "--unlock", "--components=secrets", "--control-directory="+filepath.Join(root, "control"))
+	startProcess(test, environment, bytes.NewReader(input), io.Discard, fixtureExecutable(test, "gnome-keyring-daemon"), "--foreground", "--unlock", "--components=secrets", "--control-directory="+filepath.Join(root, "control"))
 	for {
 		var owner string
 		if connection.BusObject().CallWithContext(test.Context(), "org.freedesktop.DBus.GetNameOwner", 0, secretService).Store(&owner) == nil {

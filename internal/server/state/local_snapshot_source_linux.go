@@ -22,7 +22,7 @@ func retainLocalSnapshotSource(path string) (*localSnapshotSource, error) {
 		return nil, ErrLocalSnapshotInvalid
 	}
 	parent := os.NewFile(uintptr(descriptor), filepath.Dir(path))
-	mainFD, err := unix.Openat(descriptor, filepath.Base(path), unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_CLOEXEC|unix.O_NONBLOCK, 0)
+	mainFD, err := unix.Openat(descriptor, filepath.Base(path), unix.O_PATH|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
 	if err != nil {
 		if parent.Close() != nil {
 			retainSnapshotResource(parent)
@@ -65,20 +65,13 @@ func (source *localSnapshotSource) recheck() error {
 }
 
 func (source *localSnapshotSource) inspect(ctx context.Context, limits LocalSnapshotLimits) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if err := source.recheck(); err != nil {
 		return err
 	}
-	observation, err := inspectLocalSnapshotSource(ctx, source.parent, source.database, snapshotSourcePrefixBudget)
-	if err != nil {
-		if errors.Is(err, errSnapshotSourceCleanup) {
-			return ErrLocalSnapshotUncertain
-		}
-		if errors.Is(err, errSnapshotSourceBudget) {
-			return ErrLocalSnapshotBudget
-		}
-		return snapshotError(ctx, err)
-	}
-	if observation.decision != snapshotSourceNeedsCertificate {
+	if !snapshotSourceJournalAbsent(source.parent, source.name) {
 		return ErrLocalSnapshotInvalid
 	}
 	for _, suffix := range []string{"-wal", "-shm"} {
@@ -94,8 +87,11 @@ func (source *localSnapshotSource) inspect(ctx context.Context, limits LocalSnap
 		if err != nil || info.Size < 0 || info.Size > maximum {
 			return ErrLocalSnapshotBudget
 		}
+		if info.Mode&unix.S_IFMT != unix.S_IFREG || info.Mode&(0077|unix.S_ISUID|unix.S_ISGID|unix.S_ISVTX) != 0 || info.Uid != uint32(os.Geteuid()) || info.Nlink != 1 {
+			return ErrLocalSnapshotInvalid
+		}
 	}
-	return nil
+	return ctx.Err()
 }
 
 func (source *localSnapshotSource) newStage() (*localSnapshotStage, error) {

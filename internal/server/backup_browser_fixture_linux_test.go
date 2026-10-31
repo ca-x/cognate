@@ -8,6 +8,7 @@ import (
 	"crypto/subtle"
 	"encoding/json/v2"
 	"encoding/pem"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -46,6 +47,7 @@ type backupBrowserFixture struct {
 	listCursors   []string
 	faults        []string
 	seedFailure   map[string]string
+	rpcFailures   []backupBrowserRPCFailure
 	public        *httptest.Server
 	disabled      *httptest.Server
 	control       *httptest.Server
@@ -56,6 +58,39 @@ type backupBrowserFixture struct {
 	userPassword  string
 	done          context.Context
 	stop          context.CancelFunc
+}
+
+type backupBrowserRPCFailure struct {
+	Method string `json:"method"`
+	Code   string `json:"code"`
+	Status int    `json:"status"`
+}
+
+func (fixture *backupBrowserFixture) recordRPCFailure(path string, status int, data []byte) {
+	if status < 400 {
+		return
+	}
+	_, method, _ := strings.CutLast(path, "/")
+	switch method {
+	case "Login", "Register", "GetSession", "Logout", "GetBackupStatus", "StartBackup", "ListBackupJobs", "GetBackupJob", "CancelBackup", "ReconcileBackup":
+	default:
+		method = "unknown"
+	}
+	var message struct {
+		Code string `json:"code"`
+	}
+	_ = json.Unmarshal(data, &message)
+	switch message.Code {
+	case "internal", "unavailable", "unauthenticated", "permission_denied", "invalid_argument", "failed_precondition", "not_found", "aborted", "canceled", "deadline_exceeded", "resource_exhausted", "data_loss", "already_exists", "out_of_range", "unimplemented":
+	default:
+		message.Code = "unknown"
+	}
+	fixture.mutex.Lock()
+	defer fixture.mutex.Unlock()
+	fixture.rpcFailures = append(fixture.rpcFailures, backupBrowserRPCFailure{Method: method, Code: message.Code, Status: status})
+	if message.Code == "internal" || message.Code == "unknown" {
+		fixture.violation = true
+	}
 }
 
 func (fixture *backupBrowserFixture) storage(writer http.ResponseWriter, request *http.Request) {
@@ -140,7 +175,7 @@ func backupBrowserEncode(message proto.Message, contentType string) ([]byte, err
 
 func (fixture *backupBrowserFixture) handler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if !strings.Contains(request.URL.Path, ".BackupManagementService/") {
+		if !strings.Contains(request.URL.Path, ".BackupManagementService/") && !strings.Contains(request.URL.Path, ".AuthService/") {
 			handler.ServeHTTP(writer, request)
 			return
 		}
@@ -177,18 +212,21 @@ func (fixture *backupBrowserFixture) handler(handler http.Handler) http.Handler 
 		if recorded.Header().Get("Content-Encoding") == "gzip" {
 			compressed, err := gzip.NewReader(bytes.NewReader(data))
 			if err != nil {
+				fixture.recordRPCFailure(request.URL.Path, http.StatusInternalServerError, nil)
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			data, err = io.ReadAll(io.LimitReader(compressed, 65537))
 			closeErr := compressed.Close()
 			if err != nil || closeErr != nil || len(data) > 65536 {
+				fixture.recordRPCFailure(request.URL.Path, http.StatusInternalServerError, nil)
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			recorded.Header().Del("Content-Encoding")
 		}
 		recorded.Header().Del("Content-Length")
+		fixture.recordRPCFailure(request.URL.Path, recorded.Code, data)
 		fixture.mutex.Lock()
 		mode, gate := fixture.mode, fixture.rpcGate
 		if isStart && recorded.Code == http.StatusOK {
@@ -275,10 +313,7 @@ func (fixture *backupBrowserFixture) controlHandler(test *testing.T) http.Handle
 		}
 		switch request.Method + " " + request.URL.Path {
 		case "GET /state":
-			fixture.mutex.Lock()
-			defer fixture.mutex.Unlock()
-			data, _ := json.Marshal(map[string]any{"puts": fixture.puts, "reads": fixture.reads, "completes": fixture.completes, "objects": len(fixture.objects), "violation": fixture.violation, "uploadsHeld": fixture.uploadsHeld, "rpcsHeld": fixture.rpcsHeld, "rpcsCanceled": fixture.rpcsCanceled, "startIDs": fixture.startIDs, "startJobs": fixture.startJobs, "listCursors": fixture.listCursors, "faults": fixture.faults, "seedFailure": fixture.seedFailure})
-			_, _ = writer.Write(data)
+			_, _ = writer.Write(fixture.safeState())
 		case "POST /mode":
 			var value struct {
 				Mode string `json:"mode"`
@@ -353,12 +388,29 @@ func (fixture *backupBrowserFixture) controlHandler(test *testing.T) http.Handle
 	})
 }
 
+func (fixture *backupBrowserFixture) safeState() []byte {
+	fixture.mutex.Lock()
+	defer fixture.mutex.Unlock()
+	data, _ := json.Marshal(map[string]any{"puts": fixture.puts, "reads": fixture.reads, "completes": fixture.completes, "objects": len(fixture.objects), "violation": fixture.violation, "uploadsHeld": fixture.uploadsHeld, "rpcsHeld": fixture.rpcsHeld, "rpcsCanceled": fixture.rpcsCanceled, "startIDs": fixture.startIDs, "startJobs": fixture.startJobs, "listCursors": fixture.listCursors, "faults": fixture.faults, "seedFailure": fixture.seedFailure, "rpcFailures": fixture.rpcFailures})
+	return data
+}
+
 func (fixture *backupBrowserFixture) recordSeedFailure(operation string, err error, job *managementv1.BackupJob) {
 	fixture.mutex.Lock()
 	defer fixture.mutex.Unlock()
 	fixture.seedFailure = map[string]string{"operation": operation}
 	if err != nil {
 		fixture.seedFailure["code"] = connect.CodeOf(err).String()
+		if failure, ok := errors.AsType[*connect.Error](err); ok {
+			switch failure.Message() {
+			case "authentication unavailable":
+				fixture.seedFailure["boundary"] = "authentication"
+			case "backup control unavailable":
+				fixture.seedFailure["boundary"] = "backup-control"
+			default:
+				fixture.seedFailure["boundary"] = "other"
+			}
+		}
 	}
 	if job != nil {
 		fixture.seedFailure["phase"], fixture.seedFailure["jobCode"] = job.Phase, job.ErrorCode
@@ -413,5 +465,34 @@ func TestBackupBrowserFixture(test *testing.T) {
 	if err != nil || os.WriteFile(filepath.Join(directory, "ready.json"), data, 0600) != nil {
 		test.Fatal("private fixture readiness unavailable")
 	}
+	_, _ = io.WriteString(os.Stdout, "cognate_probe backup_ready\n")
 	<-done.Done()
+	if os.WriteFile(filepath.Join(directory, "final-state.json"), fixture.safeState(), 0600) != nil {
+		test.Fatal("safe final state unavailable")
+	}
+}
+
+func TestBackupSQLiteFailureLedger(test *testing.T) {
+	for _, probe := range []struct {
+		name      string
+		status    int
+		body      string
+		violation bool
+	}{
+		{name: "success", status: 200, body: `{}`},
+		{name: "internal", status: 500, body: `{"code":"internal","message":"synthetic-private-error"}`, violation: true},
+		{name: "malformed", status: 500, body: `{`, violation: true},
+		{name: "denied", status: 403, body: `{"code":"permission_denied"}`},
+	} {
+		test.Run(probe.name, func(test *testing.T) {
+			fixture := new(backupBrowserFixture)
+			fixture.recordRPCFailure("/skillhub.auth.v1.AuthService/GetSession", probe.status, []byte(probe.body))
+			if fixture.violation != probe.violation || strings.Contains(string(fixture.safeState()), "synthetic-private-error") {
+				test.Fatal("failure ledger classification or privacy failed")
+			}
+			if probe.status >= 400 && len(fixture.rpcFailures) != 1 {
+				test.Fatal("failure ledger omitted an error")
+			}
+		})
+	}
 }

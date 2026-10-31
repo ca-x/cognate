@@ -152,10 +152,11 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		filePath = "/" + filePath
 	}
 	address := url.URL{Scheme: "file", Path: filePath, RawQuery: parameters.Encode()}
-	client, err := ent.Open("sqlite3", address.String())
+	driver, err := newGitHubTransactionDriver(&address)
 	if err != nil {
 		return nil, fmt.Errorf("open server database: %w", err)
 	}
+	client := ent.NewClient(ent.Driver(driver))
 	if err := client.Schema.Create(ctx); err != nil {
 		_ = client.Close()
 		return nil, fmt.Errorf("initialize server database: %w", err)

@@ -160,7 +160,7 @@ func (store *Store) SetListSubscription(ctx context.Context, userKey, listID str
 	if err := validateIdentifier(listID); err != nil {
 		return err
 	}
-	tx, err := store.state.client.Tx(ctx)
+	tx, err := store.beginGitHubTransaction(ctx, userKey)
 	if err != nil {
 		return fmt.Errorf("start list subscription transaction: %w", err)
 	}
@@ -225,7 +225,7 @@ func (store *Store) GitHubCatalog(ctx context.Context, userKey string) (CatalogS
 		return CatalogSnapshot{}, admissionError
 	}
 	defer releaseWriter()
-	tx, err := store.state.client.Tx(ctx)
+	tx, err := store.beginGitHubTransaction(ctx, userKey)
 	if err != nil {
 		return CatalogSnapshot{}, fmt.Errorf("start GitHub catalog read: %w", err)
 	}
