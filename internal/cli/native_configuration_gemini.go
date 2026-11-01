@@ -266,6 +266,7 @@ func runGeminiConfiguration(command *cobra.Command, options geminiCLIOptions) (r
 
 func newGeminiAwareLocalCommand(action string) *cobra.Command {
 	command := newCodexLocalCommand(action)
+	command.Flags().Lookup("target").Usage = "必须显式指定codex.config或gemini.settings；仅支持固定资格"
 	original := command.RunE
 	var options geminiCLIOptions
 	options.action = action

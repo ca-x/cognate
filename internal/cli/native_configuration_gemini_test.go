@@ -43,6 +43,28 @@ func TestGeminiCLICompleteSafeReview(test *testing.T) {
 	}
 }
 
+func TestGeminiCLITargetHelp(test *testing.T) {
+	for _, action := range []string{"apply", "restore", "status", "recover", "abandon", "retire-unpublished"} {
+		test.Run(action, func(test *testing.T) {
+			command, _, err := newNativeConfigurationCommand().Find([]string{action})
+			if err != nil || command.Name() != action {
+				test.Fatal("configuration action is not registered", err)
+			}
+			var output strings.Builder
+			command.SetOut(&output)
+			command.SetErr(&output)
+			if err := command.Help(); err != nil {
+				test.Fatal(err)
+			}
+			for _, label := range []string{"gemini.settings", "--gemini-node", "--gemini-package", "--gemini-cwd"} {
+				if !strings.Contains(output.String(), label) {
+					test.Fatalf("configuration help omits %s", label)
+				}
+			}
+		})
+	}
+}
+
 func TestGeminiAuthRunExplicitTarget(test *testing.T) {
 	_, _, native, err := authArguments([]string{"run", "--server", "https://synthetic.invalid", "--", "config", "apply", "--target", "gemini.settings"})
 	if err != nil || !native {
