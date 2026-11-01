@@ -8,6 +8,9 @@ import (
 )
 
 func main() {
+	if handled, code := state.RestoreRevokeWorkerDispatch(os.Args); handled {
+		os.Exit(code)
+	}
 	if handled, code := state.RestoreDatabaseWorkerDispatch(os.Args); handled {
 		os.Exit(code)
 	}

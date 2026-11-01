@@ -33,7 +33,8 @@
 - [x] T3 Linux 运行根 SH/EX lease 内核：独审限定 ACCEPT，逐 holder 持久 fence 防关闭不明后重入；legacy 启动参与另由 T3S 接线，稳定命名与停用不合作旧程序的部署前提不可省略。
 - [x] Linux 同步 snapshot worker 继承同 OFD 根 lease，覆盖真实 Start/取消/Wait/父死退役；exact14 经非作者限定 ACCEPT，组合全仓9049 PASS/173 SKIP/0 FAIL、vet及18个 CGO0 构建通过。保留双 SH 和正常 SQLite crash recovery；不等同完整 R2/R3。
 - [ ] 核查独审一次 reap/Close 后正向 EX 150ms 探针超时：后继30次诊断与原码10轮未复现，根因仍 UNKNOWN；不放宽阈值或用重复绿次抹去原失败。
-- [ ] 恢复 inspector 的 EX 同 OFD 资格、候选完整撤销/写后验证和运行代发布；T4 完整 coordinator 已批准私有实施，持久认证 intent/current/回退和产品 CLI 仍欠。
+- [x] T4 Linux EX 同 OFD inspector、候选完整撤销/写后验证及唯一所有权移交：exact26 经非作者限定 ACCEPT，当前组合全仓9206 PASS事件/176 SKIP/0 FAIL、vet及18个 CGO0 构建通过；真实 EMFILE/并发 Close 下在 owning lease 内隔离原资源，不关闭旧 R2 UNKNOWN 或完整 F4。
+- [ ] R3 运行代发布、持久认证 intent/current、真实 App 资格演练与回退，以及离线恢复 CLI；T4 的 pending/ready 发布接缝不是已可使用的恢复入口或 restore_verified 证明。
 - [x] T3S Linux legacy 启动准备：业务/key 写前 SH、typed fresh-root key 证明、保留痕迹拒绝、App/HTTP/日志完整排空及不明所有权保留经独审；没有 Resolve、worker 父死或进程退出后的 durable 业务故障 fence，不放行完整 R2/R3 或离线恢复。
 - [x] 恢复传输前置 T2a：Afero S3 精确密文复制，完整验证与物理响应关闭后才可信；独审通过。没有恢复头引导、候选闭包或产品恢复入口。
 - [x] 恢复验真 T1：只读隔离数据库、原 key/policy 与全部保留密文检查；非正 ID 全域准入 P1 经原七反例独立闭合，exact12 主线集成与真实 worker 验证通过。不是归档闭包、运行代切换或恢复产品入口。

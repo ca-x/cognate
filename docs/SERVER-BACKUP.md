@@ -14,15 +14,16 @@ Linux SH/EX 运行根 lease 内核及 legacy App 启动参与已实现：普通/
 创建，但必须由 live Runtime 证明只有两件具体协调对象，不能笼统忽略点文件；原失钥
 保护不变。发现保留的 current/generations/restore/intent 痕迹时只拒绝，不自动选旧库。
 
-这还不是全系统停服或运行代选择：不合作旧程序须停用，worker 父死/FD 交接及恢复操作级
-持久 intent 尚未完成；也不保证根/协调 inode 被整体替换后的同路径全局互斥。
+这还不是全系统停服或运行代选择：不合作旧程序须停用，恢复操作级持久 intent 尚未完成；
+同步 snapshot worker 的同 OFD 交接及父死退役已单独验收，但不能代替恢复操作协议，
+也不保证根/协调 inode 被整体替换后的同路径全局互斥。
 部署必须维持稳定命名，不可删除协调或恢复痕迹来强行回退旧 binary。
 
 技术澄清：普通进程意外退出，在全部 writer 退役后仍允许原 SQLite/WAL/journal 恢复，
 不增加全局启动脏标记。非 SQLite 的 layout/current/rollback 必须在修改前建立自己的
 持久操作 intent；仅在错误返回后补写 poison 不能覆盖中途死亡窗口。worker 接线与
-自动备份整片现已批准并行实施，计划见 `superpowers/plans/2026-11-01-runtime-worker-lease.md`
-和 `superpowers/plans/2026-11-01-backup-automatic.md`，不能将设计批准当作已交付。
+默认关闭的自动备份已交付，计划见 `superpowers/plans/2026-11-01-runtime-worker-lease.md`
+和 `superpowers/plans/2026-11-01-backup-automatic.md`，验收范围见 `VERIFICATION.md`。
 
 可信 S3 Source 内部 API 已接通原密文对象认证与真实 Candidate，头 scope 不承载整个恢复，
 自有资源全部正常关闭成功后才开放验证。它只执行 GET/HEAD；目前仅有真实本机 TLS 合成
@@ -38,12 +39,33 @@ TLS/SDK 回归证明。最早未诊断事件与 MinIO 更深原因仍 UNKNOWN，
 
 凭据撤销内部 helper 已通过独审：仅借入已验真的隔离事务执行撤销及后置检查，保留业务和
 原密文/AAD。它不拥有 Commit/Rollback/Close，也不是幂等操作；提交不明不得自动重放。
-生产撤销 coordinator、运行代切换/回退、离线 CLI 及真实重启业务回读仍待交付，不能手工
-移动 Candidate 到活目录冒充恢复。准确证据与异常安全边界见 `VERIFICATION.md`。
+后继 T4 coordinator 已接通下述隔离候选净化；运行代切换/回退、离线 CLI 及真实重启业务
+回读仍待交付，不能手工移动 Candidate 到活目录冒充恢复。准确证据见 `VERIFICATION.md`。
 
 GitHub needs_reauthorization 的所有者明确重授权已补齐：现有 Catalog 只给被动身份和
 预期 generation，PAT/device 两路复用原 CAS，在验证旧 AAD 后原子生成新代/新密文。
-普通内容读取仍要求 ready，旧票据不复活；不表示生产恢复 coordinator 已接通。
+普通内容读取仍要求 ready，旧票据不复活；不表示运行代发布或恢复产品入口已交付。
+
+### T4 隔离候选净化
+
+已认证且源资源正常关闭的 ready Candidate 只能消费一次。Linux coordinator 在同一 EX
+运行根租约下完成只读初检、真实撤销事务、Commit/Rows/Conn/pool/FD 关闭、实际 child Wait、
+文件与目录 Sync，再独立执行 T1、撤销后置及完整已知 schema 的保留数据投影检查。
+只有这些阶段全部成功，才交付作用域内的 SanitizedCandidate；失败或结果不明不重放。
+
+撤销固定时刻退役五类认证链、share/MCP 和 GitHub 在途授权，MCP revision 恰加一；业务、
+密码、原密文/AAD、历史及 sqlite_sequence 必须保持。原认证 metadata/inventory/归档及源
+数据库摘要不重标，新数据库摘要独立保存。不打开 live Store、不运行迁移、不复制归档。
+
+新 WithRetainedWorkerFiles 在同 lease mutex 内、解锁前隔离原 owning root/lock/fences；
+callback 或后置准入不明后，Close 固定返回 ErrUncertain，不物理关闭原资源，不在失败后
+尝试分配备用 FD。真实 EMFILE、并发 Close 及新进程 SH/EX 拒入已有独立行为证据。
+这不承诺进程死亡后仍持 flock，也不关闭旧 R2 150ms 正向 EX 探针的 UNKNOWN。
+
+未来发布只能在活 scope 内先移交唯一 files/key/删除责任，得到 pending owner；整个外层
+WithCandidate 及 root 后置准入成功后才 ready，返回后另借 EX 才允许 rename。旧 owner
+不能删除已移交内容。这是内部发布接缝，不是 current/intent、切换、回退或 restore_verified
+演练证明；完整 R3、离线 CLI、保留清理及完整 F4 仍未完成。
 
 ## Web 手动管理
 

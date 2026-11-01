@@ -56,6 +56,7 @@ type candidateState struct {
 	ctx                              context.Context
 	cancel                           context.CancelFunc
 	done                             chan struct{}
+	handoff                          chan struct{}
 	active, closed, ready, delivered bool
 	limits                           CandidateLimits
 	metadata                         backup.SealMetadata
@@ -203,9 +204,12 @@ func stageCandidate(ctx context.Context, bundle backup.CryptoVerifiedBundle, par
 	return result, nil
 }
 func (owned *candidateState) inspectDatabase(ctx context.Context) (evidence state.RestoreDatabaseEvidence, err error) {
+	return owned.inspectDatabaseUsing(ctx, state.InspectRestoreDatabase)
+}
+func (owned *candidateState) inspectDatabaseUsing(ctx context.Context, inspect func(context.Context, *os.File, *os.File, []byte, state.LocalSnapshotLimits) (state.RestoreDatabaseEvidence, error)) (evidence state.RestoreDatabaseEvidence, err error) {
 	err = owned.files.withFile("server.db", func(database *os.File) error {
 		var inspectionError error
-		evidence, inspectionError = state.InspectRestoreDatabase(ctx, owned.files.root, database, owned.key[:], owned.limits.Database)
+		evidence, inspectionError = inspect(ctx, owned.files.root, database, owned.key[:], owned.limits.Database)
 		return inspectionError
 	})
 	if err != nil {
@@ -219,6 +223,9 @@ func (owned *candidateState) inspectDatabase(ctx context.Context) (evidence stat
 	return evidence, nil
 }
 func (candidate *Candidate) WithVerified(ctx context.Context, consume func(context.Context, VerifiedCandidate) error) (returnedError error) {
+	return candidate.withVerified(ctx, nil, consume)
+}
+func (candidate *Candidate) withVerified(ctx context.Context, inspect func(context.Context) (state.RestoreDatabaseEvidence, error), consume func(context.Context, VerifiedCandidate) error) (returnedError error) {
 	if candidate == nil || candidate.value == nil || ctx == nil || consume == nil {
 		return ErrCandidateInvalid
 	}
@@ -228,21 +235,27 @@ func (candidate *Candidate) WithVerified(ctx context.Context, consume func(conte
 		owned.mutex.Unlock()
 		return ErrCandidateClosed
 	}
-	if !owned.ready || owned.active || owned.delivered {
+	if !owned.ready || owned.active || owned.delivered || owned.handoff != nil && inspect == nil {
 		owned.mutex.Unlock()
 		return ErrCandidateBusy
 	}
 	owned.active, owned.done = true, make(chan struct{})
+	files := owned.files
 	owned.mutex.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, owned.limits.OperationTimeout)
-	stop := context.AfterFunc(owned.ctx, cancel)
-	defer stop()
+	stopped := make(chan struct{})
+	stop := context.AfterFunc(owned.ctx, func() { cancel(); close(stopped) })
+	defer func() {
+		if !stop() {
+			<-stopped
+		}
+	}()
 	defer cancel()
 	defer func() {
 		if category := candidateError(returnedError); errors.Is(category, ErrCandidateUncertain) || errors.Is(category, ErrCandidateCleanup) {
-			owned.files.failure = candidateMerge(owned.files.failure, category)
+			files.failure = candidateMerge(files.failure, category)
 		}
-		returnedError = candidateMerge(returnedError, owned.files.failure)
+		returnedError = candidateMerge(returnedError, files.failure)
 		if ctx.Err() != nil {
 			returnedError = candidateMerge(returnedError, ctx.Err())
 		}
@@ -254,7 +267,10 @@ func (candidate *Candidate) WithVerified(ctx context.Context, consume func(conte
 	if err := owned.files.checkEntries(); err != nil {
 		return err
 	}
-	evidence, err := owned.inspectDatabase(ctx)
+	if inspect == nil {
+		inspect = owned.inspectDatabase
+	}
+	evidence, err := inspect(ctx)
 	if err != nil {
 		return err
 	}
@@ -321,7 +337,7 @@ func (candidate *Candidate) WithVerified(ctx context.Context, consume func(conte
 	consumerReturned := false
 	defer func() {
 		if !consumerReturned {
-			owned.files.failure = candidateMerge(owned.files.failure, ErrCandidateUncertain)
+			files.failure = candidateMerge(files.failure, ErrCandidateUncertain)
 		}
 	}()
 	err = consume(ctx, VerifiedCandidate{value: capability})
@@ -337,10 +353,13 @@ func (candidate *Candidate) Close() error {
 		owned.mutex.Lock()
 		owned.closed = true
 		owned.cancel()
-		done, active := owned.done, owned.active
+		done, active, handoff := owned.done, owned.active, owned.handoff
 		owned.mutex.Unlock()
 		if active {
 			<-done
+		}
+		if handoff != nil {
+			<-handoff
 		}
 		clear(owned.key[:])
 		if owned.files != nil {

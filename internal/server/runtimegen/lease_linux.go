@@ -272,6 +272,14 @@ func (lease *rootLease) admit(ctx context.Context) error {
 	return ctx.Err()
 }
 
+func (lease *rootLease) quarantineLocked() {
+	lease.done = true
+	lease.result = ErrUncertain
+	quarantined.Lock()
+	quarantined.leases = append(quarantined.leases, lease)
+	quarantined.Unlock()
+}
+
 func (lease *rootLease) close() error {
 	lease.mutex.Lock()
 	defer lease.mutex.Unlock()

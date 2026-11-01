@@ -14,3 +14,7 @@ func (*Runtime) WithWorkerFiles(context.Context, func(root, lock *os.File) error
 func (*OfflineRoot) WithWorkerFiles(context.Context, func(root, lock *os.File) error) error {
 	return ErrUnsupported
 }
+
+func (*OfflineRoot) WithRetainedWorkerFiles(context.Context, func(root, lock *os.File) error) error {
+	return ErrUnsupported
+}

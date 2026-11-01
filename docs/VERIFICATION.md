@@ -1,5 +1,41 @@
 # 开发预览验证
 
+## 2026-11-01：T4 隔离候选净化与 owning-root 隔离
+
+exact26 为10修改、16新增，patch SHA256
+`f9c1d0e10dd175fb01e78e5beda096827f2d77e6ebad4f902fe34b88e8da5456`，fullsource SHA256
+`1813dc2e65a545d07a4569fa73a8820fd20b630c8c06edbb8439e25d9ba239fe`。
+非作者 Spec/Quality 限定 ACCEPT 报告
+`/tmp/cognate-t4-review-exact26-6tRO4v/REPORT.md`，SHA256
+`96e53049f2e8032b09e01a6a95fcc0e081659f7c2d0cd7333a197d1c49442dfd`。
+独立从固定基线/R2依赖重建全部26路径并核全树，另造双owner、共享hidden/binary归档、
+Pack/分类/附件/密文资产，真实 Capture→Seal/Open→Source Close→Prepare→T4，逐表/逐文件
+比较保留内容与字节。真实EMFILE/并发Close及新进程SH/EX拒绝通过；去quarantine、
+去pending门、去source所有权移动及去全保留投影四项可编译行为反控均实际RED。
+原T4 27/29 BLOCK和测试观察路径失效等旧失败保留，不重写为首次即绿。
+
+主线程隔离组合 `/tmp/cognate-t4-main-245bfca-5bCZrWC5` 固定输入为245bfca + exact26，
+使用已验收Web真实dist作embed前提；后继77faa6e仅Gemini计划文档，生产输入未变。
+四包定向 `01-directed.*` 终态exit0：670 PASS事件、0 SKIP、0 FAIL、4包通过。
+`go test -json ./... -count=1 -timeout=10m` 的 `02-full-go.*` 已实际终态exit0：
+9206 PASS事件、176 SKIP、0 FAIL、51包通过。PASS为事件数，不称9206个独立测试。
+全仓vet `03-vet.*` exit0；server/CLI/MyGo × Linux/Darwin/Windows × amd64/arm64
+十八次构建及CGO0/OS/架构metadata逐项核对通过，见 `04-*`，不是原生平台运行资格。
+Go1.27.3、显式CGO_ENABLED=0、GOMAXPROCS4、私有HOME/tmp、离线只读module cache；无race。
+主线应用后1434项非文档输入与此组合逐字相等，后继文档不计为重新执行全仓验证。
+
+主线另于77faa6e应用exact26后新跑四包定向，
+`/tmp/cognate-t4-main-final-77faa-hvuZ24YW/directed.*` 实际终态exit0：
+674 PASS事件、0 SKIP、0 FAIL、4包通过；未把这次定向当作重跑全仓或十八构建。
+该次过滤包含TestRetained/TestOffline及snapshot/restore/runtime/worker入口，完整命令留存。
+
+交付只限同EX inspector、真实八DML撤销及终结、独立T1/后置/全表保留投影、Sanitized和
+pending/ready所有权接缝。原inventory/归档/源digest不重标，新DB digest独立；不打开live
+Store或迁移。新retained scope在同lease mutex内隔离原owning root/lock/fences，之后Close
+固定ErrUncertain，不靠失败后dup，也不声称进程死亡后flock仍持有。原WithWorkerFiles不变。
+原R2 150ms正向EX UNKNOWN、S3 291 UNKNOWN不关闭；无current/intent/activation/rollback、
+离线CLI或真实App恢复演练证明，不能作为retention删除依据或完整F4/GA验收。
+
 ## 2026-11-01：Web 私有 MCP 连接资产编辑
 
 exact13 patch SHA256 `ed3bd3a8c7a1966ca27b8b434d0d637437d7c95cad193b7dc316cd0cb361e965`，

@@ -1,7 +1,9 @@
 package restore
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"io"
 	"os"
@@ -249,6 +251,44 @@ func (files *candidateFiles) withFile(name string, consume func(*os.File) error)
 		return ErrCandidateInvalid
 	}
 	return nil
+}
+
+func (files *candidateFiles) mutateDatabase(ctx context.Context, consume func(*os.File) (int64, [32]byte, error)) (returnedError error) {
+	if err := files.checkEntries(); err != nil {
+		return err
+	}
+	descriptor, err := unix.Openat(int(files.root.Fd()), "server.db", unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_CLOEXEC|unix.O_NONBLOCK, 0)
+	if err != nil {
+		return ErrCandidateInvalid
+	}
+	file := os.NewFile(uintptr(descriptor), filepath.Join(files.root.Name(), "server.db"))
+	defer func() { returnedError = candidateMerge(returnedError, files.closeFile(file)) }()
+	expected := files.entries["server.db"]
+	if !files.regularPinned(file, expected) {
+		return ErrCandidateInvalid
+	}
+	size, digest, err := consume(file)
+	if err != nil {
+		return candidateError(err)
+	}
+	info, err := file.Stat()
+	named, namedError := os.Lstat(file.Name())
+	if err != nil || namedError != nil || !candidatePrivate(info, false) || !candidatePrivate(named, false) || !os.SameFile(expected, info) || !os.SameFile(info, named) || info.Size() != size || files.check() != nil {
+		return ErrCandidateInvalid
+	}
+	hasher := sha256.New()
+	count, err := io.Copy(hasher, inventoryReader{ctx: ctx, source: io.NewSectionReader(file, 0, size+1)})
+	if err != nil || count != size || !bytes.Equal(hasher.Sum(nil), digest[:]) {
+		return ErrCandidateInvalid
+	}
+	if files.ops.sync(file) != nil {
+		return ErrCandidateUncertain
+	}
+	files.entries["server.db"] = info
+	if err := files.checkEntries(); err != nil {
+		return err
+	}
+	return files.syncDirectories()
 }
 
 func (files *candidateFiles) read(ctx context.Context, name string, size, maximum int64) (payload []byte, returnedError error) {

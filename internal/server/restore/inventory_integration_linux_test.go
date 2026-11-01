@@ -20,6 +20,9 @@ import (
 )
 
 func TestMain(tests *testing.M) {
+	if handled, code := state.RestoreRevokeWorkerDispatch(os.Args); handled {
+		os.Exit(code)
+	}
 	if handled, code := state.SnapshotWorkerDispatch(os.Args); handled {
 		os.Exit(code)
 	}

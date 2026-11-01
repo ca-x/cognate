@@ -15,6 +15,9 @@ import (
 )
 
 func TestMain(tests *testing.M) {
+	if handled, code := restoreRevokeTestDispatch(os.Args); handled {
+		os.Exit(code)
+	}
 	if handled, code := RestoreDatabaseWorkerDispatch(os.Args); handled {
 		os.Exit(code)
 	}

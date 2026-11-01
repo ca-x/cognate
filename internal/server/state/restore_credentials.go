@@ -45,6 +45,13 @@ func revokeRestoreCredentialsTx(ctx context.Context, tx *sql.Tx, revokedAt time.
 			return restoreCredentialsFailure(ctx, err)
 		}
 	}
+	return verifyRestoreCredentialsTx(ctx, tx, revokedAt)
+}
+
+func verifyRestoreCredentialsTx(ctx context.Context, tx *sql.Tx, revokedAt time.Time) error {
+	if ctx == nil || tx == nil || revokedAt.IsZero() {
+		return ErrRestoreInvalid
+	}
 	for _, check := range []struct {
 		query string
 		args  []any

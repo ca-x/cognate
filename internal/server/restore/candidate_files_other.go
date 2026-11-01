@@ -22,3 +22,6 @@ func (*candidateFiles) read(context.Context, string, int64, int64) ([]byte, erro
 func (*candidateFiles) syncDirectories() error { return ErrCandidateUnsupported }
 func (*candidateFiles) checkEntries() error    { return ErrCandidateUnsupported }
 func (*candidateFiles) cleanup() error         { return ErrCandidateUnsupported }
+func (*candidateFiles) mutateDatabase(context.Context, func(*os.File) (int64, [32]byte, error)) error {
+	return ErrCandidateUnsupported
+}

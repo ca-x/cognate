@@ -2,8 +2,18 @@
 
 受管 Store 提供数据库快照和引用清单，library 将同切点的 skill 归档接到
 既有加密容器；这些是内部能力，不是已经可用的完整备份入口。
-App 受管模式、自动/手动任务、云端上传及完整恢复仍待接线。
+后继已接通显式启用的 Linux App 受管模式、自动/手动任务、云端上传和 Web 管理；
+完整恢复仍待接线，产品参数与边界见 `SERVER-BACKUP.md`。
 默认服务端不会因本片自动启用备份或改变既有多进程模式。
+
+## 后继恢复状态
+
+T1 只读验真、认证 Source/Candidate 及 Linux T4 隔离候选净化已单独交付。
+T4 使用同 EX 租约的 inspector，真实提交凭据撤销并关闭、等待、Sync，独立复核完整
+保留数据后才交付一次性 SanitizedCandidate；原 inventory/归档及源摘要不重标。
+普通 PrepareCandidate 的旧 T1 只读检查未因此取得运行根同 OFD 资格，不能混用收据。
+这仍不是运行代发布、持久 current/intent、回退、离线恢复 CLI 或真实 App 恢复演练。
+保留清理不能用 candidate_verified 代替 restore_verified；完整 F4 仍打开。
 
 ## 接口与生命周期
 
