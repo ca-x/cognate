@@ -130,7 +130,7 @@ func planActions(env *envDocument, settings *jsonDocument, declaration agentconf
 	var actions [6]FieldAction
 	for index, field := range fields {
 		present, fact := localField(env, settings, field), local.fields[index]
-		if fact.Field != field || present && fact.Ownership != Managed && fact.Ownership != Foreign || !present && fact.Ownership != Absent || fact.Cleanup < Preserve || fact.Cleanup > Clear || fact.Cleanup == Clear && fact.Ownership != Managed {
+		if fact.Field != field || present && fact.Ownership != Managed && fact.Ownership != Foreign && fact.Ownership != ExplicitTakeover || !present && fact.Ownership != Absent || fact.Cleanup < Preserve || fact.Cleanup > Clear || fact.Cleanup == Clear && fact.Ownership != Managed && fact.Ownership != ExplicitTakeover {
 			return [6]FieldAction{}, ErrOwnershipConflict
 		}
 		action := Keep
@@ -351,6 +351,7 @@ const (
 	Absent
 	Managed
 	Foreign
+	ExplicitTakeover
 )
 
 type Cleanup uint8

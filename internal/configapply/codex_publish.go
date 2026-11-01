@@ -219,37 +219,8 @@ func (state *codexEngineState) publishCodex(ctx context.Context, operation *code
 		if err := state.checkCodexRoots(target); err != nil {
 			return codexOperationResult(operation), err
 		}
-		stageName := operation.StageNames[index]
-		if operation.After[index].Present {
-			stage, data, err := target.read(stageName, codexRoleLimit)
-			clear(data)
-			if err != nil || !stage.Present || stage != operation.Stages[index] || stage != operation.After[index] {
-				return codexOperationResult(operation), ErrCodexAttention
-			}
-			if operation.Before[index].Present {
-				if err := target.exchange(stageName, codexRoleNames[index]); err != nil {
-					return codexOperationResult(operation), err
-				}
-				displaced, data, err := target.read(stageName, codexRoleLimit)
-				clear(data)
-				if err != nil || displaced != operation.Before[index] {
-					return codexOperationResult(operation), ErrCodexUnknown
-				}
-			} else if err := target.rename(stageName, target, codexRoleNames[index]); err != nil {
-				return codexOperationResult(operation), err
-			}
-		} else {
-			if !operation.Before[index].Present {
-				return codexOperationResult(operation), ErrCodexInvalid
-			}
-			if err := target.rename(codexRoleNames[index], target, stageName); err != nil {
-				return codexOperationResult(operation), err
-			}
-			displaced, data, err := target.read(stageName, codexRoleLimit)
-			clear(data)
-			if err != nil || displaced != operation.Before[index] {
-				return codexOperationResult(operation), ErrCodexUnknown
-			}
+		if err := bundlePublishRole(target, bundleCodex, index, operation.StageNames[index], operation.Before[index], operation.After[index], operation.Stages[index]); err != nil {
+			return codexOperationResult(operation), err
 		}
 		if err := state.checkpoint("entry-published-" + strconv.Itoa(index)); err != nil {
 			return codexOperationResult(operation), err
@@ -324,16 +295,7 @@ func codexPublicationOrder(operation *codexOperation) [2]int {
 }
 
 func (state *codexEngineState) codexActualImages(target *nativeDirectory) ([3]nativeImage, error) {
-	var images [3]nativeImage
-	for index, name := range codexRoleNames {
-		image, data, err := target.read(name, codexRoleLimit)
-		clear(data)
-		if err != nil {
-			return images, err
-		}
-		images[index] = image
-	}
-	return images, nil
+	return bundleActualImages(target, bundleCodex)
 }
 
 func (state *codexEngineState) validateCodexNow(operation *codexOperation) (resultError error) {
@@ -357,12 +319,7 @@ func (state *codexEngineState) validateCodexMix(operation *codexOperation, image
 	if operation.ReservationsReleased && images != operation.After {
 		return ErrCodexAttention
 	}
-	for index := range images {
-		if images[index] != operation.Before[index] && (!operation.Write[index] || images[index] != operation.After[index]) {
-			return ErrCodexConflict
-		}
-	}
-	return nil
+	return bundleValidateMix(operation.Before, operation.After, images, operation.Write)
 }
 
 func (state *codexEngineState) finishCodex(operation *codexOperation) error {

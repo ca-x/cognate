@@ -75,6 +75,7 @@
 - [ ] 补齐 Grok Build 本机应用；Web/MyGo 资产管理及受限来源导入已单独交付。
 - [x] Codex 普通 CLI 唯一固定 profile 登记：Linux/amd64 0.166.0 effective-v2 完整 tuple，真实普通 CLI/PTY/App/SQLite和新鲜消费者矩阵、独立指令/effort负控与可读许可包验收通过；其它平台、版本和 MyGo不据此开放。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。
+- [x] Gemini 首个固定 Linux/amd64 profile 手动闭环：普通 CLI/共享内核、真实服务端授权、双格式六字段审阅、两角色 CAS/selection-last、Unknown 与新审阅恢复/还原；原期限后发布 P1 已经独立复审关闭。仅 Gemini 0.61.0/Node 26.13.0，非 MyGo、OAuth、其它版本/平台或完整 F12，见 `GEMINI-NATIVE-PROFILES.md`。
 - [ ] 完成 cc-switch/Magpie 的 skills、仓库、配置独立选择导入闭环，保留来源版本与权限边界。
 - [x] MyGo 三来源选择导入入口：复用共享选择协议，独立上传批准、三类默认不选、真实 owner/仓库 pin、最终审阅及一次提交；Unknown 仅按原操作查询，取消和身份切换实际排空。两项功能分别独审后合入同一模型，新增真实 App/TLS/SQLite 共享生命周期回归；不开放来源尚不支持的候选或完整跨平台资格。
 - [x] Web 私有 MCP 连接配置资产编辑：有序stdio/HTTP/SSE、显式启停/存在位、凭据三态和每旧引用Clear、preview/CRUD/无密钥复制/排序、Unknown屏障及主题语言草稿保持经非作者独审；真实浏览器与原生200%缩放通过，不连接MCP或应用设备。
@@ -115,6 +116,6 @@
 - [x] Linux 隔离 TLS 整仓刷新至双 Pack 订阅链：无需手动改 Pack，下一轮同步只更新一次，完整内容 hash/隐藏二进制/可执行位、canonical 软链接及最后退订清理均有生产链回归；不代表真实 GitHub、MyGo 或跨平台验收，见 `CLIENT-SUBSCRIPTIONS.md`。
 - [ ] 补齐真实部署的双 Pack 重合与源刷新同步、公开安装与取消公开、分类隔离验收。
 - [ ] 验证 MCP 权限、过期/撤销、跨用户隔离、日志隐私，以及中英主题和窄屏键盘交互。
-- [ ] 补齐升级、拒绝不安全降级、备份恢复及已知限制说明，再决定正式版标签。
+- [ ] 为完整功能版本补齐升级、拒绝不安全降级、备份恢复及已知限制说明；后续标签按实际验收范围独立决定，不移动已发布的组件标签。
 
 详细合同保留在 [需求](REQUIREMENTS.md)、[配置](CONFIGURATION.md)、[桌面](DESKTOP.md)、[本地快照](LOCAL-SNAPSHOT.md) 和 [发布](RELEASING.md) 文档中；本清单不替代这些合同或缩减原定范围。

@@ -150,7 +150,7 @@ func NewResolution(profileID string, scope EffectiveScope, facts []FieldFact, wi
 	seen := [6]bool{}
 	for _, fact := range facts {
 		index := slices.Index(fields[:], fact.Field)
-		if index < 0 || seen[index] || fact.Ownership < Absent || fact.Ownership > Foreign || fact.Cleanup < Preserve || fact.Cleanup > Clear || fact.Cleanup == Clear && fact.Ownership != Managed {
+		if index < 0 || seen[index] || fact.Ownership < Absent || fact.Ownership > ExplicitTakeover || fact.Cleanup < Preserve || fact.Cleanup > Clear || fact.Cleanup == Clear && fact.Ownership != Managed && fact.Ownership != ExplicitTakeover {
 			return LocalResolution{}, ErrOwnershipConflict
 		}
 		seen[index] = true

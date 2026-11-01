@@ -162,6 +162,13 @@ func (service *Service) AuthorizeCodex(ctx context.Context, bearer string, reque
 	return service.domain.AuthorizeCodex(ctx, bearer, request, local, signature)
 }
 
+func (service *Service) PrepareGemini(ctx context.Context, bearer string, request nativesessionauth.GeminiPrepareRequest, signature []byte) (state.NativeGeminiPrepared, error) {
+	return service.domain.PrepareGemini(ctx, bearer, request, signature)
+}
+func (service *Service) AuthorizeGemini(ctx context.Context, bearer string, request nativesessionauth.AuthorizeRequest, local *nativev1.GeminiLocalBindingV1, signature []byte) (auth.IssuedGeminiNativeGrant, error) {
+	return service.domain.AuthorizeGemini(ctx, bearer, request, local, signature)
+}
+
 func (service *Service) Consume(ctx context.Context, bearer string, request nativesessionauth.ConsumeRequest, signature []byte) (state.NativeMaterialization, error) {
 	return service.domain.Consume(ctx, bearer, request, signature)
 }

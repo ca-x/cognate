@@ -74,6 +74,7 @@ const (
 	Target_TARGET_UNSPECIFIED     Target = 0
 	Target_TARGET_CLAUDE_SETTINGS Target = 1
 	Target_TARGET_CODEX_CONFIG    Target = 2
+	Target_TARGET_GEMINI_SETTINGS Target = 3
 )
 
 // Enum value maps for Target.
@@ -82,11 +83,13 @@ var (
 		0: "TARGET_UNSPECIFIED",
 		1: "TARGET_CLAUDE_SETTINGS",
 		2: "TARGET_CODEX_CONFIG",
+		3: "TARGET_GEMINI_SETTINGS",
 	}
 	Target_value = map[string]int32{
 		"TARGET_UNSPECIFIED":     0,
 		"TARGET_CLAUDE_SETTINGS": 1,
 		"TARGET_CODEX_CONFIG":    2,
+		"TARGET_GEMINI_SETTINGS": 3,
 	}
 )
 
@@ -170,6 +173,7 @@ const (
 	SecretSlot_SECRET_SLOT_CLAUDE_API_KEY     SecretSlot = 1
 	SecretSlot_SECRET_SLOT_CLAUDE_AUTH_TOKEN  SecretSlot = 2
 	SecretSlot_SECRET_SLOT_CODEX_PROVIDER_KEY SecretSlot = 3
+	SecretSlot_SECRET_SLOT_GEMINI_API_KEY     SecretSlot = 4
 )
 
 // Enum value maps for SecretSlot.
@@ -179,12 +183,14 @@ var (
 		1: "SECRET_SLOT_CLAUDE_API_KEY",
 		2: "SECRET_SLOT_CLAUDE_AUTH_TOKEN",
 		3: "SECRET_SLOT_CODEX_PROVIDER_KEY",
+		4: "SECRET_SLOT_GEMINI_API_KEY",
 	}
 	SecretSlot_value = map[string]int32{
 		"SECRET_SLOT_UNSPECIFIED":        0,
 		"SECRET_SLOT_CLAUDE_API_KEY":     1,
 		"SECRET_SLOT_CLAUDE_AUTH_TOKEN":  2,
 		"SECRET_SLOT_CODEX_PROVIDER_KEY": 3,
+		"SECRET_SLOT_GEMINI_API_KEY":     4,
 	}
 )
 
@@ -655,6 +661,367 @@ func (CodexRole) EnumDescriptor() ([]byte, []int) {
 	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{11}
 }
 
+type GeminiEffectiveScope int32
+
+const (
+	GeminiEffectiveScope_GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED           GeminiEffectiveScope = 0
+	GeminiEffectiveScope_GEMINI_EFFECTIVE_SCOPE_COMPLETE_BOUND_LAUNCH GeminiEffectiveScope = 1
+)
+
+// Enum value maps for GeminiEffectiveScope.
+var (
+	GeminiEffectiveScope_name = map[int32]string{
+		0: "GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED",
+		1: "GEMINI_EFFECTIVE_SCOPE_COMPLETE_BOUND_LAUNCH",
+	}
+	GeminiEffectiveScope_value = map[string]int32{
+		"GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED":           0,
+		"GEMINI_EFFECTIVE_SCOPE_COMPLETE_BOUND_LAUNCH": 1,
+	}
+)
+
+func (x GeminiEffectiveScope) Enum() *GeminiEffectiveScope {
+	p := new(GeminiEffectiveScope)
+	*p = x
+	return p
+}
+
+func (x GeminiEffectiveScope) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiEffectiveScope) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[12].Descriptor()
+}
+
+func (GeminiEffectiveScope) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[12]
+}
+
+func (x GeminiEffectiveScope) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiEffectiveScope.Descriptor instead.
+func (GeminiEffectiveScope) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{12}
+}
+
+type GeminiRole int32
+
+const (
+	GeminiRole_GEMINI_ROLE_UNSPECIFIED GeminiRole = 0
+	GeminiRole_GEMINI_ROLE_ENV         GeminiRole = 1
+	GeminiRole_GEMINI_ROLE_SETTINGS    GeminiRole = 2
+)
+
+// Enum value maps for GeminiRole.
+var (
+	GeminiRole_name = map[int32]string{
+		0: "GEMINI_ROLE_UNSPECIFIED",
+		1: "GEMINI_ROLE_ENV",
+		2: "GEMINI_ROLE_SETTINGS",
+	}
+	GeminiRole_value = map[string]int32{
+		"GEMINI_ROLE_UNSPECIFIED": 0,
+		"GEMINI_ROLE_ENV":         1,
+		"GEMINI_ROLE_SETTINGS":    2,
+	}
+)
+
+func (x GeminiRole) Enum() *GeminiRole {
+	p := new(GeminiRole)
+	*p = x
+	return p
+}
+
+func (x GeminiRole) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiRole) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[13].Descriptor()
+}
+
+func (GeminiRole) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[13]
+}
+
+func (x GeminiRole) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiRole.Descriptor instead.
+func (GeminiRole) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{13}
+}
+
+type GeminiPresence int32
+
+const (
+	GeminiPresence_GEMINI_PRESENCE_UNSPECIFIED GeminiPresence = 0
+	GeminiPresence_GEMINI_PRESENCE_MISSING     GeminiPresence = 1
+	GeminiPresence_GEMINI_PRESENCE_PRESENT     GeminiPresence = 2
+)
+
+// Enum value maps for GeminiPresence.
+var (
+	GeminiPresence_name = map[int32]string{
+		0: "GEMINI_PRESENCE_UNSPECIFIED",
+		1: "GEMINI_PRESENCE_MISSING",
+		2: "GEMINI_PRESENCE_PRESENT",
+	}
+	GeminiPresence_value = map[string]int32{
+		"GEMINI_PRESENCE_UNSPECIFIED": 0,
+		"GEMINI_PRESENCE_MISSING":     1,
+		"GEMINI_PRESENCE_PRESENT":     2,
+	}
+)
+
+func (x GeminiPresence) Enum() *GeminiPresence {
+	p := new(GeminiPresence)
+	*p = x
+	return p
+}
+
+func (x GeminiPresence) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiPresence) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[14].Descriptor()
+}
+
+func (GeminiPresence) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[14]
+}
+
+func (x GeminiPresence) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiPresence.Descriptor instead.
+func (GeminiPresence) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{14}
+}
+
+type GeminiField int32
+
+const (
+	GeminiField_GEMINI_FIELD_UNSPECIFIED    GeminiField = 0
+	GeminiField_GEMINI_FIELD_API_KEY        GeminiField = 1
+	GeminiField_GEMINI_FIELD_ENDPOINT       GeminiField = 2
+	GeminiField_GEMINI_FIELD_TRANSPORT      GeminiField = 3
+	GeminiField_GEMINI_FIELD_ENV_MODEL      GeminiField = 4
+	GeminiField_GEMINI_FIELD_SETTINGS_MODEL GeminiField = 5
+	GeminiField_GEMINI_FIELD_AUTH_MODE      GeminiField = 6
+)
+
+// Enum value maps for GeminiField.
+var (
+	GeminiField_name = map[int32]string{
+		0: "GEMINI_FIELD_UNSPECIFIED",
+		1: "GEMINI_FIELD_API_KEY",
+		2: "GEMINI_FIELD_ENDPOINT",
+		3: "GEMINI_FIELD_TRANSPORT",
+		4: "GEMINI_FIELD_ENV_MODEL",
+		5: "GEMINI_FIELD_SETTINGS_MODEL",
+		6: "GEMINI_FIELD_AUTH_MODE",
+	}
+	GeminiField_value = map[string]int32{
+		"GEMINI_FIELD_UNSPECIFIED":    0,
+		"GEMINI_FIELD_API_KEY":        1,
+		"GEMINI_FIELD_ENDPOINT":       2,
+		"GEMINI_FIELD_TRANSPORT":      3,
+		"GEMINI_FIELD_ENV_MODEL":      4,
+		"GEMINI_FIELD_SETTINGS_MODEL": 5,
+		"GEMINI_FIELD_AUTH_MODE":      6,
+	}
+)
+
+func (x GeminiField) Enum() *GeminiField {
+	p := new(GeminiField)
+	*p = x
+	return p
+}
+
+func (x GeminiField) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiField) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[15].Descriptor()
+}
+
+func (GeminiField) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[15]
+}
+
+func (x GeminiField) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiField.Descriptor instead.
+func (GeminiField) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{15}
+}
+
+type GeminiOwnership int32
+
+const (
+	GeminiOwnership_GEMINI_OWNERSHIP_UNSPECIFIED       GeminiOwnership = 0
+	GeminiOwnership_GEMINI_OWNERSHIP_ABSENT            GeminiOwnership = 1
+	GeminiOwnership_GEMINI_OWNERSHIP_MANAGED           GeminiOwnership = 2
+	GeminiOwnership_GEMINI_OWNERSHIP_FOREIGN           GeminiOwnership = 3
+	GeminiOwnership_GEMINI_OWNERSHIP_EXPLICIT_TAKEOVER GeminiOwnership = 4
+)
+
+// Enum value maps for GeminiOwnership.
+var (
+	GeminiOwnership_name = map[int32]string{
+		0: "GEMINI_OWNERSHIP_UNSPECIFIED",
+		1: "GEMINI_OWNERSHIP_ABSENT",
+		2: "GEMINI_OWNERSHIP_MANAGED",
+		3: "GEMINI_OWNERSHIP_FOREIGN",
+		4: "GEMINI_OWNERSHIP_EXPLICIT_TAKEOVER",
+	}
+	GeminiOwnership_value = map[string]int32{
+		"GEMINI_OWNERSHIP_UNSPECIFIED":       0,
+		"GEMINI_OWNERSHIP_ABSENT":            1,
+		"GEMINI_OWNERSHIP_MANAGED":           2,
+		"GEMINI_OWNERSHIP_FOREIGN":           3,
+		"GEMINI_OWNERSHIP_EXPLICIT_TAKEOVER": 4,
+	}
+)
+
+func (x GeminiOwnership) Enum() *GeminiOwnership {
+	p := new(GeminiOwnership)
+	*p = x
+	return p
+}
+
+func (x GeminiOwnership) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiOwnership) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[16].Descriptor()
+}
+
+func (GeminiOwnership) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[16]
+}
+
+func (x GeminiOwnership) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiOwnership.Descriptor instead.
+func (GeminiOwnership) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{16}
+}
+
+type GeminiAction int32
+
+const (
+	GeminiAction_GEMINI_ACTION_UNSPECIFIED GeminiAction = 0
+	GeminiAction_GEMINI_ACTION_KEEP        GeminiAction = 1
+	GeminiAction_GEMINI_ACTION_WRITE       GeminiAction = 2
+	GeminiAction_GEMINI_ACTION_REMOVE      GeminiAction = 3
+)
+
+// Enum value maps for GeminiAction.
+var (
+	GeminiAction_name = map[int32]string{
+		0: "GEMINI_ACTION_UNSPECIFIED",
+		1: "GEMINI_ACTION_KEEP",
+		2: "GEMINI_ACTION_WRITE",
+		3: "GEMINI_ACTION_REMOVE",
+	}
+	GeminiAction_value = map[string]int32{
+		"GEMINI_ACTION_UNSPECIFIED": 0,
+		"GEMINI_ACTION_KEEP":        1,
+		"GEMINI_ACTION_WRITE":       2,
+		"GEMINI_ACTION_REMOVE":      3,
+	}
+)
+
+func (x GeminiAction) Enum() *GeminiAction {
+	p := new(GeminiAction)
+	*p = x
+	return p
+}
+
+func (x GeminiAction) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiAction) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[17].Descriptor()
+}
+
+func (GeminiAction) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[17]
+}
+
+func (x GeminiAction) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiAction.Descriptor instead.
+func (GeminiAction) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{17}
+}
+
+type GeminiCleanup int32
+
+const (
+	GeminiCleanup_GEMINI_CLEANUP_UNSPECIFIED GeminiCleanup = 0
+	GeminiCleanup_GEMINI_CLEANUP_PRESERVE    GeminiCleanup = 1
+	GeminiCleanup_GEMINI_CLEANUP_CLEAR       GeminiCleanup = 2
+)
+
+// Enum value maps for GeminiCleanup.
+var (
+	GeminiCleanup_name = map[int32]string{
+		0: "GEMINI_CLEANUP_UNSPECIFIED",
+		1: "GEMINI_CLEANUP_PRESERVE",
+		2: "GEMINI_CLEANUP_CLEAR",
+	}
+	GeminiCleanup_value = map[string]int32{
+		"GEMINI_CLEANUP_UNSPECIFIED": 0,
+		"GEMINI_CLEANUP_PRESERVE":    1,
+		"GEMINI_CLEANUP_CLEAR":       2,
+	}
+)
+
+func (x GeminiCleanup) Enum() *GeminiCleanup {
+	p := new(GeminiCleanup)
+	*p = x
+	return p
+}
+
+func (x GeminiCleanup) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GeminiCleanup) Descriptor() protoreflect.EnumDescriptor {
+	return file_skillhub_configuration_native_v1_native_proto_enumTypes[18].Descriptor()
+}
+
+func (GeminiCleanup) Type() protoreflect.EnumType {
+	return &file_skillhub_configuration_native_v1_native_proto_enumTypes[18]
+}
+
+func (x GeminiCleanup) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GeminiCleanup.Descriptor instead.
+func (GeminiCleanup) EnumDescriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{18}
+}
+
 type BeginNativeConsumerRequest struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Purpose              NativePurpose          `protobuf:"varint,1,opt,name=purpose,proto3,enum=skillhub.configuration.native.v1.NativePurpose" json:"purpose,omitempty"`
@@ -1042,6 +1409,7 @@ type PreparationBinding struct {
 	PreparedAtUnixMs       int64                  `protobuf:"varint,20,opt,name=prepared_at_unix_ms,json=preparedAtUnixMs,proto3" json:"prepared_at_unix_ms,omitempty"`
 	PatchSha256            []byte                 `protobuf:"bytes,21,opt,name=patch_sha256,json=patchSha256,proto3" json:"patch_sha256,omitempty"`
 	Codex                  *CodexPreparationV1    `protobuf:"bytes,40,opt,name=codex,proto3" json:"codex,omitempty"`
+	Gemini                 *GeminiPreparationV1   `protobuf:"bytes,41,opt,name=gemini,proto3" json:"gemini,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1223,12 +1591,20 @@ func (x *PreparationBinding) GetCodex() *CodexPreparationV1 {
 	return nil
 }
 
+func (x *PreparationBinding) GetGemini() *GeminiPreparationV1 {
+	if x != nil {
+		return x.Gemini
+	}
+	return nil
+}
+
 type ApplyBinding struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Preparation           *PreparationBinding    `protobuf:"bytes,1,opt,name=preparation,proto3" json:"preparation,omitempty"`
 	IntentCommitment      []byte                 `protobuf:"bytes,2,opt,name=intent_commitment,json=intentCommitment,proto3" json:"intent_commitment,omitempty"`
 	IntentExpiresAtUnixMs int64                  `protobuf:"varint,3,opt,name=intent_expires_at_unix_ms,json=intentExpiresAtUnixMs,proto3" json:"intent_expires_at_unix_ms,omitempty"`
 	CodexLocalBinding     *CodexLocalBindingV1   `protobuf:"bytes,40,opt,name=codex_local_binding,json=codexLocalBinding,proto3" json:"codex_local_binding,omitempty"`
+	GeminiLocalBinding    *GeminiLocalBindingV1  `protobuf:"bytes,41,opt,name=gemini_local_binding,json=geminiLocalBinding,proto3" json:"gemini_local_binding,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1287,6 +1663,13 @@ func (x *ApplyBinding) GetIntentExpiresAtUnixMs() int64 {
 func (x *ApplyBinding) GetCodexLocalBinding() *CodexLocalBindingV1 {
 	if x != nil {
 		return x.CodexLocalBinding
+	}
+	return nil
+}
+
+func (x *ApplyBinding) GetGeminiLocalBinding() *GeminiLocalBindingV1 {
+	if x != nil {
+		return x.GeminiLocalBinding
 	}
 	return nil
 }
@@ -1581,6 +1964,7 @@ type PrepareNativeApplyRequest struct {
 	ClientNonce           []byte                 `protobuf:"bytes,13,opt,name=client_nonce,json=clientNonce,proto3" json:"client_nonce,omitempty"`
 	ProofSignature        []byte                 `protobuf:"bytes,14,opt,name=proof_signature,json=proofSignature,proto3" json:"proof_signature,omitempty"`
 	CodexContractVersion  uint32                 `protobuf:"varint,40,opt,name=codex_contract_version,json=codexContractVersion,proto3" json:"codex_contract_version,omitempty"`
+	GeminiContractVersion uint32                 `protobuf:"varint,41,opt,name=gemini_contract_version,json=geminiContractVersion,proto3" json:"gemini_contract_version,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1713,6 +2097,13 @@ func (x *PrepareNativeApplyRequest) GetCodexContractVersion() uint32 {
 	return 0
 }
 
+func (x *PrepareNativeApplyRequest) GetGeminiContractVersion() uint32 {
+	if x != nil {
+		return x.GeminiContractVersion
+	}
+	return 0
+}
+
 type PrepareNativeApplyResponse struct {
 	state                   protoimpl.MessageState `protogen:"open.v1"`
 	Binding                 *PreparationBinding    `protobuf:"bytes,1,opt,name=binding,proto3" json:"binding,omitempty"`
@@ -1720,6 +2111,7 @@ type PrepareNativeApplyResponse struct {
 	MaterializationRequired bool                   `protobuf:"varint,3,opt,name=materialization_required,json=materializationRequired,proto3" json:"materialization_required,omitempty"`
 	AuthorizeChallenge      []byte                 `protobuf:"bytes,4,opt,name=authorize_challenge,json=authorizeChallenge,proto3" json:"authorize_challenge,omitempty"`
 	CodexDeclaration        *CodexDeclarationV1    `protobuf:"bytes,5,opt,name=codex_declaration,json=codexDeclaration,proto3" json:"codex_declaration,omitempty"`
+	GeminiDeclaration       *GeminiDeclarationV1   `protobuf:"bytes,6,opt,name=gemini_declaration,json=geminiDeclaration,proto3" json:"gemini_declaration,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -1785,6 +2177,13 @@ func (x *PrepareNativeApplyResponse) GetAuthorizeChallenge() []byte {
 func (x *PrepareNativeApplyResponse) GetCodexDeclaration() *CodexDeclarationV1 {
 	if x != nil {
 		return x.CodexDeclaration
+	}
+	return nil
+}
+
+func (x *PrepareNativeApplyResponse) GetGeminiDeclaration() *GeminiDeclarationV1 {
+	if x != nil {
+		return x.GeminiDeclaration
 	}
 	return nil
 }
@@ -1900,6 +2299,7 @@ type AuthorizeNativeMaterializationRequest struct {
 	ProofSignature        []byte                                                `protobuf:"bytes,8,opt,name=proof_signature,json=proofSignature,proto3" json:"proof_signature,omitempty"`
 	IntentExpiresAtUnixMs int64                                                 `protobuf:"varint,9,opt,name=intent_expires_at_unix_ms,json=intentExpiresAtUnixMs,proto3" json:"intent_expires_at_unix_ms,omitempty"`
 	CodexLocalBinding     *CodexLocalBindingV1                                  `protobuf:"bytes,40,opt,name=codex_local_binding,json=codexLocalBinding,proto3" json:"codex_local_binding,omitempty"`
+	GeminiLocalBinding    *GeminiLocalBindingV1                                 `protobuf:"bytes,41,opt,name=gemini_local_binding,json=geminiLocalBinding,proto3" json:"gemini_local_binding,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -2011,6 +2411,13 @@ func (x *AuthorizeNativeMaterializationRequest) GetIntentExpiresAtUnixMs() int64
 func (x *AuthorizeNativeMaterializationRequest) GetCodexLocalBinding() *CodexLocalBindingV1 {
 	if x != nil {
 		return x.CodexLocalBinding
+	}
+	return nil
+}
+
+func (x *AuthorizeNativeMaterializationRequest) GetGeminiLocalBinding() *GeminiLocalBindingV1 {
+	if x != nil {
+		return x.GeminiLocalBinding
 	}
 	return nil
 }
@@ -3027,6 +3434,418 @@ func (x *CodexLocalBindingV1) GetBaselines() []*CodexRoleBaseline {
 	return nil
 }
 
+type GeminiPreparationV1 struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ContractVersion   uint32                 `protobuf:"varint,1,opt,name=contract_version,json=contractVersion,proto3" json:"contract_version,omitempty"`
+	DeclarationSha256 []byte                 `protobuf:"bytes,2,opt,name=declaration_sha256,json=declarationSha256,proto3" json:"declaration_sha256,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GeminiPreparationV1) Reset() {
+	*x = GeminiPreparationV1{}
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GeminiPreparationV1) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GeminiPreparationV1) ProtoMessage() {}
+
+func (x *GeminiPreparationV1) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GeminiPreparationV1.ProtoReflect.Descriptor instead.
+func (*GeminiPreparationV1) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GeminiPreparationV1) GetContractVersion() uint32 {
+	if x != nil {
+		return x.ContractVersion
+	}
+	return 0
+}
+
+func (x *GeminiPreparationV1) GetDeclarationSha256() []byte {
+	if x != nil {
+		return x.DeclarationSha256
+	}
+	return nil
+}
+
+type GeminiDeclarationV1 struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Version             uint32                 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Target              string                 `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
+	AuthMode            v1.GeminiAuthMode      `protobuf:"varint,3,opt,name=auth_mode,json=authMode,proto3,enum=skillhub.configuration.v1.GeminiAuthMode" json:"auth_mode,omitempty"`
+	Endpoint            *string                `protobuf:"bytes,4,opt,name=endpoint,proto3,oneof" json:"endpoint,omitempty"`
+	KeyTransport        *v1.GeminiKeyTransport `protobuf:"varint,5,opt,name=key_transport,json=keyTransport,proto3,enum=skillhub.configuration.v1.GeminiKeyTransport,oneof" json:"key_transport,omitempty"`
+	EnvModel            *string                `protobuf:"bytes,6,opt,name=env_model,json=envModel,proto3,oneof" json:"env_model,omitempty"`
+	SettingsModel       *string                `protobuf:"bytes,7,opt,name=settings_model,json=settingsModel,proto3,oneof" json:"settings_model,omitempty"`
+	SelectedType        string                 `protobuf:"bytes,8,opt,name=selected_type,json=selectedType,proto3" json:"selected_type,omitempty"`
+	CredentialReference *string                `protobuf:"bytes,9,opt,name=credential_reference,json=credentialReference,proto3,oneof" json:"credential_reference,omitempty"`
+	RequiredSlots       []SecretSlot           `protobuf:"varint,10,rep,packed,name=required_slots,json=requiredSlots,proto3,enum=skillhub.configuration.native.v1.SecretSlot" json:"required_slots,omitempty"`
+	LocalAuthPolicy     string                 `protobuf:"bytes,11,opt,name=local_auth_policy,json=localAuthPolicy,proto3" json:"local_auth_policy,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GeminiDeclarationV1) Reset() {
+	*x = GeminiDeclarationV1{}
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GeminiDeclarationV1) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GeminiDeclarationV1) ProtoMessage() {}
+
+func (x *GeminiDeclarationV1) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GeminiDeclarationV1.ProtoReflect.Descriptor instead.
+func (*GeminiDeclarationV1) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GeminiDeclarationV1) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *GeminiDeclarationV1) GetTarget() string {
+	if x != nil {
+		return x.Target
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetAuthMode() v1.GeminiAuthMode {
+	if x != nil {
+		return x.AuthMode
+	}
+	return v1.GeminiAuthMode(0)
+}
+
+func (x *GeminiDeclarationV1) GetEndpoint() string {
+	if x != nil && x.Endpoint != nil {
+		return *x.Endpoint
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetKeyTransport() v1.GeminiKeyTransport {
+	if x != nil && x.KeyTransport != nil {
+		return *x.KeyTransport
+	}
+	return v1.GeminiKeyTransport(0)
+}
+
+func (x *GeminiDeclarationV1) GetEnvModel() string {
+	if x != nil && x.EnvModel != nil {
+		return *x.EnvModel
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetSettingsModel() string {
+	if x != nil && x.SettingsModel != nil {
+		return *x.SettingsModel
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetSelectedType() string {
+	if x != nil {
+		return x.SelectedType
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetCredentialReference() string {
+	if x != nil && x.CredentialReference != nil {
+		return *x.CredentialReference
+	}
+	return ""
+}
+
+func (x *GeminiDeclarationV1) GetRequiredSlots() []SecretSlot {
+	if x != nil {
+		return x.RequiredSlots
+	}
+	return nil
+}
+
+func (x *GeminiDeclarationV1) GetLocalAuthPolicy() string {
+	if x != nil {
+		return x.LocalAuthPolicy
+	}
+	return ""
+}
+
+type GeminiRoleBaseline struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          GeminiRole             `protobuf:"varint,1,opt,name=role,proto3,enum=skillhub.configuration.native.v1.GeminiRole" json:"role,omitempty"`
+	Presence      GeminiPresence         `protobuf:"varint,2,opt,name=presence,proto3,enum=skillhub.configuration.native.v1.GeminiPresence" json:"presence,omitempty"`
+	BaselineHmac  []byte                 `protobuf:"bytes,3,opt,name=baseline_hmac,json=baselineHmac,proto3" json:"baseline_hmac,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GeminiRoleBaseline) Reset() {
+	*x = GeminiRoleBaseline{}
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GeminiRoleBaseline) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GeminiRoleBaseline) ProtoMessage() {}
+
+func (x *GeminiRoleBaseline) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GeminiRoleBaseline.ProtoReflect.Descriptor instead.
+func (*GeminiRoleBaseline) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GeminiRoleBaseline) GetRole() GeminiRole {
+	if x != nil {
+		return x.Role
+	}
+	return GeminiRole_GEMINI_ROLE_UNSPECIFIED
+}
+
+func (x *GeminiRoleBaseline) GetPresence() GeminiPresence {
+	if x != nil {
+		return x.Presence
+	}
+	return GeminiPresence_GEMINI_PRESENCE_UNSPECIFIED
+}
+
+func (x *GeminiRoleBaseline) GetBaselineHmac() []byte {
+	if x != nil {
+		return x.BaselineHmac
+	}
+	return nil
+}
+
+type GeminiFieldDecision struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         GeminiField            `protobuf:"varint,1,opt,name=field,proto3,enum=skillhub.configuration.native.v1.GeminiField" json:"field,omitempty"`
+	Ownership     GeminiOwnership        `protobuf:"varint,2,opt,name=ownership,proto3,enum=skillhub.configuration.native.v1.GeminiOwnership" json:"ownership,omitempty"`
+	Action        GeminiAction           `protobuf:"varint,3,opt,name=action,proto3,enum=skillhub.configuration.native.v1.GeminiAction" json:"action,omitempty"`
+	Cleanup       GeminiCleanup          `protobuf:"varint,4,opt,name=cleanup,proto3,enum=skillhub.configuration.native.v1.GeminiCleanup" json:"cleanup,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GeminiFieldDecision) Reset() {
+	*x = GeminiFieldDecision{}
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GeminiFieldDecision) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GeminiFieldDecision) ProtoMessage() {}
+
+func (x *GeminiFieldDecision) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GeminiFieldDecision.ProtoReflect.Descriptor instead.
+func (*GeminiFieldDecision) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GeminiFieldDecision) GetField() GeminiField {
+	if x != nil {
+		return x.Field
+	}
+	return GeminiField_GEMINI_FIELD_UNSPECIFIED
+}
+
+func (x *GeminiFieldDecision) GetOwnership() GeminiOwnership {
+	if x != nil {
+		return x.Ownership
+	}
+	return GeminiOwnership_GEMINI_OWNERSHIP_UNSPECIFIED
+}
+
+func (x *GeminiFieldDecision) GetAction() GeminiAction {
+	if x != nil {
+		return x.Action
+	}
+	return GeminiAction_GEMINI_ACTION_UNSPECIFIED
+}
+
+func (x *GeminiFieldDecision) GetCleanup() GeminiCleanup {
+	if x != nil {
+		return x.Cleanup
+	}
+	return GeminiCleanup_GEMINI_CLEANUP_UNSPECIFIED
+}
+
+type GeminiLocalBindingV1 struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	BindingVersion      uint32                 `protobuf:"varint,1,opt,name=binding_version,json=bindingVersion,proto3" json:"binding_version,omitempty"`
+	NativeProfileId     string                 `protobuf:"bytes,2,opt,name=native_profile_id,json=nativeProfileId,proto3" json:"native_profile_id,omitempty"`
+	NativeProfileSha256 []byte                 `protobuf:"bytes,3,opt,name=native_profile_sha256,json=nativeProfileSha256,proto3" json:"native_profile_sha256,omitempty"`
+	CodecProfileSha256  []byte                 `protobuf:"bytes,4,opt,name=codec_profile_sha256,json=codecProfileSha256,proto3" json:"codec_profile_sha256,omitempty"`
+	EffectiveScope      GeminiEffectiveScope   `protobuf:"varint,5,opt,name=effective_scope,json=effectiveScope,proto3,enum=skillhub.configuration.native.v1.GeminiEffectiveScope" json:"effective_scope,omitempty"`
+	LocalAuthPolicy     string                 `protobuf:"bytes,6,opt,name=local_auth_policy,json=localAuthPolicy,proto3" json:"local_auth_policy,omitempty"`
+	ObservationWitness  []byte                 `protobuf:"bytes,7,opt,name=observation_witness,json=observationWitness,proto3" json:"observation_witness,omitempty"`
+	Roles               []*GeminiRoleBaseline  `protobuf:"bytes,8,rep,name=roles,proto3" json:"roles,omitempty"`
+	FieldDecisions      []*GeminiFieldDecision `protobuf:"bytes,9,rep,name=field_decisions,json=fieldDecisions,proto3" json:"field_decisions,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GeminiLocalBindingV1) Reset() {
+	*x = GeminiLocalBindingV1{}
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GeminiLocalBindingV1) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GeminiLocalBindingV1) ProtoMessage() {}
+
+func (x *GeminiLocalBindingV1) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_configuration_native_v1_native_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GeminiLocalBindingV1.ProtoReflect.Descriptor instead.
+func (*GeminiLocalBindingV1) Descriptor() ([]byte, []int) {
+	return file_skillhub_configuration_native_v1_native_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *GeminiLocalBindingV1) GetBindingVersion() uint32 {
+	if x != nil {
+		return x.BindingVersion
+	}
+	return 0
+}
+
+func (x *GeminiLocalBindingV1) GetNativeProfileId() string {
+	if x != nil {
+		return x.NativeProfileId
+	}
+	return ""
+}
+
+func (x *GeminiLocalBindingV1) GetNativeProfileSha256() []byte {
+	if x != nil {
+		return x.NativeProfileSha256
+	}
+	return nil
+}
+
+func (x *GeminiLocalBindingV1) GetCodecProfileSha256() []byte {
+	if x != nil {
+		return x.CodecProfileSha256
+	}
+	return nil
+}
+
+func (x *GeminiLocalBindingV1) GetEffectiveScope() GeminiEffectiveScope {
+	if x != nil {
+		return x.EffectiveScope
+	}
+	return GeminiEffectiveScope_GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED
+}
+
+func (x *GeminiLocalBindingV1) GetLocalAuthPolicy() string {
+	if x != nil {
+		return x.LocalAuthPolicy
+	}
+	return ""
+}
+
+func (x *GeminiLocalBindingV1) GetObservationWitness() []byte {
+	if x != nil {
+		return x.ObservationWitness
+	}
+	return nil
+}
+
+func (x *GeminiLocalBindingV1) GetRoles() []*GeminiRoleBaseline {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *GeminiLocalBindingV1) GetFieldDecisions() []*GeminiFieldDecision {
+	if x != nil {
+		return x.FieldDecisions
+	}
+	return nil
+}
+
 var File_skillhub_configuration_native_v1_native_proto protoreflect.FileDescriptor
 
 const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
@@ -3060,7 +3879,7 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\tplugin_id\x18\x02 \x01(\tR\bpluginId\x12%\n" +
 	"\x0eplugin_version\x18\x03 \x01(\tR\rpluginVersion\x12+\n" +
 	"\x11definition_digest\x18\x04 \x01(\tR\x10definitionDigest\x123\n" +
-	"\x15required_capabilities\x18\x05 \x03(\tR\x14requiredCapabilities\"\x9b\b\n" +
+	"\x15required_capabilities\x18\x05 \x03(\tR\x14requiredCapabilities\"\xea\b\n" +
 	"\x12PreparationBinding\x12\x19\n" +
 	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12#\n" +
 	"\rserver_origin\x18\x02 \x01(\tR\fserverOrigin\x124\n" +
@@ -3086,12 +3905,14 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"prepare_id\x18\x13 \x01(\tR\tprepareId\x12-\n" +
 	"\x13prepared_at_unix_ms\x18\x14 \x01(\x03R\x10preparedAtUnixMs\x12!\n" +
 	"\fpatch_sha256\x18\x15 \x01(\fR\vpatchSha256\x12J\n" +
-	"\x05codex\x18( \x01(\v24.skillhub.configuration.native.v1.CodexPreparationV1R\x05codexJ\x04\b\x05\x10\x06J\x04\b\x1e\x10(\"\xb4\x02\n" +
+	"\x05codex\x18( \x01(\v24.skillhub.configuration.native.v1.CodexPreparationV1R\x05codex\x12M\n" +
+	"\x06gemini\x18) \x01(\v25.skillhub.configuration.native.v1.GeminiPreparationV1R\x06geminiJ\x04\b\x05\x10\x06J\x04\b\x1e\x10(\"\x9e\x03\n" +
 	"\fApplyBinding\x12V\n" +
 	"\vpreparation\x18\x01 \x01(\v24.skillhub.configuration.native.v1.PreparationBindingR\vpreparation\x12+\n" +
 	"\x11intent_commitment\x18\x02 \x01(\fR\x10intentCommitment\x128\n" +
 	"\x19intent_expires_at_unix_ms\x18\x03 \x01(\x03R\x15intentExpiresAtUnixMs\x12e\n" +
-	"\x13codex_local_binding\x18( \x01(\v25.skillhub.configuration.native.v1.CodexLocalBindingV1R\x11codexLocalBinding\"\"\n" +
+	"\x13codex_local_binding\x18( \x01(\v25.skillhub.configuration.native.v1.CodexLocalBindingV1R\x11codexLocalBinding\x12h\n" +
+	"\x14gemini_local_binding\x18) \x01(\v26.skillhub.configuration.native.v1.GeminiLocalBindingV1R\x12geminiLocalBinding\"\"\n" +
 	"\n" +
 	"SetLiteral\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\"U\n" +
@@ -3108,7 +3929,7 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\x13ClaudeProviderPatch\x12P\n" +
 	"\n" +
 	"operations\x18\x01 \x03(\v20.skillhub.configuration.native.v1.PatchOperationR\n" +
-	"operations\"\xa8\x05\n" +
+	"operations\"\xe0\x05\n" +
 	"\x19PrepareNativeApplyRequest\x12*\n" +
 	"\x11expected_owner_id\x18\x01 \x01(\tR\x0fexpectedOwnerId\x12\x19\n" +
 	"\basset_id\x18\x02 \x01(\tR\aassetId\x126\n" +
@@ -3125,19 +3946,21 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\foperation_id\x18\v \x01(\fR\voperationId\x12!\n" +
 	"\fclient_nonce\x18\r \x01(\fR\vclientNonce\x12'\n" +
 	"\x0fproof_signature\x18\x0e \x01(\fR\x0eproofSignature\x124\n" +
-	"\x16codex_contract_version\x18( \x01(\rR\x14codexContractVersionJ\x04\b\f\x10\rJ\x04\b\x0f\x10\x10\"\x88\x03\n" +
+	"\x16codex_contract_version\x18( \x01(\rR\x14codexContractVersion\x126\n" +
+	"\x17gemini_contract_version\x18) \x01(\rR\x15geminiContractVersionJ\x04\b\f\x10\rJ\x04\b\x0f\x10\x10\"\xee\x03\n" +
 	"\x1aPrepareNativeApplyResponse\x12N\n" +
 	"\abinding\x18\x01 \x01(\v24.skillhub.configuration.native.v1.PreparationBindingR\abinding\x12K\n" +
 	"\x05patch\x18\x02 \x01(\v25.skillhub.configuration.native.v1.ClaudeProviderPatchR\x05patch\x129\n" +
 	"\x18materialization_required\x18\x03 \x01(\bR\x17materializationRequired\x12/\n" +
 	"\x13authorize_challenge\x18\x04 \x01(\fR\x12authorizeChallenge\x12a\n" +
-	"\x11codex_declaration\x18\x05 \x01(\v24.skillhub.configuration.native.v1.CodexDeclarationV1R\x10codexDeclaration\"K\n" +
+	"\x11codex_declaration\x18\x05 \x01(\v24.skillhub.configuration.native.v1.CodexDeclarationV1R\x10codexDeclaration\x12d\n" +
+	"\x12gemini_declaration\x18\x06 \x01(\v25.skillhub.configuration.native.v1.GeminiDeclarationV1R\x11geminiDeclaration\"K\n" +
 	"\x14ExplicitConfirmation\x123\n" +
 	"\x15confirmation_revision\x18\x01 \x01(\x04R\x14confirmationRevision\"R\n" +
 	"\n" +
 	"AutoPolicy\x12\x1b\n" +
 	"\tpolicy_id\x18\x01 \x01(\fR\bpolicyId\x12'\n" +
-	"\x0fpolicy_revision\x18\x02 \x01(\x04R\x0epolicyRevision\"\xab\x05\n" +
+	"\x0fpolicy_revision\x18\x02 \x01(\x04R\x0epolicyRevision\"\x95\x06\n" +
 	"%AuthorizeNativeMaterializationRequest\x12\x1d\n" +
 	"\n" +
 	"prepare_id\x18\x01 \x01(\tR\tprepareId\x12!\n" +
@@ -3150,7 +3973,8 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\fclient_nonce\x18\a \x01(\fR\vclientNonce\x12'\n" +
 	"\x0fproof_signature\x18\b \x01(\fR\x0eproofSignature\x128\n" +
 	"\x19intent_expires_at_unix_ms\x18\t \x01(\x03R\x15intentExpiresAtUnixMs\x12e\n" +
-	"\x13codex_local_binding\x18( \x01(\v25.skillhub.configuration.native.v1.CodexLocalBindingV1R\x11codexLocalBindingB\x0f\n" +
+	"\x13codex_local_binding\x18( \x01(\v25.skillhub.configuration.native.v1.CodexLocalBindingV1R\x11codexLocalBinding\x12h\n" +
+	"\x14gemini_local_binding\x18) \x01(\v26.skillhub.configuration.native.v1.GeminiLocalBindingV1R\x12geminiLocalBindingB\x0f\n" +
 	"\rauthorization\"\xc8\x02\n" +
 	"&AuthorizeNativeMaterializationResponse\x12\x19\n" +
 	"\bgrant_id\x18\x01 \x01(\tR\agrantId\x12$\n" +
@@ -3238,24 +4062,67 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\x14requires_openai_auth\x18\r \x01(\bH\x00R\x12requiresOpenaiAuth\x88\x01\x01\x12/\n" +
 	"\x13observation_witness\x18\x0e \x01(\fR\x12observationWitness\x12Q\n" +
 	"\tbaselines\x18\x0f \x03(\v23.skillhub.configuration.native.v1.CodexRoleBaselineR\tbaselinesB\x17\n" +
-	"\x15_requires_openai_auth*W\n" +
+	"\x15_requires_openai_auth\"o\n" +
+	"\x13GeminiPreparationV1\x12)\n" +
+	"\x10contract_version\x18\x01 \x01(\rR\x0fcontractVersion\x12-\n" +
+	"\x12declaration_sha256\x18\x02 \x01(\fR\x11declarationSha256\"\x8e\x05\n" +
+	"\x13GeminiDeclarationV1\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\rR\aversion\x12\x16\n" +
+	"\x06target\x18\x02 \x01(\tR\x06target\x12F\n" +
+	"\tauth_mode\x18\x03 \x01(\x0e2).skillhub.configuration.v1.GeminiAuthModeR\bauthMode\x12\x1f\n" +
+	"\bendpoint\x18\x04 \x01(\tH\x00R\bendpoint\x88\x01\x01\x12W\n" +
+	"\rkey_transport\x18\x05 \x01(\x0e2-.skillhub.configuration.v1.GeminiKeyTransportH\x01R\fkeyTransport\x88\x01\x01\x12 \n" +
+	"\tenv_model\x18\x06 \x01(\tH\x02R\benvModel\x88\x01\x01\x12*\n" +
+	"\x0esettings_model\x18\a \x01(\tH\x03R\rsettingsModel\x88\x01\x01\x12#\n" +
+	"\rselected_type\x18\b \x01(\tR\fselectedType\x126\n" +
+	"\x14credential_reference\x18\t \x01(\tH\x04R\x13credentialReference\x88\x01\x01\x12S\n" +
+	"\x0erequired_slots\x18\n" +
+	" \x03(\x0e2,.skillhub.configuration.native.v1.SecretSlotR\rrequiredSlots\x12*\n" +
+	"\x11local_auth_policy\x18\v \x01(\tR\x0flocalAuthPolicyB\v\n" +
+	"\t_endpointB\x10\n" +
+	"\x0e_key_transportB\f\n" +
+	"\n" +
+	"_env_modelB\x11\n" +
+	"\x0f_settings_modelB\x17\n" +
+	"\x15_credential_reference\"\xc9\x01\n" +
+	"\x12GeminiRoleBaseline\x12@\n" +
+	"\x04role\x18\x01 \x01(\x0e2,.skillhub.configuration.native.v1.GeminiRoleR\x04role\x12L\n" +
+	"\bpresence\x18\x02 \x01(\x0e20.skillhub.configuration.native.v1.GeminiPresenceR\bpresence\x12#\n" +
+	"\rbaseline_hmac\x18\x03 \x01(\fR\fbaselineHmac\"\xbe\x02\n" +
+	"\x13GeminiFieldDecision\x12C\n" +
+	"\x05field\x18\x01 \x01(\x0e2-.skillhub.configuration.native.v1.GeminiFieldR\x05field\x12O\n" +
+	"\townership\x18\x02 \x01(\x0e21.skillhub.configuration.native.v1.GeminiOwnershipR\townership\x12F\n" +
+	"\x06action\x18\x03 \x01(\x0e2..skillhub.configuration.native.v1.GeminiActionR\x06action\x12I\n" +
+	"\acleanup\x18\x04 \x01(\x0e2/.skillhub.configuration.native.v1.GeminiCleanupR\acleanup\"\xbb\x04\n" +
+	"\x14GeminiLocalBindingV1\x12'\n" +
+	"\x0fbinding_version\x18\x01 \x01(\rR\x0ebindingVersion\x12*\n" +
+	"\x11native_profile_id\x18\x02 \x01(\tR\x0fnativeProfileId\x122\n" +
+	"\x15native_profile_sha256\x18\x03 \x01(\fR\x13nativeProfileSha256\x120\n" +
+	"\x14codec_profile_sha256\x18\x04 \x01(\fR\x12codecProfileSha256\x12_\n" +
+	"\x0feffective_scope\x18\x05 \x01(\x0e26.skillhub.configuration.native.v1.GeminiEffectiveScopeR\x0eeffectiveScope\x12*\n" +
+	"\x11local_auth_policy\x18\x06 \x01(\tR\x0flocalAuthPolicy\x12/\n" +
+	"\x13observation_witness\x18\a \x01(\fR\x12observationWitness\x12J\n" +
+	"\x05roles\x18\b \x03(\v24.skillhub.configuration.native.v1.GeminiRoleBaselineR\x05roles\x12^\n" +
+	"\x0ffield_decisions\x18\t \x03(\v25.skillhub.configuration.native.v1.GeminiFieldDecisionR\x0efieldDecisions*W\n" +
 	"\rNativePurpose\x12\x1e\n" +
 	"\x1aNATIVE_PURPOSE_UNSPECIFIED\x10\x00\x12&\n" +
-	"\"NATIVE_PURPOSE_CONFIGURATION_APPLY\x10\x01*U\n" +
+	"\"NATIVE_PURPOSE_CONFIGURATION_APPLY\x10\x01*q\n" +
 	"\x06Target\x12\x16\n" +
 	"\x12TARGET_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TARGET_CLAUDE_SETTINGS\x10\x01\x12\x17\n" +
-	"\x13TARGET_CODEX_CONFIG\x10\x02*.\n" +
+	"\x13TARGET_CODEX_CONFIG\x10\x02\x12\x1a\n" +
+	"\x16TARGET_GEMINI_SETTINGS\x10\x03*.\n" +
 	"\x05Scope\x12\x15\n" +
 	"\x11SCOPE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
-	"SCOPE_USER\x10\x01*\x90\x01\n" +
+	"SCOPE_USER\x10\x01*\xb0\x01\n" +
 	"\n" +
 	"SecretSlot\x12\x1b\n" +
 	"\x17SECRET_SLOT_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSECRET_SLOT_CLAUDE_API_KEY\x10\x01\x12!\n" +
 	"\x1dSECRET_SLOT_CLAUDE_AUTH_TOKEN\x10\x02\x12\"\n" +
-	"\x1eSECRET_SLOT_CODEX_PROVIDER_KEY\x10\x03*\xb9\x01\n" +
+	"\x1eSECRET_SLOT_CODEX_PROVIDER_KEY\x10\x03\x12\x1e\n" +
+	"\x1aSECRET_SLOT_GEMINI_API_KEY\x10\x04*\xb9\x01\n" +
 	"\aEnvSlot\x12\x18\n" +
 	"\x14ENV_SLOT_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10ENV_SLOT_API_KEY\x10\x01\x12\x17\n" +
@@ -3304,7 +4171,42 @@ const file_skillhub_configuration_native_v1_native_proto_rawDesc = "" +
 	"\x16CODEX_ROLE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11CODEX_ROLE_CONFIG\x10\x01\x12\x13\n" +
 	"\x0fCODEX_ROLE_AUTH\x10\x02\x12\x16\n" +
-	"\x12CODEX_ROLE_CATALOG\x10\x032\xf1\a\n" +
+	"\x12CODEX_ROLE_CATALOG\x10\x03*p\n" +
+	"\x14GeminiEffectiveScope\x12&\n" +
+	"\"GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED\x10\x00\x120\n" +
+	",GEMINI_EFFECTIVE_SCOPE_COMPLETE_BOUND_LAUNCH\x10\x01*X\n" +
+	"\n" +
+	"GeminiRole\x12\x1b\n" +
+	"\x17GEMINI_ROLE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fGEMINI_ROLE_ENV\x10\x01\x12\x18\n" +
+	"\x14GEMINI_ROLE_SETTINGS\x10\x02*k\n" +
+	"\x0eGeminiPresence\x12\x1f\n" +
+	"\x1bGEMINI_PRESENCE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17GEMINI_PRESENCE_MISSING\x10\x01\x12\x1b\n" +
+	"\x17GEMINI_PRESENCE_PRESENT\x10\x02*\xd5\x01\n" +
+	"\vGeminiField\x12\x1c\n" +
+	"\x18GEMINI_FIELD_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14GEMINI_FIELD_API_KEY\x10\x01\x12\x19\n" +
+	"\x15GEMINI_FIELD_ENDPOINT\x10\x02\x12\x1a\n" +
+	"\x16GEMINI_FIELD_TRANSPORT\x10\x03\x12\x1a\n" +
+	"\x16GEMINI_FIELD_ENV_MODEL\x10\x04\x12\x1f\n" +
+	"\x1bGEMINI_FIELD_SETTINGS_MODEL\x10\x05\x12\x1a\n" +
+	"\x16GEMINI_FIELD_AUTH_MODE\x10\x06*\xb4\x01\n" +
+	"\x0fGeminiOwnership\x12 \n" +
+	"\x1cGEMINI_OWNERSHIP_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17GEMINI_OWNERSHIP_ABSENT\x10\x01\x12\x1c\n" +
+	"\x18GEMINI_OWNERSHIP_MANAGED\x10\x02\x12\x1c\n" +
+	"\x18GEMINI_OWNERSHIP_FOREIGN\x10\x03\x12&\n" +
+	"\"GEMINI_OWNERSHIP_EXPLICIT_TAKEOVER\x10\x04*x\n" +
+	"\fGeminiAction\x12\x1d\n" +
+	"\x19GEMINI_ACTION_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12GEMINI_ACTION_KEEP\x10\x01\x12\x17\n" +
+	"\x13GEMINI_ACTION_WRITE\x10\x02\x12\x18\n" +
+	"\x14GEMINI_ACTION_REMOVE\x10\x03*f\n" +
+	"\rGeminiCleanup\x12\x1e\n" +
+	"\x1aGEMINI_CLEANUP_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17GEMINI_CLEANUP_PRESERVE\x10\x01\x12\x18\n" +
+	"\x14GEMINI_CLEANUP_CLEAR\x10\x022\xf1\a\n" +
 	"\x1aNativeConfigurationService\x12\x92\x01\n" +
 	"\x13BeginNativeConsumer\x12<.skillhub.configuration.native.v1.BeginNativeConsumerRequest\x1a=.skillhub.configuration.native.v1.BeginNativeConsumerResponse\x12\x8f\x01\n" +
 	"\x12BindNativeConsumer\x12;.skillhub.configuration.native.v1.BindNativeConsumerRequest\x1a<.skillhub.configuration.native.v1.BindNativeConsumerResponse\x12\x8f\x01\n" +
@@ -3325,8 +4227,8 @@ func file_skillhub_configuration_native_v1_native_proto_rawDescGZIP() []byte {
 	return file_skillhub_configuration_native_v1_native_proto_rawDescData
 }
 
-var file_skillhub_configuration_native_v1_native_proto_enumTypes = make([]protoimpl.EnumInfo, 12)
-var file_skillhub_configuration_native_v1_native_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_skillhub_configuration_native_v1_native_proto_enumTypes = make([]protoimpl.EnumInfo, 19)
+var file_skillhub_configuration_native_v1_native_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_skillhub_configuration_native_v1_native_proto_goTypes = []any{
 	(NativePurpose)(0),                             // 0: skillhub.configuration.native.v1.NativePurpose
 	(Target)(0),                                    // 1: skillhub.configuration.native.v1.Target
@@ -3340,102 +4242,132 @@ var file_skillhub_configuration_native_v1_native_proto_goTypes = []any{
 	(CodexKeyringState)(0),                         // 9: skillhub.configuration.native.v1.CodexKeyringState
 	(CodexFileLoginState)(0),                       // 10: skillhub.configuration.native.v1.CodexFileLoginState
 	(CodexRole)(0),                                 // 11: skillhub.configuration.native.v1.CodexRole
-	(*BeginNativeConsumerRequest)(nil),             // 12: skillhub.configuration.native.v1.BeginNativeConsumerRequest
-	(*BeginNativeConsumerResponse)(nil),            // 13: skillhub.configuration.native.v1.BeginNativeConsumerResponse
-	(*BindNativeConsumerRequest)(nil),              // 14: skillhub.configuration.native.v1.BindNativeConsumerRequest
-	(*BindNativeConsumerResponse)(nil),             // 15: skillhub.configuration.native.v1.BindNativeConsumerResponse
-	(*AdapterBinding)(nil),                         // 16: skillhub.configuration.native.v1.AdapterBinding
-	(*PreparationBinding)(nil),                     // 17: skillhub.configuration.native.v1.PreparationBinding
-	(*ApplyBinding)(nil),                           // 18: skillhub.configuration.native.v1.ApplyBinding
-	(*SetLiteral)(nil),                             // 19: skillhub.configuration.native.v1.SetLiteral
-	(*SetSelectedSecret)(nil),                      // 20: skillhub.configuration.native.v1.SetSelectedSecret
-	(*RemoveEnv)(nil),                              // 21: skillhub.configuration.native.v1.RemoveEnv
-	(*PatchOperation)(nil),                         // 22: skillhub.configuration.native.v1.PatchOperation
-	(*ClaudeProviderPatch)(nil),                    // 23: skillhub.configuration.native.v1.ClaudeProviderPatch
-	(*PrepareNativeApplyRequest)(nil),              // 24: skillhub.configuration.native.v1.PrepareNativeApplyRequest
-	(*PrepareNativeApplyResponse)(nil),             // 25: skillhub.configuration.native.v1.PrepareNativeApplyResponse
-	(*ExplicitConfirmation)(nil),                   // 26: skillhub.configuration.native.v1.ExplicitConfirmation
-	(*AutoPolicy)(nil),                             // 27: skillhub.configuration.native.v1.AutoPolicy
-	(*AuthorizeNativeMaterializationRequest)(nil),  // 28: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest
-	(*AuthorizeNativeMaterializationResponse)(nil), // 29: skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse
-	(*ConsumeNativeMaterializationRequest)(nil),    // 30: skillhub.configuration.native.v1.ConsumeNativeMaterializationRequest
-	(*SlotValue)(nil),                              // 31: skillhub.configuration.native.v1.SlotValue
-	(*ConsumeNativeMaterializationResponse)(nil),   // 32: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse
-	(*GetNativeMaterializationStatusRequest)(nil),  // 33: skillhub.configuration.native.v1.GetNativeMaterializationStatusRequest
-	(*GetNativeMaterializationStatusResponse)(nil), // 34: skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse
-	(*CodexPreparationV1)(nil),                     // 35: skillhub.configuration.native.v1.CodexPreparationV1
-	(*CodexDeclarationV1)(nil),                     // 36: skillhub.configuration.native.v1.CodexDeclarationV1
-	(*CodexMissing)(nil),                           // 37: skillhub.configuration.native.v1.CodexMissing
-	(*CodexPresent)(nil),                           // 38: skillhub.configuration.native.v1.CodexPresent
-	(*CodexNotObserved)(nil),                       // 39: skillhub.configuration.native.v1.CodexNotObserved
-	(*CodexRoleBaseline)(nil),                      // 40: skillhub.configuration.native.v1.CodexRoleBaseline
-	(*CodexLocalBindingV1)(nil),                    // 41: skillhub.configuration.native.v1.CodexLocalBindingV1
-	(v1.AssetKind)(0),                              // 42: skillhub.configuration.v1.AssetKind
-	(v1.CodexReasoningEffort)(0),                   // 43: skillhub.configuration.v1.CodexReasoningEffort
-	(*v1.CodexCatalog)(nil),                        // 44: skillhub.configuration.v1.CodexCatalog
+	(GeminiEffectiveScope)(0),                      // 12: skillhub.configuration.native.v1.GeminiEffectiveScope
+	(GeminiRole)(0),                                // 13: skillhub.configuration.native.v1.GeminiRole
+	(GeminiPresence)(0),                            // 14: skillhub.configuration.native.v1.GeminiPresence
+	(GeminiField)(0),                               // 15: skillhub.configuration.native.v1.GeminiField
+	(GeminiOwnership)(0),                           // 16: skillhub.configuration.native.v1.GeminiOwnership
+	(GeminiAction)(0),                              // 17: skillhub.configuration.native.v1.GeminiAction
+	(GeminiCleanup)(0),                             // 18: skillhub.configuration.native.v1.GeminiCleanup
+	(*BeginNativeConsumerRequest)(nil),             // 19: skillhub.configuration.native.v1.BeginNativeConsumerRequest
+	(*BeginNativeConsumerResponse)(nil),            // 20: skillhub.configuration.native.v1.BeginNativeConsumerResponse
+	(*BindNativeConsumerRequest)(nil),              // 21: skillhub.configuration.native.v1.BindNativeConsumerRequest
+	(*BindNativeConsumerResponse)(nil),             // 22: skillhub.configuration.native.v1.BindNativeConsumerResponse
+	(*AdapterBinding)(nil),                         // 23: skillhub.configuration.native.v1.AdapterBinding
+	(*PreparationBinding)(nil),                     // 24: skillhub.configuration.native.v1.PreparationBinding
+	(*ApplyBinding)(nil),                           // 25: skillhub.configuration.native.v1.ApplyBinding
+	(*SetLiteral)(nil),                             // 26: skillhub.configuration.native.v1.SetLiteral
+	(*SetSelectedSecret)(nil),                      // 27: skillhub.configuration.native.v1.SetSelectedSecret
+	(*RemoveEnv)(nil),                              // 28: skillhub.configuration.native.v1.RemoveEnv
+	(*PatchOperation)(nil),                         // 29: skillhub.configuration.native.v1.PatchOperation
+	(*ClaudeProviderPatch)(nil),                    // 30: skillhub.configuration.native.v1.ClaudeProviderPatch
+	(*PrepareNativeApplyRequest)(nil),              // 31: skillhub.configuration.native.v1.PrepareNativeApplyRequest
+	(*PrepareNativeApplyResponse)(nil),             // 32: skillhub.configuration.native.v1.PrepareNativeApplyResponse
+	(*ExplicitConfirmation)(nil),                   // 33: skillhub.configuration.native.v1.ExplicitConfirmation
+	(*AutoPolicy)(nil),                             // 34: skillhub.configuration.native.v1.AutoPolicy
+	(*AuthorizeNativeMaterializationRequest)(nil),  // 35: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest
+	(*AuthorizeNativeMaterializationResponse)(nil), // 36: skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse
+	(*ConsumeNativeMaterializationRequest)(nil),    // 37: skillhub.configuration.native.v1.ConsumeNativeMaterializationRequest
+	(*SlotValue)(nil),                              // 38: skillhub.configuration.native.v1.SlotValue
+	(*ConsumeNativeMaterializationResponse)(nil),   // 39: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse
+	(*GetNativeMaterializationStatusRequest)(nil),  // 40: skillhub.configuration.native.v1.GetNativeMaterializationStatusRequest
+	(*GetNativeMaterializationStatusResponse)(nil), // 41: skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse
+	(*CodexPreparationV1)(nil),                     // 42: skillhub.configuration.native.v1.CodexPreparationV1
+	(*CodexDeclarationV1)(nil),                     // 43: skillhub.configuration.native.v1.CodexDeclarationV1
+	(*CodexMissing)(nil),                           // 44: skillhub.configuration.native.v1.CodexMissing
+	(*CodexPresent)(nil),                           // 45: skillhub.configuration.native.v1.CodexPresent
+	(*CodexNotObserved)(nil),                       // 46: skillhub.configuration.native.v1.CodexNotObserved
+	(*CodexRoleBaseline)(nil),                      // 47: skillhub.configuration.native.v1.CodexRoleBaseline
+	(*CodexLocalBindingV1)(nil),                    // 48: skillhub.configuration.native.v1.CodexLocalBindingV1
+	(*GeminiPreparationV1)(nil),                    // 49: skillhub.configuration.native.v1.GeminiPreparationV1
+	(*GeminiDeclarationV1)(nil),                    // 50: skillhub.configuration.native.v1.GeminiDeclarationV1
+	(*GeminiRoleBaseline)(nil),                     // 51: skillhub.configuration.native.v1.GeminiRoleBaseline
+	(*GeminiFieldDecision)(nil),                    // 52: skillhub.configuration.native.v1.GeminiFieldDecision
+	(*GeminiLocalBindingV1)(nil),                   // 53: skillhub.configuration.native.v1.GeminiLocalBindingV1
+	(v1.AssetKind)(0),                              // 54: skillhub.configuration.v1.AssetKind
+	(v1.CodexReasoningEffort)(0),                   // 55: skillhub.configuration.v1.CodexReasoningEffort
+	(*v1.CodexCatalog)(nil),                        // 56: skillhub.configuration.v1.CodexCatalog
+	(v1.GeminiAuthMode)(0),                         // 57: skillhub.configuration.v1.GeminiAuthMode
+	(v1.GeminiKeyTransport)(0),                     // 58: skillhub.configuration.v1.GeminiKeyTransport
 }
 var file_skillhub_configuration_native_v1_native_proto_depIdxs = []int32{
 	0,  // 0: skillhub.configuration.native.v1.BeginNativeConsumerRequest.purpose:type_name -> skillhub.configuration.native.v1.NativePurpose
-	42, // 1: skillhub.configuration.native.v1.PreparationBinding.asset_kind:type_name -> skillhub.configuration.v1.AssetKind
-	16, // 2: skillhub.configuration.native.v1.PreparationBinding.adapter:type_name -> skillhub.configuration.native.v1.AdapterBinding
+	54, // 1: skillhub.configuration.native.v1.PreparationBinding.asset_kind:type_name -> skillhub.configuration.v1.AssetKind
+	23, // 2: skillhub.configuration.native.v1.PreparationBinding.adapter:type_name -> skillhub.configuration.native.v1.AdapterBinding
 	1,  // 3: skillhub.configuration.native.v1.PreparationBinding.target:type_name -> skillhub.configuration.native.v1.Target
 	2,  // 4: skillhub.configuration.native.v1.PreparationBinding.scope:type_name -> skillhub.configuration.native.v1.Scope
 	3,  // 5: skillhub.configuration.native.v1.PreparationBinding.required_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
-	35, // 6: skillhub.configuration.native.v1.PreparationBinding.codex:type_name -> skillhub.configuration.native.v1.CodexPreparationV1
-	17, // 7: skillhub.configuration.native.v1.ApplyBinding.preparation:type_name -> skillhub.configuration.native.v1.PreparationBinding
-	41, // 8: skillhub.configuration.native.v1.ApplyBinding.codex_local_binding:type_name -> skillhub.configuration.native.v1.CodexLocalBindingV1
-	3,  // 9: skillhub.configuration.native.v1.SetSelectedSecret.slot:type_name -> skillhub.configuration.native.v1.SecretSlot
-	4,  // 10: skillhub.configuration.native.v1.PatchOperation.slot:type_name -> skillhub.configuration.native.v1.EnvSlot
-	19, // 11: skillhub.configuration.native.v1.PatchOperation.set_literal:type_name -> skillhub.configuration.native.v1.SetLiteral
-	20, // 12: skillhub.configuration.native.v1.PatchOperation.set_selected_secret:type_name -> skillhub.configuration.native.v1.SetSelectedSecret
-	21, // 13: skillhub.configuration.native.v1.PatchOperation.remove:type_name -> skillhub.configuration.native.v1.RemoveEnv
-	22, // 14: skillhub.configuration.native.v1.ClaudeProviderPatch.operations:type_name -> skillhub.configuration.native.v1.PatchOperation
-	16, // 15: skillhub.configuration.native.v1.PrepareNativeApplyRequest.adapter:type_name -> skillhub.configuration.native.v1.AdapterBinding
-	1,  // 16: skillhub.configuration.native.v1.PrepareNativeApplyRequest.target:type_name -> skillhub.configuration.native.v1.Target
-	2,  // 17: skillhub.configuration.native.v1.PrepareNativeApplyRequest.scope:type_name -> skillhub.configuration.native.v1.Scope
-	17, // 18: skillhub.configuration.native.v1.PrepareNativeApplyResponse.binding:type_name -> skillhub.configuration.native.v1.PreparationBinding
-	23, // 19: skillhub.configuration.native.v1.PrepareNativeApplyResponse.patch:type_name -> skillhub.configuration.native.v1.ClaudeProviderPatch
-	36, // 20: skillhub.configuration.native.v1.PrepareNativeApplyResponse.codex_declaration:type_name -> skillhub.configuration.native.v1.CodexDeclarationV1
-	3,  // 21: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.requested_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
-	26, // 22: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.explicit_confirmation:type_name -> skillhub.configuration.native.v1.ExplicitConfirmation
-	27, // 23: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.auto_policy:type_name -> skillhub.configuration.native.v1.AutoPolicy
-	41, // 24: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.codex_local_binding:type_name -> skillhub.configuration.native.v1.CodexLocalBindingV1
-	18, // 25: skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse.binding:type_name -> skillhub.configuration.native.v1.ApplyBinding
-	3,  // 26: skillhub.configuration.native.v1.SlotValue.slot:type_name -> skillhub.configuration.native.v1.SecretSlot
-	18, // 27: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse.binding:type_name -> skillhub.configuration.native.v1.ApplyBinding
-	31, // 28: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse.slot_values:type_name -> skillhub.configuration.native.v1.SlotValue
-	5,  // 29: skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse.state:type_name -> skillhub.configuration.native.v1.GrantState
-	43, // 30: skillhub.configuration.native.v1.CodexDeclarationV1.reasoning_effort:type_name -> skillhub.configuration.v1.CodexReasoningEffort
-	44, // 31: skillhub.configuration.native.v1.CodexDeclarationV1.catalog:type_name -> skillhub.configuration.v1.CodexCatalog
-	3,  // 32: skillhub.configuration.native.v1.CodexDeclarationV1.required_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
-	11, // 33: skillhub.configuration.native.v1.CodexRoleBaseline.role:type_name -> skillhub.configuration.native.v1.CodexRole
-	37, // 34: skillhub.configuration.native.v1.CodexRoleBaseline.missing:type_name -> skillhub.configuration.native.v1.CodexMissing
-	38, // 35: skillhub.configuration.native.v1.CodexRoleBaseline.present:type_name -> skillhub.configuration.native.v1.CodexPresent
-	39, // 36: skillhub.configuration.native.v1.CodexRoleBaseline.not_observed:type_name -> skillhub.configuration.native.v1.CodexNotObserved
-	6,  // 37: skillhub.configuration.native.v1.CodexLocalBindingV1.effective_scope:type_name -> skillhub.configuration.native.v1.CodexEffectiveScope
-	7,  // 38: skillhub.configuration.native.v1.CodexLocalBindingV1.provider_ownership:type_name -> skillhub.configuration.native.v1.CodexOwnership
-	7,  // 39: skillhub.configuration.native.v1.CodexLocalBindingV1.catalog_ownership:type_name -> skillhub.configuration.native.v1.CodexOwnership
-	8,  // 40: skillhub.configuration.native.v1.CodexLocalBindingV1.auth_store:type_name -> skillhub.configuration.native.v1.CodexAuthStore
-	9,  // 41: skillhub.configuration.native.v1.CodexLocalBindingV1.keyring_state:type_name -> skillhub.configuration.native.v1.CodexKeyringState
-	10, // 42: skillhub.configuration.native.v1.CodexLocalBindingV1.file_login_state:type_name -> skillhub.configuration.native.v1.CodexFileLoginState
-	40, // 43: skillhub.configuration.native.v1.CodexLocalBindingV1.baselines:type_name -> skillhub.configuration.native.v1.CodexRoleBaseline
-	12, // 44: skillhub.configuration.native.v1.NativeConfigurationService.BeginNativeConsumer:input_type -> skillhub.configuration.native.v1.BeginNativeConsumerRequest
-	14, // 45: skillhub.configuration.native.v1.NativeConfigurationService.BindNativeConsumer:input_type -> skillhub.configuration.native.v1.BindNativeConsumerRequest
-	24, // 46: skillhub.configuration.native.v1.NativeConfigurationService.PrepareNativeApply:input_type -> skillhub.configuration.native.v1.PrepareNativeApplyRequest
-	28, // 47: skillhub.configuration.native.v1.NativeConfigurationService.AuthorizeNativeMaterialization:input_type -> skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest
-	30, // 48: skillhub.configuration.native.v1.NativeConfigurationService.ConsumeNativeMaterialization:input_type -> skillhub.configuration.native.v1.ConsumeNativeMaterializationRequest
-	33, // 49: skillhub.configuration.native.v1.NativeConfigurationService.GetNativeMaterializationStatus:input_type -> skillhub.configuration.native.v1.GetNativeMaterializationStatusRequest
-	13, // 50: skillhub.configuration.native.v1.NativeConfigurationService.BeginNativeConsumer:output_type -> skillhub.configuration.native.v1.BeginNativeConsumerResponse
-	15, // 51: skillhub.configuration.native.v1.NativeConfigurationService.BindNativeConsumer:output_type -> skillhub.configuration.native.v1.BindNativeConsumerResponse
-	25, // 52: skillhub.configuration.native.v1.NativeConfigurationService.PrepareNativeApply:output_type -> skillhub.configuration.native.v1.PrepareNativeApplyResponse
-	29, // 53: skillhub.configuration.native.v1.NativeConfigurationService.AuthorizeNativeMaterialization:output_type -> skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse
-	32, // 54: skillhub.configuration.native.v1.NativeConfigurationService.ConsumeNativeMaterialization:output_type -> skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse
-	34, // 55: skillhub.configuration.native.v1.NativeConfigurationService.GetNativeMaterializationStatus:output_type -> skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse
-	50, // [50:56] is the sub-list for method output_type
-	44, // [44:50] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	42, // 6: skillhub.configuration.native.v1.PreparationBinding.codex:type_name -> skillhub.configuration.native.v1.CodexPreparationV1
+	49, // 7: skillhub.configuration.native.v1.PreparationBinding.gemini:type_name -> skillhub.configuration.native.v1.GeminiPreparationV1
+	24, // 8: skillhub.configuration.native.v1.ApplyBinding.preparation:type_name -> skillhub.configuration.native.v1.PreparationBinding
+	48, // 9: skillhub.configuration.native.v1.ApplyBinding.codex_local_binding:type_name -> skillhub.configuration.native.v1.CodexLocalBindingV1
+	53, // 10: skillhub.configuration.native.v1.ApplyBinding.gemini_local_binding:type_name -> skillhub.configuration.native.v1.GeminiLocalBindingV1
+	3,  // 11: skillhub.configuration.native.v1.SetSelectedSecret.slot:type_name -> skillhub.configuration.native.v1.SecretSlot
+	4,  // 12: skillhub.configuration.native.v1.PatchOperation.slot:type_name -> skillhub.configuration.native.v1.EnvSlot
+	26, // 13: skillhub.configuration.native.v1.PatchOperation.set_literal:type_name -> skillhub.configuration.native.v1.SetLiteral
+	27, // 14: skillhub.configuration.native.v1.PatchOperation.set_selected_secret:type_name -> skillhub.configuration.native.v1.SetSelectedSecret
+	28, // 15: skillhub.configuration.native.v1.PatchOperation.remove:type_name -> skillhub.configuration.native.v1.RemoveEnv
+	29, // 16: skillhub.configuration.native.v1.ClaudeProviderPatch.operations:type_name -> skillhub.configuration.native.v1.PatchOperation
+	23, // 17: skillhub.configuration.native.v1.PrepareNativeApplyRequest.adapter:type_name -> skillhub.configuration.native.v1.AdapterBinding
+	1,  // 18: skillhub.configuration.native.v1.PrepareNativeApplyRequest.target:type_name -> skillhub.configuration.native.v1.Target
+	2,  // 19: skillhub.configuration.native.v1.PrepareNativeApplyRequest.scope:type_name -> skillhub.configuration.native.v1.Scope
+	24, // 20: skillhub.configuration.native.v1.PrepareNativeApplyResponse.binding:type_name -> skillhub.configuration.native.v1.PreparationBinding
+	30, // 21: skillhub.configuration.native.v1.PrepareNativeApplyResponse.patch:type_name -> skillhub.configuration.native.v1.ClaudeProviderPatch
+	43, // 22: skillhub.configuration.native.v1.PrepareNativeApplyResponse.codex_declaration:type_name -> skillhub.configuration.native.v1.CodexDeclarationV1
+	50, // 23: skillhub.configuration.native.v1.PrepareNativeApplyResponse.gemini_declaration:type_name -> skillhub.configuration.native.v1.GeminiDeclarationV1
+	3,  // 24: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.requested_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
+	33, // 25: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.explicit_confirmation:type_name -> skillhub.configuration.native.v1.ExplicitConfirmation
+	34, // 26: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.auto_policy:type_name -> skillhub.configuration.native.v1.AutoPolicy
+	48, // 27: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.codex_local_binding:type_name -> skillhub.configuration.native.v1.CodexLocalBindingV1
+	53, // 28: skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest.gemini_local_binding:type_name -> skillhub.configuration.native.v1.GeminiLocalBindingV1
+	25, // 29: skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse.binding:type_name -> skillhub.configuration.native.v1.ApplyBinding
+	3,  // 30: skillhub.configuration.native.v1.SlotValue.slot:type_name -> skillhub.configuration.native.v1.SecretSlot
+	25, // 31: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse.binding:type_name -> skillhub.configuration.native.v1.ApplyBinding
+	38, // 32: skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse.slot_values:type_name -> skillhub.configuration.native.v1.SlotValue
+	5,  // 33: skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse.state:type_name -> skillhub.configuration.native.v1.GrantState
+	55, // 34: skillhub.configuration.native.v1.CodexDeclarationV1.reasoning_effort:type_name -> skillhub.configuration.v1.CodexReasoningEffort
+	56, // 35: skillhub.configuration.native.v1.CodexDeclarationV1.catalog:type_name -> skillhub.configuration.v1.CodexCatalog
+	3,  // 36: skillhub.configuration.native.v1.CodexDeclarationV1.required_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
+	11, // 37: skillhub.configuration.native.v1.CodexRoleBaseline.role:type_name -> skillhub.configuration.native.v1.CodexRole
+	44, // 38: skillhub.configuration.native.v1.CodexRoleBaseline.missing:type_name -> skillhub.configuration.native.v1.CodexMissing
+	45, // 39: skillhub.configuration.native.v1.CodexRoleBaseline.present:type_name -> skillhub.configuration.native.v1.CodexPresent
+	46, // 40: skillhub.configuration.native.v1.CodexRoleBaseline.not_observed:type_name -> skillhub.configuration.native.v1.CodexNotObserved
+	6,  // 41: skillhub.configuration.native.v1.CodexLocalBindingV1.effective_scope:type_name -> skillhub.configuration.native.v1.CodexEffectiveScope
+	7,  // 42: skillhub.configuration.native.v1.CodexLocalBindingV1.provider_ownership:type_name -> skillhub.configuration.native.v1.CodexOwnership
+	7,  // 43: skillhub.configuration.native.v1.CodexLocalBindingV1.catalog_ownership:type_name -> skillhub.configuration.native.v1.CodexOwnership
+	8,  // 44: skillhub.configuration.native.v1.CodexLocalBindingV1.auth_store:type_name -> skillhub.configuration.native.v1.CodexAuthStore
+	9,  // 45: skillhub.configuration.native.v1.CodexLocalBindingV1.keyring_state:type_name -> skillhub.configuration.native.v1.CodexKeyringState
+	10, // 46: skillhub.configuration.native.v1.CodexLocalBindingV1.file_login_state:type_name -> skillhub.configuration.native.v1.CodexFileLoginState
+	47, // 47: skillhub.configuration.native.v1.CodexLocalBindingV1.baselines:type_name -> skillhub.configuration.native.v1.CodexRoleBaseline
+	57, // 48: skillhub.configuration.native.v1.GeminiDeclarationV1.auth_mode:type_name -> skillhub.configuration.v1.GeminiAuthMode
+	58, // 49: skillhub.configuration.native.v1.GeminiDeclarationV1.key_transport:type_name -> skillhub.configuration.v1.GeminiKeyTransport
+	3,  // 50: skillhub.configuration.native.v1.GeminiDeclarationV1.required_slots:type_name -> skillhub.configuration.native.v1.SecretSlot
+	13, // 51: skillhub.configuration.native.v1.GeminiRoleBaseline.role:type_name -> skillhub.configuration.native.v1.GeminiRole
+	14, // 52: skillhub.configuration.native.v1.GeminiRoleBaseline.presence:type_name -> skillhub.configuration.native.v1.GeminiPresence
+	15, // 53: skillhub.configuration.native.v1.GeminiFieldDecision.field:type_name -> skillhub.configuration.native.v1.GeminiField
+	16, // 54: skillhub.configuration.native.v1.GeminiFieldDecision.ownership:type_name -> skillhub.configuration.native.v1.GeminiOwnership
+	17, // 55: skillhub.configuration.native.v1.GeminiFieldDecision.action:type_name -> skillhub.configuration.native.v1.GeminiAction
+	18, // 56: skillhub.configuration.native.v1.GeminiFieldDecision.cleanup:type_name -> skillhub.configuration.native.v1.GeminiCleanup
+	12, // 57: skillhub.configuration.native.v1.GeminiLocalBindingV1.effective_scope:type_name -> skillhub.configuration.native.v1.GeminiEffectiveScope
+	51, // 58: skillhub.configuration.native.v1.GeminiLocalBindingV1.roles:type_name -> skillhub.configuration.native.v1.GeminiRoleBaseline
+	52, // 59: skillhub.configuration.native.v1.GeminiLocalBindingV1.field_decisions:type_name -> skillhub.configuration.native.v1.GeminiFieldDecision
+	19, // 60: skillhub.configuration.native.v1.NativeConfigurationService.BeginNativeConsumer:input_type -> skillhub.configuration.native.v1.BeginNativeConsumerRequest
+	21, // 61: skillhub.configuration.native.v1.NativeConfigurationService.BindNativeConsumer:input_type -> skillhub.configuration.native.v1.BindNativeConsumerRequest
+	31, // 62: skillhub.configuration.native.v1.NativeConfigurationService.PrepareNativeApply:input_type -> skillhub.configuration.native.v1.PrepareNativeApplyRequest
+	35, // 63: skillhub.configuration.native.v1.NativeConfigurationService.AuthorizeNativeMaterialization:input_type -> skillhub.configuration.native.v1.AuthorizeNativeMaterializationRequest
+	37, // 64: skillhub.configuration.native.v1.NativeConfigurationService.ConsumeNativeMaterialization:input_type -> skillhub.configuration.native.v1.ConsumeNativeMaterializationRequest
+	40, // 65: skillhub.configuration.native.v1.NativeConfigurationService.GetNativeMaterializationStatus:input_type -> skillhub.configuration.native.v1.GetNativeMaterializationStatusRequest
+	20, // 66: skillhub.configuration.native.v1.NativeConfigurationService.BeginNativeConsumer:output_type -> skillhub.configuration.native.v1.BeginNativeConsumerResponse
+	22, // 67: skillhub.configuration.native.v1.NativeConfigurationService.BindNativeConsumer:output_type -> skillhub.configuration.native.v1.BindNativeConsumerResponse
+	32, // 68: skillhub.configuration.native.v1.NativeConfigurationService.PrepareNativeApply:output_type -> skillhub.configuration.native.v1.PrepareNativeApplyResponse
+	36, // 69: skillhub.configuration.native.v1.NativeConfigurationService.AuthorizeNativeMaterialization:output_type -> skillhub.configuration.native.v1.AuthorizeNativeMaterializationResponse
+	39, // 70: skillhub.configuration.native.v1.NativeConfigurationService.ConsumeNativeMaterialization:output_type -> skillhub.configuration.native.v1.ConsumeNativeMaterializationResponse
+	41, // 71: skillhub.configuration.native.v1.NativeConfigurationService.GetNativeMaterializationStatus:output_type -> skillhub.configuration.native.v1.GetNativeMaterializationStatusResponse
+	66, // [66:72] is the sub-list for method output_type
+	60, // [60:66] is the sub-list for method input_type
+	60, // [60:60] is the sub-list for extension type_name
+	60, // [60:60] is the sub-list for extension extendee
+	0,  // [0:60] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_configuration_native_v1_native_proto_init() }
@@ -3459,13 +4391,14 @@ func file_skillhub_configuration_native_v1_native_proto_init() {
 		(*CodexRoleBaseline_NotObserved)(nil),
 	}
 	file_skillhub_configuration_native_v1_native_proto_msgTypes[29].OneofWrappers = []any{}
+	file_skillhub_configuration_native_v1_native_proto_msgTypes[31].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_configuration_native_v1_native_proto_rawDesc), len(file_skillhub_configuration_native_v1_native_proto_rawDesc)),
-			NumEnums:      12,
-			NumMessages:   30,
+			NumEnums:      19,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -3,6 +3,8 @@ package geminiconfig
 import (
 	"context"
 	"crypto/sha256"
+	_ "embed"
+	"encoding/hex"
 	"encoding/json/v2"
 	"slices"
 	"strings"
@@ -109,5 +111,45 @@ func CheckProvider(ctx context.Context, images LocalImages, declaration agentcon
 	if err := checkContext(ctx); err != nil {
 		return ProviderPlan{}, err
 	}
-	return ProviderPlan{}, ErrUnsupportedNativeProfile
+	data := local.get[resolutionData]()
+	if data == nil || data.profileID != Native0610ProfileID {
+		return ProviderPlan{}, ErrUnsupportedNativeProfile
+	}
+	return checkProvider(ctx, images, declaration, local, native0610Profile())
+}
+
+const Native0610ProfileID = "gemini-0.61.0-node26.13.0-linux-amd64-provider-v1"
+const Native0610NodeSHA256 = "0adde40d1b7dfa57c8bc83cbc319758c3ec6ebba21363bb2fa752ea6b267ad1b"
+const Native0610PackageManifestSHA256 = "d937b098022f074463d0d26af37c5e7669cfeccbf6966e9795002f03f7db76b6"
+
+//go:embed testdata/native-profile-v0.61.0/package-files.sha256
+var native0610PackageManifest []byte
+
+//go:embed testdata/native-profile-v0.61.0/LICENSE
+var native0610License []byte
+
+func Native0610PackageManifest() []byte { return slices.Clone(native0610PackageManifest) }
+func Native0610License() []byte         { return slices.Clone(native0610License) }
+func native0610Profile() nativeProfile {
+	digest, _ := hex.DecodeString("c4226f654bb0b35109c4f5ce34535c5addecda47")
+	source := sha256.Sum256(append([]byte("gemini/0.61.0/bb523741c7429a44d03e964bc124c7c92df59d5f/"), digest...))
+	return nativeProfile{id: Native0610ProfileID, dialect: "dotenv17-jsonc-v1", sourceDigest: source, ignoredEnv: []string{"FOREIGN"}, ignoredJSON: []string{"/ui", "/model/other", "/security/auth/note", "/foreign"}}
+}
+func Native0610CodecIdentity() (string, [32]byte, [32]byte) {
+	profile := native0610Profile()
+	return profile.id, profile.sourceDigest, profileDigest(profile)
+}
+
+func InspectNative0610Fields(ctx context.Context, images LocalImages) ([6]bool, error) {
+	var result [6]bool
+	env, settings, err := parsePair(ctx, images)
+	if err != nil {
+		return result, err
+	}
+	defer env.destroy()
+	defer settings.destroy()
+	for index, field := range fields {
+		result[index] = localField(env, settings, field)
+	}
+	return result, checkContext(ctx)
 }

@@ -22,6 +22,7 @@ enum Target {
   TARGET_UNSPECIFIED = 0;
   TARGET_CLAUDE_SETTINGS = 1;
   TARGET_CODEX_CONFIG = 2;
+  TARGET_GEMINI_SETTINGS = 3;
 }
 enum Scope {
   SCOPE_UNSPECIFIED = 0;
@@ -32,6 +33,7 @@ enum SecretSlot {
   SECRET_SLOT_CLAUDE_API_KEY = 1;
   SECRET_SLOT_CLAUDE_AUTH_TOKEN = 2;
   SECRET_SLOT_CODEX_PROVIDER_KEY = 3;
+  SECRET_SLOT_GEMINI_API_KEY = 4;
 }
 enum EnvSlot {
   ENV_SLOT_UNSPECIFIED = 0;
@@ -109,12 +111,14 @@ message PreparationBinding {
   bytes patch_sha256 = 21;
   reserved 30 to 39;
   CodexPreparationV1 codex = 40;
+  GeminiPreparationV1 gemini = 41;
 }
 message ApplyBinding {
   PreparationBinding preparation = 1;
   bytes intent_commitment = 2;
   int64 intent_expires_at_unix_ms = 3;
   CodexLocalBindingV1 codex_local_binding = 40;
+  GeminiLocalBindingV1 gemini_local_binding = 41;
 }
 message SetLiteral {
   string value = 1;
@@ -151,6 +155,7 @@ message PrepareNativeApplyRequest {
   bytes proof_signature = 14;
   reserved 15;
   uint32 codex_contract_version = 40;
+  uint32 gemini_contract_version = 41;
 }
 message PrepareNativeApplyResponse {
   PreparationBinding binding = 1;
@@ -158,6 +163,7 @@ message PrepareNativeApplyResponse {
   bool materialization_required = 3;
   bytes authorize_challenge = 4;
   CodexDeclarationV1 codex_declaration = 5;
+  GeminiDeclarationV1 gemini_declaration = 6;
 }
 message ExplicitConfirmation {
   uint64 confirmation_revision = 1;
@@ -179,6 +185,7 @@ message AuthorizeNativeMaterializationRequest {
   bytes proof_signature = 8;
   int64 intent_expires_at_unix_ms = 9;
   CodexLocalBindingV1 codex_local_binding = 40;
+  GeminiLocalBindingV1 gemini_local_binding = 41;
 }
 message AuthorizeNativeMaterializationResponse {
   string grant_id = 1;
@@ -305,4 +312,85 @@ message CodexLocalBindingV1 {
   optional bool requires_openai_auth = 13;
   bytes observation_witness = 14;
   repeated CodexRoleBaseline baselines = 15;
+}
+
+message GeminiPreparationV1 {
+  uint32 contract_version = 1;
+  bytes declaration_sha256 = 2;
+}
+message GeminiDeclarationV1 {
+  uint32 version = 1;
+  string target = 2;
+  skillhub.configuration.v1.GeminiAuthMode auth_mode = 3;
+  optional string endpoint = 4;
+  optional skillhub.configuration.v1.GeminiKeyTransport key_transport = 5;
+  optional string env_model = 6;
+  optional string settings_model = 7;
+  string selected_type = 8;
+  optional string credential_reference = 9;
+  repeated SecretSlot required_slots = 10;
+  string local_auth_policy = 11;
+}
+enum GeminiEffectiveScope {
+  GEMINI_EFFECTIVE_SCOPE_UNSPECIFIED = 0;
+  GEMINI_EFFECTIVE_SCOPE_COMPLETE_BOUND_LAUNCH = 1;
+}
+enum GeminiRole {
+  GEMINI_ROLE_UNSPECIFIED = 0;
+  GEMINI_ROLE_ENV = 1;
+  GEMINI_ROLE_SETTINGS = 2;
+}
+enum GeminiPresence {
+  GEMINI_PRESENCE_UNSPECIFIED = 0;
+  GEMINI_PRESENCE_MISSING = 1;
+  GEMINI_PRESENCE_PRESENT = 2;
+}
+enum GeminiField {
+  GEMINI_FIELD_UNSPECIFIED = 0;
+  GEMINI_FIELD_API_KEY = 1;
+  GEMINI_FIELD_ENDPOINT = 2;
+  GEMINI_FIELD_TRANSPORT = 3;
+  GEMINI_FIELD_ENV_MODEL = 4;
+  GEMINI_FIELD_SETTINGS_MODEL = 5;
+  GEMINI_FIELD_AUTH_MODE = 6;
+}
+enum GeminiOwnership {
+  GEMINI_OWNERSHIP_UNSPECIFIED = 0;
+  GEMINI_OWNERSHIP_ABSENT = 1;
+  GEMINI_OWNERSHIP_MANAGED = 2;
+  GEMINI_OWNERSHIP_FOREIGN = 3;
+  GEMINI_OWNERSHIP_EXPLICIT_TAKEOVER = 4;
+}
+enum GeminiAction {
+  GEMINI_ACTION_UNSPECIFIED = 0;
+  GEMINI_ACTION_KEEP = 1;
+  GEMINI_ACTION_WRITE = 2;
+  GEMINI_ACTION_REMOVE = 3;
+}
+enum GeminiCleanup {
+  GEMINI_CLEANUP_UNSPECIFIED = 0;
+  GEMINI_CLEANUP_PRESERVE = 1;
+  GEMINI_CLEANUP_CLEAR = 2;
+}
+message GeminiRoleBaseline {
+  GeminiRole role = 1;
+  GeminiPresence presence = 2;
+  bytes baseline_hmac = 3;
+}
+message GeminiFieldDecision {
+  GeminiField field = 1;
+  GeminiOwnership ownership = 2;
+  GeminiAction action = 3;
+  GeminiCleanup cleanup = 4;
+}
+message GeminiLocalBindingV1 {
+  uint32 binding_version = 1;
+  string native_profile_id = 2;
+  bytes native_profile_sha256 = 3;
+  bytes codec_profile_sha256 = 4;
+  GeminiEffectiveScope effective_scope = 5;
+  string local_auth_policy = 6;
+  bytes observation_witness = 7;
+  repeated GeminiRoleBaseline roles = 8;
+  repeated GeminiFieldDecision field_decisions = 9;
 }

@@ -76,6 +76,9 @@ func nativeFieldBudget(data []byte, descriptor protoreflect.MessageDescriptor, r
 }
 
 func nativeResponseValid(message proto.Message) bool {
+	if handled, valid := geminiClientResponseValid(message); handled {
+		return valid
+	}
 	if handled, valid := codexClientResponseValid(message); handled {
 		return valid
 	}

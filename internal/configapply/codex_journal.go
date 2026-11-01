@@ -2,10 +2,8 @@ package configapply
 
 import (
 	"context"
-	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hkdf"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json/v2"
@@ -193,74 +191,32 @@ func (state *codexEngineState) aad(domain string, operation *codexOperation) ([]
 	return json.Marshal(context)
 }
 
-func codexAEAD(key []byte) (cipher.AEAD, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, ErrCodexAttention
-	}
-	return cipher.NewGCM(block)
-}
-
+func codexAEAD(key []byte) (cipher.AEAD, error) { return bundleAEAD(key) }
 func (state *codexEngineState) seal(domain string, operation *codexOperation, value any, limit int) ([]byte, error) {
-	plain, err := json.Marshal(value)
-	if err != nil || len(plain) > limit {
-		clear(plain)
-		return nil, ErrCodexCapacity
-	}
-	defer clear(plain)
 	key := state.keys.anchor
 	if domain == "backup" {
 		key = state.keys.backup
 	} else if domain == "candidate" {
 		key = state.keys.candidate
 	}
-	aead, err := codexAEAD(key)
-	if err != nil {
-		return nil, err
-	}
 	aad, err := state.aad(domain, operation)
 	if err != nil {
 		return nil, ErrCodexAttention
 	}
-	nonce := make([]byte, aead.NonceSize())
-	if _, err := rand.Read(nonce); err != nil {
-		return nil, ErrCodexAttention
-	}
-	return json.Marshal(codexEnvelope{Version: 1, Nonce: nonce, Ciphertext: aead.Seal(nil, nonce, plain, aad)})
+	return bundleSeal(key, aad, value, limit)
 }
-
 func (state *codexEngineState) unseal(domain string, operation *codexOperation, body []byte, destination any, limit int) error {
-	if len(body) > 2*limit+1024 {
-		return ErrCodexCapacity
-	}
-	var envelope codexEnvelope
-	if json.Unmarshal(body, &envelope, json.RejectUnknownMembers(true)) != nil || envelope.Version != 1 {
-		return ErrCodexAttention
-	}
-	defer clear(envelope.Ciphertext)
 	key := state.keys.anchor
 	if domain == "backup" {
 		key = state.keys.backup
 	} else if domain == "candidate" {
 		key = state.keys.candidate
 	}
-	aead, err := codexAEAD(key)
-	if err != nil || len(envelope.Nonce) != aead.NonceSize() || len(envelope.Ciphertext) > limit+aead.Overhead() {
-		return ErrCodexAttention
-	}
 	aad, err := state.aad(domain, operation)
 	if err != nil {
 		return ErrCodexAttention
 	}
-	plain, err := aead.Open(nil, envelope.Nonce, envelope.Ciphertext, aad)
-	if err != nil {
-		return ErrCodexAttention
-	}
-	defer clear(plain)
-	if json.Unmarshal(plain, destination, json.RejectUnknownMembers(true)) != nil {
-		return ErrCodexAttention
-	}
-	return nil
+	return bundleUnseal(key, aad, body, destination, limit)
 }
 
 func (state *codexEngineState) openCodexVault() error {

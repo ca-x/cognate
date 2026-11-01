@@ -149,7 +149,7 @@ func nativeWireValid(data []byte, descriptor protoreflect.MessageDescriptor, dep
 }
 
 func nativeScalarValid(field protoreflect.FieldDescriptor, value uint64) bool {
-	if field.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyRequest.codex_contract_version" && value != 1 {
+	if (field.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyRequest.codex_contract_version" || field.FullName() == "skillhub.configuration.native.v1.PrepareNativeApplyRequest.gemini_contract_version") && value != 1 {
 		return false
 	}
 	switch field.Kind() {
@@ -235,7 +235,7 @@ func nativeApplyValid(value *nativev1.ApplyBinding) bool {
 }
 
 func nativeKnown(message protoreflect.Message) bool {
-	if len(message.GetUnknown()) != 0 {
+	if len(message.GetUnknown()) != 0 || !nativesessionauth.ExclusiveNativeVariant(message.Interface()) {
 		return false
 	}
 	valid := true
@@ -264,6 +264,9 @@ func nativeKnown(message protoreflect.Message) bool {
 func nativeMessageValid(message proto.Message) bool {
 	if !message.ProtoReflect().IsValid() || !nativeKnown(message.ProtoReflect()) {
 		return false
+	}
+	if handled, valid := nativeGeminiMessageValid(message); handled {
+		return valid
 	}
 	if handled, valid := nativeCodexMessageValid(message); handled {
 		return valid

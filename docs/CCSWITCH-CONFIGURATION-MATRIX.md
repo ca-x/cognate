@@ -62,6 +62,8 @@
 
 证据：核心表单、专属 Grok/OpenCode/OpenClaw 组件，Rust `get_provider_editor_view`/保存命令及写入分发。[S03][S05][S06][S07][S08][S09]
 
+Gemini本机后继候选：固定0.61.0/Node26.13.0 Linux/amd64、已有安全根/trusted cwd，提供普通CLI/共享内核的双格式六字段差异、显式takeover/clear/槽/新plan最终确认、CAS与选择、Unknown禁止重放及新审阅恢复/还原。不是OAuth管理或GUI交付；最终资格以整片冻结REPORT/非作者验收为准，不能以开发overlay或元数据开关代替实际消费者。范围与许可见 `GEMINI-NATIVE-PROFILES.md`；完整十四agent目标不变。
+
 其他 agent 不是空占位：`ProviderForm` 将 Kimi、Mcode/Dsh、Pi/Omp、Desktop、Grok 分发到专属表单，Hermes 有独立字段组件；需要这些原生字段/引用校验的垂直切片，才可显示“配置应用已支持”。MiniMax 默认模型引用的 provider 禁止删除/禁用，采用兼容目录锁；Kimi 官方原生 OAuth 节点受保护；agy 第三方 key 通过启动环境传递，**仅写一个配置文件无法实现其完整交互**。[S04][S06][S10][S18]
 
 本地源码补核对发现的额外格式边界：[S19]

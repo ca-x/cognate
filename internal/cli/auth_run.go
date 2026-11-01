@@ -148,7 +148,7 @@ func authArguments(arguments []string) (string, []string, bool, error) {
 					}
 					value = route[index]
 				}
-				if value != "claude.settings" && value != "codex.config" {
+				if value != "claude.settings" && value != "codex.config" && value != "gemini.settings" {
 					return "", nil, false, errAuthRun
 				}
 				count++

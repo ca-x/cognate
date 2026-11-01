@@ -60,7 +60,7 @@ Grok Build 所有者客户端库 `internal/grokclient` 覆盖九个 RPC、固定
 - 未知存储扩展字段只允许展示已知投影，不能保存或复制以免丢失；所有者仍可按 revision 明确删除。CAS 冲突或提交结果不明时禁止自动重发，需确认放弃草稿后重新读取。
 - 编辑、放弃确认与语言切换会处理新凭据清理；真实提交之后取消请求不等于回滚。普通浏览、保存、复制或安装 skill 均不会因此应用 Gemini 配置。
 
-Gemini moejs planner 仅在服务端输出受控的双 artifact 声明；客户端不执行插件。本机双文件 codec、原生能力资格、应用及恢复仍未交付，不代表 Vertex、ADC、官方账号管理或完整十四类 agent 已支持。
+Gemini moejs planner 仅在服务端输出经宿主验证的双 artifact 声明；客户端不执行插件。固定 Gemini 0.61.0/Node26.13.0 Linux/amd64 的手动 native 候选提供 `.env`/`settings.json` 精确六字段预览、显式 takeover/clear、独立秘密槽批准、双文件 CAS/selection、Unknown核实及新审阅恢复/还原；需本片冻结完整资格与非作者验收，不能以开发 overlay或单次 prototype称正式可用。CLI、首 profile前提、非原子窗口与许可边界见 `GEMINI-NATIVE-PROFILES.md`。它不代表 MyGo Gemini、Vertex、ADC、OAuth管理或完整十四类 agent 已支持。
 
 ## OpenCode 服务端接口
 

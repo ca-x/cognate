@@ -391,6 +391,9 @@ func (handler *nativeConfigurationHandler) PrepareNativeApply(ctx context.Contex
 	if value.Target == 2 {
 		return handler.prepareCodex(ctx, raw, value, input)
 	}
+	if value.Target == 3 {
+		return handler.prepareGemini(ctx, raw, value, input)
+	}
 	prepared, err := handler.service.Prepare(ctx, raw, input, value.ProofSignature)
 	if err != nil {
 		return nil, nativeError(ctx, err)
@@ -434,6 +437,9 @@ func (handler *nativeConfigurationHandler) AuthorizeNativeMaterialization(ctx co
 	}
 	if value.CodexLocalBinding != nil {
 		return handler.authorizeCodex(ctx, raw, value, input)
+	}
+	if value.GeminiLocalBinding != nil {
+		return handler.authorizeGemini(ctx, raw, value, input)
 	}
 	issued, err := handler.service.Authorize(ctx, raw, input, value.ProofSignature)
 	if err != nil {

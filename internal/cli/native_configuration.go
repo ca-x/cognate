@@ -105,6 +105,9 @@ func readNativeSession(ctx context.Context, input io.Reader) (string, error) {
 }
 
 func nativeErrorMessage(err error) string {
+	if message, ok := nativeGeminiErrorMessage(err); ok {
+		return message
+	}
 	if message, ok := nativeCodexErrorMessage(err); ok {
 		return message
 	}
@@ -157,7 +160,22 @@ func newNativeConfigurationCommand() *cobra.Command {
 		var revision int64
 		var apply, tokenStdin bool
 		var timeout time.Duration
+		geminiOptions := geminiCLIOptions{action: action}
 		command := &cobra.Command{Use: action, Args: cobra.NoArgs, RunE: func(command *cobra.Command, _ []string) (returnedError error) {
+			if target == "gemini.settings" {
+				if command.Flags().Changed("codex-executable") || command.Flags().Changed("codex-cwd") {
+					return nativeconfig.ErrInvalid
+				}
+				options := geminiOptions
+				options.action, options.asset, options.operation, options.revision, options.apply, options.tokenStdin, options.timeout = action, asset, operation, revision, apply, tokenStdin, timeout
+				if action == "apply" {
+					options.server, options.owner, options.profile = server, owner, profile
+				}
+				return runGeminiConfiguration(command, options)
+			}
+			if changedGeminiFlags(command) || action != "apply" && (command.Flags().Changed("server") || command.Flags().Changed("owner") || command.Flags().Changed("profile")) {
+				return nativeconfig.ErrInvalid
+			}
 			if target == "codex.config" {
 				return runCodexConfiguration(command, codexCLIOptions{action: action, server: server, owner: owner, asset: asset, profile: profile, operation: operation, executable: executable, directory: directory, revision: revision, apply: apply, tokenStdin: tokenStdin, timeout: timeout})
 			}
@@ -275,10 +293,11 @@ func newNativeConfigurationCommand() *cobra.Command {
 		if action != "status" {
 			command.Flags().BoolVar(&apply, "apply", false, "显式逐项批准并确认本次计划（需要控制TTY）")
 		}
+		geminiExtraFlags(command, &geminiOptions)
 		parent.AddCommand(command)
 	}
 	for _, action := range []string{"recover", "abandon", "retire-unpublished"} {
-		parent.AddCommand(newCodexLocalCommand(action))
+		parent.AddCommand(newGeminiAwareLocalCommand(action))
 	}
 	return parent
 }

@@ -167,6 +167,9 @@ func (service *NativeService) Consume(ctx context.Context, bearer string, reques
 	if protocol == 2 {
 		return service.consumeCodex(ctx, bearer, request, signature)
 	}
+	if protocol == 3 {
+		return service.consumeGemini(ctx, bearer, request, signature)
+	}
 	snapshot, err := service.consumer.PreflightConsume(ctx, bearer, request, signature)
 	if err != nil {
 		return state.NativeMaterialization{}, err
@@ -220,6 +223,9 @@ func (service *NativeService) Status(ctx context.Context, bearer string, request
 	}
 	if protocol == 2 {
 		return service.consumer.StatusCodex(ctx, bearer, request, signature)
+	}
+	if protocol == 3 {
+		return service.consumer.StatusGemini(ctx, bearer, request, signature)
 	}
 	return service.consumer.Status(ctx, bearer, request, signature)
 }

@@ -215,6 +215,12 @@ func (store *Store) NativeConfigurationProtocol(ctx context.Context, credential 
 			}
 			return 1, gate, nil
 		}
+		if bytes.HasPrefix(plaintext, []byte("GM3\x00")) {
+			if _, _, err := store.nativeLoadGeminiPrepared(ctx, tx, child, consumer, prepareID); err != nil {
+				return 0, nil, err
+			}
+			return 3, gate, nil
+		}
 		return 0, nil, ErrNativeUnavailable
 	})
 }

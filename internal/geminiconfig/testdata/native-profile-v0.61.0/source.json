@@ -1,5 +1,5 @@
 {
-  "status": "source-review-only; no qualified native profile",
+  "status": "complete implementation candidate; fixed official package runtime evidence supplied with delivery; independent acceptance pending",
   "consumerVersion": "0.61.0",
   "consumerRepository": "https://github.com/google-gemini/gemini-cli.git",
   "consumerCommit": "bb523741c7429a44d03e964bc124c7c92df59d5f",
@@ -10,7 +10,15 @@
   "sdkLockVersion": "1.30.0",
   "ccSwitchCommit": "6d6b7162f122ac0ce1356a14688c8c4f712db3c8",
   "consumerBuilt": false,
-  "consumerExecuted": false,
+  "consumerExecuted": true,
   "qualified": false,
-  "productionProfileRegistered": false
+  "productionProfileRegistered": false,
+  "proposedPrivateProfileRegistered": true,
+  "profileId": "gemini-0.61.0-node26.13.0-linux-amd64-provider-v1",
+  "nodeVersion": "26.13.0",
+  "nodeSHA256": "0adde40d1b7dfa57c8bc83cbc319758c3ec6ebba21363bb2fa752ea6b267ad1b",
+  "packageManifestSHA256": "d937b098022f074463d0d26af37c5e7669cfeccbf6966e9795002f03f7db76b6",
+  "profileSHA256": "964e6535ef67c49139b695f00fab78219333d664b4429bc5229bf2958c8eef4b",
+  "codecSHA256": "0ba6bd02baef740c79db2600cc6317c416bfd9f1ddc82c675b4a35173a2ccc0a",
+  "nativeScope": "linux-amd64/trusted-existing-root/noexec-observer/two-role-provider-v1"
 }

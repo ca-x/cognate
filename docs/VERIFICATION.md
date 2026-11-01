@@ -1829,3 +1829,21 @@ rc.7 Actions `41171750570` completed/success：真实 root `startup-smoke`、LPK
 最终 GitHub Asset 下载探针限时 90 秒，实际 exit 124，只有部分字节；不宣称下载成功、SHA256 复算通过或已启动 CI 最终 LPK。上述最终资产身份来自 GitHub Asset digest 与喵喵回执交叉核对；本地解包实跑与 CI 构建后二进制的 root 启动回归分别有证据，不能替代最终下载验收。
 
 本次续接以 nmem CLI 查询 `Cognate rc.5 777 祖先 程序内`，默认模式/default Space、上限 1，首位 `c8ded42f-836e-48e3-9ed1-423338bb4ad1`，score 0.99；未扩展图谱，CLI 无可信浏览器会话。以新适配与真实回归更新其中“LPK 适配未完成”的阶段状态。
+# 2026-11-01：Gemini 固定 profile 主线接入
+
+原 exact65 非作者审查唯一 P1 已由七文件 fix1 增量关闭：原真实期限反例旧 RED/新 GREEN，
+两 role 发布、恢复 chmod、selection exchange 前均核原期限；未 exchange 的 selection
+proposal 重开不会补提交，保留真实 Consumed/Unknown 与新审阅恢复语义。
+原失败记录不覆写，不通过延长审批、事后清理秘密或弱化断言取得通过。
+
+- 原独审报告 SHA256：`4cabb5ae04ff171789e632b478b2771c1b6869f74290dd36b21c72e7168e5ca9`。
+- fix1 独审报告：`/tmp/cognate-gemini-p1-independent-245bfca-pMdhy233/REPORT.md`，SHA256 `8aff9cbc5fe614a797f8c6b14c2aed26d6bc44d249601d633c73b2160cba3676`。
+- fix1 独审实际 33 GREEN PASS 事件（含父/子，不是 33 独立用例），六个普通 Gemini/Codex 消费者共六次请求；另保留旧产品期限 RED 和 selection-promotion 减门 RED。
+- 主线基于 `d7ffc81` 私有组成：64 个非 REQUIREMENTS 路径逐 SHA256 匹配 fix1；需求仅做 additive 合并，保留已有 MyGo/T4 补记。上游 LICENSE 无结尾换行，保留原字节，不修改其许可摘要。
+- 主线程完整测试通过：configapply/configclient/nativeconfig/geminiconfig/cli/server.configuration/server.httpapi/nativesessionauth 八包，以及 server/server.state/server.auth/server.nativeconsumer 四包；前八包 vet exit 0。
+- 常规包测试不将未提供显式固定输入而跳过的资格例计为运行支持。主线实际源另编译 configapply 测试二进制，在清环境/独立网络 namespace 和固定完整 Node/Gemini 输入中执行原期限反例，14.26 秒 PASS、无 SKIP：原期限已到但 context 仍有效，未写入过期秘密，Consumed=true、Applied=false；见私有组合 `main-deadline.log`。
+- CLI Linux/Darwin/Windows 各 amd64/arm64 六目标 `CGO_ENABLED=0` 构建通过；不是跨平台运行资格。`ca8e165` 只新增订阅回归与文档，不改变该生产组成。
+
+私有组合证据：`/tmp/cognate-gemini-main-integration-52Wa0wgt/INTEGRATION.md`。
+功能范围见 `GEMINI-NATIVE-PROFILES.md`；不是此前 stable 标签源码、真实 OAuth、MyGo、
+全部 agent 或完整产品资格。CLI 帮助漏列 Gemini 的 P3 另以小补丁闭合，不混入原独审冻结。

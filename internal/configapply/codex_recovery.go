@@ -150,7 +150,7 @@ func (state *codexEngineState) finishObservedCodex(ctx context.Context, target *
 	if err := target.sync(); err != nil {
 		return err
 	}
-	images, err := state.codexActualImages(target)
+	images, err := bundleActualImages(target, bundleCodex)
 	if err != nil || images != operation.After {
 		return ErrCodexAttention
 	}

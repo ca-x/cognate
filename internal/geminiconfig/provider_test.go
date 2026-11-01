@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/ca-x/cognate/internal/agentconfig"
@@ -153,6 +154,79 @@ func declaration(mode agentconfig.GeminiAuthMode) agentconfig.GeminiProviderDecl
 		value.RequiredSlots = []agentconfig.GeminiSecretSlot{agentconfig.GeminiAPIKeySecret}
 	}
 	return value
+}
+
+func TestGeminiExplicitSixFieldTakeover(test *testing.T) {
+	images := syntheticImages(test, "# retained\r\nGEMINI_API_KEY='old'\r\nGOOGLE_GEMINI_BASE_URL='https://old.invalid'\r\nGEMINI_API_KEY_AUTH_MECHANISM='bearer'\r\nGEMINI_MODEL='old-env'\r\nFOREIGN=keep\r\n", `{"model":{"name":"old-settings","other":9007199254740993999},"security":{"auth":{"selectedType":"gemini-api-key","note":"keep"}},"ui":{"theme":"dark"}}`)
+	defer images.Destroy()
+	facts := make([]FieldFact, 0, len(fields))
+	for _, field := range fields {
+		facts = append(facts, FieldFact{Field: field, Ownership: Foreign, Cleanup: Preserve})
+	}
+	var witness [32]byte
+	witness[0] = 1
+	foreign, err := NewResolution(syntheticProfile().id, CompleteEffective, facts, witness)
+	if err != nil {
+		test.Fatal("foreign resolution setup")
+	}
+	defer foreign.Destroy()
+	want := declaration(agentconfig.GeminiNativeLogin)
+	if plan, err := checkProvider(test.Context(), images, want, foreign, syntheticProfile()); !errors.Is(err, ErrOwnershipConflict) {
+		plan.Destroy()
+		test.Fatal("foreign fields accepted without explicit takeover")
+	}
+	for index := range facts {
+		facts[index].Ownership = ExplicitTakeover
+		if index < 3 {
+			facts[index].Cleanup = Clear
+		}
+	}
+	taken, err := NewResolution(syntheticProfile().id, CompleteEffective, facts, witness)
+	if err != nil {
+		test.Fatal("exact explicitly approved six-field takeover rejected")
+	}
+	defer taken.Destroy()
+	plan, err := checkProvider(test.Context(), images, want, taken, syntheticProfile())
+	if err != nil {
+		test.Fatal("exact takeover plan rejected")
+	}
+	defer plan.Destroy()
+	binding := plan.Binding()
+	defer binding.Destroy()
+	for _, fact := range binding.CopyObservation().Fields {
+		if fact.Ownership != ExplicitTakeover {
+			test.Fatal("takeover misrepresented as managed")
+		}
+	}
+	candidate, err := RenderProvider(test.Context(), plan, nil)
+	if err != nil {
+		test.Fatal("explicit native-login cleanup render rejected")
+	}
+	defer candidate.Destroy()
+	env := candidate.CopyImage(EnvRole)
+	defer env.Destroy()
+	if !bytes.Equal(env.CopyBytes(), []byte("# retained\r\nGEMINI_MODEL='old-env'\r\nFOREIGN=keep\r\n")) {
+		test.Fatal("cleanup changed unrelated bytes or retained old API routing")
+	}
+	settings := candidate.CopyImage(SettingsRole)
+	defer settings.Destroy()
+	if !bytes.Equal(settings.CopyBytes(), []byte(`{"model":{"name":"old-settings","other":9007199254740993999},"security":{"auth":{"selectedType":"oauth-personal","note":"keep"}},"ui":{"theme":"dark"}}`)) {
+		test.Fatal("takeover lost independent model or unknown sibling")
+	}
+	for index := range facts {
+		mutated := slices.Clone(facts)
+		mutated[index].Ownership = Foreign
+		resolution, err := NewResolution(syntheticProfile().id, CompleteEffective, mutated, witness)
+		if err != nil {
+			continue
+		}
+		result, err := checkProvider(test.Context(), images, want, resolution, syntheticProfile())
+		resolution.Destroy()
+		result.Destroy()
+		if !errors.Is(err, ErrOwnershipConflict) {
+			test.Fatal("partial takeover allowed a remaining foreign field")
+		}
+	}
 }
 
 func TestGeminiProviderDeclarationParity(test *testing.T) {

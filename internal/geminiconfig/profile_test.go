@@ -19,6 +19,37 @@ type countingContext struct {
 	calls, cancelAt int
 }
 
+func TestGeminiFixed0610CodecAdmission(test *testing.T) {
+	images := syntheticImages(test, "# retained\r\nFOREIGN=keep\r\n", `{"ui":{"theme":"dark"},"model":{"other":9007199254740993999},"security":{"auth":{"note":"keep"}}}`)
+	defer images.Destroy()
+	var facts []FieldFact
+	for _, field := range fields {
+		facts = append(facts, FieldFact{Field: field, Ownership: Absent, Cleanup: Preserve})
+	}
+	var witness [32]byte
+	witness[0] = 9
+	resolution, err := NewResolution("gemini-0.61.0-node26.13.0-linux-amd64-provider-v1", CompleteEffective, facts, witness)
+	if err != nil {
+		test.Fatal("fixed codec resolution setup")
+	}
+	defer resolution.Destroy()
+	plan, err := CheckProvider(test.Context(), images, declaration(agentconfig.GeminiNativeLogin), resolution)
+	if err != nil {
+		test.Fatal("source-pinned codec did not admit an exact local pair")
+	}
+	defer plan.Destroy()
+	candidate, err := RenderProvider(test.Context(), plan, nil)
+	if err != nil {
+		test.Fatal("fixed native-login selector render")
+	}
+	defer candidate.Destroy()
+	result := candidate.CopyImage(SettingsRole)
+	defer result.Destroy()
+	if !bytes.Contains(result.CopyBytes(), []byte(`"selectedType":"oauth-personal"`)) || !bytes.Contains(result.CopyBytes(), []byte(`9007199254740993999`)) {
+		test.Fatal("fixed codec selector or unknown sibling lost")
+	}
+}
+
 func (ctx *countingContext) Err() error {
 	ctx.calls++
 	if ctx.cancelAt > 0 && ctx.calls >= ctx.cancelAt {
@@ -322,14 +353,15 @@ func TestGeminiProductionProfileGate(test *testing.T) {
 		test.Fatal("source provenance fixture missing")
 	}
 	var source struct {
-		ConsumerCommit              string `json:"consumerCommit"`
-		ConsumerBuilt               bool   `json:"consumerBuilt"`
-		ConsumerExecuted            bool   `json:"consumerExecuted"`
-		Qualified                   bool   `json:"qualified"`
-		ProductionProfileRegistered bool   `json:"productionProfileRegistered"`
+		ConsumerCommit                   string `json:"consumerCommit"`
+		ConsumerBuilt                    bool   `json:"consumerBuilt"`
+		ConsumerExecuted                 bool   `json:"consumerExecuted"`
+		Qualified                        bool   `json:"qualified"`
+		ProductionProfileRegistered      bool   `json:"productionProfileRegistered"`
+		ProposedPrivateProfileRegistered bool   `json:"proposedPrivateProfileRegistered"`
 	}
-	if json.Unmarshal(raw, &source) != nil || source.ConsumerCommit != "bb523741c7429a44d03e964bc124c7c92df59d5f" || source.ConsumerBuilt || source.ConsumerExecuted || source.Qualified || source.ProductionProfileRegistered {
-		test.Fatal("source-only provenance falsely claims qualification")
+	if json.Unmarshal(raw, &source) != nil || source.ConsumerCommit != "bb523741c7429a44d03e964bc124c7c92df59d5f" || source.ConsumerBuilt || !source.ConsumerExecuted || source.Qualified || source.ProductionProfileRegistered || !source.ProposedPrivateProfileRegistered {
+		test.Fatal("provenance confused official package execution, source build, or final production acceptance")
 	}
 	resolution.get[resolutionData]().profileID = source.ConsumerCommit
 	if result, err := CheckProvider(test.Context(), images, declaration(agentconfig.GeminiNativeLogin), resolution); !errors.Is(err, ErrUnsupportedNativeProfile) || result.get[planData]() != nil {

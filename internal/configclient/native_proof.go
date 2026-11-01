@@ -355,7 +355,7 @@ func validApply(binding *configurationnativev1.ApplyBinding) bool {
 }
 
 func validAuthorizeRequest(request *configurationnativev1.AuthorizeNativeMaterializationRequest) bool {
-	if !knownMessage(request) || request.CodexLocalBinding != nil || !opaqueID(request.PrepareId) || len(request.OperationId) != 16 || len(request.IntentCommitment) != 32 || !validSlots(request.RequestedSlots) || len(request.ClientNonce) != 32 || !optionalSignature(request.ProofSignature) || request.IntentExpiresAtUnixMs <= 0 {
+	if !knownMessage(request) || request.CodexLocalBinding != nil || request.GeminiLocalBinding != nil || !opaqueID(request.PrepareId) || len(request.OperationId) != 16 || len(request.IntentCommitment) != 32 || !validSlots(request.RequestedSlots) || len(request.ClientNonce) != 32 || !optionalSignature(request.ProofSignature) || request.IntentExpiresAtUnixMs <= 0 {
 		return false
 	}
 	switch authorization := request.Authorization.(type) {
@@ -508,7 +508,7 @@ func knownMessage(message proto.Message) bool {
 }
 
 func knownTree(message protoreflect.Message, depth int, budget *int) bool {
-	if !message.IsValid() || depth >= 16 || len(message.GetUnknown()) > 0 {
+	if !message.IsValid() || depth >= 16 || len(message.GetUnknown()) > 0 || !geminiExclusiveMessage(message.Interface()) {
 		return false
 	}
 	valid := true
@@ -594,6 +594,9 @@ func supportedProofMessage(message proto.Message) bool {
 }
 
 func validDecodedProof(message proto.Message) bool {
+	if handled, valid := geminiClientProofValid(message); handled {
+		return valid
+	}
 	switch value := message.(type) {
 	case *configurationnativev1.BeginNativeConsumerRequest:
 		return validBegin(value)
