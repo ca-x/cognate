@@ -1,5 +1,15 @@
 # Cognate Native Desktop
 
+## 通用资产排序（2026-11-01）
+
+原生“资产排序”页复用 MyGo Select/List/Scroll/Modal，对所有者完整 agent/配置类型分区进行
+元数据排序，包含未知资产 schema 和最多250项的完整排列；不读取正文或密钥。
+移动后完整审阅 origin、owner、分区、独立排序 revision 和每项位置，精确确认后单次 CAS。
+冲突或 Unknown 须显式重读并生成新审阅，不重放；不清 Claude/Grok 内容草稿，不切 provider、
+不改 Pack 内容引用、不应用本机。取消、身份切换和关闭沿既有 generation/worker 排空。
+使用及完整证据边界见 `DESKTOP-CONFIGURATION-ORDER.md`、`VERIFICATION.md`；
+Linux headless 原生窗口及组件测试不代表真人或其它平台运行资格。
+
 ## Grok Build 原生资产编辑（2026-10-31）
 
 主窗口新增 Grok Build 页面，复用 `grokclient.NewInput` / `View.Editable` 的内存接口，没有临时明文文件。支持 native-login/custom-model、七模型字段及 env absent、Keep/Replace/Clear、无凭据复制、删除与完整分组排序。Replace/Clear 需要独立授权，提交前显示绑定身份、revision 和差异的审阅并要求精确确认；未知字段只读、CAS 冲突和 Unknown 不自动重放。取消、离页、登出、切身份和关闭清理内存凭据并关闭独立会话。

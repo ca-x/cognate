@@ -25,6 +25,8 @@ func (model *Model) View(context *ui.Context) {
 			model.configurationView(context)
 		case 5:
 			model.grokView(context)
+		case 6:
+			model.configurationOrderView(context)
 		}
 	})
 }

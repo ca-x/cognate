@@ -107,6 +107,7 @@ type Model struct {
 	Logo                              *ui.Bitmap
 	configuration                     func() *configurationState
 	grok                              func() *grokEditorState
+	order                             func() *configurationOrderState
 }
 
 func NewModel(backend Backend, dispatch func(func())) *Model {
@@ -115,6 +116,7 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 }
 
 func (model *Model) Cancel() {
+	model.order = nil
 	model.grokCancel()
 	model.configurationCancel(false)
 	if model.configuration != nil {
@@ -129,6 +131,7 @@ func (model *Model) Cancel() {
 
 func (model *Model) cancelJob() {
 	wasBusy := model.Busy
+	model.orderClearReview()
 	model.configurationCancel(false)
 	model.generation++
 	if model.cancel != nil {
@@ -142,6 +145,7 @@ func (model *Model) cancelJob() {
 }
 
 func (model *Model) clearOwner() {
+	model.order = nil
 	model.grokCancel()
 	model.configurationCancel(true)
 	model.StopWatch()

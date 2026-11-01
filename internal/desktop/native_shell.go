@@ -14,6 +14,7 @@ var nativePages = [...]struct{ label, heading string }{
 	{"账号", "账号与本机设置"},
 	{"AI 配置", "AI 配置工作区"},
 	{"Grok Build", "Grok Build 资产"},
+	{"资产排序", "配置资产排序"},
 }
 
 func nativeShellTheme(base *ui.Theme, highContrast bool) (ui.Theme, ui.Color) {

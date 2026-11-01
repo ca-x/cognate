@@ -1,5 +1,34 @@
 # 开发预览验证
 
+## 2026-11-01：MyGo 通用配置资产分区排序
+
+原exact10 patch SHA256 `f9b6ea171357129d2d519ff0aec400b4400335c3cb2d3511fd2b065fb539f53d`，
+六个新Go文件、三个已有桌面入口及一篇文档；无协议、schema、依赖或后端授权变化。
+非作者Spec/Quality ACCEPT报告 `/tmp/cognate-mygo-order-independent-6f1e716-mwWN0L/REPORT.md`，
+SHA256 `5962af566af6501643c0a99c6ae394896d89c162412c485f5401ddcdfddbb5fc`。
+独立新跑完整desktop338 PASS/1 SKIP/0 FAIL、四个额外行为探针（含三个250项真实提交），
+旧入口缺失、审阅绑定减门和Unknown写门减门均实际RED。真实TLS/SQLite覆盖70分区、
+完整250项、跨owner、empty ABA、提交后丢回执单写及dirty/取消排空；不读配置正文/秘密。
+
+主线程在aad168f（生产基线7244ced，后继仅R3计划）应用后，exact10逐文件与冻结原件相同。
+`/tmp/cognate-mygo-order-main-aad168f-2BFgx7VK` 新跑desktop全包终态exit0：
+338 PASS事件、1 SKIP、0 FAIL，其中排序35 PASS已包含在338内；唯一skip是需专用overlay的
+既有 `TestClientKeyEntrypointsCoreFaults`，没有跳过排序测试。desktop vet exit0，
+MyGo Linux/Darwin/Windows双架构六次构建均exit0并核Go1.27.3/CGO0/OS/架构metadata。
+这不是重跑后继全仓/十八构建，不能把之前联合9077或独审338累加成当前唯一测试数。
+
+本次新构建 `desktop-linux-amd64` SHA256
+`eda96b3ee24cda598a072bdb1807dbd55f5c8d13dc6900a1ba93b4e84c8b51ca` 在隔离HOME/config/data/
+runtime、private dbus、cage headless Wayland/pixman/llvmpipe下真实启动；节奏化Tab/Return
+进入“资产排序”，native-order.png已目视确认标题、选中导航和未登录禁用写入。
+截图SHA256 `260e62f5e736ca68605610966cac4bedcf99b6fe7ca8617927e66cde3de5a1bb`，
+日志明确NATIVE_WINDOW_CREATED/NATIVE_CAPTURE_OK，实际Wait/外层进程exit0。
+它只证明该Linux无人值守窗口/键盘入口，不是认证后真人操作、硬件GPU、macOS或Windows运行。
+已登录完整交互来自真实TLS/SQLite加ui.NewTester，不能混称为真人native全链。
+全部证据在该根 `02-desktop.*`、`03-vet.*`、`04-*`、`05-native-*` 和 `native-order.png`。
+本片不关闭其它agent编辑/本机应用、MCP连接资产、全产品UI/F12或GA；独审首次native导航
+未进排序页的截图/成功退出边界及作者早期viewport失败均原样保留。
+
 ## 2026-11-01：Codex 普通 CLI 唯一固定版本登记与自动备份联合资格
 
 C6 exact6 仅一个生产登记表和五个测试路径，patch SHA256

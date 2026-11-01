@@ -75,7 +75,8 @@
 - [ ] 接通 Pack 配置附件的客户端选择、独立授权、消费和显式启用后的自动应用；公开分享仍不带配置密钥。
 - [x] Pack 配置附件所有者 Web 元数据管理：有序引用、双 CAS、显式审阅、Unknown 只读核对；143/156 读取/移动/移除焦点 PC-F1 独审 CLOSED。只保存引用，不读取正文/密钥，不代表客户端消费或自动应用。
 - [x] Pack 元数据读取的同步重复激活去重（P3）：组件内同步 guard 与 finally 释放，真实双激活/后继显式读取/失败释放/Unknown 零重放通过；独立旧/新构建验收 CLOSED，不声称全站查询互斥。
-- [ ] 补齐 MyGo 配置排序、其它 agent 编辑及应用状态入口，不能用 Claude 已支持推断全部 agent 可用。
+- [x] MyGo 通用配置分区排序：完整元数据、未知schema/250项、全排列独立CAS、一次审阅与Unknown显式重读、内容Dirty及generation排空经非作者独审；Linux headless窗口及主线338 PASS/1 SKIP/0 FAIL通过，不代表全平台真人验收。
+- [ ] 补齐 MyGo 其它 agent 编辑及应用状态入口，不能用 Claude 已支持推断全部 agent 可用。
 
 ## CLI、GUI 与平台
 
