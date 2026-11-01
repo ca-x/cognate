@@ -1,0 +1,51 @@
+action	path	responsibility
+modify	internal/server/backup/control_store.go	v1/v2 sidecar绑定、existing-only cold opener/只读Close、同锁pin权威/owner绑定；不删原Jobs
+create	internal/server/backup/reclaim_store.go	4MiB加密回收操作账本、原子发布、持久intent/cursor/owner证据
+create	internal/server/backup/reclaim_store_test.go	绑定/丢日志/篡改/容量/发布故障/升级与旧history不变
+modify	internal/server/backup/controller.go	注入借用Runtime、共享admission/同锁pin、retirement门、类型化anchor终态及Close drain
+modify	internal/server/backup/controller_worker.go	受证job工作区、局部engine和显式snapshot workspace接线
+modify	internal/server/backup/automatic.go	同一owned producer的backup/retention timer；due清理优先防饥饿
+create	internal/server/backup/retention.go	v3 RetainedBackupRead/Facts/MatchCatalog、typed owner校验、内部anchor pin、真实proof前置及确定性victim
+create	internal/server/backup/retention_worker.go	先complete后payload、单次条件DELETE、unknown只读对账与本地GC
+create	internal/server/backup/retention_test.go	policy/refs/generation/unknown/顺序/竞争/停机及减门RED
+create	internal/server/backup/artifact_store.go	持久归属/工作区scope/跨任务reservation和恢复记账
+create	internal/server/backup/artifact_store_linux.go	私有FD相对创建、身份检查、有界双遍扫描和unlink/fsync/close确认
+create	internal/server/backup/artifact_store_other.go	非Linux受控拒绝，无替代不安全删除
+create	internal/server/backup/artifact_store_linux_test.go	真实crash工作区/guard/不明close/旧未证对象/全局配额反例
+modify	internal/server/backup/seal.go	仅增加同key/limits的workspace engine构造；不改容器/AEAD/catalog
+modify	internal/server/backup/capture.go	可选显式LocalSnapshotWorkspace向内容源传递；原路径保留
+modify	internal/server/library/content_snapshot.go	WithContentSnapshotAt到现有闭包的显式workspace传递、Service.WithSnapshotArtifactGuard薄转发
+modify	internal/server/state/local_snapshot.go	WithLocalSnapshotAt进入同一快照实现；仍借用原Runtime worker scope
+modify	internal/server/state/local_snapshot_source_linux.go	抽取指定可信parent创建stage，保留默认parent和原清理语义
+create	internal/server/state/local_snapshot_workspace.go	opaque借用workspace与snapshot artifact guard生命周期
+create	internal/server/state/local_snapshot_workspace_linux.go	可信parent验证、复用Quiesce/AcquireSnapshotGuard，保留未知所有权
+create	internal/server/state/local_snapshot_workspace_other.go	新增workspace/guard API非Linux拒绝实现
+create	internal/server/state/local_snapshot_workspace_linux_test.go	真实v2 worker转移stage、借用不逃逸、GC被真实guard阻挡与释放
+modify	internal/server/backup_config.go	私有retention策略/总盘预算/严格解析，策略不进入旧generation HMAC
+modify	internal/server/backup_config_test.go	新策略整数/边界/互斥/脱敏和原generation golden
+modify	internal/server/backup_runtime.go	借用App Runtime到Controller/bridge、账本/prototype/配额构造、完整Close与SH保留链
+create	internal/server/backup_retention_runtime.go	唯一trusted bridge：被动expectation→R3 opaque proof→observed Source/Candidate全闭包/refs→全Close/post-admit；D7全额保留
+create	internal/server/backup_retention_linux_test.go	真实App/TLS条件删除/完整读回/重启/管理员A-B/两进程SH-EX
+modify	internal/server/backup_browser_fixture_linux_test.go	新opt-in retention fixture、真实DELETE故障及显式Close/stop收据；原模式不变
+modify	internal/server/httpapi/backup.go	安全DTO新增retention字段和状态，旧六RPC保护tombstone
+create	internal/server/httpapi/backup_retention.go	两个新增管理员RPC，鉴权先于一切读取/副作用
+create	internal/server/httpapi/backup_retention_test.go	普通/匿名/share/MCP拒绝、A-B管理和只读对账无DELETE
+modify	proto/skillhub/management/v1/backup.proto	新增job9..11/status5..11及两个retention RPC；显式running/固定blocked code，不复用tag
+regenerate	gen/skillhub/management/v1/backup.pb.go	只由既有Buf Go模板生成本proto对应文件
+regenerate	gen/skillhub/management/v1/managementv1connect/backup.connect.go	同上Connect服务绑定
+regenerate	web/src/gen/skillhub/management/v1/backup_pb.ts	只由既有Buf Web模板生成本proto对应文件
+modify	web/src/server-backup-state.ts	retention安全schema、可用性与Unknown/幂等状态验证
+modify	web/src/server-backup.tsx	配置/阻塞/退役/已删状态、手动按策略清理确认及只读对账
+modify	web/src/server-backup-i18n.ts	中英文真实删除/历史发布/非恢复验证/未知文案
+create	scripts/verify-backup-retention-state.mjs	独立retention schema/CAS/退役不可复活测试，不覆盖主canonical fix1脚本
+modify	docs/SERVER-BACKUP.md	策略/迁移/失败/外部reader/容量及运维边界
+modify	docs/REQUIREMENTS.md	追加本片范围，不重写历史失败/资格记录
+modify	docs/superpowers/specs/2026-10-28-server-backup.md	保留restore_verified门，按主D1-D6明确Unknown/保留历史/真实proof及外部reader边界
+create	docs/superpowers/plans/2026-11-01-backup-retention.md	批准后将本HANDOFF落为跟踪计划
+modify	internal/server/app.go	仅openServerBackup调用传app.runtime.lease；不接管R3 Resolve/启动/Serve/Close hunks
+modify	internal/server/backup/control_store_unix.go	cold所需NOFOLLOW/FD相对目录转换及existing-only锁helper；只开既有0600 lock且同一非阻塞flock，不O_CREAT
+modify	internal/server/backup/control_store_other.go	cold FD/目录及existing-only锁helper的Unsupported编译对称；不加不安全fallback
+create	internal/server/backup/retention_reference_linux_test.go	cold目录字节零变化、同锁/owner负控、真实EX下无SH自锁、pin/tombstone/Close并发
+create	internal/server/restore/retention_source.go	只读expectation入口/受控R3私有reader适配、原sourceS3Ops观测collector；不签proof、不改Source/crypto语义
+create	internal/server/restore/retention_source_linux_test.go	真实Finish/全refs/head摘要/尾Close、被动expectation非proof、跨owner/late-ready门与源码减门RED
+modify_dependency	internal/server/restore/status.go	R3已批准路径的共享hunk：两reader/proof复核调用reference typed owner校验，抽同一私有metadata reader供被动expectation；不改v3签名/producer
