@@ -1,0 +1,4 @@
+repository	baseline	change	path	purpose	approval
+lazycat-contrib/cognate-lzcapp	934ea0599aba1ac5898b3121e1649393c084863d	M	run.sh	Explicit maintenance schema-upgrade argv dispatch before normal bootstrap OIDC setup same strict existing volume and minimal environment	Separate main coordinated packaging permission not current C7 implementation
+lazycat-contrib/cognate-lzcapp	934ea0599aba1ac5898b3121e1649393c084863d	M	tests/startup.py	Actual pinned new server old schema nonempty WAL original account password key ciphertext and failure retention via maintenance launcher	Separate packaging receipt no user after-deploy test substitute
+lazycat-contrib/cognate-lzcapp	934ea0599aba1ac5898b3121e1649393c084863d	M	README.md	Operator check review apply status normal restart instructions no automatic upgrade no key permission relaxation	No manifest version upstream pin publish or CI permission in this request

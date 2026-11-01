@@ -1,0 +1,11 @@
+action	path	responsibility
+M	internal/packattachments/client.go	Expose owned typed review snapshot without parsing terminal text
+N	internal/packattachments/review.go	Safe typed metadata review DTO and identity-bound copies
+N	internal/packattachments/review_test.go	Snapshot ownership and duplicate-submit invariants
+M	internal/desktop/model.go	Own Pack configuration model lifecycle and generation
+M	internal/desktop/view.go	Mount owner attachment editor separately from subscriptions
+N	internal/desktop/pack_configuration_service.go	Reuse owner Pack and asset metadata plus packattachments dual CAS
+N	internal/desktop/pack_configuration_model.go	Ordered draft stale explicit upgrade Unknown and focus state
+N	internal/desktop/pack_configuration_view.go	Native metadata editor and complete review
+N	internal/desktop/pack_configuration_test.go	Metadata parity cancellation identity and real MyGo window scenarios
+N	docs/PACK-CONFIGURATION-CONSUMPTION.md	Only new product documentation for approved scope and evidence boundaries

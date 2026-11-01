@@ -1,0 +1,208 @@
+phase	change	path	purpose
+P1	M	internal/packattachments/client.go	Expose owned typed review snapshot without parsing terminal text
+P1	N	internal/packattachments/review.go	Safe typed metadata review DTO and identity-bound copies
+P1	N	internal/packattachments/review_test.go	Snapshot ownership and duplicate-submit invariants
+P1	M	internal/desktop/model.go	Own Pack configuration model lifecycle and generation
+P1	M	internal/desktop/view.go	Mount owner attachment editor separately from subscriptions
+P1	N	internal/desktop/pack_configuration_service.go	Reuse owner Pack and asset metadata plus packattachments dual CAS
+P1	N	internal/desktop/pack_configuration_model.go	Ordered draft stale explicit upgrade Unknown and focus state
+P1	N	internal/desktop/pack_configuration_view.go	Native metadata editor and complete review
+P1	N	internal/desktop/pack_configuration_test.go	Metadata parity cancellation identity and real MyGo window scenarios
+P2	M	proto/skillhub/pack/configuration/v1/configuration.proto	Add only Review Issue Revoke consent messages and methods
+P2	M	proto/skillhub/configuration/native/v1/native.proto	Pack-purpose parent union Begin Bind60 and Apply60-62 preserve Codex40 Gemini41 response6
+P2	G	gen/skillhub/pack/configuration/v1/configuration.pb.go	Buf Go output
+P2	G	gen/skillhub/pack/configuration/v1/packconfigurationv1connect/configuration.connect.go	Buf Go Connect output
+P2	G	gen/skillhub/configuration/native/v1/native.pb.go	Buf Go output
+P2	G	gen/skillhub/configuration/native/v1/configurationnativev1connect/native.connect.go	Buf Go Connect output
+P2	G	web/src/gen/skillhub/pack/configuration/v1/configuration_pb.ts	Buf existing Web generation output no native TS generation
+P2	N	internal/nativesessionauth/pack.go	Pack-only canonical domain device delegation and exactly-one renderer context shared by all targets
+P2	N	internal/nativesessionauth/pack_test.go	Cross-domain cross-device field-tamper and nonce proof controls
+P2	M	internal/nativesessionauth/native_apply.go	Dispatch Pack canonical domain while retaining legacy byte encoding
+P2	M	internal/nativesessionauth/native_codex.go	Typed Pack policy branch without changing fixed Codex tuple or legacy explicit branch
+P2	N	internal/server/state/pack_consent.go	Durable common device consent authority enrollment review grant record device revoke and Pack epoch
+P2	N	internal/server/state/pack_native.go	Single original-tx Pack consumption gate and trusted summary
+P2	N	internal/server/state/pack_native_test.go	Real SQLite three-stage races stale owner share device issuer and zero-slot consume
+P2	M	internal/server/state/pack_configuration.go	Atomic epoch bump and existing typed-kind metadata target extension only
+P2	M	internal/server/state/native_configuration.go	Pack envelope and gates at every Prepare Authorize Consume path including idempotent return
+P2	M	internal/server/state/native_codex_configuration.go	Same Pack gates in Codex native transactions
+P2	M	internal/server/state/native_codex_record.go	Versioned Pack wrapper while preserving known legacy records and 16KiB charge
+P2	M	internal/server/configuration/native_consumer.go	Use verified Pack subject for domain planning instead of untrusted recipient owner lookup
+P2	M	internal/server/configuration/codex_native_boundary.go	Equivalent Pack-subject planning revalidation for Codex
+P2	M	internal/server/auth/native_configuration.go	Proof dispatch and certified Pack-only authorization mode
+P2	M	internal/server/auth/native_codex_configuration.go	Preserve legacy explicit mode and validate Pack policy before native admission
+P2	N	internal/server/auth/pack_configuration.go	Interactive grant enrollment and limited durable device PoP never issue ordinary session authority
+P2	M	internal/server/nativeconsumer/service.go	Request-ticket and shared Pack route lifecycle under existing service
+P2	M	internal/server/httpapi/pack_configuration.go	Owner-only consent handlers and explicit method whitelist
+P2	M	internal/server/httpapi/pack_configuration_codec.go	Strict additive owner RPC validation and bounded pages
+P2	M	internal/server/httpapi/native_configuration.go	Recipient request-ticket handler and typed binding mapping
+P2	M	internal/server/httpapi/native_configuration_codec.go	Strict Pack field version slots and consumption acknowledgements
+P2	M	internal/server/httpapi/native_codex_configuration.go	Pack-specific Codex request mapping without ordinary fallback
+P2	N	internal/server/httpapi/native_pack_codec.go	Pack-specific validation without loosening legacy Codex
+P2	M	internal/server/httpapi/guard.go	Exact Pack bootstrap command16KiB report128KiB budgets no broad route or host permission changes
+P2	N	internal/server/httpapi/pack_native_test.go	TLS strict codec privacy prebody auth and real committed-loss controls
+P2	N	internal/server/pack_consumption_test.go	Real App TLS SQLite stop Close join fixture and composition controls
+P3	N	internal/configclient/native_pack.go	Fresh native Pack flow using existing transport child grant and single attempts
+P3	N	internal/configclient/native_pack_proof.go	Client canonical Pack proof domain parity
+P3	N	internal/configclient/native_pack_test.go	No downgrade replay or forged policy source
+P3	M	internal/configclient/native_codec.go	Recognize exact Pack fields while preserving legacy strict checks
+P3	M	internal/configclient/native_flow.go	Shared lifecycle and Pack-purpose parent admission without persisted interactive bearer
+P3	M	internal/configclient/native_codex_flow.go	Use existing admitted Codex lifecycle with typed Pack evidence
+P3	N	internal/configapply/pack_journal.go	One encrypted policy and job namespace using existing client key and private filesystem kernel
+P3	N	internal/configapply/pack_journal_test.go	Durable CAS tamper deletion capacity restart and key-loss controls
+P3	N	internal/configapply/pack_admission.go	Opaque engine-owned auto admission with approved local head and target tuple
+P3	N	internal/configapply/pack_admission_test.go	Public AutoApply bypass and late baseline policy changes reject
+P3	M	internal/configapply/native_selection.go	Carry authenticated full Pack binding without loosening ordinary NewSelection
+P3	M	internal/configapply/native_plan.go	Commit Pack policy generation and exact tuple in intent
+P3	M	internal/configapply/native_engine.go	Recheck authenticated Pack policy under original shared local lock before reservation and publish
+P3	M	internal/configapply/codex_types.go	Optional Pack binding in new versioned operations
+P3	M	internal/configapply/codex_journal.go	Pack-only version awareness without rewriting legacy records
+P3	M	internal/configapply/codex_lifecycle.go	Retain actual durable authorization consume and partial-publication state
+P3	M	internal/configapply/codex_engine.go	Check current authenticated Pack policy under existing engine shared guard
+P3	M	internal/configapply/codex_publish.go	Retain Pack gate and expiry at every physical publish step
+P3	N	internal/nativeconfig/pack.go	Shared policy prepare authorize consume engine apply status restore coordinator
+P3	N	internal/nativeconfig/pack_test.go	Actual shared client lifecycle secret cleanup and remote Unknown restart tests
+P3	N	internal/subscription/configuration.go	Skills manager must Close before separately locked configuration cycle
+P3	N	internal/subscription/configuration_test.go	No nested lock partial success multi-Pack conflicts disabled-by-default and cancellation
+P4	M	internal/cli/pack.go	Explicit with-configurations dispatch only no default consumption
+P4	M	internal/cli/pack_watch.go	Explicit authenticated configuration cycle with existing fixed-delay scheduler
+P4	M	internal/cli/auth_run.go	Narrow approved Pack configuration routes and private-session pipe only
+P4	N	internal/cli/pack_consumption.go	Enrollment durable consent local preview enable disable reported device commands and recovery
+P4	N	internal/cli/pack_consumption_test.go	Real TTY approvals closed output process Wait and no share or anonymous authority
+P4	M	internal/desktop/watch.go	Separate config-opt-in scheduler state and true lifecycle draining
+P4	M	internal/desktop/watch_service.go	Release skill manager before authorized configuration cycle
+P4	N	internal/desktop/pack_consumption_service.go	Shared nativeconfig coordinator and current-account authority
+P4	N	internal/desktop/pack_consumption_model.go	Separate owner consent recipient approval durable enable and recover state
+P4	N	internal/desktop/pack_consumption_view.go	Native consent preview per-slot opt-in status and explicit recovery UI
+P4	N	internal/desktop/pack_consumption_test.go	Real MyGo approval identity stop Close and conflict controls
+P4	M	web/src/pack-configurations.tsx	Mount separate owner consent UI retain existing metadata and focus contracts
+P4	N	web/src/pack-configuration-consent.tsx	Owner ticket review pages slot approval single Issue and revoke UI
+P4	N	web/src/pack-configuration-consent-state.ts	Typed states page binding Unknown no replay and generation ownership
+P4	N	web/src/pack-configuration-consent-i18n.ts	Chinese English purpose-specific copy no shared-locale rewrite
+P4	N	web/src/pack-configuration-consent.css	Scoped existing theme tokens responsive focus and reduced motion
+P4	N	scripts/test-pack-configuration-consent-state.mjs	State behavior RED and GREEN harness
+P4	N	scripts/verify-pack-consumption-ui.mjs	Built Web and real App TLS SQLite consent privacy native zoom and terminal receipts
+P4	N	docs/PACK-CONFIGURATION-CONSUMPTION.md	Only new product documentation for approved scope and evidence boundaries
+P2	N	internal/server/ent/schema/packconfigurationpolicy.go	One durable table explicit device and consent row kinds self FK CHECK indexes independent revisions
+P2	M	internal/server/ent/schema/nativeconsumerchallenge.go	Nullable session or real policy parent union and exact Pack purposes
+P2	M	internal/server/ent/schema/nativeconsumersession.go	Nullable session or real policy parent union and exact Pack purposes
+P2	M	internal/server/ent/schema/user.go	Recipient device policies and owner issued consents role specific edges
+P2	M	internal/server/ent/schema/pack.go	Common durable consent reverse FK edge
+P2	M	internal/server/ent/schema/packshare.go	Share bound cross-owner consent reverse FK edge
+P2	G	internal/server/ent/nativeconsumerchallenge.go	Ent expected model parent pointer and policy edge
+P2	G	internal/server/ent/nativeconsumerchallenge_create.go	Ent expected optional parent and new field builders
+P2	G	internal/server/ent/nativeconsumerchallenge_query.go	Ent expected policy relation and nullable parent queries
+P2	G	internal/server/ent/nativeconsumerchallenge_update.go	Ent expected parent union field builders
+P2	G	internal/server/ent/nativeconsumerchallenge/nativeconsumerchallenge.go	Ent expected field edge enum metadata
+P2	G	internal/server/ent/nativeconsumerchallenge/where.go	Ent expected policy field and edge predicates
+P2	G	internal/server/ent/nativeconsumersession.go	Ent expected model parent pointer and policy edge
+P2	G	internal/server/ent/nativeconsumersession_create.go	Ent expected optional parent and new field builders
+P2	G	internal/server/ent/nativeconsumersession_query.go	Ent expected policy relation and nullable parent queries
+P2	G	internal/server/ent/nativeconsumersession_update.go	Ent expected parent union field builders
+P2	G	internal/server/ent/nativeconsumersession/nativeconsumersession.go	Ent expected field edge enum metadata
+P2	G	internal/server/ent/nativeconsumersession/where.go	Ent expected policy field and edge predicates
+P2	G	internal/server/ent/user.go	Ent expected role specific policy edges
+P2	G	internal/server/ent/user_create.go	Ent expected role specific policy edge builders
+P2	G	internal/server/ent/user_query.go	Ent expected role specific policy relation queries
+P2	G	internal/server/ent/user_update.go	Ent expected role specific policy edge mutations
+P2	G	internal/server/ent/user/user.go	Ent expected policy relation metadata
+P2	G	internal/server/ent/user/where.go	Ent expected policy relation predicates
+P2	G	internal/server/ent/pack.go	Ent expected consent relation
+P2	G	internal/server/ent/pack_create.go	Ent expected consent edge builders
+P2	G	internal/server/ent/pack_query.go	Ent expected consent relation queries
+P2	G	internal/server/ent/pack_update.go	Ent expected consent edge mutations
+P2	G	internal/server/ent/pack/pack.go	Ent expected consent relation metadata
+P2	G	internal/server/ent/pack/where.go	Ent expected consent relation predicates
+P2	G	internal/server/ent/packshare.go	Ent expected consent relation
+P2	G	internal/server/ent/packshare_create.go	Ent expected consent edge builders
+P2	G	internal/server/ent/packshare_query.go	Ent expected consent relation queries
+P2	G	internal/server/ent/packshare_update.go	Ent expected consent edge mutations
+P2	G	internal/server/ent/packshare/packshare.go	Ent expected consent relation metadata
+P2	G	internal/server/ent/packshare/where.go	Ent expected consent relation predicates
+P2	G	internal/server/ent/session_query.go	Ent expected dereference nullable child parent session during eager load
+P2	G	internal/server/ent/client.go	Ent expected common policy client graph
+P2	G	internal/server/ent/mutation.go	Ent expected fields and edges graph
+P2	G	internal/server/ent/tx.go	Ent expected common policy transaction client
+P2	G	internal/server/ent/runtime.go	Ent expected field validators defaults and schema runtime
+P2	G	internal/server/ent/hook/hook.go	Ent expected common policy hook adapter
+P2	G	internal/server/ent/predicate/predicate.go	Ent expected common policy predicate alias
+P2	G	internal/server/ent/migrate/schema.go	Ent expected full exact S1 table columns FK CHECK index catalog
+P2	GN	internal/server/ent/packconfigurationpolicy.go	Ent new common policy model
+P2	GN	internal/server/ent/packconfigurationpolicy_create.go	Ent new common policy create builder
+P2	GN	internal/server/ent/packconfigurationpolicy_delete.go	Ent new common policy delete builder
+P2	GN	internal/server/ent/packconfigurationpolicy_query.go	Ent new common policy query builder
+P2	GN	internal/server/ent/packconfigurationpolicy_update.go	Ent new common policy update builder
+P2	GN	internal/server/ent/packconfigurationpolicy/packconfigurationpolicy.go	Ent new common policy field and edge metadata
+P2	GN	internal/server/ent/packconfigurationpolicy/where.go	Ent new common policy predicates
+P2	M	internal/server/state/native_consumer.go	Typed quota parent scopes device bootstrap Bind expiry and native union validation
+P2	M	internal/server/state/native_auth_seam.go	Typed native subject no nil session fallback current device and consent transaction gates
+P2	M	internal/server/state/native_codex_auth_seam.go	Same real parent union subject for Codex without fake issuer session
+P2	N	internal/server/state/native_pack_parent.go	Common Pack parent and device root authority resolution under original transaction
+P2	N	internal/server/state/pack_policy.go	Ciphertext row shape CAS quotas expiry and unique ordinary child enrollment binding consumption tombstones
+P2	N	internal/server/state/pack_policy_test.go	Real SQLite durable grants logout remote device revoke ticket race and encrypted record tests
+P2	M	internal/server/auth/native_consumer.go	Separate ordinary account purpose and Pack device Begin Bind credentials
+P2	N	internal/nativesessionauth/pack_session.go	Pack-purpose device plus ephemeral session canonical domains and opaque evidence
+P2	N	internal/nativesessionauth/pack_session_test.go	Parent union cross-purpose replay ordinary CRUD and key tamper controls
+P3	M	internal/configclient/native_client.go	Typed Pack authority transport never populate interactive owner credential from device
+P3	N	internal/configclient/native_pack_pin.go	Pack context exact pin validation preserving pure renderer contracts
+P4	N	proto/skillhub/pack/device/v1/device.proto	One outbound device service role separated recipient and device RPC no native materialization types
+P4	GN	gen/skillhub/pack/device/v1/device.pb.go	Buf new Go safe device DTO
+P4	GN	gen/skillhub/pack/device/v1/packdevicev1connect/device.connect.go	Buf new common device Connect service
+P4	GN	web/src/gen/skillhub/pack/device/v1/device_pb.ts	Buf new Web safe device DTO no native TS imports
+P4	M	internal/server/httpapi/auth.go	Register common device transport with existing auth store and native service lifecycle
+P4	N	internal/server/httpapi/pack_device.go	Exact RPC role authentication recipient versus scoped device no owner OR bypass
+P4	N	internal/server/httpapi/pack_device_codec.go	Bounded strict command report and page codecs proof fields redacted
+P4	N	internal/server/httpapi/pack_device_test.go	Real TLS cross-owner privacy device versus Web credential negative controls
+P4	N	internal/server/state/pack_device.go	Single pending command and typed reported page mailbox CAS stop generation no new queue table
+P4	N	internal/server/state/pack_device_test.go	Command loss duplicate report pagination revoke concurrent stop and restart SQLite tests
+P4	N	internal/configclient/pack_device.go	Ordinary Begin Bind fresh enrollment dual PoP then scoped control Poll report stop one-shot writes
+P4	N	internal/configclient/pack_device_test.go	No command replay no credential widening caller identity and response loss
+P4	N	internal/configapply/pack_report.go	Engine-owned exact diff and conflict safe projection never marshal raw plan or old secret
+P4	N	internal/configapply/pack_report_test.go	Sentinel secret unknown field path and complete diff pagination privacy
+P4	N	internal/nativeconfig/pack_device.go	Outbound bounded single active device coordinator trusted UI gates and true cancel join
+P4	N	internal/nativeconfig/pack_device_test.go	Actual process command approval report Unknown Stop ack Close Wait lifecycle
+P5	M	web/src/packs.tsx	Mount recipient device controls independently of owned Pack list
+P5	N	web/src/pack-devices.tsx	Recipient device enroll revoke and incoming consent control UI
+P5	N	web/src/pack-device-state.ts	Role identity generation CAS Unknown stop reported states and dirty drafts
+P5	N	web/src/pack-device-report.tsx	Complete real reported diff pagination expiry conflicts and restore request UI
+P5	N	web/src/pack-device-i18n.ts	Chinese English recipient device and reported versus attested copy
+P5	N	web/src/pack-device.css	Existing tokens keyboard focus mobile native zoom reduced motion
+P5	N	scripts/test-pack-device-state.mjs	State RED GREEN remote requests never imply secret or final device approval
+P5	N	scripts/verify-pack-device-ui.mjs	Built Web real device process TLS SQLite roles diff restore privacy stop and actual zoom
+P5	N	docs/PACK-DEVICE-HANDOFF.md	Only new device protocol and honest reported UI scope documentation
+GSCHEMA	M	internal/server/state/store.go	Exact schema preflight before automatic DDL S0 MigrationRequired S1 verify fresh S1 bootstrap
+GSCHEMA	N	internal/server/state/schema_contract.go	S0 S1 versioned exact catalog authority and explicit user version contract
+GSCHEMA	N	internal/server/state/schema_contract_test.go	Exact schema corruption and no silent live migration controls
+GSCHEMA	N	internal/server/state/schema_upgrade.go	Private SQL migration primitive invoked only by main coordinated EX candidate worker
+GSCHEMA	N	internal/server/state/schema_upgrade_test.go	Old bytes IDs sequences ciphertext preservation and DDL uncertainty controls
+GSCHEMA	M	internal/server/state/local_snapshot_inventory.go	Keep exact S0 pair add separately qualified S1 family without generic count wildcard
+GSCHEMA	M	internal/server/state/local_snapshot_worker_linux.go	Exact S0 S1 catalog selection and resource first policy domain validation
+GSCHEMA	M	internal/server/state/local_snapshot_verify.go	Manifest family and actual schema hash exact matching
+GSCHEMA	M	internal/server/state/restore_database_linux.go	Parent evidence exact known schema family identity before Valid
+GSCHEMA	M	internal/server/state/restore_database_worker_linux.go	S1 policy and parent domains ciphertext authentication with shared MaxRecords and fixed worker limits
+GSCHEMA	N	internal/server/state/restore_policy_linux.go	Complete new authority domains one level device consent references charge AAD and 128 paging
+GSCHEMA	N	internal/server/state/restore_policy_linux_test.go	Nonpositive foreign partition row kind nullable budget and close cancellation tests
+GSCHEMA	M	internal/server/state/restore_credentials.go	Explicit S0 eight versus S1 nine DML delete policy authority before sessions and verify empty
+GSCHEMA	M	internal/server/state/restore_credentials_test.go	Keep old eight DML cases add restored old device receipt cannot revive
+GSCHEMA	M	internal/server/state/local_snapshot_inventory_test.go	Keep S0 exact fixture add fresh and migrated S1 catalog and MaxRecords cases
+GSCHEMA	M	internal/server/state/restore_database_linux_test.go	Real S0 S1 inspector and restored authority negative controls
+P2	M	internal/server/state/native_configuration_test.go	Adapt actual nullable parent fixture reads preserving original security assertions not compile RED proof
+P2	M	internal/configclient/native_proof.go	Public legacy knownTree validators strict wire and decode reject all known Pack fields and dual parents before canonical
+P2	M	internal/configclient/native_codex_proof.go	Every public old Codex hash validator and transcript refuses Pack mixed fields preserves old canonical
+P2	N	internal/configclient/native_pack_legacy_test.go	All Claude Codex and approved Gemini public APIs known Pack empty optional zero nested union negative matrix
+GUPGRADE	M	internal/servercli/root.go	Explicit same binary offline schema-upgrade check apply review-id status commands no automatic live DDL
+GUPGRADE	N	internal/servercli/schema_upgrade.go	User and package oneshot upgrade approval EX coordinator results and safe actionable MigrationRequired output
+GUPGRADE	N	internal/servercli/schema_upgrade_linux_test.go	Actual offline CLI check apply source preservation App readback lifecycle and failed activation
+GUPGRADE	M	cmd/cognate-server/main.go	Separate scoped schema upgrade worker dispatch serialized with committed T4 dispatcher
+GUPGRADE	N	cmd/cognate-server/schema_upgrade_worker_integration_test.go	Fresh actual CGO0 binary worker FD key isolation EX migration Wait and Unknown controls
+GUPGRADE	N	internal/server/state/schema_upgrade_worker.go	Versioned private schema worker request and dispatch no publication authority
+GUPGRADE	N	internal/server/state/schema_upgrade_worker_linux.go	Original DB untouched private candidate DDL exact S0 S1 independent checks and bounded SQL sandbox
+GUPGRADE	N	internal/server/state/schema_upgrade_worker_other.go	Explicit Unsupported schema migration worker platform no silent fallback
+GUPGRADE	N	internal/server/state/schema_upgrade_sandbox_linux_amd64.go	Precise DDL worker limits seccomp network denial without widening T1 or T4
+GUPGRADE	N	internal/server/state/schema_upgrade_sandbox_other.go	Explicit fail closed unsupported sandbox no CGO dependency
+GUPGRADE	N	internal/server/restore/schema_upgrade.go	Opaque offline upgrade owner plan candidate and independently verified migration lifecycle R3 coordinated
+GUPGRADE	N	internal/server/restore/schema_upgrade_linux.go	EX pinned source DB WAL SHM private clone candidate sync independent verification ownership
+GUPGRADE	N	internal/server/restore/schema_upgrade_other.go	Explicit Unsupported offline upgrade platform
+GUPGRADE	N	internal/server/restore/schema_upgrade_linux_test.go	Actual old data account password ciphertext sequence preservation and boundary failure retention
+GUPGRADE	N	internal/server/restore/schema_upgrade_publication.go	Main R3 owned adapter only real verified candidate to publication activation and App readback not raw rename
+GUPGRADE	N	internal/server/restore/schema_upgrade_publication_test.go	No publication before independent proof actual App Open Serve Close join readback failure pending intent
+GUPGRADE	N	docs/SCHEMA-UPGRADE.md	Executable operator Docker LPK offline command mode preservation and qualified upgrade limitations
