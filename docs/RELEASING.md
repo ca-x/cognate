@@ -1,5 +1,14 @@
 # Component releases
 
+## 2026-11-01 follow-up distribution
+
+The next component set is `server-v0.2.0`, `cli-v0.2.0` and `gui-v0.1.3`,
+with separately versioned LazyCat Exec `0.2.0`. Scope and upgrade limitations
+are in `RELEASE-v0.2.0.md`. These are new immutable tags; prior tags remain
+unchanged. Publication and downloaded-asset verification must be recorded
+before this plan is treated as delivered. In-progress restore, MyGo native
+provider application and Pack automatic configuration are not included.
+
 Server, CLI and native GUI have independent versions and tag triggers. Push a tag
 only after its component has passed acceptance. A tag is not a declaration that
 the entire Cognate product is complete.

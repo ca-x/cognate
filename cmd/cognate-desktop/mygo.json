@@ -2,7 +2,7 @@
   "name": "Cognate",
   "slug": "cognate-desktop",
   "identifier": "dev.cognate.desktop",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": ".",
   "icon": "../../assets/branding/client.png",
   "out": "../../dist/desktop",
