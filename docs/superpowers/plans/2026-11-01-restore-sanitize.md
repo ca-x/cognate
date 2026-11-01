@@ -5,6 +5,31 @@ Approved design: `/tmp/cognate-t4-coordinator-design-6f1e-amxELLrD/T4-COORDINATO
 `578bce2cff29315d523782aef74d7156fa08304bd48d829af8168f2ed25e34f4`.
 This records implementation rulings, not additional requirements attributed to the user.
 
+## Final Guard Ownership Ruling (2026-11-01)
+
+The private complete-chain real-EMFILE probe found a genuine blocker: an outer guard can be
+physically closed while returning an error, and a subsequent recovery dup can fail. More layers
+of best-effort dup do not solve the last owner's release. The old failing receipt remains
+`/tmp/cognate-t4-6f1-cjunAvKA/evidence/29-coordinator-exhaustion.log`, SHA256
+`24d34bc1a1ac8a30715fa7ad6e6ae581dc45bbe19fbbe9b8cc8c28fde543c0ae`.
+
+Authorize a narrow `OfflineRoot.WithRetainedWorkerFiles` finalization scope. While holding the
+owning lease mutex, before a concurrent Close can run, an uncertain callback or post-admission
+result quarantines the original owning root/lock/fences references. Later OfflineRoot.Close
+returns ErrUncertain without physically closing those files. No post-failure FD allocation is
+needed; the still-live original lock is the same OFD, not a claim that a failed duplicate Close
+left that duplicate open. Preserve existing Runtime/OfflineRoot.WithWorkerFiles behavior and
+the ordinary durable pending-release protocol. No new App dirty marker or persistent format.
+
+The approved22 T4 paths may expand only by `internal/server/runtimegen/worker_linux.go`,
+`internal/server/runtimegen/worker_other.go`, `internal/server/runtimegen/lease_linux.go`, and
+new `internal/server/runtimegen/worker_retention_linux_test.go`:26 exact product/test paths.
+Prove actual EMFILE, concurrent Close, late post-admission failure, original API compatibility,
+known successful release, no Sanitized escape, retained candidate fence and a real independent
+EX refusal. Removing the owner quarantine must produce behavioral RED. Process death is not
+claimed to preserve a physical flock; writer retirement and candidate/R3 intent govern that
+case. This is implementation authorization, not a fix or independent acceptance claim.
+
 ## Complete Slice
 
 Implement one complete authenticated-candidate sanitization coordinator, not another SQL-only helper.
