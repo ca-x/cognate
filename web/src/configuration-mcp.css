@@ -1,0 +1,32 @@
+.mcp-workspace, .mcp-editor { min-width: 0; }
+.mcp-workspace .page-heading { flex-wrap: wrap; gap: 1rem; align-items: start; }
+.mcp-workspace .page-heading > div { flex: 1 1 22rem; }
+.mcp-scope, .mcp-status, .mcp-review { padding: 1rem; border-inline-start: 2px solid var(--color-primary); background: var(--color-muted); border-radius: .5rem; line-height: 1.65; }
+.mcp-status:empty { display: none; }
+.mcp-workspace .mcp-list { display: grid; gap: 1rem; }
+.mcp-asset { background: var(--color-card); border: 1px solid var(--color-border); border-radius: .75rem; padding: 1.25rem; }
+.mcp-asset h3, .mcp-asset dd, .mcp-editor code { overflow-wrap: anywhere; word-break: break-word; }
+.mcp-asset dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; font-size: .875rem; }
+.mcp-asset dt, .mcp-help { color: var(--color-muted-foreground); font-size: .875rem; line-height: 1.65; }
+.mcp-asset dd { margin-top: .25rem; font-variant-numeric: tabular-nums; }
+.mcp-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.mcp-editor { scroll-padding-block: 1.25rem; overscroll-behavior: contain; }
+.mcp-editor p, .mcp-editor label { overflow-wrap: anywhere; }
+.mcp-editor h2:focus, .mcp-workspace h1:focus, .mcp-editor fieldset:focus, .mcp-editor li:focus { outline: 2px solid var(--color-ring); outline-offset: .25rem; }
+.mcp-editor button:not([role=checkbox]), .mcp-workspace button:not([role=checkbox]), .mcp-editor [role=combobox] { min-width: 0; max-width: 100%; min-height: 2.75rem; height: auto; white-space: normal; overflow-wrap: anywhere; }
+.mcp-editor input { min-width: 0; width: 100%; min-height: 2.75rem; }
+.mcp-form, .mcp-collection { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.mcp-form h3 { font-size: 1rem; font-weight: 600; }
+.mcp-form fieldset { display: grid; gap: 1rem; border: 1px solid var(--color-border); padding: 1rem; border-radius: .75rem; min-width: 0; }
+.mcp-form legend { padding-inline: .25rem; font-weight: 600; }
+.mcp-field { display: grid; gap: .5rem; min-width: 0; }
+.mcp-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mcp-toggle { display: flex; gap: .75rem; align-items: flex-start; min-height: 2.75rem; }
+.mcp-toggle [role=checkbox] { margin-top: .75rem; flex-shrink: 0; }
+.mcp-toggle label { flex: 1; padding-block: .5rem; cursor: pointer; line-height: 1.6; }
+.mcp-collection ol { display: grid; gap: 1rem; }
+.mcp-collection li, .mcp-secret { display: grid; gap: .75rem; border-top: 1px solid var(--color-border); padding-top: 1rem; min-width: 0; }
+.mcp-reference { font-size: .875rem; color: var(--color-muted-foreground); }
+.mcp-form [role=alert], .mcp-editor [role=alert] { font-size: .875rem; line-height: 1.65; color: var(--color-destructive); }
+@media (max-width: 40rem) { .mcp-grid, .mcp-asset dl { grid-template-columns: minmax(0, 1fr); } .mcp-actions > * { flex: 1 1 8rem; } .mcp-form fieldset { padding: .75rem; } }
+@media (prefers-reduced-motion: reduce) { .mcp-editor, .mcp-editor *, .mcp-workspace, .mcp-workspace * { animation: none !important; transition: none !important; } }

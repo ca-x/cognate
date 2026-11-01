@@ -53,6 +53,8 @@ jobs:
       - run: node scripts/verify-pack-configurations-ui.mjs --self-test
       - run: node scripts/verify-npx-selection.mjs --self-test
       - run: node scripts/verify-configuration-ui.mjs --self-test
+      - run: node scripts/test-mcp-configurations-state.mjs
+      - run: node scripts/verify-mcp-configurations-ui.mjs --self-test --output "$RUNNER_TEMP/mcp-configurations-terminal"
       - uses: actions/upload-artifact@v4
         with:
           name: cognate-web

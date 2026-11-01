@@ -1,5 +1,40 @@
 # 开发预览验证
 
+## 2026-11-01：Web 私有 MCP 连接资产编辑
+
+exact13 patch SHA256 `ed3bd3a8c7a1966ca27b8b434d0d637437d7c95cad193b7dc316cd0cb361e965`，
+四个Web文件修改、九个新增，backend生产/wire/schema/依赖不变；不是网站MCP管理token。
+非作者Spec/Quality限定ACCEPT报告
+`/tmp/cognate-web-mcp-independent-58f9b45-hmWzBp7u/freeze/REPORT.md`，SHA256
+`c1228ea0d1a8491632d795edbf4b239f27375fedb060886c4764fa5e98ea7fd6`。
+独立重建完整源/模式、正常build、四包定向250 PASS事件/1显式fixture SKIP/0 FAIL及vet通过；
+另新编fixture实际跑最终字节14组浏览器、真正200%zoom2组、独立追加16组及zoom焦点3组。
+Unknown取消/丢create回复、no-replay/readback、跨owner、秘密清理及两项真实行为RED均有新据；
+四份独立harness设置失败保留，不改称产品RED或被fixture PASS抵销。各次真实stop、App.Close、
+Serve/worker join与进程Wait确认；测试Chrome忽略私有测试证书错误，不构成外部PKI资格。
+
+主线程隔离组合 `/tmp/cognate-web-mcp-main-25f9dbb-bo7wQ89v` 固定输入为25f9dbb + exact13，
+另加第14路径workflow两行，启用实际state测试及七案browser终态自检，无continue-on-error。
+正常offline npm ci、state、terminal7/7、原备份Web67 checks及正常Web build均exit0；
+真实最终embed浏览器14组及原生200%zoom2组exit0，explicitStop=true且fixture实际Wait0。
+英文浅色1280/中文深色375截图已目视；原生zoom证明16px根字、CSS zoom1、DPR1→2与同物理
+窗口的CSS宽度减半，不把文本放大或设备仿真称为原生zoom。完整证据为该根
+`evidence/browser-current`、`browser-native-zoom`、`09-*`至`11-*`。
+
+同一冻结组合 `go test -json ./... -count=1 -timeout=10m` 已真实终态exit0：
+9121 PASS事件、176 SKIP、0 FAIL，51包通过；`06-full-go.*`保存原事件与summary。
+全仓vet及server/CLI/MyGo三OS双架构十八构建与CGO0/OS/架构metadata均通过，见`07-*`、`08-*`。
+Go1.27.3、CGO_ENABLED=0、GOMAXPROCS4、私有HOME/tmp、离线只读module cache；无race。
+主线应用后逐文件映射14路径与此候选相等，后继仅追加交付文档，不冒称主线再次全仓运行。
+
+workflow增量另获独审本地限定ACCEPT。主12-actionlint初次因mise shellcheck shim缺版本而
+setup exit3；12b显式真实ShellCheck后exit1，SC2016两项/SC2034一项与12c原主线完全相同，
+为既有警告，未改无关脚本。12d的`actionlint -shellcheck ''`结构检查及12e新增两步骤单独
+ShellCheck均exit0；两个新步骤已真实执行，不宣称完整ShellCheck或远端CI当时已绿。
+原作者14组早于仅HTTPS scheme大小写验证一行修订；本独审和当前组合都重新运行最终字节
+完整矩阵，旧失败与原证据不改写。没有新发布包/正式标签，不代表原生应用、其它agent、
+全部UI/平台或完整F12/GA；浏览器字符串不承诺密码学擦除，重启页面也不等于durable幂等日志。
+
 ## 2026-11-01：MyGo 通用配置资产分区排序
 
 原exact10 patch SHA256 `f9b6ea171357129d2d519ff0aec400b4400335c3cb2d3511fd2b065fb539f53d`，

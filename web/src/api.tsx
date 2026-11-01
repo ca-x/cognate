@@ -11,6 +11,7 @@ import { PackService } from "./gen/skillhub/pack/v1/pack_pb"
 import { PackConfigurationService } from "./gen/skillhub/pack/configuration/v1/configuration_pb"
 import { CategoryService, PublicationService, PublicCatalogService } from "./gen/skillhub/catalog/v1/catalog_pb"
 import { MCPManagementService } from "./gen/skillhub/mcp/v1/mcp_pb"
+import { MCPConfigurationService } from "./gen/skillhub/configuration/mcp/v1/mcp_pb"
 import { ImportService } from "./gen/skillhub/import/v1/import_pb"
 import { ConfigurationService } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { LogManagementService } from "./gen/skillhub/management/v1/logging_pb"
@@ -29,6 +30,7 @@ type ApiContext = {
   publications: Client<typeof PublicationService>
   publicCatalog: Client<typeof PublicCatalogService>
   mcp: Client<typeof MCPManagementService>
+  mcpConfiguration: Client<typeof MCPConfigurationService>
   imports: Client<typeof ImportService>
   configuration: Client<typeof ConfigurationService>
   logManagement: Client<typeof LogManagementService>
@@ -115,7 +117,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       interceptors: [authenticate],
     })
     const packTransport = createConnectTransport({ baseUrl: window.location.origin, defaultTimeoutMs: 20_000, interceptors: [authenticate], fetch: packConfigurationFetch })
-    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), packConfigurations: createClient(PackConfigurationService, packTransport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport) }
+    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), packConfigurations: createClient(PackConfigurationService, packTransport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), mcpConfiguration: createClient(MCPConfigurationService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport) }
   }, [session, setSession])
   const value = { session, setSession, ...clients, publicCatalog, completingLogin, loginNotice }
   useEffect(() => {

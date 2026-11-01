@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useBlocker } from "@tanstack/react-router"
+import { Link, useBlocker } from "@tanstack/react-router"
 import { Code, ConnectError, type Client } from "@connectrpc/connect"
 import { create, equals, toJsonString } from "@bufbuild/protobuf"
 import { Plus, RefreshCw, Settings2 } from "lucide-react"
@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import "./configuration-ui-i18n"
 import "./configuration-ui.css"
+import "./configuration-mcp-i18n"
 
 type ConfigurationClient = Client<typeof ConfigurationService>
 type Action = { kind: "create" } | { kind: "edit"; asset: AssetMetadata } | { kind: "copy"; asset: AssetMetadata } | { kind: "delete"; asset: AssetMetadata }
@@ -270,7 +271,7 @@ function ConfigurationSession({ owner, client }: { owner: string; client: Config
     <div className="page-heading flex-wrap"><div className="min-w-0"><p className="configuration-eyebrow">{ui("workspace")}</p><h1 ref={heading} tabIndex={-1} data-configuration-heading>{t("AI 配置")}</h1><p>{t("管理私有配置资产。保存不选择 provider，不修改设备文件，也不表示已经应用。")}</p></div><Button ref={createTrigger} disabled={!fresh} onClick={(event) => open({ kind: "create" }, event.currentTarget)}><Plus size={17} aria-hidden="true" />{t("新建配置资产")}</Button></div>
     <section className="configuration-scope min-w-0 rounded-xl border border-border bg-card" aria-label={t("配置支持范围")}>
       <div className="configuration-capabilities"><Settings2 size={18} className="shrink-0 text-primary" aria-hidden="true" /><p>{t("可编辑：Claude Code、Codex、Gemini、OpenCode、Grok Build")}</p></div>
-      <p className="px-4 pb-3 text-sm text-muted-foreground">{ui("nativeDetail")}</p><details><summary>{t("查看支持范围与操作边界")}</summary><div className="space-y-3"><p className="text-sm leading-6 text-muted-foreground">{orderText("scope")}</p><p className="text-sm leading-6 text-muted-foreground">{t("尚未接通 provider 切换、设备应用、来源配置迁移、MCP connections、prompts 或 OpenClaw 专属面板；它们不是已完成能力。")}</p></div></details>
+      <p className="px-4 pb-3 text-sm text-muted-foreground">{ui("nativeDetail")}</p><details><summary>{t("查看支持范围与操作边界")}</summary><div className="space-y-3"><p className="text-sm leading-6 text-muted-foreground">{orderText("scope")}</p><p className="text-sm leading-6 text-muted-foreground"><Link to="/configuration" search={{ section: "mcp" }} className="text-primary underline underline-offset-4">MCP</Link>: <span>{i18n.t("scope", { ns: "configurationMCP" })}</span></p><p className="text-sm text-muted-foreground">{i18n.t("remaining", { ns: "configurationMCP" })}</p></div></details>
     </section>
     <div role="status" aria-live="polite" className="configuration-notice my-4 min-h-6 text-sm leading-6">{result && <><p>{t(result.kind === "saved" ? "配置资产已保存，未应用到设备。" : result.kind === "copied" ? "已复制非秘密配置，未选择或应用。" : "服务端配置资产已删除，设备状态未更改。")}</p>{result.readiness !== undefined && <p className="text-muted-foreground">{t(result.readiness === CredentialReadiness.NEEDS_CREDENTIAL ? "此资产仍需补充凭据；没有被标记为可应用。" : "凭据结构完整，但未验证连通性或本地应用能力。")}</p>}</>}</div>
     {query.isFetching && <p role="status" className="configuration-editor-state">{ui("refreshing")}</p>}{query.isError && <p role="alert" className="configuration-editor-state">{ui("stale")}</p>}
@@ -291,5 +292,6 @@ function ConfigurationSession({ owner, client }: { owner: string; client: Config
 
 export function ConfigurationPage() {
   const { session, configuration } = useApi()
-  return session ? <ConfigurationSession key={`${session.token}:${session.userId}:${window.location.origin}`} owner={session.userId} client={configuration} /> : null
+  const { t: mcpText } = useTranslation("configurationMCP")
+  return session ? <><div className="mb-5 rounded-xl border border-border bg-card p-4"><Link to="/configuration" search={{ section: "mcp" }} className="font-medium text-primary underline underline-offset-4">{mcpText("open")}</Link><p className="mt-2 text-sm text-muted-foreground">{mcpText("scope")}</p></div><ConfigurationSession key={`${session.token}:${session.userId}:${window.location.origin}`} owner={session.userId} client={configuration} /></> : null
 }

@@ -1,5 +1,16 @@
 # AI 配置资产
 
+## Web MCP 连接配置资产（2026-11-01）
+
+从“AI 配置”进入“管理私有 MCP 连接配置”，地址为 `/configuration?section=mcp`。
+这是 agent 使用的私有连接资产，不是网站 MCP 管理 token。现有 Claude schema1 支持有序
+stdio/HTTP/SSE、显式启停、args/env/headers 的 absent/empty、凭据引用及 Keep/Replace/Clear。
+每个移除的旧引用均需同次 CAS 明确 Clear，复制不带密钥，未知 schema/extras 只读。
+逻辑预览后批准精确草稿/动作版本，再单次保存；冲突或 Unknown 必须显式重读和重新审阅，
+关闭弹窗不解除写屏障。主题和语言切换保留草稿，共享偏好控件同步。
+不连接 MCP、不执行进程、不应用设备；MyGo 编辑和原生应用仍待后继交付。
+完整操作与独立浏览器、真正200%缩放及故障边界见 `WEB-MCP-CONFIGURATIONS.md`、`VERIFICATION.md`。
+
 ## Grok Build 来源导入（2026-10-31）
 
 cc-switch schema24 的独立配置选择导入支持 Grok Build 显式单模型 TOML；来源参考固定为 `6d6b7162f122ac0ce1356a14688c8c4f712db3c8`。要求 `[models].default` 引用唯一 `[model.<profile>]`，保留 profile、上游模型、HTTPS endpoint、模型名称、responses backend、context window 与可选 env_key，整数范围为 1–9007199254740991。未知字段、多模型、空配置、缺失必填字段、错误类型或引用均标为不支持，不按上游 UI fallback 猜测原生登录或补默认值。

@@ -24,12 +24,18 @@ const PublicSkillPage = lazy(() => import("./explore").then((module) => ({ defau
 const CategoriesPage = lazy(() => import("./categories").then((module) => ({ default: module.CategoriesPage })))
 const MCPSettingsPage = lazy(() => import("./mcp-settings").then((module) => ({ default: module.MCPSettingsPage })))
 const ConfigurationPage = lazy(() => import("./configuration").then((module) => ({ default: module.ConfigurationPage })))
+const MCPConfigurationPage = lazy(() => import("./configuration-mcp").then((module) => ({ default: module.MCPConfigurationPage })))
 const ServerLoggingPage = lazy(() => import("./server-logging").then((module) => ({ default: module.ServerLoggingPage })))
 const ServerBackupPage = lazy(() => import("./server-backup").then((module) => ({ default: module.ServerBackupPage })))
 
 function MCPSettingsRoute() {
   const { session, mcp } = useApi()
   return session ? <MCPSettingsPage key={session.userId} client={mcp} owner={session.userId} /> : null
+}
+
+function ConfigurationRoute() {
+  const { section } = configurationRoute.useSearch()
+  return section === "mcp" ? <MCPConfigurationPage /> : <ConfigurationPage />
 }
 
 function PublicWorkspace() {
@@ -102,7 +108,7 @@ const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: "/acco
 const packsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/packs", component: PacksPage })
 const categoriesRoute = createRoute({ getParentRoute: () => rootRoute, path: "/categories", component: CategoriesPage })
 const mcpSettingsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/mcp-settings", component: MCPSettingsRoute })
-const configurationRoute = createRoute({ getParentRoute: () => rootRoute, path: "/configuration", component: ConfigurationPage })
+const configurationRoute = createRoute({ getParentRoute: () => rootRoute, path: "/configuration", validateSearch: (search: Record<string, unknown>): { section?: "mcp" } => search.section === "mcp" ? { section: "mcp" } : {}, component: ConfigurationRoute })
 const serverLoggingRoute = createRoute({ getParentRoute: () => rootRoute, path: "/server-logging", component: ServerLoggingPage })
 const serverBackupRoute = createRoute({ getParentRoute: () => rootRoute, path: "/server-backup", component: ServerBackupPage })
 const exploreRoute = createRoute({ getParentRoute: () => rootRoute, path: "/explore", validateSearch: validateCatalogSearch, component: ExplorePage })

@@ -173,6 +173,9 @@
 - 两种主题均须保证可读性、键盘焦点和对比度；尊重 prefers-reduced-motion，不以主题初始化为由放宽 CSP 的脚本策略。
 
 ### F12 AI 配置管理与应用（用户补充，2026-10-28）
+
+- Web MCP 后继补记（2026-11-01）：`/configuration?section=mcp` 已提供私有 Claude schema1 连接资产的有序 stdio/HTTP/SSE 结构化编辑、显式启停、凭据引用 Keep/Replace/Clear、逻辑预览、CRUD/无密钥复制及完整分区排序。每个旧移除引用须明确 Clear；未知字段只读，冲突/Unknown 禁自动重放并需显式重读，主题/语言保留草稿。非作者独审、当前组合真实浏览器与原生200%缩放、全仓/CGO0构建通过；不连接 MCP、不执行进程、不应用设备，不代替 MyGo、其它 agent 或完整 F12，详见 `WEB-MCP-CONFIGURATIONS.md`。
+
 - 参照 cc-switch 的实际交互完善 AI 配置管理，不将需求缩减为仓库导入或仅保存原始 JSON。建立来源版本可追溯的能力矩阵，覆盖各 agent 支持的 provider 新建/编辑/删除/复制/切换、端点与模型、结构化表单与原始配置编辑、MCP 和提示词等配置类型；仅对经过格式验证的能力开放应用，不静默丢弃不支持字段。
 - cc-switch / Magpie 导入须独立选择 skills、仓库和客户端配置；客户端配置可单独维护，并可显式附加到以 skill 为主的 Pack。GitHub 凭据与程序自身的会话、MCP 管理 token 不作为 agent 配置自动导出。
 - Web 管理和 MyGo 原生客户端应提供能力一致的配置选择、预览/差异、冲突处理、应用状态及恢复入口；Connect RPC 可以增量扩展，但不复用已有字段标签或破坏旧客户端。自动应用只针对用户明确启用的配置及目标 agent，不因登录、导入预览、浏览公开目录或安装公开 skill 而写入 agent 配置。
