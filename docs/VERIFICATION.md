@@ -33,6 +33,21 @@ exit3保留为setup失败。最终workflow SHA256
 `7c2e0aa257349d22a1f32c4c106aae214da58594aadef1cc396fb09b353f2dff`。
 修后具名CI仍需独立核实真实Mac编译、原生测试、清理及封闭artifact；旧失败不重写、不重跑刷绿。
 
+后继实际run `41264397380` / attempt1 绑定修复提交
+`3aa17663ecc87926fab044056bdc58891f4210dd`，四个job均completed/success；Darwin baseline
+job为`124724068745`。主下载core artifact `13066682649`（9成员/8payload）和baseline
+`13066453157`（23成员/22payload），原ZIP SHA256分别为
+`04d71fe00a39cf96bef3e9bc91cd1ace967b846eb51ad981810b61e399c09d3c`、
+`6cc846496fa4ee1452821110a642cc801f0eea480bf6e78eb93b7342f0afe753`，与API digest相同。
+CRC、全成员/manifest逐项bytes/hash、源码提交/树和真实Darwin/arm64身份均复核；无refusal。
+toolchain为darwin/arm64/go1.27.3/CGO0，两个实际APFS device不同，core24+24+1+2事件全过，
+无SKIP/FAIL；原baseline三正向和五项预期普通RED的实际exit/父级事件逐项匹配。
+两卷detach_exit=0、still_mounted=false、cleanup.failed=false，auxiliary_failures为空。
+证据为上述复现根的`native-run-41264397380`；最初本机检查器误将Go事件`.json`当单JSON而
+报Extra data，后继按原JSONL格式核对，未重跑远端或改artifact，不把检查器错误当产品失败。
+这确认缺embed构建前置已修，仍仅原core/基线资格；旧五项产品RED不变，未交付Darwin CLI
+caller候选、真实安装/Pack/Desktop/配置或完整macOS支持，也不关闭旧APFS故障根因UNKNOWN。
+
 ## 2026-11-01：MyGo 私有 MCP 连接资产完整编辑
 
 exact12 为2修改、10新增，patch SHA256
