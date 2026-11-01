@@ -12,6 +12,7 @@
 ## 发布收尾
 
 - [x] 首个正式组件分发：`server-v0.1.0` 双架构镜像、`cli-v0.1.0` 六归档、`gui-v0.1.2` 八安装产物；独立 tag、完整下载校验、公开非 prerelease 回读及支持范围见 `RELEASE-v0.1.0-VERIFICATION.md`。不关闭本清单中的未完成产品能力。
+- [x] 喵喵正式 Exec LPK `0.1.0`：run41278328477 成功，最终 77,757,952 字节实包完整下载/解包/启动验收通过，喵喵接受 app670/version3838；官方商店关闭，真机 OIDC 和用户数据升级仍待反馈。
 
 - [x] 修复并核对原生测试Web embed构建前置：f5faa0c的run41263657100缺dist失败保留；3aa1766新run41264397380四job成功，真实Mac双APFS/core51及原五项普通产品RED、两个封闭artifact的API digest/CRC/manifest/清理均核实。只关闭缺构建输入，不扩大Darwin客户端支持或关闭旧APFS UNKNOWN。
 - [x] 发布服务端 `server-v0.1.0-rc.2`，验证 amd64/arm64、匿名拉取与镜像 digest。
@@ -91,7 +92,7 @@
 
 - [ ] CLI 跨平台账号交互与 OIDC；本轮 `auth run` 仅支持 Linux 本地账号。
 - [x] 合入已独审 Darwin CLI 密钥调用候选及原生工作流：当前组合全Go/vet/交编与封存有限正反例通过，保留新Web前置和清理拒绝门；不代表取得原生资格。
-- [ ] Darwin caller 原生资格：run41266403574 与后继41272459912均实际失败，三 ZIP 仅 refusal/unconfirmed、双卷清理成功。有界诊断已定位后者的 sensitive-pty-io，但尚无测试/子 phase；本地已复现并修复 Go 工具冷编译在原 1MiB 文件上限下失败，仍须后继真实 caller50/core51 及三份封闭收据。不重跑旧 run 刷绿，密钥准入不等于安装/Pack/GUI资格。
+- [x] Darwin caller 有限原生资格：旧 run41266403574/41272459912 的 refusal 与失败保留；后继修复 cold converter 及严格 PTY sealer 后，`3e98be3` 的 run41278181617 实际成功，三原 ZIP 的 API digest/CRC/完整 manifest、源码身份、core51/caller50/22 源/3 binary 与清理均已核对。此项仅限记录的源码与门禁，普通安装、Pack、GUI 和完整跨平台体验仍未取得资格，不移动或倒签旧标签。
 - [ ] 完成 macOS/Windows 本地安装、订阅同步、配置应用及恢复的逐项运行验收；交叉编译不算运行支持。
 - [ ] GUI 各平台真实安装、窗口交互、键盘与可访问性验证；已有 Linux 窗口 smoke 不覆盖其它平台。
 - [ ] macOS Developer ID 签名与公证、Windows 安装包签名；预览包保持 unsigned/ad-hoc 标识。
