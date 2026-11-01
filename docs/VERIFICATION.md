@@ -1,5 +1,38 @@
 # 开发预览验证
 
+## 2026-11-01：Darwin CLI caller 与当前主线组合，等待真实原生资格
+
+主线在 `0d6c59d` 上接入原已独审 caller exact8，以及已静审的工作流/说明，
+本次只批准由该阶段的一次 push 自动触发原生验证，不另行 dispatch 或重跑历史失败。
+范围仅为 Darwin arm64 显式客户端密钥初始化、匹配调用者 devfs TTY 输出及安装前密钥
+准入；安装、Pack、Desktop 与原生配置应用仍保持 Unsupported，不能据此称 macOS 支持完成。
+源码包 SHA256 `56a48d03729d7487c94d0fb7b3932f146fba656f7acef7e1ad867e7047dca321`，
+非作者源码报告 SHA256 `f5e69429a8ae32d1362f320a949b55ee488f693f389ec35199c2ea462ca0540c`，
+仅为 SCOPED_ACCEPT；工作流/文档独审见
+`/tmp/cognate-darwin-caller-preview-review.OBcxIOUa/REPORT.md`，同样不是原生运行资格。
+
+组合根 `/tmp/cognate-darwin-cli-current-3aa1766-SQdSbAA7` 以 `3aa1766` 干净 archive
+叠加 exact8；此后主线到 `0d6c59d` 只有三篇文档变化。八个 Go 文件逐字匹配原冻结
+manifest，其余1596个基线文件均匹配。正常 Web 构建资源参与测试，不使用空 dist。
+`01-full-go` 实际 exit0：9244个含 Test 字段的 PASS 事件、176个测试 SKIP、51个测试包
+通过、77个无测试包 SKIP、零 FAIL；全仓 vet、Darwin arm64 CLI vet、六目标 CLI build
+及两个 Darwin CLI test-c 全部 exit0，八份 metadata 核对 Go1.27.3/CGO0/OS/架构。
+历史 late-key-loss watch 断言在此组合实际 PASS，但原失败根因仍 UNKNOWN，不改写旧据。
+
+最终工作流 SHA256 `4071ce066388facb6eee9d98de7154a0d36437cd1f2266fa87b33e05b50497dc`。
+机械撤销既有 Node/Web 前置和 detach 失败保留两段后，仅六个空行去尾空白，逐字回到原
+已审工作流。当前组合 actionlint1.7.7/真实 ShellCheck0.11.0 均通过；隔离、无网络的
+AST 检查确认 core51/caller50、十角色、21输入绑定与构建前后代码相同；有限封存测试
+完整正例1个、30个反例/16类全部通过。初次 harness 缺 evidence/probes 目录和一次
+gofmt shim 未激活均为本地 setup 失败，未算产品 RED，未改生产代码或原冻结包。
+
+这些是 Linux 执行、交编和有限机制证据；真实 Darwin caller 运行仍 NOT_RUN。
+必须另核本次具名 run/attempt 的真实双 APFS、core51/caller50、保留四项普通产品 RED、
+三份封闭 artifact 的 API digest/CRC/manifest 与成功 detach/清理后，才能更新限定资格。
+主线实际合入后另跑 `^TestClientKeyEntrypoints`：47个测试 PASS、零 SKIP/FAIL、包 exit0；
+CLI vet、八文件 gofmt 与 diff whitespace 检查通过。完整跨平台安装、认证、全部 agent、
+UI 和 GA 门禁保持打开。
+
 ## 2026-11-01：原生平台测试补齐真实 Web embed 构建前置
 
 f5faa0c 的 Platform `41263657100` 实际失败；Ubuntu/Windows/macOS 三个 primitives job

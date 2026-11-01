@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 起的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 Darwin CLI caller exact8 与当前主线组合已通过全仓9244测试PASS事件/176测试SKIP/零FAIL、vet及八份CGO0构建/测试编译；原已审工作流保留新Web前置和清理拒绝门，经AST/core51/caller50及有限封存正反例复核。仅批准一次阶段push触发真实Mac验证，caller原生仍NOT_RUN；安装/Pack/Desktop/配置和完整GA未放行，见 `DARWIN-CLI-CLIENT-KEY.md`、`VERIFICATION.md`。
 - 2026-11-01 MyGo MCP exact12 获非作者 Spec/Quality 限定 ACCEPT：Claude schema1 完整typed编辑、13种结构变换逐旧ref清理、四类引用三态、CRUD提交后失包单写、身份/只读/排空及两项可编译减门RED均有独立证据。普通Linux窗口独立真实登录并新建一次无slot stdio资产；实窗其它CRUD/凭据矩阵未外推。主c8885+exact12组合三包784 PASS事件/25条件SKIP/0 FAIL、vet/六MyGo CGO0构建、含排序的普通未登录窗口前门通过，1443非文档输入相同；不是设备MCP执行/应用、全平台、完整F12/UI/GA，见 `VERIFICATION.md`。
 - 2026-11-01 T4 exact26 已获非作者 Spec/Quality 限定 ACCEPT：同 EX inspector、真实撤销事务/完整终结、独立 T1/后置/全保留数据投影、唯一所有权 pending/ready，以及 owning lease mutex 内保留原资源的 EMFILE 根因修复。245bfca + exact26 组合全仓9206 PASS事件/176 SKIP/0 FAIL、vet及18个 CGO0 构建通过，主线1434项非文档输入逐字相等。仍不是 R3 current/intent/切换/回退、离线 CLI、restore_verified 或完整 F4/GA；旧 R2 正向 EX 与 S3 291 UNKNOWN 不关闭，见 `VERIFICATION.md`。
 - 2026-11-01 Web私有Claude schema1 MCP连接资产exact13及CI两行获非作者Spec/Quality限定ACCEPT：真实有序CRUD/三态凭据/每引用Clear/无密钥复制/CAS、Unknown跨弹窗屏障、跨owner及偏好草稿保持。当前25f9组合全仓9121 PASS/176 SKIP/0 FAIL、vet、十八CGO0构建及真实built浏览器14组/原生200%zoom2组通过；不是MCP连通性、设备应用、MyGo、全产品UI或F12/GA，详见 `WEB-MCP-CONFIGURATIONS.md`、`VERIFICATION.md`。

@@ -34,6 +34,28 @@ func admitClientHome(ctx context.Context) (string, error) {
 	return home, nil
 }
 
+func admitDarwinInstallation(ctx context.Context) error {
+	if runtime.GOOS != "darwin" {
+		return nil
+	}
+	if runtime.GOARCH != "arm64" {
+		return clientkey.ErrUnsupported
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	home, err := localHome()
+	if err != nil {
+		return clientkey.ErrUnavailable
+	}
+	key, err := clientkey.LoadExisting(ctx, home)
+	clear(key)
+	if err != nil {
+		return err
+	}
+	return clientkey.ErrUnsupported
+}
+
 func newClientKeyCommand() *cobra.Command {
 	parent := &cobra.Command{Use: "client-key", Short: "显式初始化本机客户端密钥", Args: cobra.NoArgs,
 		RunE: func(command *cobra.Command, _ []string) error { return command.Help() }}
@@ -43,7 +65,7 @@ func newClientKeyCommand() *cobra.Command {
 			if timeout <= 0 || timeout > 2*time.Minute {
 				return clientkey.ErrUnavailable
 			}
-			if runtime.GOOS != "linux" {
+			if runtime.GOOS != "linux" && (runtime.GOOS != "darwin" || runtime.GOARCH != "arm64") {
 				return clientkey.ErrUnsupported
 			}
 			ctx, cancel := context.WithTimeout(command.Context(), timeout)
@@ -90,7 +112,7 @@ func clientKeyErrorMessage(err error) string {
 	case errors.Is(err, clientkey.ErrRecoveryRequired):
 		return "请恢复既有本机客户端密钥，勿重新生成。"
 	case errors.Is(err, clientkey.ErrUnsupported):
-		return "本机客户端密钥操作当前仅支持 Linux。"
+		return "当前平台、操作或输出通道尚未受支持。"
 	default:
 		return "本机客户端密钥不可用；请核实参数、权限与本地状态。"
 	}
@@ -117,7 +139,7 @@ func prepareClientKeyOutput(ctx context.Context, writer io.Writer) (io.WriteClos
 	if existing, ok := writer.(*clientKeyOutput); ok {
 		return &clientKeyOutput{WriteCloser: &nativeOutput{ctx: ctx, writer: existing, close: func() error { return nil }, remaining: 4 << 10}}, nil
 	}
-	output, err := prepareNativeOutput(ctx, writer)
+	output, err := preparePlatformClientKeyOutput(ctx, writer)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +170,7 @@ func executeClientKey(ctx context.Context, command *cobra.Command) int {
 func clientKeyExitDiagnostic(err error, remaining int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, prepareErr := prepareNativeOutput(ctx, os.Stderr)
+	output, prepareErr := preparePlatformClientKeyOutput(ctx, os.Stderr)
 	if prepareErr != nil {
 		return
 	}

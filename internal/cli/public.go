@@ -19,6 +19,9 @@ func newInstallPublicCommand() *cobra.Command {
 			if err := command.Context().Err(); err != nil {
 				return err
 			}
+			if err := admitDarwinInstallation(command.Context()); err != nil {
+				return err
+			}
 			if runtime.GOOS != "linux" {
 				return clientkey.ErrUnsupported
 			}

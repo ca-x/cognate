@@ -85,7 +85,8 @@
 ## CLI、GUI 与平台
 
 - [ ] CLI 跨平台账号交互与 OIDC；本轮 `auth run` 仅支持 Linux 本地账号。
-- [ ] 合入并验证 Darwin CLI 密钥调用入口候选，取得真实 macOS/APFS 运行证据；密钥核心资格不等于安装资格。
+- [x] 合入已独审 Darwin CLI 密钥调用候选及原生工作流：当前组合全Go/vet/交编与封存有限正反例通过，保留新Web前置和清理拒绝门；不代表取得原生资格。
+- [ ] 独立核验该候选一次新push-run的真实macOS/APFS、caller50/core51、三份封闭artifact和清理；密钥准入不等于安装、Pack或GUI资格。
 - [ ] 完成 macOS/Windows 本地安装、订阅同步、配置应用及恢复的逐项运行验收；交叉编译不算运行支持。
 - [ ] GUI 各平台真实安装、窗口交互、键盘与可访问性验证；已有 Linux 窗口 smoke 不覆盖其它平台。
 - [ ] macOS Developer ID 签名与公证、Windows 安装包签名；预览包保持 unsigned/ad-hoc 标识。
