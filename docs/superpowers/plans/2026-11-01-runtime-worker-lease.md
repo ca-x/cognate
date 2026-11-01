@@ -1,9 +1,21 @@
 # Runtime Worker Lease
 
-Status: main-thread technical approval, implementation pending independent review.
-Implement privately from `6c22784433acbeb1161ada56ceeeb2568595ea2c`; do not copy an older
+Status: independently accepted Linux synchronous snapshot-worker slice; main integration verified.
+Historical implementation base: `6c22784433acbeb1161ada56ceeeb2568595ea2c`; do not copy an older
 App over the accepted T3S lifecycle. No branch/worktree, cgo or kernel rewrite.
 Approved handoff SHA256: `f6a264617c1e9204ad2bb098a4dce3fc9eadbf5c827dc6daabbb7571f4297ceb`.
+
+## Accepted Integration
+
+Non-author Spec/Quality scoped ACCEPT covers the original thirteen files plus one test-only
+integration correction in `cmd/cognate-server/snapshot_worker_integration_test.go`: migrate its
+hidden mode/magic/version to v2 and explicitly reject the old frame/mode. Original production and
+kernel bytes remain unchanged. Exact14 patch SHA256:
+`6b6032e2d6bed3066bfabdbfd26ea128f7e2e7ec05b52983255d684aab43caf2`.
+Review report SHA256 `a181570cccbd97d10702bb0f93e4e6f8b841c8e4314cb4686369ff7dac160103`.
+The clean current-source composition passes whole-repository Go tests, vet and eighteen CGO0 builds;
+the first stale-v1 fixture failure and one independent 150ms positive-EX probe timeout remain recorded
+in `VERIFICATION.md`. This does not accept restore-inspector EX participation or complete R2/R3.
 
 ## Contract
 

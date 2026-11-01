@@ -20,6 +20,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/githubrepository"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 	"github.com/ca-x/cognate/internal/server/maintenance"
+	"github.com/ca-x/cognate/internal/server/runtimegen"
 	_ "github.com/lib-x/entsqlite"
 )
 
@@ -34,11 +35,13 @@ type storeState struct {
 	now               func() time.Time
 	maintenance       *storeMaintenance
 	snapshotSource    *localSnapshotSource
+	runtime           *runtimegen.Runtime
 }
 
 type Options struct {
 	ObservationMaxAge  time.Duration
 	MaintenanceManaged bool
+	Runtime            *runtimegen.Runtime
 }
 
 func (Store) String() string   { return "[redacted server state]" }
@@ -83,6 +86,18 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 	}
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path || filepath.Base(path) == "." || filepath.Dir(path) == path {
 		return nil, fmt.Errorf("server database path must be absolute and clean")
+	}
+	if options.Runtime != nil {
+		if err := options.Runtime.WithWorkerFiles(ctx, func(root, _ *os.File) error {
+			pinned, statError := root.Stat()
+			named, nameError := os.Lstat(filepath.Dir(path))
+			if statError != nil || nameError != nil || !named.IsDir() || !os.SameFile(pinned, named) {
+				return runtimegen.ErrInvalid
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
 	}
 	var managed *storeMaintenance
 	var managedParent string
@@ -162,7 +177,7 @@ func OpenWithOptions(ctx context.Context, path string, key []byte, options Optio
 		return nil, fmt.Errorf("initialize server database: %w", err)
 	}
 	fingerprint := sha256.Sum256(key)
-	store := &Store{state: &storeState{client: client, aead: aead, configurationAEAD: configurationAEAD, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now, maintenance: managed}}
+	store := &Store{state: &storeState{client: client, aead: aead, configurationAEAD: configurationAEAD, keyID: base64.RawURLEncoding.EncodeToString(fingerprint[:]), observationMaxAge: options.ObservationMaxAge, now: time.Now, maintenance: managed, runtime: options.Runtime}}
 	if err := store.verifyDatabaseKey(ctx); err != nil {
 		_ = client.Close()
 		return nil, err

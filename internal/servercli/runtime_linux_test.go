@@ -21,7 +21,40 @@ import (
 	"time"
 
 	"github.com/ca-x/cognate/internal/server/runtimegen"
+	"github.com/ca-x/cognate/internal/server/state"
 )
+
+func TestRuntimeCrashWriterProcess(test *testing.T) {
+	root := os.Getenv("COGNATE_R2_CRASH_ROOT")
+	if root == "" {
+		test.Skip("subprocess helper")
+	}
+	key, err := os.ReadFile(os.Getenv("COGNATE_R2_CRASH_KEY"))
+	if err != nil {
+		test.Fatal("synthetic key unavailable")
+	}
+	defer clear(key)
+	owner, err := runtimegen.OpenRuntime(test.Context(), root)
+	if err != nil {
+		test.Fatal(err)
+	}
+	defer owner.Close()
+	store, err := state.OpenWithOptions(test.Context(), filepath.Join(root, "server.db"), key, state.Options{Runtime: owner})
+	if err != nil {
+		test.Fatal(err)
+	}
+	defer store.Close()
+	if err := store.CreateUser(test.Context(), "r2-crash-owner"); err != nil {
+		test.Fatal(err)
+	}
+	asset, err := store.CreateConfigurationAsset(test.Context(), "r2-crash-owner", state.ConfigurationAssetDraft{AgentID: "codex", Kind: state.ConfigurationKindProvider, Name: "r2-committed-before-crash", SchemaVersion: 1, Payload: state.NewConfigurationPayload([]byte(`{"synthetic":"r2-wal"}`))})
+	if err != nil {
+		test.Fatal(err)
+	}
+	fmt.Println(asset.ID)
+	var signal [1]byte
+	_, _ = io.ReadFull(os.Stdin, signal[:])
+}
 
 func TestRuntimeStartupProcess(test *testing.T) {
 	root := os.Getenv("COGNATE_T3S_CLI_ROOT")
@@ -314,5 +347,90 @@ func TestRuntimeStartup(test *testing.T) {
 		if strings.Contains(process.output.String(), key) {
 			test.Fatal("blocked CLI exposed key path")
 		}
+	})
+	test.Run("CommittedWALCrashRecovery", func(test *testing.T) {
+		base := test.TempDir()
+		if err := os.Chmod(base, 0700); err != nil {
+			test.Fatal(err)
+		}
+		data, keyPath := filepath.Join(base, "data"), filepath.Join(base, "keys", "master.key")
+		first := startRuntimeCLI(test, binary, data, keyPath)
+		runtimeCLIHealth(test, first)
+		before, err := os.Lstat(keyPath)
+		if err != nil {
+			test.Fatal(err)
+		}
+		original, err := os.ReadFile(keyPath)
+		if err != nil {
+			test.Fatal("synthetic key unavailable")
+		}
+		defer clear(original)
+		ctx, cancel := context.WithTimeout(test.Context(), 12*time.Second)
+		defer cancel()
+		writer := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestRuntimeCrashWriterProcess$", "-test.timeout=10s")
+		writer.Env = append(os.Environ(), "COGNATE_R2_CRASH_ROOT="+data, "COGNATE_R2_CRASH_KEY="+keyPath)
+		input, err := writer.StdinPipe()
+		if err != nil {
+			test.Fatal(err)
+		}
+		defer input.Close()
+		output, err := writer.StdoutPipe()
+		if err != nil {
+			test.Fatal(err)
+		}
+		var stderr bytes.Buffer
+		writer.Stderr = &stderr
+		if err := writer.Start(); err != nil {
+			test.Fatal(err)
+		}
+		defer func() { _ = writer.Process.Kill(); _ = writer.Wait() }()
+		reader := bufio.NewReader(output)
+		id, err := reader.ReadString('\n')
+		if err != nil || len(strings.TrimSpace(id)) != 26 {
+			test.Fatal("real committed fixture not ready", err, stderr.String())
+		}
+		if err := first.command.Process.Kill(); err != nil {
+			test.Fatal(err)
+		}
+		if err := first.stop(); err == nil {
+			test.Fatal("SIGKILL CLI was not observed")
+		}
+		if err := writer.Process.Kill(); err != nil {
+			test.Fatal(err)
+		}
+		if err := writer.Wait(); err == nil {
+			test.Fatal("SIGKILL writer was not reaped")
+		}
+		wal, err := os.Lstat(filepath.Join(data, "server.db-wal"))
+		if err != nil || wal.Size() <= 32 {
+			test.Fatal("nonempty committed WAL not preserved", err)
+		}
+		requireRuntimeCLIProbe(test, data, "acquired")
+		second := startRuntimeCLI(test, binary, data, keyPath)
+		runtimeCLIHealth(test, second)
+		store, err := state.Open(test.Context(), filepath.Join(data, "server.db"), original)
+		if err != nil {
+			test.Fatal("SQLite WAL recovery failed", err)
+		}
+		asset, err := store.ConfigurationAsset(test.Context(), "r2-crash-owner", strings.TrimSpace(id))
+		if err != nil || asset.Name != "r2-committed-before-crash" {
+			test.Fatal("committed business row not recovered", err)
+		}
+		if err := store.Close(); err != nil {
+			test.Fatal(err)
+		}
+		if err := second.stop(); err != nil {
+			test.Fatal(err)
+		}
+		after, err := os.Lstat(keyPath)
+		if err != nil || !os.SameFile(before, after) {
+			test.Fatal("crash recovery replaced key")
+		}
+		current, err := os.ReadFile(keyPath)
+		if err != nil || !bytes.Equal(original, current) {
+			test.Fatal("crash recovery changed key")
+		}
+		clear(current)
+		requireRuntimeCLIProbe(test, data, "acquired")
 	})
 }

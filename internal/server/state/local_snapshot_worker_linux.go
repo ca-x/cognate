@@ -28,12 +28,28 @@ import (
 	sqlite3 "modernc.org/sqlite/lib"
 )
 
-func snapshotRunWorker(ctx context.Context, source *localSnapshotSource, stage *localSnapshotStage, guard *os.File, limits LocalSnapshotLimits) (response snapshotWorkerResponse, knownTerminal bool, returnedError error) {
+func snapshotRunWorker(ctx context.Context, source *localSnapshotSource, stage *localSnapshotStage, guard *os.File, limits LocalSnapshotLimits, root, lock *os.File, ops snapshotWorkerOps) (response snapshotWorkerResponse, knownTerminal bool, returnedError error) {
 	knownTerminal = true
+	if ops.wait == nil {
+		ops.wait = (*exec.Cmd).Wait
+	}
+	if ops.close == nil {
+		ops.close = (*os.File).Close
+	}
 	if ctx.Err() != nil {
 		return response, true, ctx.Err()
 	}
 	request := snapshotWorkerRequest{name: source.name, limits: limits, op: 1}
+	if (root == nil) != (lock == nil) {
+		return response, true, ErrLocalSnapshotInvalid
+	}
+	if root != nil {
+		var info, parent unix.Stat_t
+		if unix.Fstat(int(root.Fd()), &info) != nil || unix.Fstat(int(source.parent.Fd()), &parent) != nil || info.Dev != parent.Dev || info.Ino != parent.Ino {
+			return response, true, ErrLocalSnapshotInvalid
+		}
+		request.root = snapshotFileIdentity{device: uint64(info.Dev), inode: info.Ino}
+	}
 	if _, err := rand.Read(request.nonce[:]); err != nil {
 		return response, true, ErrLocalSnapshotInvalid
 	}
@@ -64,7 +80,7 @@ func snapshotRunWorker(ctx context.Context, source *localSnapshotSource, stage *
 				break
 			}
 		}
-		if file.Close() != nil {
+		if ops.close(file) != nil {
 			retainSnapshotResource(file)
 			knownTerminal = false
 			return ErrLocalSnapshotUncertain
@@ -110,7 +126,13 @@ func snapshotRunWorker(ctx context.Context, source *localSnapshotSource, stage *
 	command.Stdout = quiet
 	command.Stderr = quiet
 	command.ExtraFiles = []*os.File{requestReader, responseWriter, image, source.parent, source.database, stage.root, guard}
+	if root != nil {
+		command.ExtraFiles = append(command.ExtraFiles, lock, root)
+	}
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL}
+	if ops.prepare != nil {
+		ops.prepare(command)
+	}
 	if ctx.Err() != nil {
 		return response, true, ctx.Err()
 	}
@@ -126,7 +148,7 @@ func snapshotRunWorker(ctx context.Context, source *localSnapshotSource, stage *
 	if readError != io.ErrUnexpectedEOF || count != snapshotResponseBytes {
 		_ = command.Process.Kill()
 	}
-	waitError := command.Wait()
+	waitError := ops.wait(command)
 	if !stop() {
 		<-interrupted
 	}
@@ -223,6 +245,15 @@ func snapshotWorkerServe() (exitCode int) {
 }
 
 func snapshotWorkerIdentities(request snapshotWorkerRequest) error {
+	if request.root != (snapshotFileIdentity{}) {
+		var root, lock, named unix.Stat_t
+		if unix.Fstat(11, &root) != nil || uint64(root.Dev) != request.root.device || root.Ino != request.root.inode || request.root != request.parent || root.Mode&unix.S_IFMT != unix.S_IFDIR || root.Mode&07777 != 0700 || root.Uid != uint32(os.Geteuid()) || root.Nlink == 0 {
+			return ErrLocalSnapshotInvalid
+		}
+		if unix.Fstat(10, &lock) != nil || lock.Mode&unix.S_IFMT != unix.S_IFREG || lock.Mode&07777 != 0600 || lock.Uid != uint32(os.Geteuid()) || lock.Nlink != 1 || lock.Size != 0 || unix.Fstatat(11, ".runtime.lock", &named, unix.AT_SYMLINK_NOFOLLOW) != nil || named.Mode&unix.S_IFMT != unix.S_IFREG || lock.Dev != named.Dev || lock.Ino != named.Ino {
+			return ErrLocalSnapshotInvalid
+		}
+	}
 	for index, expected := range []snapshotFileIdentity{request.parent, request.source, request.stage} {
 		var attributes unix.Stat_t
 		if unix.Fstat(6+index, &attributes) != nil || uint64(attributes.Dev) != expected.device || attributes.Ino != expected.inode || attributes.Uid != uint32(os.Geteuid()) || attributes.Mode&0077 != 0 {

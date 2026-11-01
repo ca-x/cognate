@@ -18,7 +18,11 @@ func TestMain(tests *testing.M) {
 	if handled, code := RestoreDatabaseWorkerDispatch(os.Args); handled {
 		os.Exit(code)
 	}
+	if len(os.Args) == 2 && os.Args[1] == snapshotWorkerMode {
+		snapshotRuntimeBarrier("before")
+	}
 	if handled, code := SnapshotWorkerDispatch(os.Args); handled {
+		snapshotRuntimeBarrier("after")
 		os.Exit(code)
 	}
 	os.Exit(tests.Run())

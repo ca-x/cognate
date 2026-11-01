@@ -1,5 +1,40 @@
 # 开发预览验证
 
+## 2026-11-01：Linux 同步快照 worker 同 OFD 根 lease
+
+R2 snapshot 子片累计 exact14：八生产源、六测试源，原四 lease kernel 和
+`app_runtime.go` 不变。App 将受管 Runtime 借给 Store，DB 写前绑定 legacy parent；
+Start、取消回调、实际 Wait 和物理关闭位于同步 root scope 内。子进程保留原 fd3–9，
+追加同 OFD lock10/root11，严格 v2 request 在 SQL 前验证身份，直到进程退出才释放。
+响应/EOF 不当作 Wait，未知 Wait/Close 经 state/library/App 保留 SH，不引入全局 dirty。
+
+原 exact13 干净主线组合全仓实际 exit1：9010 PASS、173 SKIP、35 FAIL 事件，
+唯一失败包的十六 valid 叶及父层都来自现存实际二进制测试仍发送旧 v1 mode/magic/version。
+fix1 仅迁移该测试三处输入，保留全部原断言，增加旧 frame/mode 拒绝及 invalid 零 bootstrap；
+所有生产源逐字未改，不通过兼容旧请求来放宽门。原失败完整保留于
+`/tmp/cognate-worker-main-6f1-4cLo03JU/evidence/02-full-go.*`。
+
+fix1 patch SHA256 `6b6032e2d6bed3066bfabdbfd26ea128f7e2e7ec05b52983255d684aab43caf2`。
+非作者 Spec/Quality 限定 ACCEPT：
+`/tmp/cognate-r2-worker-review-6c22784-XBFZHnsn/REPORT.md`，SHA256
+`a181570cccbd97d10702bb0f93e4e6f8b841c8e4314cb4686369ff7dac160103`。
+独立实跑真实父死/排空/取消/Unknown 强引用、双 SH、WAL 重启及减门 RED；
+两实际二进制57 PASS事件/38叶、0 SKIP/FAIL，重新放行旧 frame/mode 的两反控均行为 RED。
+
+主线程新干净组合（6f1 基线加 exact14；后继 c2bf 仅改 workflow/文档）全仓
+`go test -json ./... -count=1 -timeout=10m` 实际 exit0：9049 PASS事件、173 SKIP、
+0 FAIL、51包通过；全仓 vet exit0。十八个 server/CLI/MyGo CGO0 目标重新构建并核对
+Go/OS/架构元数据，且与仅测试修订前的十八产物逐字相同。真实公开 GitHub→分类/公开→
+匿名 CLI 安装→取消公开→登出/干净退出八步再次通过，观察46 skills，只断言一个安装目录。
+原烟测一次误把 mise shim 当 Node 的 setup exit1 保留，之后用实际 Node 运行，不算产品重试。
+收据位于 `/tmp/cognate-worker-main-fix1-YCcOadOL/evidence/01-*`、`03-*` 至 `06-*`。
+
+独审首次重复有一次 reap、Store/Runtime Close均nil且pid ESRCH后的正向 EX 150ms 超时。
+探针还执行身份检查及三个 Sync，原失败没有阶段 trace，不能归因为调度、Sync或锁泄漏；
+后继30次仅观测诊断和原源码10轮通过不关闭 UNKNOWN。没有观测活 worker 时 EX 提前通过，
+故审查判为非阻塞时序观察，仍留 TODO；不承诺150ms可用性，也不删除或放宽原测试。
+本片不代表非 Linux 运行资格、恢复 inspector EX、完整 R2/R3、完整恢复或 GA。
+
 ## 2026-11-01：Darwin 清理收据一致性
 
 `.github/workflows/platform-primitives.yml` 仅补齐已挂载卷 detach 非零、缺 exit 或 timeout

@@ -11,6 +11,6 @@ import (
 
 func snapshotWorkerServe() int { return 2 }
 
-func snapshotRunWorker(context.Context, *localSnapshotSource, *localSnapshotStage, *os.File, LocalSnapshotLimits) (snapshotWorkerResponse, bool, error) {
+func snapshotRunWorker(context.Context, *localSnapshotSource, *localSnapshotStage, *os.File, LocalSnapshotLimits, *os.File, *os.File, snapshotWorkerOps) (snapshotWorkerResponse, bool, error) {
 	return snapshotWorkerResponse{}, true, maintenance.ErrUnsupported
 }

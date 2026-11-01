@@ -36,7 +36,7 @@ func TestSnapshotActualBinaries(test *testing.T) {
 						scenarios = append(scenarios, "R553")
 					}
 					if pageSize == 4096 {
-						scenarios = append(scenarios, "database-budget", "wal-budget", "bad-header", "unknown-schema", "short-request", "trailing-request", "zero-nonce", "regular-request")
+						scenarios = append(scenarios, "database-budget", "wal-budget", "bad-header", "unknown-schema", "short-request", "trailing-request", "zero-nonce", "regular-request", "legacy-frame", "legacy-mode")
 					}
 					for _, scenario := range scenarios {
 						test.Run(scenario, func(test *testing.T) {
@@ -148,8 +148,8 @@ func TestSnapshotActualBinaries(test *testing.T) {
 							defer responseReader.Close()
 							defer responseWriter.Close()
 							var request [448]byte
-							copy(request[:8], "CGB2WR01")
-							binary.BigEndian.PutUint16(request[8:10], 1)
+							copy(request[:8], "CGB2WR02")
+							binary.BigEndian.PutUint16(request[8:10], 2)
 							request[10] = 1
 							binary.BigEndian.PutUint32(request[12:16], 448)
 							copy(request[16:32], bytes.Repeat([]byte{11}, 16))
@@ -179,6 +179,10 @@ func TestSnapshotActualBinaries(test *testing.T) {
 							if scenario == "zero-nonce" {
 								clear(request[16:32])
 							}
+							if scenario == "legacy-frame" {
+								copy(request[:8], "CGB2WR01")
+								binary.BigEndian.PutUint16(request[8:10], 1)
+							}
 							wire := request[:]
 							if scenario == "short-request" {
 								wire = wire[:len(wire)-1]
@@ -195,7 +199,11 @@ func TestSnapshotActualBinaries(test *testing.T) {
 							home := test.TempDir()
 							ctx, cancel := context.WithTimeout(test.Context(), 20*time.Second)
 							defer cancel()
-							command := exec.CommandContext(ctx, "/proc/self/fd/5", "--cognate-local-snapshot-worker-v1")
+							mode := "--cognate-local-snapshot-worker-v2"
+							if scenario == "legacy-mode" {
+								mode = "--cognate-local-snapshot-worker-v1"
+							}
+							command := exec.CommandContext(ctx, "/proc/self/fd/5", mode)
 							command.Env = []string{"HOME=" + home, "TMPDIR=" + home, "LANG=C", "LC_ALL=C"}
 							requestInput := requestReader
 							if scenario == "regular-request" {
@@ -225,6 +233,10 @@ func TestSnapshotActualBinaries(test *testing.T) {
 								}
 								if _, err := os.Stat(filepath.Join(stagePath, "snapshot.sqlite")); !os.IsNotExist(err) {
 									test.Fatal("pre-Backup refusal created a target")
+								}
+								entries, err := os.ReadDir(home)
+								if err != nil || len(entries) != 0 {
+									test.Fatal("refused helper performed ordinary configuration/bootstrap effects")
 								}
 								return
 							}

@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"math"
 	"os"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -204,7 +205,17 @@ func (LocalSnapshotReference) LogValue() slog.Value {
 type localSnapshotContextKey struct{}
 type localSnapshotContextValue struct{ get func() *localSnapshotScope }
 
+type snapshotWorkerOps struct {
+	prepare func(*exec.Cmd)
+	wait    func(*exec.Cmd) error
+	close   func(*os.File) error
+}
+
 func (store *Store) WithLocalSnapshot(ctx context.Context, limits LocalSnapshotLimits, consume func(context.Context, LocalSnapshotView) error) (summary LocalSnapshotSummary, returnedError error) {
+	return store.withLocalSnapshot(ctx, limits, consume, snapshotWorkerOps{})
+}
+
+func (store *Store) withLocalSnapshot(ctx context.Context, limits LocalSnapshotLimits, consume func(context.Context, LocalSnapshotView) error, workerOps snapshotWorkerOps) (summary LocalSnapshotSummary, returnedError error) {
 	if ctx == nil || consume == nil || !limits.valid() {
 		return summary, ErrLocalSnapshotInvalid
 	}
@@ -341,7 +352,18 @@ func (store *Store) WithLocalSnapshot(ctx context.Context, limits LocalSnapshotL
 	if err != nil {
 		return summary, err
 	}
-	response, terminal, err := snapshotRunWorker(scoped, store.state.snapshotSource, operation.stage, guard, limits)
+	var response snapshotWorkerResponse
+	terminal := true
+	run := func(root, lock *os.File) error {
+		var workerError error
+		response, terminal, workerError = snapshotRunWorker(scoped, store.state.snapshotSource, operation.stage, guard, limits, root, lock, workerOps)
+		return workerError
+	}
+	if store.state.runtime != nil {
+		err = store.state.runtime.WithWorkerFiles(scoped, run)
+	} else {
+		err = run(nil, nil)
+	}
 	if !terminal {
 		operation.poisoned = true
 	}

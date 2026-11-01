@@ -196,7 +196,7 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 	if hooks.store != nil {
 		openStore = hooks.store
 	}
-	store, err := openStore(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled})
+	store, err := openStore(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled, Runtime: app.runtime.lease})
 	app.store = store
 	if err != nil {
 		app.markRuntimeUncertain()

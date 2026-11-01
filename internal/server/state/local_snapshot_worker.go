@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-const snapshotWorkerMode = "--cognate-local-snapshot-worker-v1"
+const snapshotWorkerMode = "--cognate-local-snapshot-worker-v2"
 const snapshotRequestBytes = 448
 const snapshotResponseBytes = 256
 
@@ -21,6 +21,7 @@ type snapshotFileIdentity struct{ device, inode uint64 }
 type snapshotWorkerRequest struct {
 	nonce                 [16]byte
 	source, parent, stage snapshotFileIdentity
+	root                  snapshotFileIdentity
 	limits                LocalSnapshotLimits
 	name                  string
 	op                    byte
@@ -68,12 +69,16 @@ func snapshotDecodeRequest(reader io.Reader) (snapshotWorkerRequest, error) {
 	var request snapshotWorkerRequest
 	var frame [snapshotRequestBytes + 1]byte
 	count, err := io.ReadFull(reader, frame[:])
-	if err != io.ErrUnexpectedEOF || count != snapshotRequestBytes || string(frame[:8]) != "CGB2WR01" || binary.BigEndian.Uint16(frame[8:10]) != 1 || frame[10] < 1 || frame[10] > 2 || frame[11] != 0 || binary.BigEndian.Uint32(frame[12:16]) != snapshotRequestBytes || !bytes.Equal(frame[162:164], []byte{0, 0}) {
+	if err != io.ErrUnexpectedEOF || count != snapshotRequestBytes || string(frame[:8]) != "CGB2WR02" || binary.BigEndian.Uint16(frame[8:10]) != 2 || frame[10] < 1 || frame[10] > 2 || frame[11] > 1 || binary.BigEndian.Uint32(frame[12:16]) != snapshotRequestBytes || !bytes.Equal(frame[162:164], []byte{0, 0}) {
 		return request, ErrLocalSnapshotInvalid
 	}
 	length := int(binary.BigEndian.Uint16(frame[160:162]))
-	if length < 1 || length > 255 || !bytes.Equal(frame[164+length:snapshotRequestBytes], make([]byte, snapshotRequestBytes-164-length)) {
+	if length < 1 || length > 255 || !bytes.Equal(frame[164+length:432], make([]byte, 432-164-length)) {
 		return request, ErrLocalSnapshotInvalid
+	}
+	request.root = snapshotFileIdentity{device: binary.BigEndian.Uint64(frame[432:440]), inode: binary.BigEndian.Uint64(frame[440:448])}
+	if frame[11] == 0 && request.root != (snapshotFileIdentity{}) || frame[11] == 1 && request.root.inode == 0 {
+		return snapshotWorkerRequest{}, ErrLocalSnapshotInvalid
 	}
 	request.name = string(frame[164 : 164+length])
 	if !utf8.ValidString(request.name) || strings.ContainsAny(request.name, "/\\\x00") || request.name == "." || request.name == ".." {
@@ -132,9 +137,17 @@ func snapshotEncodeRequest(request snapshotWorkerRequest) ([snapshotRequestBytes
 	if !request.limits.valid() || request.name == "" || len(request.name) > 255 || strings.ContainsAny(request.name, "/\\\x00") || request.name == "." || request.name == ".." || !utf8.ValidString(request.name) || request.nonce == [16]byte{} || request.op != 1 {
 		return frame, ErrLocalSnapshotInvalid
 	}
-	copy(frame[:8], "CGB2WR01")
-	binary.BigEndian.PutUint16(frame[8:10], 1)
+	if request.root != (snapshotFileIdentity{}) && request.root.inode == 0 {
+		return frame, ErrLocalSnapshotInvalid
+	}
+	copy(frame[:8], "CGB2WR02")
+	binary.BigEndian.PutUint16(frame[8:10], 2)
 	frame[10] = request.op
+	if request.root.inode != 0 {
+		frame[11] = 1
+		binary.BigEndian.PutUint64(frame[432:440], request.root.device)
+		binary.BigEndian.PutUint64(frame[440:448], request.root.inode)
+	}
 	binary.BigEndian.PutUint32(frame[12:16], snapshotRequestBytes)
 	copy(frame[16:32], request.nonce[:])
 	for index, identity := range []snapshotFileIdentity{request.source, request.parent, request.stage} {

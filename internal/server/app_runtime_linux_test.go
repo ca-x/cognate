@@ -14,15 +14,200 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/runtimegen"
 	"github.com/ca-x/cognate/internal/server/state"
+	"golang.org/x/sys/unix"
 )
+
+const r2AppWorkerEvidence = false
+
+func init() {
+	if len(os.Args) != 2 || os.Args[1] != "--cognate-local-snapshot-worker-v2" || os.Getenv("COGNATE_R2_APP_BARRIER") != "after" {
+		return
+	}
+	handled, code := state.SnapshotWorkerDispatch(os.Args)
+	if !handled {
+		os.Exit(94)
+	}
+	ready, release := os.NewFile(12, "ready"), os.NewFile(13, "release")
+	if _, err := fmt.Fprintf(ready, "%d\n", os.Getpid()); err != nil {
+		os.Exit(95)
+	}
+	var signal [1]byte
+	if _, err := io.ReadFull(release, signal[:]); err != nil {
+		os.Exit(96)
+	}
+	if errors.Join(ready.Close(), release.Close()) != nil {
+		os.Exit(97)
+	}
+	os.Exit(code)
+}
+
+func r2AppSnapshotLimits() state.LocalSnapshotLimits {
+	return state.LocalSnapshotLimits{MaxDBBytes: 8 << 20, MaxInventoryBytes: 4 << 20, MaxRecords: 100000, MaxStagingBytes: 64 << 20, SQLiteHeapBytes: 32 << 20, WorkerAddressSpaceBytes: 16 << 30, WorkerCPUSeconds: 10, MaxWALBytes: 64 << 20, MaxSHMBytes: 1 << 20, DrainTimeout: time.Second, OperationTimeout: 10 * time.Second}
+}
+
+func r2AppContentLimits() library.ContentSnapshotLimits {
+	return library.ContentSnapshotLimits{Database: r2AppSnapshotLimits(), MaxArchives: 100, MaxInventoryBytes: 4 << 20, MaxContentBytes: 64 << 20}
+}
+
+func TestAppRuntimeWorkerSnapshot(test *testing.T) {
+	config := backupAppConfig(test)
+	config.SourceRefreshInterval = new(time.Duration(0))
+	app, err := Open(test.Context(), config)
+	if err != nil {
+		test.Fatal(err)
+	}
+	defer app.Close()
+	_, err = app.library.WithContentSnapshot(test.Context(), r2AppContentLimits(), func(ctx context.Context, view library.ContentSnapshotView) error {
+		_, err := view.CopyDatabase(ctx, io.Discard)
+		return err
+	})
+	if err != nil {
+		test.Fatal("production App snapshot", err)
+	}
+	requireRuntimeProbe(test, config.DataDirectory, "deadline")
+	if err := app.Close(); err != nil {
+		test.Fatal(err)
+	}
+	requireRuntimeProbe(test, config.DataDirectory, "acquired")
+}
+
+func TestAppRuntimeWorkerEvidence(test *testing.T) {
+	if !r2AppWorkerEvidence {
+		test.Skip("requires private real-Wait/physical-Close evidence overlay")
+	}
+	for _, fault := range []string{"drain", "library-cancel", "wait", "pipe-close"} {
+		test.Run(fault, func(test *testing.T) {
+			test.Setenv("COGNATE_R2_APP_WORKER", fault)
+			tracePath := filepath.Join(test.TempDir(), "physical-events")
+			test.Setenv("COGNATE_R2_APP_TRACE", tracePath)
+			config := backupAppConfig(test)
+			config.SourceRefreshInterval = new(time.Duration(0))
+			var stages []string
+			app, err := openApp(test.Context(), config, appRuntimeHooks{observe: func(stage string) { stages = append(stages, stage) }})
+			if err != nil {
+				test.Fatal(err)
+			}
+			var releaseWriter *os.File
+			var pid int
+			worker := make(chan error, 1)
+			if fault == "drain" || fault == "library-cancel" {
+				readyReader, readyWriter, err := os.Pipe()
+				if err != nil {
+					test.Fatal(err)
+				}
+				defer readyReader.Close()
+				defer readyWriter.Close()
+				releaseReader, writer, err := os.Pipe()
+				if err != nil {
+					test.Fatal(err)
+				}
+				releaseWriter = writer
+				defer releaseReader.Close()
+				defer writer.Close()
+				test.Setenv("COGNATE_R2_APP_READY", strconv.Itoa(int(readyWriter.Fd())))
+				test.Setenv("COGNATE_R2_APP_RELEASE", strconv.Itoa(int(releaseReader.Fd())))
+				go func() {
+					var err error
+					if fault == "library-cancel" {
+						_, err = app.library.WithContentSnapshot(test.Context(), r2AppContentLimits(), func(context.Context, library.ContentSnapshotView) error { return nil })
+					} else {
+						_, err = app.store.WithLocalSnapshot(test.Context(), r2AppSnapshotLimits(), func(context.Context, state.LocalSnapshotView) error { return nil })
+					}
+					worker <- err
+				}()
+				_ = readyReader.SetReadDeadline(time.Now().Add(5 * time.Second))
+				if _, err := fmt.Fscanln(readyReader, &pid); err != nil {
+					test.Fatal("App worker did not reach response/EOF before exit", err)
+				}
+			} else {
+				_, err := app.library.WithContentSnapshot(test.Context(), r2AppContentLimits(), func(context.Context, library.ContentSnapshotView) error {
+					test.Error("uncertain worker reached consumer")
+					return nil
+				})
+				if !errors.Is(err, state.ErrLocalSnapshotUncertain) {
+					test.Fatal("real worker uncertainty lost through Store/library", err)
+				}
+			}
+			closed := make(chan error, 1)
+			go func() { closed <- app.Close() }()
+			if fault == "library-cancel" {
+				if err := runtimeWait(test, worker); !errors.Is(err, context.Canceled) {
+					test.Fatal("App/library cancellation did not reach worker", err)
+				}
+				if err := runtimeWait(test, closed); err != nil {
+					test.Fatal("App/library/worker Close lock inversion", err)
+				}
+				if err := unix.Kill(pid, 0); !errors.Is(err, unix.ESRCH) {
+					test.Fatal("App Close returned without actual worker reap", err)
+				}
+				requireRuntimeProbe(test, config.DataDirectory, "acquired")
+				return
+			}
+			if fault == "drain" {
+				requireRuntimeProbe(test, config.DataDirectory, "deadline")
+				select {
+				case err := <-closed:
+					test.Fatal("App Close passed before real Wait", err)
+				default:
+				}
+				if _, err := releaseWriter.Write([]byte{1}); err != nil {
+					test.Fatal(err)
+				}
+				if err := runtimeWait(test, worker); err != nil {
+					test.Fatal(err)
+				}
+				if err := runtimeWait(test, closed); err != nil {
+					test.Fatal(err)
+				}
+				if err := unix.Kill(pid, 0); !errors.Is(err, unix.ESRCH) {
+					test.Fatal("App returned before actual worker reap", err)
+				}
+				requireRuntimeProbe(test, config.DataDirectory, "acquired")
+				return
+			}
+			first := runtimeWait(test, closed)
+			if !errors.Is(first, state.ErrLocalSnapshotUncertain) || !errors.Is(first, runtimegen.ErrUncertain) {
+				test.Fatal("Store/App error chain lost", first)
+			}
+			if !slices.Contains(stages, "library-closed") || !slices.Contains(stages, "cache-closed") || !slices.Contains(stages, "store-closed") || slices.Contains(stages, "logs-closed") || slices.Contains(stages, "lease-closing") {
+				test.Fatal("wrong actual resource close order", stages)
+			}
+			physicalBefore, err := os.ReadFile(tracePath)
+			if err != nil || !bytes.Contains(physicalBefore, []byte("actual-Wait\n")) || !bytes.Contains(physicalBefore, []byte("actual-Close\n")) {
+				test.Fatal("physical Wait/Close evidence absent", err)
+			}
+			if second := app.Close(); second != first {
+				test.Fatal("uncertain Close retried")
+			}
+			if err := app.store.Close(); !errors.Is(err, state.ErrLocalSnapshotUncertain) {
+				test.Fatal("state poison not retained", err)
+			}
+			if err := app.library.Close(); err != nil {
+				test.Fatal("library/cache physical Close was not successful", err)
+			}
+			app = nil
+			for range 2 {
+				runtime.GC()
+			}
+			physicalAfter, err := os.ReadFile(tracePath)
+			if err != nil || !bytes.Equal(physicalBefore, physicalAfter) {
+				test.Fatal("unknown physical operation retried after Close/GC", err)
+			}
+			requireRuntimeProbe(test, config.DataDirectory, "deadline")
+		})
+	}
+}
 
 func TestAppRuntimeProcess(test *testing.T) {
 	mode := os.Getenv("COGNATE_T3S_PROCESS")
