@@ -1,0 +1,77 @@
+phase	change	path	baseline_exists	request_only	purpose
+P2	N	internal/server/ent/schema/packconfigurationpolicy.go	False	True	One durable table explicit device and consent row kinds self FK CHECK indexes independent revisions
+P2	M	internal/server/ent/schema/nativeconsumerchallenge.go	True	True	Nullable session or real policy parent union and exact Pack purposes
+P2	M	internal/server/ent/schema/nativeconsumersession.go	True	True	Nullable session or real policy parent union and exact Pack purposes
+P2	M	internal/server/ent/schema/user.go	True	True	Recipient device policies and owner issued consents role specific edges
+P2	M	internal/server/ent/schema/pack.go	True	True	Common durable consent reverse FK edge
+P2	M	internal/server/ent/schema/packshare.go	True	True	Share bound cross-owner consent reverse FK edge
+P2	G	internal/server/ent/nativeconsumerchallenge.go	True	True	Ent expected model parent pointer and policy edge
+P2	G	internal/server/ent/nativeconsumerchallenge_create.go	True	True	Ent expected optional parent and new field builders
+P2	G	internal/server/ent/nativeconsumerchallenge_query.go	True	True	Ent expected policy relation and nullable parent queries
+P2	G	internal/server/ent/nativeconsumerchallenge_update.go	True	True	Ent expected parent union field builders
+P2	G	internal/server/ent/nativeconsumerchallenge/nativeconsumerchallenge.go	True	True	Ent expected field edge enum metadata
+P2	G	internal/server/ent/nativeconsumerchallenge/where.go	True	True	Ent expected policy field and edge predicates
+P2	G	internal/server/ent/nativeconsumersession.go	True	True	Ent expected model parent pointer and policy edge
+P2	G	internal/server/ent/nativeconsumersession_create.go	True	True	Ent expected optional parent and new field builders
+P2	G	internal/server/ent/nativeconsumersession_query.go	True	True	Ent expected policy relation and nullable parent queries
+P2	G	internal/server/ent/nativeconsumersession_update.go	True	True	Ent expected parent union field builders
+P2	G	internal/server/ent/nativeconsumersession/nativeconsumersession.go	True	True	Ent expected field edge enum metadata
+P2	G	internal/server/ent/nativeconsumersession/where.go	True	True	Ent expected policy field and edge predicates
+P2	G	internal/server/ent/user.go	True	True	Ent expected role specific policy edges
+P2	G	internal/server/ent/user_create.go	True	True	Ent expected role specific policy edge builders
+P2	G	internal/server/ent/user_query.go	True	True	Ent expected role specific policy relation queries
+P2	G	internal/server/ent/user_update.go	True	True	Ent expected role specific policy edge mutations
+P2	G	internal/server/ent/user/user.go	True	True	Ent expected policy relation metadata
+P2	G	internal/server/ent/user/where.go	True	True	Ent expected policy relation predicates
+P2	G	internal/server/ent/pack.go	True	True	Ent expected consent relation
+P2	G	internal/server/ent/pack_create.go	True	True	Ent expected consent edge builders
+P2	G	internal/server/ent/pack_query.go	True	True	Ent expected consent relation queries
+P2	G	internal/server/ent/pack_update.go	True	True	Ent expected consent edge mutations
+P2	G	internal/server/ent/pack/pack.go	True	True	Ent expected consent relation metadata
+P2	G	internal/server/ent/pack/where.go	True	True	Ent expected consent relation predicates
+P2	G	internal/server/ent/packshare.go	True	True	Ent expected consent relation
+P2	G	internal/server/ent/packshare_create.go	True	True	Ent expected consent edge builders
+P2	G	internal/server/ent/packshare_query.go	True	True	Ent expected consent relation queries
+P2	G	internal/server/ent/packshare_update.go	True	True	Ent expected consent edge mutations
+P2	G	internal/server/ent/packshare/packshare.go	True	True	Ent expected consent relation metadata
+P2	G	internal/server/ent/packshare/where.go	True	True	Ent expected consent relation predicates
+P2	G	internal/server/ent/session_query.go	True	True	Ent expected dereference nullable child parent session during eager load
+P2	G	internal/server/ent/client.go	True	True	Ent expected common policy client graph
+P2	G	internal/server/ent/mutation.go	True	True	Ent expected fields and edges graph
+P2	G	internal/server/ent/tx.go	True	True	Ent expected common policy transaction client
+P2	G	internal/server/ent/runtime.go	True	True	Ent expected field validators defaults and schema runtime
+P2	G	internal/server/ent/hook/hook.go	True	True	Ent expected common policy hook adapter
+P2	G	internal/server/ent/predicate/predicate.go	True	True	Ent expected common policy predicate alias
+P2	G	internal/server/ent/migrate/schema.go	True	True	Ent expected full exact S1 table columns FK CHECK index catalog
+P2	GN	internal/server/ent/packconfigurationpolicy.go	False	True	Ent new common policy model
+P2	GN	internal/server/ent/packconfigurationpolicy_create.go	False	True	Ent new common policy create builder
+P2	GN	internal/server/ent/packconfigurationpolicy_delete.go	False	True	Ent new common policy delete builder
+P2	GN	internal/server/ent/packconfigurationpolicy_query.go	False	True	Ent new common policy query builder
+P2	GN	internal/server/ent/packconfigurationpolicy_update.go	False	True	Ent new common policy update builder
+P2	GN	internal/server/ent/packconfigurationpolicy/packconfigurationpolicy.go	False	True	Ent new common policy field and edge metadata
+P2	GN	internal/server/ent/packconfigurationpolicy/where.go	False	True	Ent new common policy predicates
+GSCHEMA	M	internal/server/state/store.go	True	True	Exact schema preflight before automatic DDL S0 MigrationRequired S1 verify fresh S1 bootstrap
+GSCHEMA	N	internal/server/state/schema_contract.go	False	True	S0 S1 versioned exact catalog authority and explicit user version contract
+GSCHEMA	N	internal/server/state/schema_contract_test.go	False	True	Exact schema corruption and no silent live migration controls
+GSCHEMA	N	internal/server/state/schema_upgrade.go	False	True	Private SQL migration primitive invoked only by main coordinated EX candidate worker
+GSCHEMA	N	internal/server/state/schema_upgrade_test.go	False	True	Old bytes IDs sequences ciphertext preservation and DDL uncertainty controls
+GSCHEMA	M	internal/server/state/local_snapshot_inventory.go	True	True	Keep exact S0 pair add separately qualified S1 family without generic count wildcard
+GSCHEMA	M	internal/server/state/local_snapshot_worker_linux.go	True	True	Exact S0 S1 catalog selection and resource first policy domain validation
+GSCHEMA	M	internal/server/state/local_snapshot_verify.go	True	True	Manifest family and actual schema hash exact matching
+GSCHEMA	M	internal/server/state/restore_database_linux.go	True	True	Parent evidence exact known schema family identity before Valid
+GSCHEMA	M	internal/server/state/restore_database_worker_linux.go	True	True	S1 policy and parent domains ciphertext authentication with shared MaxRecords and fixed worker limits
+GSCHEMA	N	internal/server/state/restore_policy_linux.go	False	True	Complete new authority domains one level device consent references charge AAD and 128 paging
+GSCHEMA	N	internal/server/state/restore_policy_linux_test.go	False	True	Nonpositive foreign partition row kind nullable budget and close cancellation tests
+GSCHEMA	M	internal/server/state/restore_credentials.go	True	True	Explicit S0 eight versus S1 nine DML delete policy authority before sessions and verify empty
+GSCHEMA	M	internal/server/state/restore_credentials_test.go	True	True	Keep old eight DML cases add restored old device receipt cannot revive
+GSCHEMA	M	internal/server/state/local_snapshot_inventory_test.go	True	True	Keep S0 exact fixture add fresh and migrated S1 catalog and MaxRecords cases
+GSCHEMA	M	internal/server/state/restore_database_linux_test.go	True	True	Real S0 S1 inspector and restored authority negative controls
+P2	M	internal/server/state/native_configuration.go	True	True	Pack envelope and gates at every Prepare Authorize Consume path including idempotent return
+P2	M	internal/server/state/native_codex_configuration.go	True	True	Same Pack gates in Codex native transactions
+P2	M	internal/server/state/native_consumer.go	True	True	Typed quota parent scopes device bootstrap Bind expiry and native union validation
+P2	M	internal/server/state/native_configuration_test.go	True	True	Adapt actual nullable parent fixture reads preserving original security assertions not compile RED proof
+T4-companion	M	internal/server/state/restore_revoke_checks_linux.go	True	True	Exact S1 projection excludes only fully deleted policy data and independently proves zero rows
+T4-companion	M	internal/server/state/restore_revoke_worker_linux.go	True	True	Invoke S1 known schema revocation and postinspection without broad writable T1 or new syscall rights
+T4-companion	M	internal/server/state/restore_revoke_linux_test.go	True	True	Actual S1 nine DML parent worker lifecycle old device ticket receipt rejection and removed-delete RED
+T4-companion	M	cmd/cognate-server/restore_revoke_worker_integration_test.go	True	True	Fresh real server worker S0 S1 schema transaction Wait and failure receipts
+T4-companion	M	internal/server/restore/sanitize_linux_test.go	True	True	Actual authenticated candidate to S1 sanitized result protected projection and old-authority rejection

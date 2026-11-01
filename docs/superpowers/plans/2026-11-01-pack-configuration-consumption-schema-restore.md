@@ -1,5 +1,30 @@
 # C7 B的schema、T4与R3边界
 
+## 2026-11-01：最小 schema 实施授权
+
+批准固定 `bd39df7fbd07841181417f35c054c9419a777460` 私有副本上的
+[76 路径实现范围](2026-11-01-pack-configuration-schema-writeset.tsv)：45 个预计 Ent
+生成路径与 31 个手写路径。范围只含 schema、nullable-parent 机械闭包、精确准入、
+T1/T4 伴随证明；不是全部 P2、207 路径或可用 Pack 自动配置功能的完成声明。
+实际生成出现额外路径或目录差异，须先核查再扩大范围。
+
+采用已实证 SQL 候选的单表 device/consent、准确 parent union，以及 256 当前 consent /
+1024 历史的计费建议。S0 保留 user_version=0，S1 保留 user_version=1；真实生成必须
+重新证明完整目录与受保护投影，候选 SQL hash 不能直接当生产 Ent 目录资格。
+正常升级保留账号、密码、密文、序列和已有授权；仅灾难恢复执行 S1 九 DML 撤权，
+不改写 S0 八 DML 的旧收据。不用虚构 session 或零值 parent 模拟 policy 身份。
+
+17 条 GUPGRADE、R3 发布/激活接点、CLI、proto、Web 和 LPK 不在本次写入许可中。
+R3 S0 原实现继续独立推进，不能复制其活 WIP 或伪造接口。该片仅在私有副本实现，
+主线合入前必须完成真实 Ent/SQLite 验证、非作者审查及与用户可执行升级链的串行整合；
+不得因 schema 已生成就自动迁移生产库或宣布 S1 已可升级，Pack 设备能力仍关闭。
+
+批准输入：`SCHEMA-MINIMUM-REQUEST.tsv` SHA256
+`87ba4b42e8d7ae8e702c97583f847d7af19781b264142f59dad822ddaa76b09c`；
+`SCHEMA-S1-CANDIDATE.md` SHA256
+`a7f01d8199d69ad0b9dfa14e4b5671d666cc3effa466774d0e5e7684a9e978dd`。
+下面保留原设计边界；本授权不把历史“未执行”记录改成通过。
+
 本文件是需主协调的必要设计，不修改T4/R3 freeze，不宣称现有sanitize已覆盖C7，也不借新WIP符号。
 
 ## 1. 明确版本，不以“有新表就行”替代exact catalog

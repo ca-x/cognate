@@ -1847,3 +1847,41 @@ proposal 重开不会补提交，保留真实 Consumed/Unknown 与新审阅恢�
 私有组合证据：`/tmp/cognate-gemini-main-integration-52Wa0wgt/INTEGRATION.md`。
 功能范围见 `GEMINI-NATIVE-PROFILES.md`；不是此前 stable 标签源码、真实 OAuth、MyGo、
 全部 agent 或完整产品资格。CLI 帮助漏列 Gemini 的 P3 另以小补丁闭合，不混入原独审冻结。
+
+# 2026-11-01：Gemini 分发许可与桌面打包终态
+
+`b282ecb` 接入八文件分发接线：保留原 Codex 文本与检查，分别交付 Gemini
+LICENSE 和完整 THIRD_PARTY_NOTICES，不添加 LICENSE 的结尾换行，不分发
+Node/Gemini 执行文件。CLI/server 原始构建产物、最终 CLI 归档、Docker 最终镜像及
+MyGo 各安装器均有各自的载荷门，资源暂存不能代替最终安装器验证。
+
+- 非作者限定 ACCEPT：`/tmp/cognate-gemini-legal-review-ztgnof9k/REPORT.md`，
+  SHA256 `c6c975b62841d59f2178cff77cd075404f152d6dab5ce630b77eda23000a64ae`。
+  独立构建真实 CLI ELF，真实 Linux/amd64 tar 正例通过；缺 Gemini notice、
+  等长篡改 notice 和等长篡改 Codex LICENSE 三项真实行为负例均被拒绝。
+- 主线八路径逐摘要匹配作者冻结，两份实际 desktop 输入程序及 actionlint 通过。
+  actionlint 使用 1.7.7，外部 ShellCheck/pyflakes 未执行；未配置默认版本的 mise shim
+  失败与使用安装绝对路径后的成功分别保留，不视为产品故障。
+- Build `41287136557` 九项 job 实际 success，包括共享测试、六目标原始构建产物
+  和双架构最终 Docker 的 UID 10001 许可读取；不是新版本发布或 GUI 安装器收据。
+- 原非发布 desktop `41287188637` 整体 success，但只运行 verify，package 被跳过。
+  该结果不计 DMG/NSIS 资格：被跳过的 release-tag 祖先传播到了默认 job 条件。
+- `c69f609` 为 package 增加显式取消/verify 条件，并增加必需的 package-check；
+  publish 仍须显式发布或合法 tag。实际终态脚本的 success/success 正例通过，另外
+  15 种 failure/skipped/cancelled 组合均失败。该小差异已获非作者限定 ACCEPT；
+  新的实际三平台执行以 desktop `41288196561` 终态为准，不能借原绿色结果替代。
+
+后继实际终态已回读：`c69f609` 的 Build `41288196233` 全九项 job success；
+desktop `41288196561` 的 verify、Linux/Windows/macOS 三项 package 及 package-check
+全部 success，release-tag/publish 按非发布请求跳过。已取得三项打包 job 日志并核对
+六条实际架构收据：每个平台 amd64/arm64 均从真实 tar/deb、挂载 DMG 或 NSIS 载荷
+检查 Gemini 两份文本与原 Codex 文本，而不是只检查暂存目录。此处是安装包载荷资格，
+不表示已安装到真实用户设备、签名公证或各平台业务运行验收。
+
+本轮没有触发 CLI 发布标签，完整六份最终发布归档仍由标签发布门执行；独审的真实
+Linux tar 与作者多平台归档 fixture 保持各自原范围。本地可选六构建产物重复下载在
+确认持续低吞吐后主动取消并收取 exit 143，没有重启下载，也不计六归档资格。
+
+作者原输入 allowlist 漏掉 vectors.json 的失败及旧 harness 假绿保留；修正后的
+两个输入门正例和有效负例才计入证据。作者本地真实 Linux tar/deb 与暂存资源不扩张为
+macOS DMG、Windows NSIS、本机应用或完整平台资格。没有移动既有发布标签。

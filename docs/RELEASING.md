@@ -25,6 +25,12 @@ Ordinary branch pushes and pull requests retain build checks without publication
 Manual desktop runs do not publish unless `publish` is explicitly enabled and an
 existing matching GUI tag is supplied.
 
+A non-publishing desktop dispatch still runs verification and all three OS
+packaging jobs. The final `package-check` requires both verification and the
+packaging matrix to succeed; skipped packaging is not a successful packaging
+receipt. The publication job is separate and remains skipped for these runs.
+Inspect individual job results, not just the workflow's overall green status.
+
 The first three-component preview uses `server-v0.1.0-rc.2`,
 `cli-v0.1.0-rc.1` and `gui-v0.1.0`. The GUI package keeps its numeric internal
 version for native packaging, but its GitHub Release is a prerelease, not a GA.
