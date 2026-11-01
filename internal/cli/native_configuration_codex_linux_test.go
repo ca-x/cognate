@@ -60,7 +60,7 @@ func newCodexCLIFixture(test *testing.T, mode string) *codexCLIFixture {
 	test.Helper()
 	executable := os.Getenv("COGNATE_Q4_NATIVE")
 	if executable == "" {
-		test.Skip("explicit pinned ELF and private compiler overlay required; no native qualification claimed")
+		test.Skip("explicit pinned ELF required; no native qualification claimed")
 	}
 	if _, err := configapply.QualifiedCodexNativeProfile(); err != nil {
 		test.Fatal("dedicated native mode must not become Unsupported/skip")
@@ -394,7 +394,7 @@ func codexRunCLI(test *testing.T, fixture *codexCLIFixture, arguments []string, 
 				if _, err := master.Write([]byte(response + "\n")); err != nil {
 					test.Fatal("PTY response")
 				}
-				if response != expected || strings.HasPrefix(expected, "confirm ") {
+				if response != expected || strings.HasPrefix(expected, "confirm ") || answer == "expired" {
 					finished = true
 					break
 				}
@@ -840,20 +840,22 @@ func TestCodexCLIActualBlockedReview(test *testing.T) {
 	}
 }
 
-func TestCodexCLIActualUnqualifiedMain(test *testing.T) {
-	if _, err := configapply.QualifiedCodexNativeProfile(); err == nil {
-		test.Skip("normal empty registry actual-main gate is separate")
-	}
+func TestCodexCLIActualProfileGateAndClientKey(test *testing.T) {
+	_, qualificationError := configapply.QualifiedCodexNativeProfile()
 	home := filepath.Join(test.TempDir(), "not-created")
 	ctx, cancel := context.WithTimeout(test.Context(), 10*time.Second)
 	defer cancel()
-	command := exec.CommandContext(ctx, codexCLIBinary(test), "config", "apply", "--target", "codex.config", "--server", "https://127.0.0.1:1", "--owner", "synthetic-owner", "--asset", "synthetic-asset", "--revision", "1", "--profile", "synthetic-c0", "--token-stdin", "--codex-executable", "/not-read", "--codex-cwd", "/not-read", "--apply")
+	arguments := []string{"config", "apply", "--target", "codex.config", "--server", "https://127.0.0.1:1", "--owner", "synthetic-owner", "--asset", "synthetic-asset", "--revision", "1", "--profile", "synthetic-c0", "--token-stdin", "--codex-executable", "/not-read", "--codex-cwd", "/not-read", "--apply"}
+	if qualificationError == nil {
+		arguments = arguments[:len(arguments)-1]
+	}
+	command := exec.CommandContext(ctx, codexCLIBinary(test), arguments...)
 	command.Env = []string{"HOME=" + home, "TMPDIR=" + os.TempDir(), "PATH=/usr/bin:/bin", "LANG=C.UTF-8"}
 	command.Stdin = strings.NewReader("SYNTHETIC_SESSION")
 	command.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	output, err := command.CombinedOutput()
-	if err == nil || ctx.Err() != nil || !bytes.Contains(output, []byte("Codex本机资格")) || bytes.Contains(output, []byte("SYNTHETIC_SESSION")) {
-		test.Fatal("normal actual main did not safely reject unqualified profile")
+	if err == nil || ctx.Err() != nil || qualificationError != nil && !bytes.Contains(output, []byte("Codex本机资格")) || qualificationError == nil && (!bytes.Contains(output, []byte("本机客户端密钥")) || bytes.Contains(output, []byte("Codex本机资格"))) || bytes.Contains(output, []byte("SYNTHETIC_SESSION")) {
+		test.Fatal("normal actual main did not enforce profile/client-key prerequisite")
 	}
 	if _, err := os.Stat(home); !errors.Is(err, os.ErrNotExist) {
 		test.Fatal("default empty registry created client home/key")

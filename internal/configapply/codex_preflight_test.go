@@ -579,15 +579,18 @@ func TestCodexObservedLatePublicationSourceCAS(test *testing.T) {
 	}
 }
 
-func TestCodexProductionProfileAndAdmissionRemainClosed(test *testing.T) {
+func TestCodexProductionQualificationStillRequiresObservation(test *testing.T) {
 	engine, home, _, _ := codexFixture(test)
 	selection := codexShapeSelection(test, engine)
 	plan, err := engine.PreviewCodex(test.Context(), selection)
 	if !errors.Is(err, ErrCodexUnsupported) || plan.View().OperationID != "" {
 		test.Fatal("unqualified profile produced trusted plan")
 	}
-	if len(codexQualifiedProfiles) != 0 {
-		test.Fatal("D1 registered profile qualification")
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+		profile, err := QualifiedCodexNativeProfile()
+		if err != nil || len(codexQualifiedProfiles) != 1 || profile != codexNative0166Identity() {
+			test.Fatal("production qualification is not the exact fixed tuple")
+		}
 	}
 	if err := os.Remove(filepath.Join(home, ".codex")); err != nil {
 		test.Fatal(err)

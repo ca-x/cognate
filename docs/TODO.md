@@ -68,7 +68,7 @@
 - [x] 为 MyGo 编辑补充 grokclient 的内存输入与结构化脱敏读取接口；独立复制密钥与模型，默认脱敏，不通过临时明文文件绕过。
 - [x] 验收 native/custom 七字段及 Keep/Replace/Clear 原生表单；独立审查发现的排序提交误清脏标记与空闲切页误报取消均已修复并通过回归和复核。Linux headless 原生渲染不代替真人跨平台验收。
 - [ ] 补齐 Grok Build 本机应用；Web/MyGo 资产管理及受限来源导入已单独交付。
-- [ ] Codex 生产 profile 正式登记：由普通生产 CLI 驱动新鲜固定版本消费者完整验证；当前登记表仍为空。
+- [x] Codex 普通 CLI 唯一固定 profile 登记：Linux/amd64 0.166.0 effective-v2 完整 tuple，真实普通 CLI/PTY/App/SQLite和新鲜消费者矩阵、独立指令/effort负控与可读许可包验收通过；其它平台、版本和 MyGo不据此开放。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。
 - [ ] 完成 cc-switch/Magpie 的 skills、仓库、配置独立选择导入闭环，保留来源版本与权限边界。
 - [ ] 补齐 Web/MyGo 的 MCP 配置资产编辑和跨端交互一致性，区分站点 MCP 管理 token。

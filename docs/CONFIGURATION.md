@@ -38,7 +38,7 @@ Grok Build 所有者客户端库 `internal/grokclient` 覆盖九个 RPC、固定
 - 含未来未知字段的 Codex 资产只读展示已知内容，不能保存或复制；仍可由所有者按 revision 明确删除。CAS 冲突后的“放弃草稿并重新读取”需单独确认，不合并或重放旧写入。
 - 编辑及放弃确认弹窗内均可切换语言；切换清除新凭据并终止当前等待。关闭后焦点回到原操作按钮；若它因删除或语言刷新已不存在，则回到新建按钮。
 
-这些能力仅管理服务端资产。Codex 的纯转换 codec 核心已实现，但生产 NativeProfile、原生授权消费桥与设备应用仍未接通，不能据此把 Codex 标为可应用。
+这些表单仅管理服务端资产，不因保存而应用设备。Codex 的后继普通 CLI 仅对固定 Linux/amd64 0.166.0 profile 开放显式应用/恢复，资格和限制见 `CODEX-NATIVE-PROFILES.md` 与本文末节；不能外推为 MyGo、任意版本或全平台支持。
 
 ### Gemini provider 表单
 
@@ -99,7 +99,7 @@ Gemini moejs planner 仅在服务端输出受控的双 artifact 声明；客户�
 - `cognate config status --operation OPERATION_ID` 查询本地持久化状态。远端消费或本地写入结果未知时不能重放秘密；取消、超时及丢失回执不代表回滚。
 - `cognate config restore --source-operation OPERATION_ID` 默认预览恢复，增加 `--apply` 后仍需独立确认并重开校验 CAS。恢复是受控的本机操作，不等于服务端整库备份、S3 或任意文件恢复。
 
-当前 CLI 本机流程限 Claude/provider/schema1 和 Linux；不表示 Codex 已可应用或配置随 Pack 自动应用。MyGo 的独立交付见上节，不能由 CLI 签收推断 GUI 验收。每次命令有总期限，`--timeout` 须大于零且不超过五分钟；实际选项见 `cognate config apply --help`。
+本节的 CLI 本机流程限 Claude/provider/schema1 和 Linux；后继 Codex 流程及唯一固定资格见末节，不表示配置随 Pack 自动应用。MyGo 的独立交付见上节，不能由 CLI 签收推断 GUI 验收。每次命令有总期限，`--timeout` 须大于零且不超过五分钟；实际选项见 `cognate config apply --help`。
 
 ## Native 内部消费核心（Task2C）
 
@@ -123,9 +123,9 @@ grant 最长 60 秒，未知 COMMIT 或提交后取消不返回 grant/秘密、�
 
 可通过显式 `--backup-enabled`、私有 S3 配置文件及独立恢复 key 文件启用 Linux 手动备份控制平面。复用站内管理员会话，Connect RPC 提供状态、登记、查询、取消和只读对账。完整参数、预算、秘密文件、重启与不确定结果边界见 [服务端实例备份](SERVER-BACKUP.md)。自动调度、管理 Web 页、保留清理和完整恢复仍未交付，不以 `remote_committed` 代替恢复验收。
 
-# Codex CLI：显式本机编排，生产资格仍关闭
+# Codex CLI：固定 Linux/amd64 版本的显式本机编排
 
-`config apply --target codex.config` 接入既有 Codex 编排、原生消费与多文件发布合同；**当前生产资格登记仍为空，普通构建拒绝新 Codex apply，不表示 Codex/v2/全部十四类 agent 已可应用。** 专用私有编译fixture的真实consumer/PTY验收不是生产登记或真实账号资格。此节不替代前文历史交付与未交付记录，也不启用随Pack自动应用或MyGo流程。
+`config apply --target codex.config` 接入既有 Codex 编排、原生消费与多文件发布合同；**普通 Linux/amd64 构建仅登记 Codex 0.166.0 effective-v2 完整固定 tuple。** 正常生产 CLI 的真实consumer/PTY/App/SQLite链及独立负控已验收，不是只靠私有编译fixture或翻bool；精确版本、摘要与证据见 `CODEX-NATIVE-PROFILES.md`。其它版本、平台、任意launcher、MyGo及随Pack自动应用仍未取得资格；合成OAuth/Responses不证明真实账号或上游供应商可用。
 
 ```
 cognate auth run --server HTTPS_ORIGIN -- config apply --target codex.config --asset ASSET --revision N --profile C0 --codex-executable ABS --codex-cwd ABS
@@ -136,7 +136,7 @@ cognate config abandon --target codex.config --operation OP
 cognate config retire-unpublished --target codex.config --operation OP
 ```
 
-Linux的[`auth run`](CLI-AUTH.md)先在实际控制TTY隐藏输入本地账号，真实Login/GetSession后才通过预填匿名pipe启动apply，并从认证session注入owner；不要自行传`--owner`/`--server`/`--token-stdin`。这不启用Codex生产资格、OIDC或其它平台登录。旧私有session来源仍可用于原有非TTY stdin（2048B/10s），但不能一边交互登录一边提前启动consumer；stdin从来不是批准输入，不把session写入argv/history/env。wrapper在child结束后仅尝试一次Logout，失败不改变业务结果，服务端TTL仍为24h。客户端仅LoadExisting，不隐式生成或替换client key。原Claude参数/省略target的restore/status保持原义；Codex每次必须显式target，新三种本地命令不猜journal目标。没有裸`retire`或force选项。本地命令不重新传server/session/native路径，使用原操作认证的绑定与新鲜观察；Status可收敛实际磁盘事实，不保证绝对只读。
+Linux的[`auth run`](CLI-AUTH.md)先在实际控制TTY隐藏输入本地账号，真实Login/GetSession后才通过预填匿名pipe启动apply，并从认证session注入owner；不要自行传`--owner`/`--server`/`--token-stdin`。账号登录不替代Codex固定profile资格、业务批准，也不启用OIDC或其它平台登录。旧私有session来源仍可用于原有非TTY stdin（2048B/10s），但不能一边交互登录一边提前启动consumer；stdin从来不是批准输入，不把session写入argv/history/env。wrapper在child结束后仅尝试一次Logout，失败不改变业务结果，服务端TTL仍为24h。客户端仅LoadExisting，不隐式生成或替换client key。原Claude参数/省略target的restore/status保持原义；Codex每次必须显式target，新三种本地命令不猜journal目标。没有裸`retire`或force选项。本地命令不重新传server/session/native路径，使用原操作认证的绑定与新鲜观察；Status可收敛实际磁盘事实，不保证绝对只读。
 
 默认仅预览。要执行写操作，在相应命令追加`--apply`，必须在**同一个实际控制TTY**看到完整角色/字段/动作/count、原操作与新计划、C0/NativeProfile、selection/confirmation、期限和auth Keep等安全metadata，然后逐槽输入`approve codex.provider-key OP`及最终`confirm OP`。本地恢复/还原/中止不取新秘密槽，但仍需新计划及精确最终确认；restore确认的是新计划OP，不是source-operation。stdin yes、无控制TTY、截断/短写/阻塞review、到期或取消均不能批准。部分本地安全视图不提供owner/origin/资产revision字符串，明确显示未提供并依赖经本机key认证的原operation，不能推断当前远端资产状态。
 

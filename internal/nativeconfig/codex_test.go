@@ -156,13 +156,8 @@ func TestCodexV2ActualLifecycle(test *testing.T) {
 	}
 }
 
-func TestCodexDefaultQualificationZeroIO(test *testing.T) {
-	if _, err := configapply.QualifiedCodexNativeProfile(); err == nil {
-		if os.Getenv("COGNATE_Q3_NATIVE") == "" {
-			test.Fatal("unexpected qualification in normal build")
-		}
-		return
-	}
+func TestCodexDefaultQualificationAndConsentZeroIO(test *testing.T) {
+	_, qualificationError := configapply.QualifiedCodexNativeProfile()
 	root := test.TempDir()
 	home, stateRoot := filepath.Join(root, "missing-home"), filepath.Join(root, "missing-state")
 	var calls atomic.Int32
@@ -180,9 +175,13 @@ func TestCodexDefaultQualificationZeroIO(test *testing.T) {
 		test.Fatal("client metadata constructor")
 	}
 	defer client.Close()
-	_, err = client.ApplyCodex(context.Background(), CodexApplyRequest{ApplyRequest: ApplyRequest{OwnerID: "owner", AssetID: "asset", ProfileID: "c0", AssetRevision: 1}, Executable: "/not-read", Directory: "/not-read"}, "synthetic-session", CodexInteraction{})
-	if !errors.Is(err, configapply.ErrCodexUnsupported) {
-		test.Fatal("unqualified profile was not rejected before I/O")
+	_, err = client.ApplyCodex(test.Context(), CodexApplyRequest{ApplyRequest: ApplyRequest{OwnerID: "owner", AssetID: "asset", ProfileID: "c0", AssetRevision: 1, Apply: true}, Executable: "/not-read", Directory: "/not-read"}, "synthetic-session", CodexInteraction{})
+	want := configapply.ErrCodexUnsupported
+	if qualificationError == nil {
+		want = ErrInvalid
+	}
+	if !errors.Is(err, want) {
+		test.Fatal("profile/consent prerequisite was not rejected before I/O")
 	}
 	if calls.Load() != 0 {
 		test.Fatal("unqualified profile performed RPC")

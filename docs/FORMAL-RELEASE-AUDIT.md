@@ -6,6 +6,7 @@
 
 本段由主线程补记 2026-10-31 起的后继交付，不改写下面独立审计的原始基线结论。
 
+- 2026-11-01 C6 exact6 经非作者 Spec/Quality 限定 ACCEPT，普通 CLI唯一登记 Linux/amd64 Codex0.166.0 effective-v2完整字面tuple。独立及当前58f9+自动备份组合各新跑9 POST/completed/kill+Wait(-9)/TLS join，当前到期与profile/client-key门通过；联合全仓9077 PASS/175 SKIP/0 FAIL、vet及18个 CGO0 构建通过。不是MyGo、任意平台/版本、真实账号或完整F12，详见 `CODEX-NATIVE-PROFILES.md`、`VERIFICATION.md`。
 - 2026-11-01 Linux 自动备份 exact16 及 canonical Web 状态测试迁约增量分别获非作者限定 ACCEPT；主线接入默认关闭的60–86400秒固定延迟、实例 actor、原单活/Unknown/预算门与停止排空。58f9 组合真实 Serve60、当前内嵌 Web 自动成功/503/精确只读对账/取消及 Close/EX 释放通过；主线三包91 PASS、67项 Web 合同、真实 Web build与定向 vet通过。保留清理、完整恢复、外部 S3 和 GA 仍开放，详见 `VERIFICATION.md`。
 - S3 HTTP412 无 APIError 的条件请求误分类已按 exact2 修复并获非作者限定 ACCEPT；PUT 必须完整回读，DELETE 只冲突，无重试或授权放宽。主两包809 PASS/零FAIL-SKIP、vet、六目标 CGO0 构建及修后真实 MinIO 五进程通过；新 fallback 的直接证据来自确定 TLS/SDK 负控，不伪称真后端已再命中。原291/供应商深因、完整恢复与 GA 仍不据此关闭；见 `VERIFICATION.md`。
 - GitHub Needs 明确重授权 exact5 经非作者 ACCEPT，Catalog 被动身份和现有 PAT/device flow 的 expected-generation CAS 已闭合，普通内容读取门不放宽。主与 T3S/撤销同树四包完整组合 2782 PASS、18 SKIP、0 FAIL及 vet 通过；不是完整恢复或真实 GitHub 账号验收，见 `GITHUB-SYNC.md`、`VERIFICATION.md`。

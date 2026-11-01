@@ -1,5 +1,43 @@
 # 开发预览验证
 
+## 2026-11-01：Codex 普通 CLI 唯一固定版本登记与自动备份联合资格
+
+C6 exact6 仅一个生产登记表和五个测试路径，patch SHA256
+`f259db331f2b426cc22eefb6a8c24d5cb209dbdb29602c8cb7a9ba84beb616b4`。
+非作者 Spec/Quality 限定 ACCEPT 报告
+`/tmp/cognate-c6-review-6f1e716-tjq9L3is/REPORT.md`，SHA256
+`44f89c657b96b2883fa47c99b29543a2c3be17339c4267fbe184fa0c95901dfe`。
+完整字面 tuple 与固定 ELF 见 `CODEX-NATIVE-PROFILES.md`；没有改 codec、D/C2、wire、
+policy或旧身份读取，不给accessor未来变化自动放行，不以登记代替观察/批准/期限/CAS门。
+
+独审新跑普通CLI/PTY→真实App/TLS/SQLite→同HOME固定ELF，Missing/API/fresh synthetic OAuth
+各 A→B→Restore-A，共9 POST/completed/kill+Wait(-9)/TLS join；实际指令和effort语义反控均 RED。
+当前主线程隔离组合 `/tmp/cognate-auto-c6-main-58f9b45-LND4Xp1M` 固定输入为
+58f9b45 + 自动exact16 + C6 exact6；`evidence/05-production-consumer.*` 又实际 exit0，
+9份新收据全部通过，并覆盖自然到期后的零Authorize/Consume及profile/client-key门。
+原普通CLI独审CAS、晚冲突、逐槽/最终确认和Unknown零重放证据保留；不把旧42次codec
+请求累加为本次交付证明，不冒称调用真实模型或native优雅exit0。
+
+同一联合候选全仓 `go test -json ./... -count=1 -timeout=10m` 已终态 exit0：
+9077 PASS事件、175 SKIP、0 FAIL，51包通过；全仓vet及server/CLI/MyGo三OS双架构
+十八次构建、产物元数据检查全通过。证据在该根 `evidence/01-full-go.*`、`02-vet.*`、
+`03-build-*`，所有Go均1.27.3、CGO_ENABLED=0，无race。
+应用至主线82ff069后核对1404项非文档输入，只有已另获独审的canonical Web验证脚本不同；
+全部Go测试、生产和Web构建输入与联合候选逐字相同。该脚本不进入Go测试/产物，
+其67 checks已在自动备份阶段实际通过；此处明确复用联合候选资格，不冒称主线重跑全仓。
+主线另新跑四包定向394 PASS事件、133条件SKIP、0 FAIL及四包vet，均exit0，
+位于 `/tmp/cognate-c6-main-integration-82ff069-2ObVWRij`。条件SKIP不算真实native次数，
+真实消费者由上述隔离开关、固定ELF和9份收据单独证明。
+
+独审实际Linux CLI tar内完整可读Apache+NOTICE为11558字节、0644，SHA256
+`85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6`；不能用embed
+代替包内许可。此包是固定6f1+C6候选，不冒称后继联合包或所有OCI/desktop渠道已发布/验收。
+官方对象、完整许可及源ELF摘要有独立核对，但不是本轮上游签名或Rust可复现构建证明。
+作者旧typed-default oracle、OAuth POST0/DNS超时及到期断言失败原据全部保留；
+新隔离成功不关闭任意生产网络或真实账号刷新问题。只开放Linux/amd64固定版本的
+普通CLI显式流程，MyGo、其它平台/版本/launcher、Pack自动应用与完整F12/GA仍未完成。
+v2 durable operation的旧binary拒读及非透明回退风险不变，不能删journal或改单角色降级。
+
 ## 2026-11-01：Linux 默认关闭的周期自动备份
 
 原 exact16 patch SHA256 `dd0dc3546c3d14daad984d04c8f891bfd17ec0ecd6ce7dfa1571734a6cc6cb5a`，

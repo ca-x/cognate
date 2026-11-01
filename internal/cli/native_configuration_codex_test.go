@@ -18,10 +18,8 @@ import (
 	"github.com/ca-x/cognate/internal/nativeconfig"
 )
 
-func TestCodexCLIDefaultUnqualified(test *testing.T) {
-	if _, err := configapply.QualifiedCodexNativeProfile(); err == nil {
-		test.Skip("private qualified compiler fixture; normal closed-registry gate runs separately")
-	}
+func TestCodexCLIProfileGateAndClientKey(test *testing.T) {
+	_, qualificationError := configapply.QualifiedCodexNativeProfile()
 	root := test.TempDir()
 	home := filepath.Join(root, "missing-home")
 	test.Setenv("HOME", home)
@@ -31,11 +29,12 @@ func TestCodexCLIDefaultUnqualified(test *testing.T) {
 	command.SetErr(&output)
 	command.SetIn(bytes.NewBufferString("SYNTHETIC_SESSION"))
 	command.SetArgs([]string{"apply", "--target", "codex.config", "--server", "https://127.0.0.1:1", "--owner", "synthetic-owner", "--asset", "synthetic-asset", "--revision", "1", "--profile", "synthetic-c0", "--token-stdin", "--codex-executable", "/not-read", "--codex-cwd", "/not-read"})
-	if err := command.ExecuteContext(test.Context()); !errors.Is(err, configapply.ErrCodexUnsupported) {
-		test.Fatal("empty qualification did not reject before local/session/native I/O")
+	err := command.ExecuteContext(test.Context())
+	if qualificationError != nil && !errors.Is(err, configapply.ErrCodexUnsupported) || qualificationError == nil && !clientKeyFailure(err) {
+		test.Fatal("qualification or explicit client-key gate did not reject")
 	}
 	if _, err := os.Lstat(home); !errors.Is(err, os.ErrNotExist) {
-		test.Fatal("closed-registry CLI initialized local HOME")
+		test.Fatal("profile/key prerequisite initialized local HOME")
 	}
 	if bytes.Contains(output.Bytes(), []byte("SYNTHETIC_SESSION")) {
 		test.Fatal("session leaked")

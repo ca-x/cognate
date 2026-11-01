@@ -1,6 +1,30 @@
 # Codex native profile 能力映射
 
-状态：纯转换 codec 的逐 profile 合同；不启用生产 NativeProfile，不代表本机应用或完整 Codex 验收通过。普通配置资产继续无损保存全部声明，包括 optional false、absence 与模型顺序。
+状态（2026-11-01）：普通 Linux/amd64 CLI 已登记下面唯一固定的 Codex 0.166.0 effective-v2 profile，可走显式审阅的本机应用/恢复流程。其它版本、平台及 MyGo 尚未取得此交付资格，完整 F12 未完成。普通配置资产继续无损保存全部声明，包括 optional false、absence 与模型顺序。
+
+## 2026-11-01：普通 CLI 固定版本资格
+
+| 身份项 | 唯一登记值 |
+| --- | --- |
+| ID | `codex-0.166.0-linux-amd64-full-responses-effective-v2` |
+| Manifest SHA256 | `990ba16b7312c7cd41dc52f1c7a2dc4f2f916c4dbe52c25a2ef6dde90da586bb` |
+| Profile digest | `c044cdc06b1e4817e548ac71aa40ca63115578ac82d9ef76d4d6677ee5fb3161` |
+| Template digest | `3dcb5a25097379f27a103690d56b0e182f557ef26da2753742f6147384dbe515` |
+| 实测官方 Linux/amd64 ELF SHA256 | `b8a11fedf24b2dfb59a70c9e52b030f9a508dcd49cd2dd0d41956f4c785156b8` |
+
+登记使用完整字面 tuple，不随 accessor 自动放行新版本。仍须通过固定 executable、受控直接
+app-server 启动、配置层/来源、三角色基线、期限、独立秘密槽批准及最终确认；auth始终Keep。
+已存在的 File API/fresh synthetic OAuth 可保留，不表示 Cognate 支持创建官方登录、refresh、
+keyring/Auto、任意launcher或真实账号认证；Full Responses的全模型explicit false仍拒绝。
+
+非作者独立普通 CLI/PTTY→真实 App/TLS/SQLite→固定 ELF：Missing/API/fresh synthetic OAuth
+各 A→B→Restore-A，共9 POST/9 completed/9 kill+Wait(-9)/9 TLS join；指令和effort两项真实消费
+反控均 RED。当前58f9+自动备份+C6组合又新跑同矩阵和到期拒绝，未借旧42次codec证据。
+合成loopback Responses不证明真实供应商可用性；kill+Wait(-9)不是原生优雅exit0。
+实际候选Linux CLI tar已附完整可读Apache+NOTICE，不以embed代替外置许可；本片未发布新包。
+独审/源码绑定/组合全仓与分发边界见 `VERIFICATION.md`；使用方式见 `CONFIGURATION.md`。
+
+以下候选、空登记表和未交付描述保留各历史阶段边界，不覆盖本节的新限定资格。
 
 ## 并行工具调用
 
