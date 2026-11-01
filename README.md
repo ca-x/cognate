@@ -85,6 +85,18 @@ install -d -m 700 "$HOME/.config/skillhub"
 
 单次归档上限 32 MiB、普通文件合计 64 MiB、10000 个归档条目和 512 个技能；单个 SKILL.md 上限 1 MiB，不跟随符号/硬链接。归档缓存位于数据目录的 `archives/`，默认对象预算 512 MiB，首次初始化可用 `--archive-cache-bytes` 指定，预算计入中断残留；每用户最多 1000 个收录记录。预算保存在私有 `.cache-budget`，共享目录的所有实例必须配置一致，不支持在线改预算，也不要在运行中编辑该策略文件。当前尚无自动回收或归档修复：失败事务/进程中断可能保留无引用内容，但不能无限突破缓存预算。不要直接删除缓存对象；详情浏览与重复收录会重新核验内容完整性，发现丢失或损坏时明确报错，不静默覆盖旧快照。
 
+Linux 可停止服务后显式校验一个缓存归档：
+
+```sh
+./cognate-server cache verify --data-dir /absolute/private/data --sha256 <小写归档SHA256>
+```
+
+命令持离线独占锁，在线服务尚未停止时等待，可用 Ctrl-C 取消；不需要主密钥，不修改归档，
+也不初始化缓存。成功时仅输出 `archive verified`。它同时检查文件权限、完整 SHA256 及归档
+内容，拒绝链接和特殊文件；当前仅支持未启用运行代的 legacy 数据布局。此入口不执行修复、
+垃圾回收或业务数据库引用核对；失败时保留原件，不要手动删除。设计及后续修复边界见
+`docs/superpowers/plans/2026-11-01-cache-maintenance.md`。
+
 默认数据保存在 `~/.local/share/skillhub-server`，通过 `--data-dir` 更改；主密钥路径可通过 `COGNATE_MASTER_KEY_FILE` 设置。所有服务端 `COGNATE_*` 配置变量优先于对应 `SKILLHUB_*` 旧名，显式设置为空时不回退；旧名仍兼容。`/healthz` 提供存活检查。非 loopback 监听需要 `--tls-cert`/`--tls-key`，或在明确可信的私有网络中使用 `--allow-http`。TLS 私钥同样需要当前用户私有文件与私有目录。自定义域名或反向代理场景必须配置固定的 `--public-origin https://你的域名`；未配置时只接受 loopback Host。程序不信任代理身份头。
 
 收到停止信号时取消请求并最多等待 10 秒，再关闭未结束的连接。慢请求导致停机超过期限时返回错误；这不表示数据库损坏。

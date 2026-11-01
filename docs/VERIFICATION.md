@@ -1885,3 +1885,26 @@ Linux tar 与作者多平台归档 fixture 保持各自原范围。本地可选�
 作者原输入 allowlist 漏掉 vectors.json 的失败及旧 harness 假绿保留；修正后的
 两个输入门正例和有效负例才计入证据。作者本地真实 Linux tar/deb 与暂存资源不扩张为
 macOS DMG、Windows NSIS、本机应用或完整平台资格。没有移动既有发布标签。
+
+## Linux 离线缓存校验入口（2026-11-01）
+
+`cognate-server cache verify --data-dir /absolute/private/data --sha256 <hash>`
+是显式单对象离线校验，不是修复、回收、数据库引用核对或完整恢复。仅 legacy 布局可用，
+存在运行代/restore/intent 痕迹则拒绝。持现有 runtime EX，在目录 FD 范围内以 Afero
+RootedFS 读取，检查私有目录、regular/nlink1、32 MiB、完整压缩字节 SHA256 和归档语义。
+所有文件、目录与锁关闭成功后才输出 `archive verified`，不读取主密钥或输出内容。
+
+- 行为 RED：新增正向 CLI 测试实际失败于 `unknown flag: --sha256`，不是编译错误。
+  初次实现误用只允许独占创建的 RootedFS.OpenFile，实际正例失败；改用已有安全 Open
+  后通过，不把中间失败记成有效资格。
+- 主线三个包 `servercli`、`runtimegen`、`library` 完整测试及 vet exit0；Linux/amd64、
+  Windows/amd64、Darwin/arm64 服务端 CGO0 构建通过。后两项只是构建，不开放运行支持。
+- 真实 Linux 服务端二进制对隔离合成 tar 校验成功，改坏原件后返回失败；证据目录
+  `/tmp/cognate-cache-verify-smoke-uCrqzfVm`。未使用真实账号或认证数据。
+- 非作者限定 ACCEPT：`/tmp/cognate-cache-verify-review-dj3U03TL/REPORT.md`，SHA256
+  `26927f124f6cb488fd87ff893d36f57f46b1e2fae215f3abaf4b310a0f15910a`。
+  七输入逐摘要一致；五顶层、十四子测试通过，含 FIFO、超限、权限、链接、损坏、
+  无效格式、参数、取消及在线 SH 阻断 EX。额外独立十二次交替成功/失败后锁均可重取，
+  FD 数不增长；不存在的密钥文件环境变量不影响校验。
+- 没有注入 Close/EMFILE 故障或证明恶意同 UID 置换及崩溃耐久性。仍依赖现有私有命名空间
+  与协作锁部署边界；不得借本片关闭缓存修复、回收、运行代或完整产品的未完成项。

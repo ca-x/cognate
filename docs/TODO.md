@@ -60,6 +60,7 @@
 - [x] Secret Service 私有 broker 就绪握手：修复 Lstat 在 bind 后/listen 前误报就绪；真实 syscall 延迟旧 RED/新 GREEN、整包五轮及修后全仓通过，非作者独立对照后限定 ACCEPT。不据此归因旧 `fixture-open-session` 或等待断言，见 `SECRET-SERVICE-FIXTURE-READINESS.md`。
 - [ ] 用真实 OIDC provider 验证部署登录及显式身份绑定；保留本地账号。
 - [ ] 完善归档缓存无引用对象回收、完整性修复及故障恢复入口，不直接删除受引用内容。
+- [x] Linux 显式离线缓存单归档校验：`cache verify` 持 runtime EX、绑定目录 FD，检查私有权限、链接、完整 SHA256 和归档语义，不读主密钥、不改原件；非作者限定验收通过。不包含修复、回收或运行代布局支持。
 - [ ] 完成第三方服务端插件的受控注册与管理流程；插件继续仅在服务端执行。
 
 ## AI 配置与导入

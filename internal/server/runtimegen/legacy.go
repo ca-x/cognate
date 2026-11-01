@@ -9,6 +9,18 @@ import (
 	"strings"
 )
 
+func (offline *OfflineRoot) WithLegacyWorkerFiles(ctx context.Context, consume func(root, lock *os.File) error) error {
+	if consume == nil {
+		return ErrInvalid
+	}
+	return offline.WithWorkerFiles(ctx, func(root, lock *os.File) error {
+		if err := legacyEntries(ctx, root, false); err != nil {
+			return err
+		}
+		return consume(root, lock)
+	})
+}
+
 func CheckLegacyLayout(ctx context.Context, root string) error {
 	if ctx == nil || !filepath.IsAbs(root) || filepath.Clean(root) != root {
 		return ErrInvalid
