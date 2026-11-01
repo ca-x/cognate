@@ -32,6 +32,13 @@ Gemini公共proof共享hunk必须主线程另行锁定。普通schema升级保�
 S0遇MigrationRequired不能成为升级后永久无法启动的借口，真实升级CLI与包装入口是必要交付。
 只有SQL helper/安全拒绝、少数renderer、合成账号或交叉编译均不关闭完整C7/F12/GA。
 
+2026-11-01 后继协调：R3 所有者确认运行代记录版本独立，未占用 SQLite user_version=1，
+现为 C7 S1 保留1；原固定 S0 exact56 不改、不重建。此处仅锁定编号，不填尚未生成的精确
+schema/hash，也不扩大P1许可。普通升级必须取得独立typed升级凭据与所有权移交，保留原
+sessions、账号/密码、密文和序列，不套T4灾难恢复撤权；真实副本认证/API与selected实际
+App/Serve零session DML仍分两阶段。S1升级publication/activation接口目前未实现，不能将
+本协调记为现有API或用户已可升级。下方冻结设计中待确认编号的文字保留其历史时点。
+
 ## 冻结输入
 
 - HANDOFF-v2.md SHA256 `8b1f0869d48c0363ff9fe33419dcac76dc0e6d35ef48d8eac549e39be1346a73`。
