@@ -1,5 +1,37 @@
 # 开发预览验证
 
+## 2026-11-01：预编译原生事件转换器，保留捕获上限
+
+已推送 `d324a4169c34932ee4ed9720a75f50ec0a13087f` 的 Build `41272459918`
+九 job completed/success；Platform `41272459912` completed/failure，三个 primitives 成功。
+Darwin job `124747853309` 的固定诊断为 sensitive-pty-io、exit1、bounded capture、
+failed_tests 为空、pty_phase unknown。不再把它泛称为已知 PTY 子断言失败；原始 capture
+未上传，准确远端原因仍未证明。三个原 ZIP 已核 API digest、全部 CRC 和 manifest
+bytes/hash；仍只是拒绝包，双真实卷 detach_exit0、still_mounted=false、cleanup.failed=false。
+
+本机实际 Go1.27.3 的 cmd/go/internal/tool 会按需构建未预装的 builtin test2json。
+原控制器将 `go tool test2json` 连同潜在编译/链接置于 1,048,576 字节 RLIMIT_FSIZE 下。
+全新私有 cache 只先 `go test -c` 合成 fixture 后，原命令实际编译/链接 file-too-large、
+exit1、134 字节捕获、零 JSON/零测试事件；先在编译阶段构建 4,582,737 字节转换器，
+再在相同 1MiB 上限下直接调用，同 fixture 八 JSON 事件、测试/包 PASS、exit0。
+这是一个可复现的本地启动缺陷，与远端现象相容，但不冒称读到了未上传的远端错误。
+
+候选只修改工作流：既有编译步骤提前构建 SDK cmd/test2json；两个有限控制器调用该
+绝对 binary。start/finish 与 sealer 同步精确绑定 cognate、cli.test、test2json 三项，
+22 源输入、core51/caller50、十角色、普通产品 RED、时间/文件/输出上限与清理门不变。
+真实编译八 Python 块与 build heredoc，start/finish AST 仅 phase 不同；有限封存器实际
+一正、34 负/17 族全部符合期望。移除三 binary 数量门的编译后行为反控实际 exit1；
+首次反控因旧 summary hash 提前拒绝而无效，原 exit0 保留，只修复制 fixture 的绑定后
+才取得有效 RED。actionlint1.7.7 与真实 ShellCheck0.11.0 exit0；无生产 Go、schema 或
+wire 改动，不重复冒报全 Go 或构建矩阵。本片不能自行取得 Mac/native 或 GA 资格。
+
+非作者窄审 REPORT SHA256
+`f9b494b672c4fe82de7c16c3672a59510a0b4ad003d3fdeb954aeca17c340f78` 限定 ACCEPT，
+独立一次冷启动 RED、预编译后同 1MiB GREEN、第二控制器精确 argv 及缺工具/缺绑定拒绝
+均实际执行。两控制器预算不混同：首个 1MiB/120s child/140s wait；第二个原有
+4MiB capture/90s child/100s capture deadline，全部保持原值。接受本地启动缺陷窄修复，
+不代替后继真实 Mac，也不确认未见的远端 raw 根因。
+
 ## 2026-11-01：原生选择导入、所有者附件管理与有界 Darwin 诊断
 
 本阶段以 `bd39df7fbd07841181417f35c054c9419a777460` 为主线基线。三来源选择导入和

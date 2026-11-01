@@ -89,7 +89,7 @@
 
 - [ ] CLI 跨平台账号交互与 OIDC；本轮 `auth run` 仅支持 Linux 本地账号。
 - [x] 合入已独审 Darwin CLI 密钥调用候选及原生工作流：当前组合全Go/vet/交编与封存有限正反例通过，保留新Web前置和清理拒绝门；不代表取得原生资格。
-- [ ] Darwin caller原生资格：首次run41266403574在core/caller步骤实际失败，三ZIP仅refusal/unconfirmed，双卷清理成功。先补有界角色/子断言诊断定位UNKNOWN，再取得真实caller50/core51及三份封闭收据；不重跑旧run刷绿，密钥准入不等于安装/Pack/GUI资格。
+- [ ] Darwin caller 原生资格：run41266403574 与后继41272459912均实际失败，三 ZIP 仅 refusal/unconfirmed、双卷清理成功。有界诊断已定位后者的 sensitive-pty-io，但尚无测试/子 phase；本地已复现并修复 Go 工具冷编译在原 1MiB 文件上限下失败，仍须后继真实 caller50/core51 及三份封闭收据。不重跑旧 run 刷绿，密钥准入不等于安装/Pack/GUI资格。
 - [ ] 完成 macOS/Windows 本地安装、订阅同步、配置应用及恢复的逐项运行验收；交叉编译不算运行支持。
 - [ ] GUI 各平台真实安装、窗口交互、键盘与可访问性验证；已有 Linux 窗口 smoke 不覆盖其它平台。
 - [ ] macOS Developer ID 签名与公证、Windows 安装包签名；预览包保持 unsigned/ad-hoc 标识。

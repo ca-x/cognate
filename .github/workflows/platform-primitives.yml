@@ -106,6 +106,7 @@ jobs:
           test "$(go env GOOS)" = darwin
           test "$(go env GOARCH)" = arm64
           go env GOOS GOARCH GOVERSION CGO_ENABLED > "$COGNATE_BASELINE_ROOT/evidence/toolchain.txt"
+          go build -mod=readonly -o "$COGNATE_BASELINE_ROOT/bin/test2json" cmd/test2json
           for package in clientkey cli install desktop subscription; do
             go test -mod=readonly -c -o "$COGNATE_BASELINE_ROOT/bin/$package.test" "./internal/$package"
           done
@@ -151,7 +152,7 @@ jobs:
           if len(inputs) != 22:
               raise SystemExit("caller input closure mismatch")
           binaries = []
-          for role in ["cognate", "cli.test"]:
+          for role in ["cognate", "cli.test", "test2json"]:
               descriptor = os.open(root / "bin" / role, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
               with os.fdopen(descriptor, "rb") as raw:
                   before = os.fstat(raw.fileno())
@@ -498,7 +499,7 @@ jobs:
                   resource.setrlimit(resource.RLIMIT_FSIZE, (maximum, maximum))
               with path.open("xb", buffering=0) as raw:
                   process = subprocess.Popen([
-                      "go", "tool", "test2json", "-p", "github.com/ca-x/cognate/internal/" + package,
+                      str(root / "bin/test2json"), "-p", "github.com/ca-x/cognate/internal/" + package,
                       str(root / "bin" / (package + ".test")), "-test.v=test2json", "-test.count=1",
                       "-test.timeout=120s", "-test.run=" + selector,
                   ], stdout=raw, stderr=subprocess.STDOUT, env=environment, start_new_session=True, preexec_fn=limits)
@@ -879,7 +880,7 @@ jobs:
               events = []
               try:
                   code = capture_native([
-                      "go", "tool", "test2json", "-p", "github.com/ca-x/cognate/internal/" + package,
+                      str(root / "bin/test2json"), "-p", "github.com/ca-x/cognate/internal/" + package,
                       str(root / "bin" / (package + ".test")), "-test.v=test2json", "-test.count=1",
                       "-test.timeout=90s", "-test.run=^" + name + "$",
                   ], path, environment, diagnostic)
@@ -959,7 +960,7 @@ jobs:
           if len(inputs) != 22:
               raise SystemExit("caller input closure mismatch")
           binaries = []
-          for role in ["cognate", "cli.test"]:
+          for role in ["cognate", "cli.test", "test2json"]:
               descriptor = os.open(root / "bin" / role, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
               with os.fdopen(descriptor, "rb") as raw:
                   before = os.fstat(raw.fileno())
@@ -1796,9 +1797,9 @@ jobs:
                       or finish != {**start, "phase": "finish"}):
                   raise ValueError("caller build binding mismatch")
               binaries = start["binaries"]
-              if type(binaries) is not list or len(binaries) != 2:
+              if type(binaries) is not list or len(binaries) != 3:
                   raise ValueError("missing caller binary")
-              for item, role in zip(binaries, ["cognate", "cli.test"]):
+              for item, role in zip(binaries, ["cognate", "cli.test", "test2json"]):
                   if (type(item) is not dict or set(item) != {"role", "bytes", "sha256", "dev", "ino", "uid", "mode"}
                           or item["role"] != role or type(item["bytes"]) is not int or not 0 < item["bytes"] <= 512 << 20
                           or type(item["sha256"]) is not str or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
