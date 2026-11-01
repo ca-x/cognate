@@ -44,6 +44,22 @@ T4 使用同 EX 租约的 inspector，真实提交凭据撤销并关闭、等待
 
 ## 无 cgo 的受限复制
 
+源前置检查允许 SQLite 正常关闭后只读重开产生的空 WAL-index：只有物理 WAL
+帧数与 SHM 已提交帧数同时为零时，SHM 页大小为零才合法。非零错误页大小、
+存在未提交物理帧或残留已提交帧仍拒绝；双 header、校验和、salt、容量及
+backfill 检查不放宽。不通过 checkpoint、写入预热或删除 sidecar 绕过检查。
+前置成功仍仅为 `NeedsCertificate`，不是完整快照或恢复资格。
+
+2026-11-01 在 Go 1.27.3、`CGO_ENABLED=0` 的 Linux 上验证：真实 SQLite
+512/4096/8192/65536 四种页大小只读重开成功，检查前后 DB/WAL/SHM 摘要不变；
+旧 helper 覆盖下这些正例失败，删除物理帧 guard 的负控被未提交帧用例捕获。
+独立复核接受这两文件修复；本地主线程以下回归与 vet 均 exit 0：
+
+```sh
+go test -mod=readonly -count=1 -timeout=10m ./internal/server/state ./internal/server/library ./internal/server
+go vet ./internal/server/...
+```
+
 Linux worker 使用既定 modernc SQLite 在线 Backup API，按页复制受控候选。
 CLI 与 server 都保留真实 worker dispatch，普通命令不自动启动快照。
 它不复制活动 main/WAL/shm 文件，不调用外部 sqlite，不使用全库 Serialize，

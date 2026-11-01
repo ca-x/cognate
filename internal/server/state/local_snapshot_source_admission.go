@@ -129,7 +129,8 @@ func snapshotSourceSHM(result *localSnapshotSourceObservation, header *[136]byte
 	}
 	first, second := snapshotSourceChecksum(binary.LittleEndian, header[:40])
 	last := uint64(binary.LittleEndian.Uint32(header[16:20]))
-	if size < 32768 || size%32768 != 0 || !bytes.Equal(header[:48], header[48:96]) || binary.LittleEndian.Uint32(header[:4]) != 3007000 || header[12] != 1 || header[13] > 1 || pageSize != result.pageSize || first != binary.LittleEndian.Uint32(header[40:44]) || second != binary.LittleEndian.Uint32(header[44:48]) || last > result.frames || uint64(size)/32768 < 1+(last+33)/4096 || uint64(binary.LittleEndian.Uint32(header[96:100])) > last {
+	validPageSize := pageSize == result.pageSize || pageSize == 0 && result.frames == 0 && last == 0
+	if size < 32768 || size%32768 != 0 || !bytes.Equal(header[:48], header[48:96]) || binary.LittleEndian.Uint32(header[:4]) != 3007000 || header[12] != 1 || header[13] > 1 || !validPageSize || first != binary.LittleEndian.Uint32(header[40:44]) || second != binary.LittleEndian.Uint32(header[44:48]) || last > result.frames || uint64(size)/32768 < 1+(last+33)/4096 || uint64(binary.LittleEndian.Uint32(header[96:100])) > last {
 		return errSnapshotSourceInvalid
 	}
 	if walSize != 0 && (header[13] != wal[3]&1 || !bytes.Equal(header[32:40], wal[16:24])) {

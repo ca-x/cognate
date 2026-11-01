@@ -144,6 +144,74 @@ func TestLocalSnapshotSourceGeometry(test *testing.T) {
 	}
 }
 
+func TestLocalSnapshotSourceEmptyWAL(test *testing.T) {
+	for _, pageSize := range []int{512, 4096, 8192, 65536} {
+		test.Run(fmt.Sprintf("P%d", pageSize), func(test *testing.T) {
+			sourceAdmissionPlatform(test)
+			directory := test.TempDir()
+			if err := os.Chmod(directory, 0o700); err != nil {
+				test.Fatal(err)
+			}
+			path := filepath.Join(directory, "source.sqlite")
+			writer, err := sql.Open("sqlite3", path)
+			if err != nil {
+				test.Fatal(err)
+			}
+			test.Cleanup(func() {
+				if err := writer.Close(); err != nil {
+					test.Error(err)
+				}
+			})
+			for _, statement := range []string{
+				fmt.Sprintf("PRAGMA page_size=%d", pageSize), "PRAGMA journal_mode=WAL",
+				"CREATE TABLE payload (value INTEGER NOT NULL)", "INSERT INTO payload VALUES (1)",
+			} {
+				if _, err := writer.ExecContext(test.Context(), statement); err != nil {
+					test.Fatal(err)
+				}
+			}
+			if err := errors.Join(writer.Close(), os.Chmod(path, 0o600)); err != nil {
+				test.Fatal(err)
+			}
+			reader, err := sql.Open("sqlite3", "file:"+path+"?mode=ro")
+			if err != nil {
+				test.Fatal(err)
+			}
+			reader.SetMaxOpenConns(1)
+			test.Cleanup(func() {
+				if err := reader.Close(); err != nil {
+					test.Error(err)
+				}
+			})
+			var value int
+			if err := reader.QueryRowContext(test.Context(), "SELECT value FROM payload").Scan(&value); err != nil || value != 1 {
+				test.Fatal("read-only source query failed", err)
+			}
+			var integrity string
+			if err := reader.QueryRowContext(test.Context(), "PRAGMA integrity_check").Scan(&integrity); err != nil || integrity != "ok" {
+				test.Fatal("read-only source integrity failed", err)
+			}
+			wal, err := os.Stat(path + "-wal")
+			if err != nil || wal.Size() != 0 {
+				test.Fatal("SQLite did not produce an empty WAL", err)
+			}
+			shm, err := os.ReadFile(path + "-shm")
+			if err != nil || len(shm) != 32768 || binary.LittleEndian.Uint16(shm[14:16]) != 0 || binary.LittleEndian.Uint32(shm[16:20]) != 0 {
+				test.Fatal("SQLite did not produce an empty WAL-index", err)
+			}
+			before := sourceAdmissionHashes(test, path)
+			parent, database := sourceAdmissionBorrow(test, path)
+			result, err := inspectLocalSnapshotSource(test.Context(), parent, database, snapshotSourcePrefixBudget)
+			if err != nil || result.decision != snapshotSourceNeedsCertificate || result.pageSize != uint64(pageSize) || result.frames != 0 || result.regions != 1 || result.shmBytes != 32768 {
+				test.Fatal("valid empty WAL-index refused", err)
+			}
+			if after := sourceAdmissionHashes(test, path); after != before {
+				test.Fatal("source inspection mutated SQLite files")
+			}
+		})
+	}
+}
+
 func TestLocalSnapshotSourceCancelAndPlatform(test *testing.T) {
 	ctx, cancel := context.WithCancel(test.Context())
 	cancel()
@@ -568,10 +636,10 @@ func TestLocalSnapshotSourcePrivacy(test *testing.T) {
 }
 
 func TestLocalSnapshotSourceSidecarBoundaries(test *testing.T) {
-	for _, kind := range []string{"missing-both", "empty-both", "wal-no-shm", "shm-no-wal", "wal-short", "wal-page-size", "wal-version", "wal-frame-overflow", "shm-short", "shm-unaligned", "shm-duplicate", "shm-version", "shm-page-size", "shm-uninitialized", "shm-checksum", "shm-last", "shm-backfill", "shm-salt", "shm-order"} {
+	for _, kind := range []string{"missing-both", "empty-both", "wal-no-shm", "shm-no-wal", "wal-short", "wal-page-size", "wal-version", "wal-frame-overflow", "shm-short", "shm-unaligned", "shm-duplicate", "shm-version", "shm-page-size", "shm-zero-page", "shm-zero-page-uncommitted", "shm-zero-page-stale", "shm-empty-page-size", "shm-empty-page-size-mismatch", "shm-uninitialized", "shm-checksum", "shm-last", "shm-backfill", "shm-salt", "shm-order"} {
 		test.Run(kind, func(test *testing.T) {
 			path := sourceAdmissionSeed(test, 512, true)
-			valid := kind == "missing-both" || kind == "empty-both" || kind == "wal-no-shm"
+			valid := kind == "missing-both" || kind == "empty-both" || kind == "wal-no-shm" || kind == "shm-empty-page-size"
 			switch kind {
 			case "missing-both":
 				for _, suffix := range []string{"-wal", "-shm"} {
@@ -629,6 +697,20 @@ func TestLocalSnapshotSourceSidecarBoundaries(test *testing.T) {
 					binary.LittleEndian.PutUint32(data[:4], 3007001)
 				case "shm-page-size":
 					binary.LittleEndian.PutUint16(data[14:16], 4096)
+				case "shm-zero-page", "shm-zero-page-uncommitted", "shm-zero-page-stale", "shm-empty-page-size", "shm-empty-page-size-mismatch":
+					binary.LittleEndian.PutUint16(data[14:16], 0)
+					if kind != "shm-zero-page" && kind != "shm-zero-page-stale" {
+						binary.LittleEndian.PutUint32(data[16:20], 0)
+						binary.LittleEndian.PutUint32(data[96:100], 0)
+					}
+					if kind == "shm-zero-page-stale" || kind == "shm-empty-page-size" || kind == "shm-empty-page-size-mismatch" {
+						if err := os.Truncate(path+"-wal", 0); err != nil {
+							test.Fatal(err)
+						}
+					}
+					if kind == "shm-empty-page-size-mismatch" {
+						binary.LittleEndian.PutUint16(data[14:16], 4096)
+					}
 				case "shm-uninitialized":
 					data[12] = 0
 				case "shm-checksum":
