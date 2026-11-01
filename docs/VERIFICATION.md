@@ -1,5 +1,45 @@
 # 开发预览验证
 
+## 2026-11-01：Darwin caller 首次真实运行失败，未取得原生资格
+
+候选提交 `51e8c9feee52edecd29577ec2674c183743359e7` 已 SSH 推送并读回；Build
+`41266403565` completed/success。Platform `41266403574` / attempt1 completed/failure：
+三个 OS primitives job success，Darwin job `124730008858` 正常完成 Web embed、六份
+产品/测试编译及双真实 APFS 创建，失败在 `Verify Darwin core security and caller runtime
+preview`。唯一实际错误为 `native core or caller test failed or capture reached limit`；
+baseline 依赖步骤 skipped，sealer 拒绝不完整证据并实际非零退出。不据此归因具体角色、
+F_GETPATH、权限、内核、超时或产品缺陷，根因仍 UNKNOWN，也不重跑旧 run 追绿色状态。
+
+主下载并核对三份原 ZIP 的 API digest、CRC、全部安全唯一成员和 manifest bytes/hash：
+
+| Artifact | ID | ZIP SHA256 |
+| --- | --- | --- |
+| core security |13067895783|`59dae8ec60a52502be508e7bba4f83ddac15e40ab86f77fcb86f7bfda28be7f6`|
+| baseline observation |13067606341|`98143431d127b003447cdac91683f346f8995c8cbc65bcec31905d156dac9c4b`|
+| CLI caller security |13067561388|`7fd3e58c8d83687fe09963fdb7c1b9475d3e13c116962fda834f6576eb7bb570`|
+
+它们只有固定 refusal、unconfirmed、尚未尝试的 baseline capability 诊断与清理，不包含
+成功 core51/caller50 回执。两卷 was_mounted=true、detach_exit=0、still_mounted=false，
+cleanup.failed=false、auxiliary_failures为空。证据保存于下节组合根的
+`evidence/native-run-41266403574`。下一片先补不泄露原始终端/密钥的有界失败诊断，
+取得可定位角色/子断言的证据后才作产品修复；本次并未关闭 Darwin caller 或 GA 门。
+
+## 2026-11-01：原生选择导入与 Pack 附件待审组合
+
+两份作者冻结分别为 `/tmp/cognate-mygo-import-2cd7568-M8rhe4fC` 的 exact12、
+`/tmp/cognate-c7-p1-0a5e414-2SHOuIL2` 的 P1 exact10；已交叉安排非作者独审，尚无
+ACCEPT，不合入主线或替作者签收。P1 仅为所有者附件元数据，不是客户端配置消费/自动应用。
+主在 `51e8c9f` 的新 archive `/tmp/cognate-mygo-import-pack-main-51e8c9f-PdBDmV42`
+串行组合，共20路径/5修改15新增；只有共享 model.go/view.go 合并两片生命周期和入口
+hunk，其余片内路径逐字匹配各自冻结；1601个其它基线文件保持不变，真实 Web dist 参与构建。
+
+实际三包 desktop/packattachments/importclient 为581个测试PASS事件、2个条件SKIP、
+3个包通过、零FAIL；全仓为9333个测试PASS事件、177个测试SKIP、51个测试包通过、
+77个无测试包SKIP、零FAIL，均实际exit0。全仓vet及server/CLI/MyGo三种产品各六目标
+构建全部exit0；18份metadata逐一核Go1.27.3、CGO0及OS/架构。原据为组合根evidence下
+`01-three-packages`、`02-composition-identity`、`03-vet`、`04-*`及`05-full-go`。
+这些不是独审或当前主线交付；普通窗口/完整提交/Unknown与真实平台矩阵不据此外推。
+
 ## 2026-11-01：Darwin CLI caller 与当前主线组合，等待真实原生资格
 
 主线在 `0d6c59d` 上接入原已独审 caller exact8，以及已静审的工作流/说明，
