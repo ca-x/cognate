@@ -12,6 +12,10 @@
 
 ## 历史失败与支持边界
 
+GUI `gui-v0.1.1` 的 run `41276593020` 在原生集成测试编译阶段因 `web/embed.go: pattern all:dist: no matching files found` 失败，没有打包或创建 Release。加入与平台测试相同的真实 Web 构建前置；不提交占位 dist、不减少测试、不重跑或移动旧标签，桌面版本改为 `0.1.2` 后重新触发分发。
+
+后继从 `git archive` 创建无 dist 的私有干净源码，真实运行 `npm ci`、Web build 和工作流原命令 `env -u DISPLAY -u WAYLAND_DISPLAY go test -mod=readonly -count=1 -timeout=120s ./internal/desktop ./cmd/cognate-desktop`，退出 0（desktop 88.576 秒）。非作者五路径静态限定 ACCEPT，actionlint 结构检查与新增命令 ShellCheck 通过；全工作流保留原有 SC2155/SC2035 两项告警，不将它们谎称全绿。
+
 Platform `41275009573` 的三个 OS primitives、Darwin core/caller runtime、baseline observation 和双卷清理步骤成功，但 evidence sealer 失败，因此整个 run 仍为 failure；不能把步骤成功称为完整封存资格。后继修复与收据单独记录，不重跑旧 run 抹去失败。
 
 正式组件的受支持范围见 `RELEASE-v0.1.0.md`；完整产品目标、未完成的恢复回收、配置自动应用及原生平台门禁保持在 `TODO.md`，不会因组件 tag 而关闭。

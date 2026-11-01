@@ -63,6 +63,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build embedded server assets for native integration fixtures
+        run: npm ci --prefix web && npm run build --prefix web
       - name: Verify Codex legal input
         run: |
           test -f "$CODEX_LICENSE_SOURCE"

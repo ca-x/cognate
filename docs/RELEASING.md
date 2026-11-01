@@ -5,7 +5,7 @@ only after its component has passed acceptance. A tag is not a declaration that
 the entire Cognate product is complete.
 
 The 2026-11-01 stable component release is described in `RELEASE-v0.1.0.md`:
-`server-v0.1.0`, `cli-v0.1.0`, and `gui-v0.1.1`. Published preview tags remain
+`server-v0.1.0`, `cli-v0.1.0`, and `gui-v0.1.2`. Published preview tags remain
 unchanged. Stable distribution does not waive the documented feature, platform,
 backup/restore, signing or complete-product acceptance gates. Publish CLI/GUI
 drafts only after verifying the delivered archives and checksums; replace draft
