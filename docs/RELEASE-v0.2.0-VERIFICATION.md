@@ -82,3 +82,13 @@ binary 为 Linux amd64/Go1.27.3/CGO0/clean VCS。对实际解包的 binary 与 w
 versioned GitHub Asset URL 与上述最终 SHA256 一致；官方发布 outcome=skipped。
 最终实包与本地包的外层 size/hash 不同，分别保留，不拿本地包 hash 冒称发布 hash。
 商店接受不是实际用户安装、商店可见性或平台 OIDC/升级成功证明，这些仍待真人测试。
+
+## 最终账本独立验收
+
+非作者对已有完整下载文件、API/CI 记录和有效负例作离线独立核对，限定 ACCEPT，未发现
+阻断本次 Linux 优先组件分发的 P1/P2。报告
+`/tmp/cognate-v020-ledger-review-zWYqeiOP/REPORT.md` SHA256 为
+`18bcb65072fe9e3f85ea4264c33ec82c49b5dba6c3fdb8260a52e2525c76b197`。
+独审没有重新联网下载、执行 Mac/Windows 或重跑完整测试。其中特别保留 Darwin 原失败，
+并指出商店 receipt 的 onlineVersion 仍为 `0.1.0`：只能声明 `0.2.0` 已提交/获接受，
+不能据此宣称店面已切换或用户真机升级通过。
