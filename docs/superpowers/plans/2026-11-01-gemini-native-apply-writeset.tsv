@@ -1,0 +1,65 @@
+action	path	responsibility
+M	proto/skillhub/configuration/native/v1/native.proto	Append Gemini target/slot and typed binding fields without new RPC
+M	gen/skillhub/configuration/native/v1/native.pb.go	Regenerate native protobuf only
+N	internal/nativesessionauth/native_gemini.go	Strict target-specific canonical proof and local-binding validation
+N	internal/server/state/native_gemini_configuration.go	Existing-transaction Gemini prepare/authorize/consume/status
+N	internal/server/state/native_gemini_record.go	Versioned encrypted Gemini preparation payload
+N	internal/server/state/native_gemini_auth_seam.go	Verified current-owner and asset-revision preflight
+M	internal/server/state/native_codex_auth_seam.go	Authenticated record-family routing adds Gemini only
+N	internal/server/auth/native_gemini_configuration.go	Reuse native session verifier and grant issuance
+M	internal/server/nativeconsumer/service.go	Typed Gemini prepare/authorize delegation
+N	internal/server/configuration/gemini_native_boundary.go	Existing moejs planner and independent host validation bound to asset revision
+M	internal/server/configuration/native_consumer.go	Consume/status route by authenticated preparation family
+N	internal/server/httpapi/native_gemini_configuration.go	Strict Gemini mapping/shape/slot cardinality validation
+M	internal/server/httpapi/native_configuration.go	Prepare/authorize Gemini dispatch
+M	internal/server/httpapi/native_configuration_codec.go	Recognize Gemini variant with no mixed-body fallback
+N	internal/configclient/native_gemini_flow.go	Typed existing six-RPC flow and single-use grant/Unknown handling
+N	internal/configclient/native_gemini_proof.go	Client canonical proof parity with neutral verifier
+N	internal/configclient/native_gemini_pin.go	Exact builtin Gemini adapter pin
+M	internal/configclient/native_codec.go	Strict Gemini response variant validation
+N	internal/configapply/bundle_transaction.go	Extract shared bounded stage/publish/inspect/resume mechanics
+N	internal/configapply/bundle_vault.go	Extract shared encryption and durable bundle-file primitives
+M	internal/configapply/codex_publish.go	Delegate mechanical publication without changing Codex rules or checkpoints
+M	internal/configapply/codex_recovery.go	Delegate mechanical inspection/recovery without changing Codex semantics
+M	internal/configapply/codex_journal.go	Use shared vault primitives with original serialization/AAD/filenames unchanged
+N	internal/configapply/gemini_engine.go	Typed two-role engine/lifecycle and existing shared lock
+N	internal/configapply/gemini_journal.go	Gemini-only bounded encrypted journal/selection and durable remote intents
+N	internal/configapply/gemini_observer_linux.go	Fresh source-pinned no-execution observation of runtime and effective input sources
+N	internal/configapply/gemini_observer_other.go	Unsupported before path or RPC access
+N	internal/configapply/gemini_plan.go	Pair CAS/field ownership/approval and materialization binding
+N	internal/configapply/gemini_recovery.go	Read-only convergence and explicit new-plan recover/restore/retirement
+N	internal/configapply/gemini_profile.go	Exact Linux amd64 runtime/package manifest and qualified tuple gate
+M	internal/geminiconfig/profile.go	Concrete fixed-version codec profile rather than unconditional hard-close
+M	internal/geminiconfig/provider.go	Explicit field takeover and exact-preserving planning; never infer ownership
+M	internal/geminiconfig/private.go	Bind takeover decisions to private field facts and provider binding
+N	internal/nativeconfig/gemini.go	Shared non-Cobra apply/status/recover/restore/abandon/retire orchestration
+N	internal/cli/native_configuration_gemini.go	Existing bounded controlling-TTY review and separate secret/final approval
+M	internal/cli/native_configuration.go	Gemini target and fixed Node/package/cwd flags; original targets unchanged
+M	internal/cli/auth_run.go	Explicit existing auth-run whitelist additions
+N	internal/geminiconfig/testdata/native-profile-v0.61.0/package-files.sha256	449-file public npm artifact manifest
+M	internal/geminiconfig/testdata/native-profile-v0.61.0/source.json	Exact source/package/runtime identities and truthful qualification evidence references
+N	internal/geminiconfig/testdata/native-profile-v0.61.0/LICENSE	Unmodified official license
+N	docs/GEMINI-NATIVE-PROFILES.md	Supported tuple/scope/state/recovery/upgrade and evidence boundaries
+M	docs/CONFIGURATION.md	CLI examples/explicit approvals/Unknown and multi-file window
+M	docs/CCSWITCH-CONFIGURATION-MATRIX.md	Gemini bounded native status only after acceptance
+M	docs/REQUIREMENTS.md	Bounded F12 delivery note preserving full fourteen-agent obligations
+N	internal/nativesessionauth/native_gemini_test.go	Canonical parity/mixed target and proof mutations
+N	internal/server/state/native_gemini_configuration_test.go	Real SQLite owner/CAS/grant/no-secret/Unknown transactions
+N	internal/server/state/native_gemini_record_test.go	AAD/family isolation/budgets/old records
+N	internal/server/auth/native_gemini_configuration_test.go	Real sessions/current owner/revocation/scope gates
+N	internal/server/configuration/gemini_native_boundary_test.go	Real moejs and host validation without secret propagation
+N	internal/server/httpapi/native_gemini_configuration_test.go	Real Connect/TLS/protobuf/strict JSON/native-purpose tests
+N	internal/configclient/native_gemini_flow_test.go	Actual transport/one-shot/receipt loss/status-only behavior
+N	internal/configclient/native_gemini_proof_test.go	Cross-layer proof vectors and all changed-field negatives
+N	internal/configclient/native_gemini_pin_test.go	Builtin adapter parity without importing server into client
+N	internal/configapply/bundle_transaction_test.go	Old Codex regression and role-generic crash/mix tests
+N	internal/configapply/bundle_vault_test.go	Legacy ciphertext compatibility and Gemini domain separation
+N	internal/configapply/gemini_engine_test.go	Two-file/selection/root/ownership/CAS/lifecycle behavior
+N	internal/configapply/gemini_observer_linux_test.go	Freshness/runtime/trust/layer/environment/change-between-checks
+N	internal/configapply/gemini_observer_other_test.go	Non-Linux fail-closed no-I/O
+N	internal/configapply/gemini_recovery_test.go	Kill/reopen/partial/Unknown/new-review restore and residual ownership
+N	internal/nativeconfig/gemini_test.go	Actual App/TLS/SQLite through shared kernel and callbacks
+N	internal/cli/native_configuration_gemini_test.go	Real PTY keyboard/approval/output/cancel paths and auth-run whitelist
+N	internal/cli/gemini_qualification_linux_test.go	Unmodified official consumer and strict synthetic TLS request evidence
+M	internal/geminiconfig/provider_test.go	Exact dotenv/JSONC preservation and explicit takeover cases
+M	internal/geminiconfig/profile_test.go	Fixed profile source/ignored-field/scope gates and unsupported controls
