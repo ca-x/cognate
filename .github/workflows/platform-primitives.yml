@@ -1254,6 +1254,47 @@ jobs:
               if details["capture"] == "empty" and any(details[key] != "absent" for key in ["child_marker", "target_marker", "eot_prefix"]):
                   return False
               return True
+          def pty_diagnostic_events(events):
+              def unique(pairs):
+                  result = {}
+                  for key, value in pairs:
+                      if key in result:
+                          raise ValueError("duplicate diagnostic field")
+                      result[key] = value
+                  return result
+              if type(events) is not list or not 1 <= len(events) <= 16:
+                  raise ValueError("missing diagnostic")
+              found = []
+              for index, event in enumerate(events):
+                  if type(event) is not dict:
+                      raise ValueError("invalid diagnostic event")
+                  output = event.get("Output", "")
+                  if type(output) is not str:
+                      raise ValueError("invalid diagnostic output")
+                  if "DARWIN_PTY_DIAGNOSTIC" not in output:
+                      continue
+                  if (set(event) - {"Time", "Action", "Package", "Test", "Elapsed", "Output"}
+                          or event.get("Action") != "output"
+                          or event.get("Package") != "github.com/ca-x/cognate/internal/cli"
+                          or event.get("Test") != "TestDarwinPTYExecutionPrerequisites"
+                          or len(output.encode()) > 1024):
+                      raise ValueError("invalid diagnostic identity")
+                  if "Elapsed" in event and (type(event["Elapsed"]) not in (int, float) or not 0 <= event["Elapsed"] < 1000):
+                      raise ValueError("invalid diagnostic elapsed")
+                  if "Time" in event and (type(event["Time"]) is not str or not re.fullmatch(
+                          r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})", event["Time"])):
+                      raise ValueError("invalid diagnostic time")
+                  match = re.fullmatch(r"    platform_output_darwin_test\.go:120: DARWIN_PTY_DIAGNOSTIC ([^\n]+)\n", output)
+                  if match is None:
+                      raise ValueError("invalid diagnostic source")
+                  details = json.loads(match[1], object_pairs_hook=unique)
+                  if not pty_details_valid(details):
+                      raise ValueError("invalid diagnostic details")
+                  found.append((index, details))
+              if len(found) != 1 or found[0][0] != 3:
+                  raise ValueError("missing or duplicate diagnostic")
+              index, details = found[0]
+              return events[:index] + events[index + 1:], details
           def capability_receipt():
               unknown = {"schema": 1, "records": [
                   {"test_name": name, "attempted": False, "exit_known": False, "exit": 0,
@@ -1658,6 +1699,10 @@ jobs:
                   events = [receipt_json(line) for line in payloads[receipt["test"] + ".json"].splitlines()]
                   if len(events) > 16:
                       raise ValueError("baseline event limit")
+                  if receipt["test"] == "TestDarwinPTYExecutionPrerequisites":
+                      events, details = pty_diagnostic_events(events)
+                      if details != capability_receipt()["records"][1]["pty_details"]:
+                          raise ValueError("PTY diagnostic receipt mismatch")
                   classify(packages[receipt["test"]], receipt["test"], red_roles.get(receipt["test"]), events, receipt["raw_exit"])
           except Exception:
               rejected = True

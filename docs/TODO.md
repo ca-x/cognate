@@ -11,6 +11,8 @@
 
 ## 发布收尾
 
+- [x] 首个正式组件分发：`server-v0.1.0` 双架构镜像、`cli-v0.1.0` 六归档、`gui-v0.1.2` 八安装产物；独立 tag、完整下载校验、公开非 prerelease 回读及支持范围见 `RELEASE-v0.1.0-VERIFICATION.md`。不关闭本清单中的未完成产品能力。
+
 - [x] 修复并核对原生测试Web embed构建前置：f5faa0c的run41263657100缺dist失败保留；3aa1766新run41264397380四job成功，真实Mac双APFS/core51及原五项普通产品RED、两个封闭artifact的API digest/CRC/manifest/清理均核实。只关闭缺构建输入，不扩大Darwin客户端支持或关闭旧APFS UNKNOWN。
 - [x] 发布服务端 `server-v0.1.0-rc.2`，验证 amd64/arm64、匿名拉取与镜像 digest。
 - [x] 发布 CLI `cli-v0.1.0-rc.1` 六平台归档、许可证与 SHA256SUMS，核对下载产物。
