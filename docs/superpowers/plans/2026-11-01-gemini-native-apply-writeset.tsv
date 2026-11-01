@@ -16,6 +16,7 @@ M	internal/server/httpapi/native_configuration_codec.go	Recognize Gemini variant
 N	internal/configclient/native_gemini_flow.go	Typed existing six-RPC flow and single-use grant/Unknown handling
 N	internal/configclient/native_gemini_proof.go	Client canonical proof parity with neutral verifier
 N	internal/configclient/native_gemini_pin.go	Exact builtin Gemini adapter pin
+M	internal/configclient/native_proof.go	Reject mixed known Gemini fields in legacy proof APIs and route strict Gemini decoding without changing valid legacy canonical bytes
 M	internal/configclient/native_codec.go	Strict Gemini response variant validation
 N	internal/configapply/bundle_transaction.go	Extract shared bounded stage/publish/inspect/resume mechanics
 N	internal/configapply/bundle_vault.go	Extract shared encryption and durable bundle-file primitives

@@ -1,7 +1,8 @@
 # Gemini provider 原生闭环实施授权（2026-11-01）
 
 这是主线程在完整F12目标内的后继技术裁定，不是用户逐项原话或代码验收。
-批准下方冻结HANDOFF的G1–G5及exact64整组实施；其“尚未授权”保留冻结时历史，由本节取代。
+批准下方冻结HANDOFF的G1–G5及原exact64整组实施；后继共享proof排他修订增至exact65，见补充裁定。
+其“尚未授权”保留冻结时历史，由本节取代。
 原设计SHA256 `b30931e6ed0c6a079e21a55ed390c9a10d0a78b850910405397faac149a03631`，
 精确清单见同目录 `2026-11-01-gemini-native-apply-writeset.tsv`，原SHA256
 `8a0b62cc334d4f18f0b5c0fc20310910104c7f64256f56d59534454056324843`。
@@ -47,7 +48,25 @@ API、registry和可读许可包须在最终正常编译源码上取得新鲜行
 之后主线程才合入。私有候选可以承载拟登记字面tuple用于正常CLI资格测试，但未获验收不进主线。
 所有Go明确1.27.3/CGO_ENABLED=0、无race/新依赖；原失败保留，禁止真实用户秘密和外部模型调用。
 源/包/Node pin不等于上游签名或Rust/Node可复现构建；分发许可实际打包另验。
-需第65路径、schema/其它agent/UI变更时先报具体接口缺口，不隐含扩写。
+除下述已批准的第65路径外，需其它路径、schema/其它agent/UI变更时先报具体接口缺口，不隐含扩写。
+
+## 补充裁定：共享 proof 排他校验
+
+批准 exact65 = 原64 + `internal/configclient/native_proof.go`，共23修改、42新增；
+当前精确清单为同目录写集，原64清单摘要及下方冻结原文仍保留为历史。
+实施继续固定私有245bfca基线，不因主线后继提交重建或借未验收WIP。
+申请 `SCOPE-REQUEST.md` SHA256
+`08830380225bdff1d12986f6c49b659cc9d01f8fb6336d7e9c05bf786802d929`。
+
+新增protobuf描述符让Gemini字段成为已知字段，原公共Claude/Codex proof入口因而也必须
+明确拒绝混合variant；只在Gemini或HTTP入口加门不足以覆盖直接调用。批准修改共享
+known-message校验、Claude排他及strict decode分派，不改合法旧canonical bytes/hash、
+签名域、native_codex_proof.go、数据库schema、AAD或旧0/v1/v2记录。
+
+作者已提供10个可编译proof负例及真实TLS Prepare/Authorize两个反例，证明候选扩展会
+忽略混合变体；它们不是未修改主线的漏洞认定。实施须保留原RED、取得全部GREEN及合法
+旧正控，最终再验旧新记录交叉读取、普通官方消费者、完整Gemini闭环及非作者审查。
+本节只授权必要修订，不表示缺陷已修、Gemini可应用、完整F12或正式版已验收。
 
 以下保留冻结设计；冲突以本节与权威需求为准。
 
