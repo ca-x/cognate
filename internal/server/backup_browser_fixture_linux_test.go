@@ -438,12 +438,23 @@ func TestBackupBrowserFixture(test *testing.T) {
 	test.Setenv("SSL_CERT_FILE", certificate)
 	test.Setenv("SSL_CERT_DIR", directory)
 	config := backupAppConfig(test)
-	config.BackupS3ConfigFile = backupSettingsFixture(test, func(document map[string]any) { document["endpoint"] = storage.URL })
+	automatic := os.Getenv("COGNATE_BACKUP_BROWSER_AUTOMATIC") == "1"
+	config.BackupS3ConfigFile = backupSettingsFixture(test, func(document map[string]any) {
+		document["endpoint"] = storage.URL
+		if automatic {
+			document["automatic_interval_seconds"] = 60
+		}
+	})
 	app, err := Open(test.Context(), config)
 	if err != nil {
 		test.Fatal(err)
 	}
 	defer app.Close()
+	if automatic {
+		if err := app.backups.controller.StartAutomatic(done); err != nil {
+			test.Fatal(err)
+		}
+	}
 	fixture.public = httptest.NewTLSServer(fixture.handler(app.handler))
 	defer fixture.public.Close()
 	authentication := authv1connect.NewAuthServiceClient(fixture.public.Client(), fixture.public.URL)

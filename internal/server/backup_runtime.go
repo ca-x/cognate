@@ -35,6 +35,19 @@ func openServerBackup(ctx context.Context, config Config, master []byte, service
 	if err != nil {
 		return nil, err
 	}
+	if settings.AutomaticIntervalSeconds > 0 {
+		hasAdministrator := false
+		for _, principal := range config.AdminUserIDs {
+			identity, err := uuid.Parse(principal)
+			if err == nil && identity != (uuid.UUID{}) && identity.String() == principal {
+				hasAdministrator = true
+				break
+			}
+		}
+		if !hasAdministrator {
+			return nil, errors.New("automatic backups require a configured administrator")
+		}
+	}
 	recovery, err := state.ReadMasterKey(config.BackupRecoveryKeyFile)
 	if err != nil {
 		return nil, errors.New("backup recovery key must be a private file containing exactly 32 raw bytes")
@@ -114,7 +127,7 @@ func openServerBackup(ctx context.Context, config Config, master []byte, service
 	if err != nil {
 		return nil, err
 	}
-	runtime.controller, err = backup.NewController(ctx, runtime.control, service, runtime.target, runtime.engine, backup.ControllerOptions{Generation: generation, AppVersion: serverBackupVersion(), ContentLimits: settings.contentLimits(), MaxJobs: 1000, JobTimeout: time.Duration(settings.JobTimeoutSeconds) * time.Second})
+	runtime.controller, err = backup.NewController(ctx, runtime.control, service, runtime.target, runtime.engine, backup.ControllerOptions{Generation: generation, AppVersion: serverBackupVersion(), ContentLimits: settings.contentLimits(), MaxJobs: 1000, JobTimeout: time.Duration(settings.JobTimeoutSeconds) * time.Second, AutomaticInterval: time.Duration(settings.AutomaticIntervalSeconds) * time.Second})
 	if err != nil {
 		return nil, err
 	}

@@ -22,17 +22,18 @@ import (
 )
 
 type serverBackupSettings struct {
-	Endpoint          string `json:"endpoint"`
-	Region            string `json:"region"`
-	Bucket            string `json:"bucket"`
-	Prefix            string `json:"prefix"`
-	AccessKeyID       string `json:"access_key_id"`
-	SecretAccessKey   string `json:"secret_access_key"`
-	SessionToken      string `json:"session_token,omitempty"`
-	RecoveryKeyID     string `json:"recovery_key_id"`
-	MaxDatabaseBytes  int64  `json:"max_database_bytes"`
-	MaxContentBytes   int64  `json:"max_content_bytes"`
-	JobTimeoutSeconds int64  `json:"job_timeout_seconds"`
+	Endpoint                 string `json:"endpoint"`
+	Region                   string `json:"region"`
+	Bucket                   string `json:"bucket"`
+	Prefix                   string `json:"prefix"`
+	AccessKeyID              string `json:"access_key_id"`
+	SecretAccessKey          string `json:"secret_access_key"`
+	SessionToken             string `json:"session_token,omitempty"`
+	RecoveryKeyID            string `json:"recovery_key_id"`
+	MaxDatabaseBytes         int64  `json:"max_database_bytes"`
+	MaxContentBytes          int64  `json:"max_content_bytes"`
+	JobTimeoutSeconds        int64  `json:"job_timeout_seconds"`
+	AutomaticIntervalSeconds int64  `json:"automatic_interval_seconds,omitzero"`
 }
 
 func (serverBackupSettings) Format(output fmt.State, _ rune) {
@@ -79,6 +80,9 @@ func readServerBackupSettings(path string) (serverBackupSettings, error) {
 	if settings.JobTimeoutSeconds == 0 {
 		settings.JobTimeoutSeconds = 900
 	}
+	if settings.AutomaticIntervalSeconds != 0 && (settings.AutomaticIntervalSeconds < 60 || settings.AutomaticIntervalSeconds > 86400) {
+		return serverBackupSettings{}, errors.New("invalid automatic backup interval")
+	}
 	identifier, err := uuid.Parse(settings.RecoveryKeyID)
 	if err != nil || identifier.String() != settings.RecoveryKeyID || settings.RecoveryKeyID == "00000000-0000-0000-0000-000000000000" || settings.MaxDatabaseBytes < 1<<20 || settings.MaxDatabaseBytes > 8<<30 || settings.MaxContentBytes < settings.MaxDatabaseBytes || settings.MaxContentBytes > 16<<30 || settings.JobTimeoutSeconds < 60 || settings.JobTimeoutSeconds > 86400 {
 		return serverBackupSettings{}, errors.New("invalid backup identity or resource limits")
@@ -106,6 +110,7 @@ func (settings serverBackupSettings) generation(master, recovery []byte) ([32]by
 		return [32]byte{}, errors.New("invalid backup key material")
 	}
 	type settingsDocument serverBackupSettings
+	settings.AutomaticIntervalSeconds = 0
 	encoded, err := json.Marshal(struct {
 		Settings settingsDocument
 		Content  library.ContentSnapshotLimits

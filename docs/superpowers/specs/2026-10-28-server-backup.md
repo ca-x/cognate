@@ -144,7 +144,8 @@ retention 默认不自动删成功快照；确认策略后才启用。只处理�
 - F4 默认关闭。手动与自动走同一 coordinator、预算、权限和 manifest 协议，不重复实现两套内核。手动调用尽快返回 opaque job ID，不把大备份挂在短 HTTP deadline 上。
 - 手动任务仅运维能力主体；启用开关不授予所有本地账号备份权限。鉴权前不能探测目标或 key 是否存在；普通 owner 不能 list/get/cancel/restore 全库任务，也不能读别人的任务错误。
 - 使用持久化 idempotency key，绑定运维主体/实例/目标配置版本/选项；相同 key+相同参数返回原任务，不同参数 conflict。该请求 key 不作为 S3 key；hash/摘要也不泄露秘密选项。
-- 一个实例最多一个快照/上传 job，队列有上限；自动任务繁忙时合并/跳过，不无限积压。调度记录 UTC 到期 slot，DST/时钟回拨不重复触发同一 slot；随机 jitter、失败退避和错过时段补跑上限写成配置策略，不用时间戳当 fencing token。
+- 一个实例最多一个快照/上传 job，队列有上限；自动任务繁忙时跳过，不无限积压。2026-11-01主线程技术裁定明确替代原持久UTC slot要求：默认关闭；私有interval为60–86400整数秒，真实Serve首次等待interval，采用进程内monotonic固定延迟，每次检查后再等完整interval。jitter=0、失败退避=固定interval、catchup=0，不持久化due slot，不承诺跨重启exactly-once，不用时间戳当fencing token。自动复用原ControlStore任务/单活槽；任意generation的interrupted/commit_unknown阻自动，不发新UUID掩盖unknown；容量1000条/16MiB不自动回收。
+- 自动Principal为现有持久实例ID的canonical UUID actor，不创建账号；全实例权限仍由当前站内管理员白名单提供，所有管理员可取消/精确只读对账实例actor任务，不加job-owner相等门。自动开启但无有效管理员拒启。interval仅调度策略，不进入目标generation/options hash，0保持原HMAC；目标/key/预算/version变化仍拒跨目标对账。automatic_enabled沿既有wire仅表配置，现有Web必须兼容true，不引入配置toggle。Close先停timer并确认生产者结束，再排空Controller，最后沿App runtime释放运行根lease；停止/清理不明保留强引用/SH。
 - target/key 配置变化形成新 generation。进行中的任务持有不可变已授权配置版本，不能一半上传到旧 bucket、一半到新 bucket；敏感撤销可显式 cancel，取消后回调不得把终态覆写成成功。
 - HTTP 取消仅取消触发请求，不隐式杀死已登记持久任务；独立 cancel 操作鉴权并撤销 job context。job 内磁盘、SQL、上传、验证均传 ctx；cancel 后先停止生产，再中断网络/SQL、回收 worker、清理暂存。关机先拒绝新任务、cancel，再有界 drain，不在 UI/HTTP 锁内等待回调。
 - 崩溃重启将未完成 job 标 interrupted；扫描仅已登记的自有 attempt。可能完成的提交先 reconciliation，不仅看本地状态。先清理旧尝试并新建 attempt，v1 不自动续加密流；不会承诺 exactly-once 上传。

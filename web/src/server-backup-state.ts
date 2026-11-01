@@ -18,8 +18,8 @@ function invalidResponse(): never {
 }
 
 export function acceptBackupStatus(value?: GetBackupStatusResponse) {
-  if (!value || typeof value.enabled !== "boolean" || value.scope !== "instance" || value.automaticEnabled !== false || value.restoreAvailable !== false) return invalidResponse()
-  return { enabled: value.enabled, scope: "instance" as const, automaticEnabled: false, restoreAvailable: false }
+  if (!value || typeof value.enabled !== "boolean" || value.scope !== "instance" || typeof value.automaticEnabled !== "boolean" || value.automaticEnabled && !value.enabled || value.restoreAvailable !== false) return invalidResponse()
+  return { enabled: value.enabled, scope: "instance" as const, automaticEnabled: value.automaticEnabled, restoreAvailable: false }
 }
 
 export function acceptBackupJob(value?: BackupJob, expectedId?: string): BackupJobView {

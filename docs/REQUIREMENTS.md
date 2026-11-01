@@ -106,6 +106,7 @@
 - 后继实现补记（2026-10-31）：上述“尚未接入”是各内部切片交付时的历史边界。同切点数据库与全归档内容闭包、`CaptureSnapshot` 已交付；本轮接入显式 opt-in 的 Linux App、独立恢复 KEK、私有加密任务日志与六个管理员 Connect RPC，提供手动登记、查询、取消和仅精确回读的未知结果对账。默认关闭，最多一个活动任务；配置 generation 改变拒绝跨目标对账，关闭不明保留所有权。完整参数和边界见 `SERVER-BACKUP.md`，具体验收以 `VERIFICATION.md` 为准。自动调度、管理 Web 页、保留/孤儿清扫、完整离线恢复与运行代切换仍未交付，不以 `remote_committed` 代替恢复验收或完整 F4。
 - 控制释放资格补记（2026-10-31）：最后物理锁 close 不明由预先持久化的 private fence 阻断跨进程重开，不把错误等同于物理锁仍持有。确认释放且标记删除已经可见后，后续清理不明时新进程可能进入，原能力必须永久 closed/quarantined，不能再写状态或附着控制器。残留/部分标记、被拒旧实现的满额日志都不自动清理或迁移；硬件断电与完整恢复演练仍需独立资格。
 - Web 管理后继补记（2026-10-31）：`/server-backup` 已接管理员手动任务、详情/分页、取消和精确只读对账，复用现有成熟框架与 Radix 组件。开始需未默认选中的全实例确认；仅在当前 origin/标签页/owner 保存非秘密 request UUID，丢/坏回执显式继续同 ID，不自动重试或另建请求；清除浏览器记录不是取消或回滚。服务端目标凭据/KEK 不进入浏览器；具体证据与独审边界见 `SERVER-BACKUP.md`、`VERIFICATION.md`。这只补齐手动 Web，不关闭自动调度、保留清理、完整恢复或完整 F4。
+- 自动备份后继补记（2026-11-01，主线程技术裁定）：私有`automatic_interval_seconds`默认省略/0关闭，开启为60–86400整数秒；真实App.Serve首次等待完整间隔、monotonic固定延迟、零catchup，不承诺持久UTC slot或跨重启exactly-once。自动复用原单活任务/密文日志/条件上传，任何interrupted/commit_unknown阻止自动登记，不自动重提交或对账；所有当前管理员可管理实例actor任务，未配置有效管理员拒启。间隔不改变target generation，1000条/16MiB历史不自动清扫。既有Web正确接受automatic_enabled，仅表示配置而非运行健康；先停timer再排空controller，不明保留强引用/运行根SH。详见`SERVER-BACKUP.md`；本片资格以独立验收为准，不关闭保留清理、完整恢复或完整F4。
 
 ### F5 pack 分组分享 + 中转加速 + 自动更新（核心差异化功能）
 1. **打包**：用户从自己添加/同步的仓库里选 skill 组合成 pack（例：仓库A的 a1、a2 + 仓库B的 b1、b2）。

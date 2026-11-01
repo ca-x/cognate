@@ -1,6 +1,6 @@
 # 服务端实例备份控制平面
 
-本阶段将同切点数据库与归档闭包、既有认证密文容器和 S3 条件发布接到真实 App、管理员 Connect RPC 与 Web 管理入口。**这是手动实例备份控制平面，不是完整 F4 或已验收的灾难恢复方案。** 自动调度、保留清理、完整离线恢复与运行代切换仍未交付。`remote_committed` 只表示已登记密文对象通过精确远端回读，不等于 `restore_verified`。
+本阶段将同切点数据库与归档闭包、既有认证密文容器和 S3 条件发布接到真实 App、管理员 Connect RPC 与 Web 管理入口，并提供默认关闭的周期自动备份。**这是实例备份控制平面，不是完整 F4 或已验收的灾难恢复方案。** 保留清理、完整离线恢复与运行代切换仍未交付。`remote_committed` 只表示已登记密文对象通过精确远端回读，不等于 `restore_verified`。
 
 ## 内部恢复进度
 
@@ -84,11 +84,30 @@ cognate-server --data-dir /private/cognate/data \
   "recovery_key_id": "<canonical nonzero UUID>",
   "max_database_bytes": 268435456,
   "max_content_bytes": 1073741824,
-  "job_timeout_seconds": 900
+  "job_timeout_seconds": 900,
+  "automatic_interval_seconds": 0
 }
 ```
 
 `session_token` 可选。三个资源字段省略或为零时取示例默认值：数据库范围 1MiB–8GiB，内容范围为至少数据库预算且不超过 16GiB，任务时限 60–86400 秒。内容预算不替代加密暂存、对象数量与控制日志的独立上限。恢复 key ID 是外置 key 的稳定身份，必须为规范非零 UUID；它不是密钥材料。配置变更、密钥或版本变化会改变任务 generation；旧任务不自动切换目标或重试上传。
+
+## 自动备份策略
+
+`automatic_interval_seconds` 省略或0时关闭；开启仅接受60–86400的整数秒，不新增CLI开关、公开配置编辑或Web toggle。备份本身仍需显式 `--backup-enabled`。开启自动策略必须配置至少一个规范非零管理员账号ID（包含既有bootstrap解析结果），否则启动失败；部署者须确保该账号能够通过既有站内认证登录。
+
+以下是主线程技术裁定的本期策略，不是对用户原话的引用：采用进程内monotonic固定延迟，真实App.Serve开始后先等完整interval；每次检查完成后再等完整interval。无jitter、无积压、无补跑，失败退避为固定interval。重启不保留due slot、不追赶停机时段，不承诺跨重启exactly-once调度；这明确替代旧规范的持久UTC slot要求。只Open App不会开始自动任务。
+
+自动与手动共用同一Controller、单活槽、密文任务日志、捕获/封装/上传及预算。自动任务主体是持久实例ID对应的UUID actor，不创建账号或会话；所有当前管理员可用原Get/List/Cancel/Reconcile管理它，不要求与任务Principal相等。普通owner、匿名、share/MCP token仍无全实例权限。
+
+忙、任一generation的interrupted/commit_unknown、1000条历史或16MiB日志上限都会阻止本次自动登记；不追加排队记录、不删幂等历史、不重新提交unknown或换UUID掩盖结果。未尝试complete的interrupted可由管理员Cancel退役；其余沿原任务精确只读对账，不自动Reconcile。只有解除阻塞后的下一完整周期才可登记独立新任务；已终结的failed/canceled任务也不会以原UUID重试。
+
+Web为interrupted任务保留原取消确认入口，包括崩溃前已记录CancelRequested、重启后仍为interrupted的遗留状态；可显式重复Cancel使原记录收敛为canceled。commit_unknown不能借此退役或假称回滚。
+
+间隔是调度策略，故不进入target generation/options hash；省略/0保持原HMAC。仅改间隔不妨碍同目标旧任务对账；目标、凭据、恢复key、master key、资源预算或版本变更仍形成新generation，旧任务不能改目标或探测新目标。跨generation未决历史不会因重新配置而被自动忽略。
+
+GetBackupStatus的automatic_enabled只表示配置已开启，不是执行健康灯或下次成功承诺；Web接受该既有字段并区分自动+手动/仅手动。活动、待对账或容量已满时可暂停产生新任务。历史满额及crash orphan磁盘治理不在本片自动清理；最短间隔持续成功也会在1000条后停止产生新任务，不能把有限控制日志当无限备份服务。
+
+Close先禁止新登记、停止并有界等待timer生产者，再取消/排空Controller，最后沿原App runtime链释放资源及运行根lease。并发Serve尾Stop和App.Close共享同一done，不明时保留强引用/SH，不重试未知关闭。禁用/回滚需正常停服排空；换旧binary前还须从私有JSON删除新字段（旧严格解析器连值0也不识别），不能删除或重建控制历史。
 
 ## 管理员接口与任务语义
 
@@ -98,7 +117,7 @@ cognate-server --data-dir /private/cognate/data \
 
 | RPC | 用途 |
 | --- | --- |
-| `GetBackupStatus` | 管理员读取是否启用，固定实例作用域；自动备份和恢复当前均为 false |
+| `GetBackupStatus` | 管理员读取是否启用及automatic_enabled配置状态，固定实例作用域；restore_available仍为false |
 | `StartBackup` | 以客户端生成的规范非零 UUID `request_id` 登记任务，相同主体/输入幂等 |
 | `GetBackupJob` | 按 opaque job UUID 读取安全任务状态 |
 | `ListBackupJobs` | 默认 20、最多 50 项，以返回 cursor 继续读取，不自动追页 |
@@ -119,7 +138,7 @@ cognate-server --data-dir /private/cognate/data \
 
 Reconcile 在回写时重新读取已持久化取消，而非使用网络调用前的旧副本。缺失/未知结果不会把已取消任务改回普通 interrupted；重复 Cancel 可以收敛遗留取消标志。已尝试 complete 的不明仍为 `commit_unknown`，所有确切对象均验真时仍可明确为 `remote_committed`，并保留取消标志；取消从来不表示回滚远端提交。
 
-目前没有备份专用 CLI 任务命令或管理 Web 页，也没有外部 S3 供应商隔离 bucket 与完整恢复演练的发布资格。内部 TLS S3-like 测试证明本地合同，不代表所有 S3 实现均兼容。完整剩余项见 `TODO.md` 与 `FORMAL-RELEASE-AUDIT.md`。
+目前没有备份专用 CLI 任务命令，也没有外部 S3 供应商隔离 bucket 与完整恢复演练的发布资格。内部 TLS S3-like 测试证明本地合同，不代表所有 S3 实现均兼容。完整剩余项见 `TODO.md` 与 `FORMAL-RELEASE-AUDIT.md`。
 
 ## 本阶段验收
 

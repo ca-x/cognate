@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,6 +65,47 @@ func TestServerBackupSettingsDefaultsAndRedaction(test *testing.T) {
 	content, seal := settings.contentLimits(), settings.sealLimits()
 	if content.Database.MaxDBBytes != settings.MaxDatabaseBytes || content.MaxContentBytes != settings.MaxContentBytes || content.Database.MaxStagingBytes <= settings.MaxDatabaseBytes+content.Database.MaxInventoryBytes || seal.InputStagingBytes != 64<<20 || seal.TotalPlainBytes <= settings.MaxContentBytes || seal.TotalCipherBytes <= settings.MaxContentBytes || seal.StagingBytes <= seal.InputStagingBytes {
 		test.Fatal("source and encrypted limits do not include bounded metadata overhead")
+	}
+}
+
+func TestServerBackupAutomaticSettings(test *testing.T) {
+	for _, seconds := range []int64{0, 60, 86400} {
+		test.Run(fmt.Sprintf("seconds=%d", seconds), func(test *testing.T) {
+			path := backupSettingsFixture(test, func(document map[string]any) { document["automatic_interval_seconds"] = seconds })
+			if _, err := readServerBackupSettings(path); err != nil {
+				test.Fatalf("valid automatic policy rejected: %v", err)
+			}
+		})
+	}
+	for _, value := range []any{int64(-1), int64(1), int64(59), int64(86401), int64(math.MaxInt64), 60.5, "60"} {
+		path := backupSettingsFixture(test, func(document map[string]any) { document["automatic_interval_seconds"] = value })
+		if _, err := readServerBackupSettings(path); err == nil || strings.Contains(err.Error(), path) || strings.Contains(err.Error(), "synthetic-backup") {
+			test.Fatal("invalid automatic policy accepted or disclosed private configuration")
+		}
+	}
+}
+
+func TestServerBackupAutomaticGeneration(test *testing.T) {
+	baseline, err := readServerBackupSettings(backupSettingsFixture(test, nil))
+	if err != nil {
+		test.Fatal(err)
+	}
+	master, recovery := bytes.Repeat([]byte{31}, 32), bytes.Repeat([]byte{57}, 32)
+	generation, err := baseline.generation(master, recovery)
+	if err != nil {
+		test.Fatal(err)
+	}
+	if fmt.Sprintf("%x", generation) != "cb2b865d13012568c5786f19f2c4162c7a038c74467f3aa2056f0d755081fe82" {
+		test.Fatal("default policy changed the original committed generation HMAC")
+	}
+	for _, seconds := range []int64{0, 60, 86400} {
+		configured, err := readServerBackupSettings(backupSettingsFixture(test, func(document map[string]any) { document["automatic_interval_seconds"] = seconds }))
+		if err != nil {
+			test.Fatal(err)
+		}
+		if actual, err := configured.generation(master, recovery); err != nil || actual != generation {
+			test.Fatal("schedule-only configuration changed target identity", err)
+		}
 	}
 }
 

@@ -20,11 +20,12 @@ import (
 )
 
 type ControllerOptions struct {
-	Generation    [32]byte
-	AppVersion    string
-	ContentLimits library.ContentSnapshotLimits
-	MaxJobs       uint32
-	JobTimeout    time.Duration
+	Generation        [32]byte
+	AppVersion        string
+	ContentLimits     library.ContentSnapshotLimits
+	MaxJobs           uint32
+	JobTimeout        time.Duration
+	AutomaticInterval time.Duration
 }
 
 type Job struct {
@@ -53,6 +54,7 @@ type controllerState struct {
 	active                *controlActive
 	closing               atomic.Bool
 	closed                bool
+	automatic             automaticSchedule
 }
 
 type controlActive struct {
@@ -70,7 +72,7 @@ func (Controller) MarshalJSON() ([]byte, error) { return []byte(`{}`), nil }
 func (Controller) LogValue() slog.Value         { return slog.StringValue("[private backup controller]") }
 
 func NewController(ctx context.Context, store *ControlStore, service *library.Service, target *S3Target, engine SealEngine, options ControllerOptions) (*Controller, error) {
-	if ctx == nil || store == nil || store.get == nil || service == nil || target == nil || engine.get == nil || !controlValidOptions(options) {
+	if ctx == nil || store == nil || store.get == nil || service == nil || target == nil || engine.get == nil || !controlValidOptions(options) || !automaticIntervalValid(options.AutomaticInterval) {
 		return nil, ErrInvalid
 	}
 	for _, character := range options.AppVersion {
@@ -203,6 +205,16 @@ func (controller *Controller) Start(ctx context.Context, principal, requestID st
 		return Job{}, err
 	}
 	defer state.store.mutex.Unlock()
+	return state.startLocked(ctx, principal, requestID)
+}
+
+func (state *controllerState) startLocked(ctx context.Context, principal, requestID string) (Job, error) {
+	if err := ctx.Err(); err != nil {
+		return Job{}, err
+	}
+	if state.closing.Load() {
+		return Job{}, ErrClosed
+	}
 	for _, record := range state.store.data.Jobs {
 		if record.Principal == principal && record.Request == requestID {
 			if record.Options != state.fingerprint {
@@ -442,6 +454,9 @@ func (controller *Controller) Close(ctx context.Context) error {
 	}
 	state := controller.get()
 	state.closing.Store(true)
+	if err := controller.StopAutomatic(ctx); err != nil {
+		return err
+	}
 	state.cancel()
 	if err := state.lockClose(ctx); err != nil {
 		return err

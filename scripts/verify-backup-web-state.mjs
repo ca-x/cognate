@@ -25,8 +25,24 @@ check("enabled and disabled status remain distinct", () => {
   const disabled = status(); disabled.enabled = false
   assert.equal(state.acceptBackupStatus(disabled).enabled, false)
 })
-for (const field of ["scope", "automaticEnabled", "restoreAvailable"]) check(`closed status field ${field}`, () => {
+for (const field of ["scope", "restoreAvailable"]) check(`closed status field ${field}`, () => {
   const response = status(); response[field] = field === "scope" ? "owner" : true
+  assert.throws(() => state.acceptBackupStatus(response))
+})
+check("enabled automatic policy is accepted without claiming health", () => {
+  const response = status(); response.automaticEnabled = true
+  assert.equal(state.acceptBackupStatus(response).automaticEnabled, true)
+})
+check("disabled backup cannot claim automatic policy", () => {
+  const response = status(); response.enabled = false; response.automaticEnabled = true
+  assert.throws(() => state.acceptBackupStatus(response))
+})
+for (const value of [undefined, null, 0, 1, "true"]) check(`invalid automatic policy ${String(value)}`, () => {
+  const response = status(); response.automaticEnabled = value
+  assert.throws(() => state.acceptBackupStatus(response))
+})
+check("automatic policy does not grant restore availability", () => {
+  const response = status(); response.automaticEnabled = true; response.restoreAvailable = true
   assert.throws(() => state.acceptBackupStatus(response))
 })
 check("missing status does not become disabled", () => assert.throws(() => state.acceptBackupStatus(undefined)))

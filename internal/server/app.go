@@ -399,6 +399,19 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 			}
 		}()
 	}
+	if app.backups != nil {
+		if err := app.backups.controller.StartAutomatic(ctx); err != nil {
+			return err
+		}
+		defer func() {
+			stopContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := app.backups.controller.StopAutomatic(stopContext); err != nil {
+				app.markRuntimeUncertain()
+				result = errors.Join(result, err)
+			}
+		}()
+	}
 	httpServer := &http.Server{
 		Handler: app.runtimeHandler(), TLSConfig: app.tlsConfig,
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second,

@@ -1,5 +1,41 @@
 # 开发预览验证
 
+## 2026-11-01：Linux 默认关闭的周期自动备份
+
+原 exact16 patch SHA256 `dd0dc3546c3d14daad984d04c8f891bfd17ec0ecd6ce7dfa1571734a6cc6cb5a`，
+非作者 Spec/Quality 限定 ACCEPT 报告
+`/tmp/cognate-auto-independent-6c22784-ss6w4SgR/REPORT.md`，SHA256
+`b5caa740b1410883bd993b2d2adda77d3db3c2f1c92b8ea069c25d2e10b0aeba`。
+默认关闭，私有 `automatic_interval_seconds` 仅0或60–86400；首次及每轮检查后等待完整间隔，
+无停机补跑。自动任务沿原 Controller/Capture/worker/Seal/S3 路径，使用实例 actor，
+当前管理员可管理；所有 generation 未决历史、单活及原容量上限继续阻断新登记。
+调度间隔不进入旧 target generation HMAC，策略已开启不等于执行健康。
+
+58f9b45 + exact16 隔离组合 `/tmp/cognate-auto-main-58f9b45-6twofBM3` 的真实
+Web build、91 PASS事件/0 SKIP/0 FAIL及 App.Serve 完整60秒周期均实际 exit0。
+当前真实内嵌 Web 的非作者增量报告
+`/tmp/cognate-auto-browser-current-58f9b45-s7i0OhCK/REPORT.md`，SHA256
+`b5fd9d607c23a71f92058dfa87bec3e9af93bd254071d09e65812bca736d3b05`：
+45条浏览器命令、自动远端提交、第二周期真实503、两次精确对账零重传和显式取消通过；
+受保护 stop204、真实测试进程 Wait0、两个 App.Close=nil及独立 EX 释放均确认。
+它直调 StartAutomatic，不冒充 App.Serve 接线资格；Serve60由前述单独用例证明。
+后端是本机 TLS S3-like，不是外部供应商资格。
+
+canonical `verify-backup-web-state.mjs` 原来把合法 auto=true 一概拒绝，原脚本在
+自动候选上实际 exit1；第17路径 test-only 增量保留其余断言并增加策略正负控。
+patch SHA256 `4b761dac2c020d1dc7146fe752229b48d8e74d89cfe93e35d56f09fab2e10ca0`，
+非作者报告 `/tmp/cognate-auto-web-state-independent-lWv8yx/REPORT.md`，SHA256
+`96535acfc82df9745eacb4c26c4c18803f2ef9542903a85c55cd86eefa0ed234`。
+独立原 RED→67 checks GREEN及非法bool、disabled+auto、restore三类减门 RED通过。
+
+主线应用后，16路径与58f9隔离候选逐字相同，脚本SHA与独审原件相同；
+`/tmp/cognate-auto-main-integration-58f9b45-Ib4sxeUF` 新执行三包定向91 PASS事件、
+0 SKIP/FAIL，canonical67 checks、正常 Web build及三包 vet均 exit0。
+均 Go1.27.3、CGO_ENABLED=0；本自动单片没有借后继 C6 联合全仓结果作自己的全仓资格。
+原作者最后浏览器 fixture 未stop超时失败和旧忽略 Close 的成功边界全部保留，
+不以本次干净退出抹去。保留/孤儿治理、完整恢复、R3/T4及 GA 仍待完成；
+既有150ms EX探针 UNKNOWN不由本片关闭。
+
 ## 2026-11-01：Linux 同步快照 worker 同 OFD 根 lease
 
 R2 snapshot 子片累计 exact14：八生产源、六测试源，原四 lease kernel 和

@@ -46,7 +46,7 @@ func (handler *backupManagementHandler) GetBackupStatus(ctx context.Context, req
 	if _, err := handler.administrator(ctx, request.Header()); err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&managementv1.GetBackupStatusResponse{Enabled: handler.controller != nil, Scope: "instance"}), nil
+	return connect.NewResponse(&managementv1.GetBackupStatusResponse{Enabled: handler.controller != nil, Scope: "instance", AutomaticEnabled: handler.controller.AutomaticEnabled()}), nil
 }
 
 func (handler *backupManagementHandler) StartBackup(ctx context.Context, request *connect.Request[managementv1.StartBackupRequest]) (*connect.Response[managementv1.StartBackupResponse], error) {
