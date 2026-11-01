@@ -11,6 +11,8 @@
 
 ## 发布收尾
 
+- [ ] 排查 CLI-tag Platform run `41293225710` 的 Darwin fixture cleanup（sensitive detach_exit=16，still_mounted=false）及证据封装拒绝；根因未定，原失败未重跑，同源其它成功运行不覆盖，见 `RELEASE-v0.2.0-VERIFICATION.md`。
+
 - [x] 首个正式组件分发：`server-v0.1.0` 双架构镜像、`cli-v0.1.0` 六归档、`gui-v0.1.2` 八安装产物；独立 tag、完整下载校验、公开非 prerelease 回读及支持范围见 `RELEASE-v0.1.0-VERIFICATION.md`。不关闭本清单中的未完成产品能力。
 - [x] 喵喵正式 Exec LPK `0.1.0`：run41278328477 成功，最终 77,757,952 字节实包完整下载/解包/启动验收通过，喵喵接受 app670/version3838；官方商店关闭，真机 OIDC 和用户数据升级仍待反馈。
 
