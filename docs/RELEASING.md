@@ -1,5 +1,15 @@
 # Component releases
 
+## Server 0.3.0
+
+`server-v0.3.0` fixes source `20c7a193a9582cd14cf9d29cbbbdcfbf414e54ec`
+and distributes explicit Linux legacy archive repair through the amd64/arm64
+Docker image. LazyCat Exec `0.3.0` pins the same source and is accepted by
+MiaoMiao only; storefront activation and device upgrade are not confirmed.
+CLI remains `0.2.0` and Desktop remains `0.1.3`: no unaccepted MyGo, Pack or
+restore changes are included. See `RELEASE-v0.3.0.md` and
+`RELEASE-v0.3.0-VERIFICATION.md`. Previous immutable tags are unchanged.
+
 ## 2026-11-01 follow-up distribution
 
 The published follow-up component set is `server-v0.2.0`, `cli-v0.2.0` and

@@ -1,6 +1,6 @@
 # Cognate
 
-当前正式组件版本：Server/CLI `0.2.0`、GUI `0.1.3`、懒猫 `0.2.0`。分发范围与平台限制见 [正式发布说明](docs/RELEASE-v0.2.0.md)，实证见 [发布核验](docs/RELEASE-v0.2.0-VERIFICATION.md)，未完成功能见 [TODO](docs/TODO.md)。[首个组件版本](docs/RELEASE-v0.1.0-VERIFICATION.md)与[预览记录](docs/PREVIEW-RELEASE.md)保持原范围。
+当前正式组件版本：Server `0.3.0`、CLI `0.2.0`、GUI `0.1.3`；懒猫 `0.3.0` 已获喵喵商店接受，店面切换待确认。分发范围与平台限制见 [正式发布说明](docs/RELEASE-v0.3.0.md)，实证见 [发布核验](docs/RELEASE-v0.3.0-VERIFICATION.md)，未完成功能见 [TODO](docs/TODO.md)。[上一轮组件版本](docs/RELEASE-v0.2.0-VERIFICATION.md)、[首个组件版本](docs/RELEASE-v0.1.0-VERIFICATION.md)与[预览记录](docs/PREVIEW-RELEASE.md)保持原范围。
 
 本页描述主线能力；新合入的功能不一定已包含在上述正式包中。组件正式分发不表示全部需求已完成。
 
@@ -99,7 +99,7 @@ Linux 可停止服务后显式校验一个缓存归档：
 
 当前主线另提供 Linux 显式 `cache repair`：需要本机正确归档，原子发布并保留损坏原件，
 不读取主密钥或修改数据库。归档和保留原件必须同时满足既有预算；不自动删除残留或扩大预算。
-命令、同 ID 续接和中断限制见 `docs/CACHE-MAINTENANCE.md`。此功能不包含在已发布的 `server-v0.2.0` 中。
+命令、同 ID 续接和中断限制见 `docs/CACHE-MAINTENANCE.md`。此功能自 `server-v0.3.0` 分发，不追加入旧标签。
 
 默认数据保存在 `~/.local/share/skillhub-server`，通过 `--data-dir` 更改；主密钥路径可通过 `COGNATE_MASTER_KEY_FILE` 设置。所有服务端 `COGNATE_*` 配置变量优先于对应 `SKILLHUB_*` 旧名，显式设置为空时不回退；旧名仍兼容。`/healthz` 提供存活检查。非 loopback 监听需要 `--tls-cert`/`--tls-key`，或在明确可信的私有网络中使用 `--allow-http`。TLS 私钥同样需要当前用户私有文件与私有目录。自定义域名或反向代理场景必须配置固定的 `--public-origin https://你的域名`；未配置时只接受 loopback Host。程序不信任代理身份头。
 
