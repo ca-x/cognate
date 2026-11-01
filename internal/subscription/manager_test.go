@@ -61,6 +61,10 @@ type fixture struct {
 }
 
 func newFixture(test *testing.T) *fixture {
+	return newFixtureWithArchiveSource(test, nil)
+}
+
+func newFixtureWithArchiveSource(test *testing.T, createSource func(*testing.T, *serverstate.Store) packs.ArchiveSource) *fixture {
 	test.Helper()
 	if runtime.GOOS != "linux" {
 		test.Skip("Linux installer")
@@ -91,7 +95,11 @@ func newFixture(test *testing.T) *fixture {
 	if err != nil {
 		test.Fatal(err)
 	}
-	setup.packs, err = packs.NewService(store, setup.source, bytes.Repeat([]byte{17}, 32))
+	var source packs.ArchiveSource = setup.source
+	if createSource != nil {
+		source = createSource(test, store)
+	}
+	setup.packs, err = packs.NewService(store, source, bytes.Repeat([]byte{17}, 32))
 	if err != nil {
 		test.Fatal(err)
 	}

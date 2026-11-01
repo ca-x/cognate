@@ -36,6 +36,27 @@ Linux 原生 stdout 管道/终端使用独立重开的非阻塞描述符：单�
 
 watch 会获取服务端已经提供的新 Pack manifest，但**不负责让服务端重新扫描源仓库**。源替换使用独立的手动刷新或服务端周期 worker，见 `REPOSITORY-LIBRARY.md`、`SOURCE-REFRESH.md`；MyGo 原生启停及关闭/换号排空见 `DESKTOP.md`。OS 后台服务、自启动和自动恢复仍未交付。
 
+## 仓库刷新与重合 Pack 回归
+
+`TestRepositoryRefreshUpdatesOverlappingSubscriptionsWithoutPackEdits` 将生产整仓
+下载与扫描、归档缓存、SQLite 仓库刷新、Pack manifest、HTTP 分发和客户端安装串成一条链：
+
+- 两个 Pack 引用同一个已收录 skill，首次同步只下载一次，Claude 目标为 canonical 目录的有效软链接。
+- 上游归档更新后，仅调用仓库刷新，不编辑 Pack；两个 Pack 的 revision 和内容 hash 都更新。
+- 刷新本身不修改设备；下一次客户端同步只更新一次，后续无变化的同步不再下载。
+- 对比完整内容 hash，覆盖隐藏二进制文件和可执行位；先退订一个 Pack 保留安装，最后退订清除 canonical 与链接。
+
+本回归在 Linux、Go 1.27.3、`CGO_ENABLED=0` 下运行，上游为隔离 TLS codeload
+fixture，Pack API 使用既有 loopback HTTP fixture，不是 App 启动、真实登录或外部网络
+验收；不扩大为全部 F5、MyGo、自动配置应用或跨平台资格。非作者限定复核通过；
+私有负控移除生产刷新路径的 Pack revision fence 后可编译但行为失败，确保检查的是
+持久 Pack 状态，而不只是刷新返回值或计数。完整 subscription 包与 vet 均通过。
+
+```sh
+go test -mod=readonly -count=1 -timeout=5m ./internal/subscription
+go vet ./internal/subscription
+```
+
 ## 数据与密钥
 
 - SQLite 位于 `~/.local/share/skillhub/client.db`，与已有安装 journal、安装映射和备份记录同库。
