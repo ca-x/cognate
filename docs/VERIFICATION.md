@@ -1,5 +1,60 @@
 # 开发预览验证
 
+## 2026-11-01：原生选择导入、所有者附件管理与有界 Darwin 诊断
+
+本阶段以 `bd39df7fbd07841181417f35c054c9419a777460` 为主线基线。三来源选择导入和
+Pack P1 所有者附件元数据分别完成非作者限定审查，再串接共享 Model/view；不是完整
+配置消费、Pack 自动应用、普通窗口完整导入提交、跨平台运行或 GA 签收。
+
+| 有限审查输入 | REPORT SHA256 | 结论与边界 |
+| --- | --- | --- |
+| 三来源导入 exact12 | `d86ff9cefe6387cf1a49ba5353f0615c8574ea2f50c9d706395e01d95705dc28` | 固定旧基线限定 ACCEPT；上传批准、最终确认、Unknown 和物理 Close 四行为减门实际 RED。 |
+| 附件 P1 exact10 | `6b7b23a094757d51bbcdd970351bc18ae0c55048e389857b8786a10c8e56990b` | 固定旧基线限定 ACCEPT；只管理元数据，不读正文/秘密、不授消费权限。 |
+| 最终共享 Model/view 与新增回归 | `87c174bdbd6c6c5d3339e17bdfabfe22a5e0879509b67d525bfa72cbfe5e2d87` | 有限非作者接缝 ACCEPT；独立七子例及父测试八 PASS，原缺 Web embed 的设置失败保留。 |
+| Darwin 诊断 exact3 | `c6d619971d3793f0149c50e44fb2daf2cc1503814d81021def06e19294e35876` | 限定 ACCEPT，附目录捕获 FD 泄漏 P3；原 PTY 失败仍 OPEN。 |
+| 后继 FD 所有权窄修复 | `9a2b309a92ffbb682f1e14518444fb9c8c12f7666edf9c8403142af68cdc9201` | 新文件限定 ACCEPT，P3 CLOSED；真实目录三次 FD 均归零，打开/包装/读取/关闭故障注入及脱敏通过。 |
+
+主先核独审 freeze/证据与组合字节，再验证包含诊断的 source23：9,347 测试 PASS、
+177 测试 SKIP、51 测试包 PASS、77 无测试包 SKIP、零 FAIL；全仓 vet 及三产品六目标
+18 份构建均 exit0。逐份 metadata 为 Go1.27.3、CGO_ENABLED=0、正确 GOOS/GOARCH。
+这批是隔离候选构建，不是最终发行物或非 Linux 运行证据。合入主线后另实际运行四包
+定向检查：974 测试 PASS、26 SKIP、四包 PASS、零 FAIL。
+
+后继共享生命周期测试从外置 worker 提升为 `selection_pack_integration_test.go`，源 SHA256
+`492f28b323c196eaf7444b3c60192382b0e5bc02eee3b7c13a92fa91c08eb8a4`。同一真实
+App/TLS/SQLite 覆盖取消、owner/origin、关闭、双向 Unknown 隔离与 selectionLaunching
+只保护新导入的七场景。worker 的八个测试 PASS 与单点错误扩大 launch 保护的行为 RED
+均已核对；这是作者组合测试，不冒充其自身导入的非作者独审，也不替代最终主线全测。
+
+最终主线包含该回归后，重新实际运行全仓 `go test`（`-count=1 -timeout=10m -json ./...`）
+与 `go vet ./...`，均显式 CGO_ENABLED=0，两者 exit0：9,355 测试 PASS、177 测试
+SKIP、51 测试包 PASS、77 无测试包 SKIP、零 FAIL。该结果覆盖本次最终 Go 组合；不把
+条件 SKIP、隔离构建或下述代表实窗升级为未执行平台/业务的完成证明。
+
+主另外运行未改普通 Linux binary，SHA256
+`66d74ade0d6321769470b9a524f10694db5bc32d5f952b3f411c38b543af94fb`：真实前门登录、
+所有者读取、完整附件审阅、人工读取本次非秘密确认短语并输入、一次替换，服务端读回
+准确资产且 ReplaceAttachments=1、ReadDraft=0，无凭据落盘。实际 PASS/exit0，child Wait、
+App.Close/Serve join 完成。只证明该元数据代表链，不证明配置消费或普通窗口完整 CRUD。
+初次沿用旧 driver 时首个激活 Tab 未进入输入框；人工恢复后到达审阅，但提交时已超过
+未修改的 160 秒 smoke 时限，截图黑屏、业务读回断言 exit1。原失败完整保留；后继只将
+私有 driver 的初始 Tab 改为两次，同 binary、同期限完成上述链，不修改产品规避失败。
+
+MCP 后继普通实窗独审另固定在 `f5faa0c`，REPORT SHA256
+`dfe69dab6004ce77dec458897ef4ae0892ff94a90b10a01a0663311623976869`，主已核全部
+归档/证据清单和实际截图。范围为 update/无密钥 copy/delete、四类旧引用的 KEEP/明确空
+REPLACE/CLEAR、一次新 arg 非空替换、已提交丢响应 Unknown、Dirty/取消排空及真实
+reduced-motion 代表链。CLEAR 缺批准是 prefix0/1/2/3，不是每槽任意独立组合；其它
+transport/Unknown/在途身份、全部秘密非空替换、真人和非 Linux 运行仍待验收。
+
+Darwin 后继只增加有界固定角色/失败测试/PTY phase，不回显 raw Output、路径或异常，
+显式闭包由 21 同步到 22 输入。原 core51/caller50、四普通产品 RED、期限/捕获预算和
+清理拒绝门保持。独审原始 Python 向量 39 PASS/1 真实 FD 泄漏 FAIL；主复现后通过
+open 的单一 FD 所有权、fdopen closefd=False 和 finally close 修复。扩展 fdopen/fstat
+故障注入及 FD 稳定断言后 41 PASS、零 FAIL；中间旧测试 proxy 缺 close 的 AttributeError
+单独保留，不算产品失败或 GREEN。实际 actionlint1.7.7 + ShellCheck0.11.0 exit0。
+这不是原 run `41266403574` 故障的修复证明；其根因和原生资格仍 UNKNOWN/OPEN。
+
 ## 2026-11-01：Darwin caller 首次真实运行失败，未取得原生资格
 
 候选提交 `51e8c9feee52edecd29577ec2674c183743359e7` 已 SSH 推送并读回；Build

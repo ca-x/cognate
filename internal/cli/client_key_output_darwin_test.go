@@ -304,12 +304,19 @@ func TestDarwinClientKeyPTYIO(test *testing.T) {
 	python := "import os,pty,sys\nmaster,slave=pty.openpty()\nos.set_blocking(master,False)\nos.set_inheritable(master,True)\nos.set_inheritable(slave,True)\nos.environ['COGNATE_DARWIN_KEY_IO_MASTER']=str(master)\nos.environ['COGNATE_DARWIN_KEY_IO_SLAVE']=str(slave)\nos.execv(sys.argv[1],[sys.argv[1],'-test.run=^TestDarwinClientKeyPTYIO$','-test.count=1'])\n"
 	output, code := darwinPTYRun(test, append(environment, "COGNATE_DARWIN_KEY_IO_CHILD=1"), "/usr/bin/python3", "-c", python, os.Args[0])
 	if code != 0 || !strings.Contains(output, "COGNATE_DARWIN_KEY_IO_OK") || strings.Contains(output, "COGNATE_SECOND_TTY") {
+		test.Logf("DARWIN_PTY_FAILURE diagnostic=%s", darwinClientKeyPTYDiagnostic(output))
 		test.Fatal("actual separate-terminal output/ownership failed")
 	}
 }
 
 func darwinClientKeyPTYChild(test *testing.T) {
 	test.Helper()
+	phase := "fixture"
+	defer func() {
+		if test.Failed() {
+			test.Logf("DARWIN_PTY_DIAGNOSTIC %s", phase)
+		}
+	}()
 	masterFD, masterErr := strconv.Atoi(os.Getenv("COGNATE_DARWIN_KEY_IO_MASTER"))
 	slaveFD, slaveErr := strconv.Atoi(os.Getenv("COGNATE_DARWIN_KEY_IO_SLAVE"))
 	if masterErr != nil || slaveErr != nil || masterFD <= 2 || slaveFD <= 2 || masterFD == slaveFD {
@@ -319,49 +326,60 @@ func darwinClientKeyPTYChild(test *testing.T) {
 	slave := os.NewFile(uintptr(slaveFD), "private-pty-slave")
 	defer master.Close()
 	defer slave.Close()
+	phase = "identity"
 	var first, second unix.Stat_t
 	connection, err := os.Stdout.SyscallConn()
 	if err != nil || connection.Control(func(descriptor uintptr) { err = unix.Fstat(int(descriptor), &first) }) != nil || err != nil || unix.Fstat(slaveFD, &second) != nil || darwinClientKeySameTTY(&first, &second) {
 		test.Fatal("real distinct terminal identities not distinguished")
 	}
+	phase = "flags-before"
 	before, beforeFD := darwinClientKeyFlags(test, slave)
 	termios, err := unix.IoctlGetTermios(slaveFD, unix.TIOCGETA)
 	if err != nil || before&unix.O_NONBLOCK != 0 {
 		test.Fatal("blocking caller terminal fixture unavailable")
 	}
+	phase = "independent-open"
 	owned, err := openDarwinClientKeyOutput(test.Context(), slave)
 	if err != nil {
 		test.Fatal("F_GETPATH exact-terminal independent open failed")
 	}
+	phase = "write"
 	if count, err := owned.WriteContext(test.Context(), []byte("COGNATE_SECOND_TTY\n")); err != nil || count != 19 {
 		_ = owned.Close()
 		test.Fatal("actual terminal write incomplete")
 	}
+	phase = "close"
 	if owned.Close() != nil || owned.Close() != nil {
 		test.Fatal("actual owned terminal close failed")
 	}
+	phase = "borrowed-state"
 	after, afterFD := darwinClientKeyFlags(test, slave)
 	current, err := unix.IoctlGetTermios(slaveFD, unix.TIOCGETA)
 	if err != nil || *termios != *current || before != after || beforeFD != afterFD {
 		test.Fatal("independent open modified borrowed terminal state")
 	}
+	phase = "routing-poll"
 	events := []unix.PollFd{{Fd: int32(masterFD), Events: unix.POLLIN}}
 	if ready, err := unix.Poll(events, 1000); err != nil || ready != 1 {
 		test.Fatal("actual destination terminal did not receive bytes")
 	}
+	phase = "routing-read"
 	data := make([]byte, 1024)
 	count, err := unix.Read(masterFD, data)
 	if err != nil || !bytes.Contains(data[:max(count, 0)], []byte("COGNATE_SECOND_TTY")) {
 		test.Fatal("actual terminal routing mismatch")
 	}
+	phase = "borrowed-usable"
 	if count, err := unix.Write(slaveFD, []byte("BORROWED_USABLE")); err != nil || count != 15 {
 		test.Fatal("owned Close consumed borrowed terminal")
 	}
+	phase = "backpressure-open"
 	blocked, err := openDarwinClientKeyOutput(test.Context(), slave)
 	if err != nil {
 		test.Fatal("backpressure terminal admission failed")
 	}
 	defer blocked.Close()
+	phase = "partial-deadline"
 	ctx, cancel := context.WithTimeout(test.Context(), 100*time.Millisecond)
 	defer cancel()
 	started := time.Now()
@@ -369,23 +387,30 @@ func darwinClientKeyPTYChild(test *testing.T) {
 	if !errors.Is(err, context.DeadlineExceeded) || count <= 0 || count >= 1<<20 || time.Since(started) > time.Second {
 		test.Fatal("actual full terminal did not stop with partial progress")
 	}
+	phase = "fixed-cap"
 	started = time.Now()
 	if count, err := blocked.WriteContext(context.WithoutCancel(test.Context()), bytes.Repeat([]byte{'z'}, 1<<20)); !errors.Is(err, context.DeadlineExceeded) || count >= 1<<20 || time.Since(started) > 6*time.Second {
 		test.Fatal("actual terminal lost fixed five-second cap")
 	}
+	phase = "plain-cancel"
 	darwinClientKeyCheckPlainCancel(test, blocked)
+	phase = "close-join"
 	darwinClientKeyCheckCloseJoins(test, blocked)
+	phase = "disconnect-open"
 	disconnected, err := openDarwinClientKeyOutput(test.Context(), slave)
 	if err != nil {
 		test.Fatal("disconnect fixture admission failed")
 	}
 	defer disconnected.Close()
+	phase = "disconnect-master"
 	if master.Close() != nil {
 		test.Fatal("native disconnect failed")
 	}
+	phase = "disconnect-write"
 	if _, err := disconnected.WriteContext(test.Context(), []byte("disconnected")); err == nil {
 		test.Fatal("disconnected terminal reported success")
 	}
+	phase = "original-output"
 	if _, err := io.WriteString(os.Stdout, "COGNATE_DARWIN_KEY_IO_OK\n"); err != nil {
 		test.Fatal("original terminal unavailable after owned cleanup")
 	}

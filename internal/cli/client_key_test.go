@@ -4,11 +4,71 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/ca-x/cognate/internal/clientkey"
 )
+
+func darwinClientKeyPTYDiagnostic(output string) string {
+	if len(output) > 64<<10 {
+		return "unknown"
+	}
+	classification := "unknown"
+	for line := range strings.SplitSeq(output, "\n") {
+		line = strings.TrimSuffix(line, "\r")
+		rest, found := strings.CutPrefix(line, "    client_key_output_darwin_test.go:")
+		if !found {
+			continue
+		}
+		lineNumber, phase, found := strings.Cut(rest, ": DARWIN_PTY_DIAGNOSTIC ")
+		if !found || len(lineNumber) == 0 || len(lineNumber) > 5 || lineNumber[0] == '0' {
+			continue
+		}
+		if _, err := strconv.ParseUint(lineNumber, 10, 16); err != nil {
+			continue
+		}
+		switch phase {
+		case "fixture", "identity", "flags-before", "independent-open", "write", "close", "borrowed-state",
+			"routing-poll", "routing-read", "borrowed-usable", "backpressure-open", "partial-deadline", "fixed-cap",
+			"plain-cancel", "close-join", "disconnect-open", "disconnect-master", "disconnect-write", "original-output":
+			if classification != "unknown" && classification != phase {
+				return "ambiguous"
+			}
+			classification = phase
+		}
+	}
+	return classification
+}
+
+func TestClientKeyPTYDiagnostics(test *testing.T) {
+	prefix := "    client_key_output_darwin_test.go:300: DARWIN_PTY_DIAGNOSTIC "
+	cases := []struct {
+		name, input, expected string
+	}{
+		{"recognized", prefix + "independent-open\n", "independent-open"},
+		{"crlf", prefix + "routing-read\r\n", "routing-read"},
+		{"repeated", strings.Repeat(prefix+"fixed-cap\n", 2), "fixed-cap"},
+		{"ambiguous", prefix + "fixed-cap\n" + prefix + "close-join\n", "ambiguous"},
+		{"surrounding-private", "SYNTHETIC_PRIVATE_CANARY\n" + prefix + "borrowed-state\nSYNTHETIC_PRIVATE_CANARY", "borrowed-state"},
+		{"unknown-phase", prefix + "SYNTHETIC_PRIVATE_CANARY\n", "unknown"},
+		{"extra-body", prefix + "independent-open SYNTHETIC_PRIVATE_CANARY\n", "unknown"},
+		{"wrong-source", strings.ReplaceAll(prefix, "client_key_output_darwin_test.go", "private-user.go") + "fixed-cap\n", "unknown"},
+		{"missing-line", strings.ReplaceAll(prefix, ":300:", ":missing:") + "fixed-cap\n", "unknown"},
+		{"zero-line", strings.ReplaceAll(prefix, ":300:", ":0:") + "fixed-cap\n", "unknown"},
+		{"unanchored", "SYNTHETIC_PRIVATE_CANARY" + prefix + "fixed-cap\n", "unknown"},
+		{"empty", "", "unknown"},
+		{"oversized", strings.Repeat("SYNTHETIC_PRIVATE_CANARY", 4096) + "\n" + prefix + "fixed-cap\n", "unknown"},
+	}
+	for _, fixture := range cases {
+		test.Run(fixture.name, func(test *testing.T) {
+			if actual := darwinClientKeyPTYDiagnostic(fixture.input); actual != fixture.expected {
+				test.Fatal("unexpected fixed diagnostic classification")
+			}
+		})
+	}
+}
 
 func TestClientKeyEntrypointsClassification(test *testing.T) {
 	for _, sentinel := range []error{clientkey.ErrInitializationRequired, clientkey.ErrRecoveryRequired, clientkey.ErrUnavailable, clientkey.ErrUnsupported} {

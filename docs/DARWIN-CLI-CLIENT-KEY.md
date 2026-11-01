@@ -2,6 +2,11 @@
 
 ## 当前状态
 
+后继诊断仅补失败时的固定角色、退出类别、白名单失败测试及 PTY phase，不回显原始终端、
+路径或异常文本。测试输入闭包同步显式绑定 22 个文件；原 core51/caller50、普通产品 RED、
+超时、捕获预算与清理拒绝门不变。诊断审查发现的目录 fdopen 失败句柄泄漏由显式 FD 所有权
+回收修复，原失败记录保留。诊断通过不等于已修复或取得下面的原生资格。
+
 **原生预览 BLOCKED；`DARWIN-CLI-PTY-01` OPEN。** 提交 `51e8c9f` 的具名 run `41266403574` / attempt1 实际失败，不能称原生资格通过。本文不代表完整 Darwin CLI、安装、Pack、Desktop 或原生配置支持。
 
 CLI caller8 冻结包 SHA256 为 `56a48d03729d7487c94d0fb7b3932f146fba656f7acef7e1ad867e7047dca321`。它的非作者源码审报告 SHA256 为 `f5e69429a8ae32d1362f320a949b55ee488f693f389ec35199c2ea462ca0540c`，结论仅为 SCOPED_ACCEPT；Linux 机制测试和 Darwin 交编不等于 Mac 运行资格。工作流/文档组合以 `a6b7638660f0d1eefffe4c01140c7c65c4b53888` 为观察基线；真正预览必须另外绑定最终提交、树、工作流修订和具名 run/attempt，不能使用 caller8 原作者旧树冒充组合身份。

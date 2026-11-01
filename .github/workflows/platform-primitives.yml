@@ -135,7 +135,7 @@ jobs:
               raise SystemExit("caller source identity changed")
           caller_paths = {"internal/cli/" + name for name in ["client_key.go", "client_key_caller_darwin_test.go",
               "client_key_entrypoints_other_test.go", "client_key_output_darwin.go", "client_key_output_darwin_test.go",
-              "client_key_output_other.go", "install.go", "public.go"]}
+              "client_key_output_other.go", "client_key_test.go", "install.go", "public.go"]}
           protected = {"internal/cli/platform_storage_test.go", "internal/cli/platform_output_darwin_test.go",
               "internal/install/platform_execution_test.go", "internal/desktop/platform_install_test.go",
               "internal/subscription/platform_install_test.go", "internal/desktop/service_other_test.go", "docs/DARWIN-CLIENT-KEY-CORE.md"}
@@ -148,7 +148,7 @@ jobs:
                   if entry["mode"] != "100644" or entry["type"] != "blob" or blob != entry["blob"]:
                       raise SystemExit("caller input worktree mismatch")
                   inputs[path] = blob
-          if len(inputs) != 21:
+          if len(inputs) != 22:
               raise SystemExit("caller input closure mismatch")
           binaries = []
           for role in ["cognate", "cli.test"]:
@@ -423,6 +423,55 @@ jobs:
               if (counts["run"] != expected or counts["pass"] != expected or packages != {"start": 1, "pass": 1}
                       or frames != expected_frames):
                   raise ValueError("missing or duplicate terminal test receipt")
+          def failure_diagnostic(path, role, package, names, code, maximum):
+              known_roles = {case[0] for case in cases}
+              known_phases = {"unknown", "ambiguous", "fixture", "identity", "flags-before", "independent-open",
+                              "write", "close", "borrowed-state", "routing-poll", "routing-read", "borrowed-usable",
+                              "backpressure-open", "partial-deadline", "fixed-cap", "plain-cancel", "close-join",
+                              "disconnect-open", "disconnect-master", "disconnect-write", "original-output"}
+              exit_known = type(code) is int and -255 <= code <= 255
+              receipt = {"schema": 1, "role": role if type(role) is str and role in known_roles else "unknown",
+                         "exit_known": exit_known, "exit": code if exit_known else 0,
+                         "capture": "unreadable", "failed_tests": [], "pty_phase": "unknown"}
+              try:
+                  descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                  try:
+                      with os.fdopen(descriptor, "rb", closefd=False) as raw:
+                          info = os.fstat(raw.fileno())
+                          if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_uid != os.geteuid()
+                                  or stat.S_IMODE(info.st_mode) != 0o600):
+                              return receipt
+                          data = raw.read(maximum)
+                  finally:
+                      os.close(descriptor)
+                  receipt["capture"] = "empty" if not data else "limited" if info.st_size >= maximum else "bounded"
+                  failed = set()
+                  phases = set()
+                  for line in data.splitlines()[:4096]:
+                      try:
+                          event = json.loads(line, object_pairs_hook=unique)
+                      except (ValueError, UnicodeError):
+                          continue
+                      if type(event) is not dict or event.get("Package") != "github.com/ca-x/cognate/internal/" + package:
+                          continue
+                      name = event.get("Test")
+                      if type(name) is not str or name not in names:
+                          continue
+                      if event.get("Action") == "fail":
+                          failed.add(name)
+                      text = event.get("Output")
+                      if name == "TestDarwinClientKeyPTYIO" and event.get("Action") == "output" and type(text) is str:
+                          match = re.fullmatch(r"    client_key_output_darwin_test\.go:[1-9][0-9]{0,4}: DARWIN_PTY_FAILURE diagnostic=([a-z-]+)\n", text)
+                          if match is not None and match[1] in known_phases:
+                              phases.add(match[1])
+                  receipt["failed_tests"] = sorted(failed)
+                  if len(phases) == 1:
+                      receipt["pty_phase"] = next(iter(phases))
+                  elif phases:
+                      receipt["pty_phase"] = "ambiguous"
+              except OSError:
+                  pass
+              return receipt
           receipts = []
           caller_receipts = []
           attempts = [{"role": role, "attempted": False, "exit_known": False, "exit": 0, "timeout": False,
@@ -471,6 +520,8 @@ jobs:
               if caller is not None:
                   caller["capture_limited"] = size >= maximum
               if code != 0 or not 0 < size < maximum:
+                  diagnostic = failure_diagnostic(path, role, package, names, code, maximum)
+                  print("DARWIN_NATIVE_FAILURE " + json.dumps(diagnostic, sort_keys=True), flush=True)
                   raise SystemExit("native core or caller test failed or capture reached limit")
               data = path.read_bytes()
               validate(data, package, names)
@@ -892,7 +943,7 @@ jobs:
               raise SystemExit("caller source identity changed")
           caller_paths = {"internal/cli/" + name for name in ["client_key.go", "client_key_caller_darwin_test.go",
               "client_key_entrypoints_other_test.go", "client_key_output_darwin.go", "client_key_output_darwin_test.go",
-              "client_key_output_other.go", "install.go", "public.go"]}
+              "client_key_output_other.go", "client_key_test.go", "install.go", "public.go"]}
           protected = {"internal/cli/platform_storage_test.go", "internal/cli/platform_output_darwin_test.go",
               "internal/install/platform_execution_test.go", "internal/desktop/platform_install_test.go",
               "internal/subscription/platform_install_test.go", "internal/desktop/service_other_test.go", "docs/DARWIN-CLIENT-KEY-CORE.md"}
@@ -905,7 +956,7 @@ jobs:
                   if entry["mode"] != "100644" or entry["type"] != "blob" or blob != entry["blob"]:
                       raise SystemExit("caller input worktree mismatch")
                   inputs[path] = blob
-          if len(inputs) != 21:
+          if len(inputs) != 22:
               raise SystemExit("caller input closure mismatch")
           binaries = []
           for role in ["cognate", "cli.test"]:
@@ -1702,8 +1753,9 @@ jobs:
                   "internal/cli/client_key_caller_darwin_test.go": "4f63163699b85f60922241f91490b0ed7bd58d47",
                   "internal/cli/client_key_entrypoints_other_test.go": "6110fe873fccd8bd0144f133bcf95ae33c382e77",
                   "internal/cli/client_key_output_darwin.go": "421613a6c972b8fc24d86c3013b1cdfa176460f7",
-                  "internal/cli/client_key_output_darwin_test.go": "630dae57e46667ccc54f156281c8ef59c4591fbe",
+                  "internal/cli/client_key_output_darwin_test.go": "61b48f293ee18ef8d602211c736ee7c662f5ae2d",
                   "internal/cli/client_key_output_other.go": "babd3f50c2283b1a5bb5b91edcdfcb068e5f07b1",
+                  "internal/cli/client_key_test.go": "69e8b39c8d668e795e27bac1c800cf8da7fcd208",
                   "internal/cli/install.go": "a479bc1cc28ab5cb11e4999c227cc5a5dff01198",
                   "internal/cli/public.go": "75c545f09e6456ae0a5296496fcdcfae2be7ad09",
                   "internal/clientkey/key_darwin_test.go": "dd5c7f56fb2d87a36509abf29f583de696690008",
