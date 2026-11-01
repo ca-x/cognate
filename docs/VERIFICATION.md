@@ -1908,3 +1908,60 @@ RootedFS 读取，检查私有目录、regular/nlink1、32 MiB、完整压缩字
   FD 数不增长；不存在的密钥文件环境变量不影响校验。
 - 没有注入 Close/EMFILE 故障或证明恶意同 UID 置换及崩溃耐久性。仍依赖现有私有命名空间
   与协作锁部署边界；不得借本片关闭缓存修复、回收、运行代或完整产品的未完成项。
+
+## Linux 显式缓存修复与进程中断续接（2026-11-01）
+
+主线新增 `cache repair --data-dir <absolute> --sha256 <hash> --archive-file <absolute>`，
+可用 `--repair-id <32 lowercase hex>` 显式续接。此后继功能不包含在已发布的
+`server-v0.2.0`；用户操作和明确限制见 `CACHE-MAINTENANCE.md`。
+
+- runtime EX 与实际缓存 `.cache.lock` 双锁，FD 绑定 legacy 目录；不读主密钥或改数据库。
+  正确输入需完整 SHA/语义匹配，私有 regular/nlink1 且最大 32 MiB。
+- 使用准确的既有预算，计入原件、全部残留和新 stage；EXCHANGE 保留旧 inode，缺失目标
+  NOREPLACE，不支持则拒绝。stage 文件 Sync/Close、目录 Sync、发布前后身份与内容核验；
+  失败不自动删文件或反向交换。已经健康只报告当前健康和 artifact 存在位，不补造历史收据。
+- 证据根 `/tmp/cognate-cache-repair-kGNQFI5N`：七 Go 输入绑定于 `source.sha256`。
+  `registration-red.log` 使用外部 Go overlay 只移除子命令注册，真实编译后的 CLI 正例
+  因 `unknown flag: --data-dir` 返回 exit1；移除 overlay 后原正例 exit0。
+  初版使用不存在的 `rand.Bytes` 导致编译失败，已改为 `rand.Read`；不把编译失败算行为反证。
+- `focused` 为 library/servercli/runtimegen/filelock 完整测试，`vet` 为相同四包；
+  `repeated` 为全部 Offline 测试随机顺序五轮，均 exit0。预算刚好/不足、保留内容收费、
+  已健康无操作、缺失补回、有效 stage 重新 Sync、无效 stage 拒绝、两层锁阻断和取消均覆盖。
+- 内核局部故障注入覆盖部分写、四个 Sync、三个 Close、原子操作不支持/执行后报错、
+  stage/target/保留原件/lock 身份替换、发布前取消及 NOREPLACE 拒绝后来出现的目标。
+  不以错误返回当成回滚；原件和 stage 仍保留，未确认操作不能返回成功结果。
+- 真实子进程在 stage 部分写入、完整持久化且交换前、实际交换后三个明确屏障收到
+  SIGKILL，父进程核实 WaitStatus 为 SIGKILL。重新取得 EX 后校验实际目标状态，
+  完整 stage 同 ID 续接、交换后只报告当前健康；部分 stage 同 ID 拒绝，新 ID 可修复且不删旧残留。
+- 六个 Linux/macOS/Windows amd64/arm64 服务端 CGO0 构建 exit0，各有 `metadata-*`；
+  非 Linux 仍返回 unsupported，交叉构建不代表获得运行资格。真实 Linux 二进制另有
+  `actual-binary-smoke`：损坏先校验失败，修复成功，旧 inode 保留，新目标逐字匹配，
+  再 verify 成功且同 ID 重试报告 already-verified。
+- 更广的 server 全包、repository 和 skill 回归 exit0，日志为 `server-regression.log`。
+  未使用真实用户凭据。进程中断测试不证明任意时刻断电、失效磁盘或恶意同 UID 安全；
+  GC、数据库引用闭包、运行代布局和完整灾难恢复仍未完成。
+
+首次七源冻结的非作者审查发现两项真实 P2：丢失原锁名字时 `Acquire` 会创建新协调 inode，
+以及实际修复后最终输出 EPIPE 未显式标不明。原 BLOCK 报告保留于
+`/tmp/cognate-cache-repair-final-review-1IjFDgFj/REPORT.md`，SHA256
+`406022018780a8a160f58e64f7c18d209876da5771ece09ad19309b0d4e12ca0`。
+作者永久回归 `p2-author-red.log` 先取得两个行为 RED，再修复为非创建式
+`filelock.AcquireExisting` 加三处同 inode 绑定，以及最终输出错误的 uncertain 分类。
+开始行失败不进入修复；已健康状态不补造原发布收据。
+
+最终九源清单为 `p2-final/source.sha256`，SHA256
+`0103c3127b8abb1baca54a0dcf8276e55b55d923c28df2e355efdc0bac7d2db0`，
+包括新增共用锁 API 与回归。最终四包完整测试/vet、Offline/Acquire 随机顺序五轮、
+六目标 CGO0 构建均 exit0，日志单独保留在 `p2-final/`，不覆盖首次冻结或原反例。
+最终真实 ELF 再次跑完整 smoke，原字节/inode 均保留；指定不存在的主密钥路径仍成功，
+不会创建该密钥。最终 server 全包、repository 和 skill 更广回归亦 exit0，单独日志为
+`p2-final/server-regression.log`。最终九源上的移除命令注册 overlay 再次行为 RED1→GREEN0，
+不覆盖原证据。
+
+非作者限定 ACCEPT：`/tmp/cognate-cache-repair-p2-review-KO8efy3U/REPORT.md`，SHA256
+`2203edd9f12e1a8e254837a6ba33b2b0c274d43197697bf95fbf8805024afb51`，已全文读取并核对。
+独审九源清单摘要为 `e498a6b173c5209e8405df1712883ddc628bf512dfdad332b7ed53a817699d70`，
+其私有副本与终态主树逐源匹配；与作者清单排列不同，不以清单文件摘要相同替代逐文件核对。
+两个原探针字节不变地重新执行并通过；三包定向含 reviewer 探针为 92 PASS、0 FAIL、
+一个预期子进程 helper SKIP，三包 vet exit0。该验收仅关闭本片两项 P2 和明确 Linux legacy
+修复合同，不关闭 GC、完整恢复、运行代、真实账号、跨平台运行或完整产品验收。

@@ -21,3 +21,42 @@
 预算包含旧损坏原件和 staging，使用原子交换保留旧原件，不降级为覆盖写；完整证明
 Sync/Close 不明、取消、身份替换及进程中断的状态。运行代布局由 R3 接入后独立开放。
 无引用对象回收还需同切点数据库引用闭包，不能按文件年龄删除受引用归档。
+
+## 第二片实施合同：显式修复与中断续接
+
+命令为 `cache repair --data-dir /absolute/private/data --sha256 <hash>
+--archive-file /absolute/private/archive.tar.gz [--repair-id <32位小写hex>]`。
+未指定 ID 时生成随机 ID，并在任何归档写入前输出；该输出是开始标识，不是成功收据。
+修复只接收本机明确指定的 private regular/nlink1 文件，最大 32 MiB，不接收 HTTP 服务器路径。
+文件内容完整核对目标 SHA256 和既有归档语义，不读取主密钥、不修改数据库引用。
+
+1. 与 verify 共用 FD 绑定的 legacy 目录准入；先持 runtime EX，再持原 `.cache.lock`，
+   同时排除真实 App、备份 reader 和直接使用 ArchiveCache 的合作写者。
+   原锁必须已存在、私有且 nlink1；非创建式取得句柄，预检/持锁/最终名字同 inode。
+   即使原锁被持有后丢失名字，也不能新建同名文件绕过它。
+2. 只读取已存在且准确格式的私有 `.cache-budget`，不初始化、不猜测或提高预算。
+   全部 regular 内容（包括所有中断 stage 和保留原件）计费，只排除 budget/lock 本身；
+   新 stage 必须在预算内。目录中的链接或特殊文件使修复拒绝，不能当成可回收垃圾。
+3. 目标已完整有效时只返回 already-verified，不交换、不分配 stage。目标缺失可安全补回；
+   已有损坏目标须 private regular/nlink1，大小限定 0 至 32 MiB，不修改其字节。
+4. stage 固定为 `.repair-<hash>-<id>.tar.gz`，O_EXCL/0600 创建，完整写入、Sync/Close、
+   再次核对 SHA/归档和文件身份，目录 Sync 成功后才允许发布。预算包含旧原件与新 stage。
+5. 已有目标用同目录 `RENAME_EXCHANGE` 一次原子交换，旧 inode 留在准确 stage 名下；
+   目标缺失用 `RENAME_NOREPLACE`，不覆盖后来出现的对象。不支持时拒绝，不降级覆盖写。
+   发布前后检查身份，发布后再次校验目标并 Sync 目录；全部 Close 成功才输出完成。
+6. 不删除 stage 或保留原件。创建 stage 后任何错误均不能称回滚或成功；发布后错误返回
+   明确 uncertain，提示重新 verify。原子交换失败也保留 stage，不自动交换回去。
+   真实修复后最终输出失败亦保留输出错误并标 uncertain；开始行失败不进入修复。
+7. 同 ID 显式重试时，只有准确 stage 内容已完整匹配预期 hash/语义且目标仍缺失或损坏
+   才复用它，重新独立执行文件 Sync/Close、目录 Sync、预算、身份与发布检查。
+   内容有效不证明上次 Sync 已完成；不重放不可验证的历史结果。
+   已有效的目标只报告当前健康和保留文件存在位，不伪造原操作的持久提交收据。
+   不完整/损坏的已有 stage 保留并拒绝；可提供正确输入和新 ID 发起新操作，仍需计入旧残留。
+8. SIGKILL 在完整 stage 持久化后且发布前留下旧目标和正确 stage，发布后留下正确目标和旧原件；重新打开后可
+   verify，并用同 ID 显式续接。此为进程中断证明，不冒称断电、失效磁盘或恶意同 UID 的证明。
+   写 stage 中途被杀则保留不完整 stage 并拒绝同 ID 重用，不概括为任意发布前中断可自动续接。
+
+测试先用真实 CLI 正例观察缺少 repair 子命令的行为 RED，再覆盖损坏/缺失、已正确无操作、
+预算需包含保留原件、有效 stage 复用/无效 stage 拒绝、私有权限/链接/特殊文件、错误 hash、
+运行代拒绝和两层锁取消。内核故障注入覆盖写入、Sync、Close、交换失败和发布后不明；
+真实子进程在交换前后被 SIGKILL，再开、核对 inode/字节并显式续接，不能只调用 helper 冒充。

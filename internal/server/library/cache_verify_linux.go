@@ -23,6 +23,12 @@ func VerifyOfflineArchive(ctx context.Context, owner *runtimegen.OfflineRoot, ha
 	if ctx == nil || !validArchiveHash(hash) {
 		return errOfflineArchive
 	}
+	return withOfflineArchives(ctx, owner, func(archives *os.Root, _ *os.File) error {
+		return verifyOfflineArchiveFile(ctx, archives, hash)
+	})
+}
+
+func withOfflineArchives(ctx context.Context, owner *runtimegen.OfflineRoot, consume func(*os.Root, *os.File) error) error {
 	return owner.WithLegacyWorkerFiles(ctx, func(directory, _ *os.File) (result error) {
 		root, err := os.OpenRoot(fmt.Sprintf("/proc/self/fd/%d", directory.Fd()))
 		if err != nil {
@@ -47,7 +53,12 @@ func VerifyOfflineArchive(ctx context.Context, owner *runtimegen.OfflineRoot, ha
 		if err != nil || !os.SameFile(before, opened) {
 			return errOfflineArchive
 		}
-		if err := verifyOfflineArchiveFile(ctx, archives, hash); err != nil {
+		handle, err := archives.Open(".")
+		if err != nil {
+			return errOfflineArchive
+		}
+		defer func() { result = errors.Join(result, offlineArchiveClose(handle)) }()
+		if err := consume(archives, handle); err != nil {
 			return err
 		}
 		after, err := root.Lstat("archives")
@@ -59,29 +70,17 @@ func VerifyOfflineArchive(ctx context.Context, owner *runtimegen.OfflineRoot, ha
 }
 
 func verifyOfflineArchiveFile(ctx context.Context, root *os.Root, hash string) (result error) {
-	name := hash + ".tar.gz"
-	before, err := root.Lstat(name)
-	if err != nil || !snapshotArchivePrivateFile(before) || before.Size() <= 0 || before.Size() > repository.MaxArchiveBytes {
-		return errOfflineArchive
-	}
-	file, err := skill.RootedFS(root).Open(name)
+	return verifyOfflineArchiveNamedFile(ctx, root, hash+".tar.gz", hash)
+}
+
+func verifyOfflineArchiveNamedFile(ctx context.Context, root *os.Root, name, hash string) error {
+	data, _, err := readOfflinePrivateFile(ctx, root, name, repository.MaxArchiveBytes)
 	if err != nil {
-		return errOfflineArchive
+		return err
 	}
-	defer func() { result = errors.Join(result, offlineArchiveClose(file)) }()
-	opened, err := file.Stat()
-	if err != nil || !snapshotArchivePrivateFile(opened) || !os.SameFile(before, opened) {
-		return errOfflineArchive
-	}
-	data, err := io.ReadAll(io.LimitReader(cacheContextReader{ctx: ctx, reader: file}, repository.MaxArchiveBytes+1))
-	if err != nil {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-		return errOfflineArchive
-	}
+	defer clear(data)
 	digest := sha256.Sum256(data)
-	if len(data) > repository.MaxArchiveBytes || int64(len(data)) != before.Size() || hex.EncodeToString(digest[:]) != hash {
+	if hex.EncodeToString(digest[:]) != hash {
 		return errOfflineArchive
 	}
 	if _, err := repository.InspectArchive(ctx, data); err != nil {
@@ -90,11 +89,41 @@ func verifyOfflineArchiveFile(ctx context.Context, root *os.Root, hash string) (
 		}
 		return errOfflineArchive
 	}
-	after, err := root.Lstat(name)
-	if err != nil || !snapshotArchivePrivateFile(after) || !os.SameFile(before, after) || after.Size() != before.Size() || !after.ModTime().Equal(before.ModTime()) {
-		return errOfflineArchive
-	}
 	return ctx.Err()
+}
+
+func readOfflinePrivateFile(ctx context.Context, root *os.Root, name string, limit int64) (data []byte, identity os.FileInfo, result error) {
+	before, err := root.Lstat(name)
+	if err != nil || !snapshotArchivePrivateFile(before) || before.Size() < 0 || before.Size() > limit {
+		return nil, nil, errOfflineArchive
+	}
+	file, err := skill.RootedFS(root).Open(name)
+	if err != nil {
+		return nil, nil, errOfflineArchive
+	}
+	defer func() {
+		result = errors.Join(result, offlineArchiveClose(file))
+		if result != nil {
+			clear(data)
+			data, identity = nil, nil
+		}
+	}()
+	opened, err := file.Stat()
+	if err != nil || !snapshotArchivePrivateFile(opened) || !os.SameFile(before, opened) {
+		return nil, nil, errOfflineArchive
+	}
+	data, err = io.ReadAll(io.LimitReader(cacheContextReader{ctx: ctx, reader: file}, limit+1))
+	if err != nil {
+		if ctx.Err() != nil {
+			return data, nil, ctx.Err()
+		}
+		return data, nil, errOfflineArchive
+	}
+	after, err := root.Lstat(name)
+	if err != nil || int64(len(data)) != before.Size() || !snapshotArchivePrivateFile(after) || !os.SameFile(before, after) || after.Size() != before.Size() || !after.ModTime().Equal(before.ModTime()) {
+		return data, nil, errOfflineArchive
+	}
+	return data, before, ctx.Err()
 }
 
 func offlineArchiveClose(closer io.Closer) error {
