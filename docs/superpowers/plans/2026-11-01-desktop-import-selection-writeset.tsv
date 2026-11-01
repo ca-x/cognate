@@ -1,0 +1,13 @@
+action	path	responsibility
+M	internal/desktop/model.go	Bind selection state to existing generation identity cancellation and shutdown
+M	internal/desktop/view.go	Route existing import page between full selection workflow and explicit legacy Magpie
+M	internal/desktop/native_shell.go	Name existing import navigation for all supported selection sources
+M	internal/desktop/import_test.go	Retain legacy Magpie regression under the renamed navigation
+N	internal/desktop/selection_model.go	Private selection client preview operation ownership and single-write state machine
+N	internal/desktop/selection_service.go	Real owner-bound shared client and current same-repository skill metadata reads
+N	internal/desktop/selection_editor.go	Typed options choices notices binding and immutable final review
+N	internal/desktop/selection_view.go	Native mature components for sources options three independent choices review and status
+N	internal/desktop/selection_model_test.go	Choice authorization unknown identity cancellation and ownership regression tests
+N	internal/desktop/selection_service_test.go	Real App TLS SQLite moejs integration for all three sources and negative cases
+N	internal/desktop/selection_view_test.go	Ordinary native UI controls keyboard layout and navigation tests
+N	docs/DESKTOP-IMPORT-SELECTION.md	Product operation compatibility and exact evidence limits
