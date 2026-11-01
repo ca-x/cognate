@@ -1,4 +1,5 @@
 phase	change	path	baseline_exists	request_only	purpose
+P2-generated-delta	M	internal/server/ent/ent.go	True	True	Approved actual generation delta only policy metadata import and ValidColumn table registration
 P2	N	internal/server/ent/schema/packconfigurationpolicy.go	False	True	One durable table explicit device and consent row kinds self FK CHECK indexes independent revisions
 P2	M	internal/server/ent/schema/nativeconsumerchallenge.go	True	True	Nullable session or real policy parent union and exact Pack purposes
 P2	M	internal/server/ent/schema/nativeconsumersession.go	True	True	Nullable session or real policy parent union and exact Pack purposes
