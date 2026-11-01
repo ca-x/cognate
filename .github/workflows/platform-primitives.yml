@@ -857,7 +857,8 @@ jobs:
                   except subprocess.TimeoutExpired:
                       receipt["detach_timeout"] = True
               receipt["still_mounted"] = os.path.ismount(mount)
-              if receipt["still_mounted"] or receipt["attachment_unknown"] or receipt["creation_unknown"]:
+              if (receipt["still_mounted"] or receipt["attachment_unknown"] or receipt["creation_unknown"]
+                      or receipt["was_mounted"] and (receipt.get("detach_exit") != 0 or receipt.get("detach_timeout", False))):
                   failed = True
               else:
                   try:

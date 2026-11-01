@@ -1,5 +1,22 @@
 # 开发预览验证
 
+## 2026-11-01：Darwin 清理收据一致性
+
+`.github/workflows/platform-primitives.yml` 仅补齐已挂载卷 detach 非零、缺 exit 或 timeout
+的失败判定，2 插入、1 删除；原 strict seal、schema 和其它 workflow 字节不变。
+不加入重试、force、延迟或原始 stderr。原 run `41252902613` 的 detach16 仍属未知
+OS 原因，本修订不将它改写成成功，也不声称已修复 native detach。
+
+原单文件 patch SHA256 `2a4dc862cdd956eda30197e62ffa5ea415e22d9f1d4babfecf627a99341d281d`。
+非作者 Spec/Quality 限定 ACCEPT：
+`/tmp/cognate-cleanup-independent-harvey-6f1e716-3EySPruA/REPORT.md`，SHA256
+`99ff38865bef80010cb56360609781917307380fb8c99d0d3298b3710047e43e`。
+独立完整 cleanup harness 旧版 24 PASS/11 FAIL、候选 35 PASS；六次完整 seal 拒绝回放、
+三份旧 artifact 一致性和 actionlint 通过。模拟 OS 边界不是实际 Darwin 调用资格。
+主线程另跑原作者 23 案 harness，旧源 exit1、新源 exit0及显式 shellcheck/actionlint exit0；
+收据位于 `/tmp/cognate-worker-main-6f1-4cLo03JU/evidence/05-*` 至 `07-*`。
+后续新提交的 native workflow 仍须现场观察；本段不授予 Darwin 安装或正式版资格。
+
 ## 2026-11-01：S3 条件请求 HTTP 412 协议修复
 
 真实 MinIO 后继诊断两次复现：第二次条件 PUT 已通过本地 bind/Stat/size/hash，服务层
