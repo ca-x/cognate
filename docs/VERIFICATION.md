@@ -1,5 +1,38 @@
 # 开发预览验证
 
+## 2026-11-01：原生平台测试补齐真实 Web embed 构建前置
+
+f5faa0c 的 Platform `41263657100` 实际失败；Ubuntu/Windows/macOS 三个 primitives job
+均 success，失败只在 Darwin baseline job `124721841732` 的编译步骤，尚未创建 APFS 卷或
+执行其原生 core/产品 oracle。实际日志为 `web/embed.go:10:12: pattern all:dist: no matching
+files found`。新 desktop MCP 测试依赖真实 server.App，因此 desktop.test 新引入 Web embed
+编译依赖；MyGo 产品本身仍不嵌入/运行 Web。不能把这个缺构建输入错误称为 macOS 产品失败、
+旧APFS清理故障或已修复的原生运行问题，也不把上传的refusal当资格通过。
+
+主在新干净 f5 archive `/tmp/cognate-platform-embed-f5faa0c-A7hwrT8H/source`，不带dist，
+实际 `CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go test -c ./internal/desktop` 得到相同
+缺embed错误，exit1；原据 `evidence/01-before.*`。不是缺符号被记成安全行为RED。
+正常执行 `npm ci --prefix web` / `npm run build --prefix web` 后，原五包clientkey/cli/
+install/desktop/subscription的Darwin-arm64测试编译及CLI构建全部exit0，六份metadata核
+Go1.27.3/CGO0/OS/架构；见`02-*`至`05-*`。npm复用离线缓存，未造空dist或改源码掩盖依赖。
+这是本机交编，不是Darwin执行或其后原生门通过。
+
+修复只在原native编译步骤前加Node26 setup和真实npm安装/构建两个步骤；去掉这段后其余
+workflow字节与f5完全相同。原core51、五产品oracle、strict sealer、cleanup与权限均不变，
+无skip/continue-on-error/空embed替代。成熟yaml.v3读取的前置顺序回归为旧RED/新GREEN；
+actionlint结构检查及新两shell命令单独ShellCheck exit0；随后主使用真实ShellCheck可执行文件
+运行完整platform workflow的actionlint，实际exit0，不将其它workflow的旧警告算入本次结论。
+初次Python验证缺PyYAML及ShellCheck实际路径错误是setup失败，保留终端原据，不算产品RED。
+
+非作者有限Spec/Quality ACCEPT报告
+`/tmp/cognate-platform-embed-review-f5faa0c-Mg9MliNk/REPORT.md`，SHA256
+`83c897c765c29089cf07a187d01a895fdf676c182de2daba52f5627f501d832f`。
+独立核八行/全其它字节保持、真实test→server→web依赖、前置顺序、旧/新结构断言及全workflow
+actionlint+实际ShellCheck均通过；未冒认重跑主五包交编或任何原生执行。审核早期shim路径
+exit3保留为setup失败。最终workflow SHA256
+`7c2e0aa257349d22a1f32c4c106aae214da58594aadef1cc396fb09b353f2dff`。
+修后具名CI仍需独立核实真实Mac编译、原生测试、清理及封闭artifact；旧失败不重写、不重跑刷绿。
+
 ## 2026-11-01：MyGo 私有 MCP 连接资产完整编辑
 
 exact12 为2修改、10新增，patch SHA256

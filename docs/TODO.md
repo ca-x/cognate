@@ -11,6 +11,7 @@
 
 ## 发布收尾
 
+- [ ] 核对 f5faa0c 后继 Platform 真Mac收据：原run41263657100因desktop.test新增server.App→Web embed依赖、缺dist而在编译阶段失败；已补正常Node/npm构建并本机交编复现RED→GREEN，仍须修后新run的实际原生/清理/artifact资格，不能以交编关闭。
 - [x] 发布服务端 `server-v0.1.0-rc.2`，验证 amd64/arm64、匿名拉取与镜像 digest。
 - [x] 发布 CLI `cli-v0.1.0-rc.1` 六平台归档、许可证与 SHA256SUMS，核对下载产物。
 - [x] 发布 GUI `gui-v0.1.0` 八份预览安装产物与 SHA256SUMS，标明未签名及平台限制。

@@ -90,6 +90,14 @@ jobs:
           (root / "evidence" / "source-identity.json").write_text(json.dumps(manifest, indent=2) + "\n")
           if platform.system() != "Darwin" or platform.machine() != "arm64":
               raise SystemExit("BLOCKED: actual macOS arm64 required")
+      - name: Set up Node for embedded server test fixtures
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Build embedded server assets for native test compilation
+        run: |
+          npm ci --prefix web
+          npm run build --prefix web
       - name: Compile preview product and exact Darwin test oracles
         run: |
           set -euo pipefail
