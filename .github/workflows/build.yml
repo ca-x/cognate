@@ -18,6 +18,9 @@ permissions:
 env:
   CODEX_LICENSE_SOURCE: internal/codexconfig/testdata/native-0.166.0/LICENSE
   CODEX_LICENSE_SHA256: 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6
+  GEMINI_LEGAL_SOURCE: internal/geminiconfig/testdata/native-profile-v0.61.0
+  GEMINI_LICENSE_SHA256: 58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd
+  GEMINI_NOTICES_SHA256: fb2528fa004c7597e258b80c46370e27c5fe74565f6afb64228a4e8ac0e5037c
 
 jobs:
   test:
@@ -39,6 +42,14 @@ jobs:
           test -f "$CODEX_LICENSE_SOURCE"
           test ! -L "$CODEX_LICENSE_SOURCE"
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
+      - name: Verify readable Gemini legal inputs
+        run: |
+          test -f "$GEMINI_LEGAL_SOURCE/LICENSE"
+          test ! -L "$GEMINI_LEGAL_SOURCE/LICENSE"
+          test -f "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES"
+          test ! -L "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES"
+          printf '%s  %s\n' "$GEMINI_LICENSE_SHA256" "$GEMINI_LEGAL_SOURCE/LICENSE" | sha256sum -c -
+          printf '%s  %s\n' "$GEMINI_NOTICES_SHA256" "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES" | sha256sum -c -
       - name: Install private Secret Service test dependencies
         run: |
           sudo apt-get update
@@ -170,6 +181,14 @@ jobs:
           test ! -L "$CODEX_LICENSE_SOURCE"
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
           cp "$CODEX_LICENSE_SOURCE" dist/CODEX-0.166.0-LICENSE.txt
+          for file in LICENSE THIRD_PARTY_NOTICES; do
+            test -f "$GEMINI_LEGAL_SOURCE/$file"
+            test ! -L "$GEMINI_LEGAL_SOURCE/$file"
+          done
+          printf '%s  %s\n' "$GEMINI_LICENSE_SHA256" "$GEMINI_LEGAL_SOURCE/LICENSE" | sha256sum -c -
+          printf '%s  %s\n' "$GEMINI_NOTICES_SHA256" "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES" | sha256sum -c -
+          cp "$GEMINI_LEGAL_SOURCE/LICENSE" dist/GEMINI-0.61.0-LICENSE.txt
+          cp "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES" dist/GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt
       - uses: actions/upload-artifact@v4
         with:
           name: cognate-${{ matrix.os }}-${{ matrix.arch }}
@@ -196,6 +215,12 @@ jobs:
           test -f "$legal"
           test ! -L "$legal"
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -
+          for file in GEMINI-0.61.0-LICENSE.txt GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt; do
+            test -f "$ARTIFACT_DIR/$file"
+            test ! -L "$ARTIFACT_DIR/$file"
+          done
+          printf '%s  %s\n' "$GEMINI_LICENSE_SHA256" "$ARTIFACT_DIR/GEMINI-0.61.0-LICENSE.txt" | sha256sum -c -
+          printf '%s  %s\n' "$GEMINI_NOTICES_SHA256" "$ARTIFACT_DIR/GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt" | sha256sum -c -
 
   docker:
     if: inputs.component != 'cli'
@@ -234,12 +259,12 @@ jobs:
           echo 'Inspecting fixed public license path metadata; no key or data volume is mounted.'
           timeout 30 docker run --rm --name "$root_container" --network none --read-only \
             --cap-drop ALL --security-opt no-new-privileges --user 0:0 --entrypoint sh \
-            "$SMOKE_IMAGE" -ec 'for path in /usr/share /usr/share/licenses /usr/share/licenses/cognate /usr/share/licenses/cognate/codex-0.166.0 /usr/share/licenses/cognate/codex-0.166.0/LICENSE; do stat -c "%a %u %g %n" "$path"; done'
+            "$SMOKE_IMAGE" -ec 'for path in /usr/share /usr/share/licenses /usr/share/licenses/cognate /usr/share/licenses/cognate/codex-0.166.0 /usr/share/licenses/cognate/codex-0.166.0/LICENSE /usr/share/licenses/cognate/gemini-0.61.0 /usr/share/licenses/cognate/gemini-0.61.0/LICENSE /usr/share/licenses/cognate/gemini-0.61.0/THIRD_PARTY_NOTICES; do stat -c "%a %u %g %n" "$path"; done'
           echo 'Checking the same final-image license as unprivileged UID 10001.'
           timeout 30 docker run --rm --name "$reader_container" --network none --read-only \
             --cap-drop ALL --security-opt no-new-privileges --user 10001:10001 \
-            -e CODEX_LICENSE_SHA256 --entrypoint sh "$SMOKE_IMAGE" \
-            -ec 'legal=/usr/share/licenses/cognate/codex-0.166.0/LICENSE; test -f "$legal"; test ! -L "$legal"; test -r "$legal"; printf "%s  %s\n" "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -'
+            -e CODEX_LICENSE_SHA256 -e GEMINI_LICENSE_SHA256 -e GEMINI_NOTICES_SHA256 --entrypoint sh "$SMOKE_IMAGE" \
+            -ec 'legal=/usr/share/licenses/cognate/codex-0.166.0/LICENSE; test -f "$legal"; test ! -L "$legal"; test -r "$legal"; printf "%s  %s\n" "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -; for file in LICENSE THIRD_PARTY_NOTICES; do legal="/usr/share/licenses/cognate/gemini-0.61.0/$file"; test -f "$legal"; test ! -L "$legal"; test -r "$legal"; done; printf "%s  %s\n" "$GEMINI_LICENSE_SHA256" /usr/share/licenses/cognate/gemini-0.61.0/LICENSE | sha256sum -c -; printf "%s  %s\n" "$GEMINI_NOTICES_SHA256" /usr/share/licenses/cognate/gemini-0.61.0/THIRD_PARTY_NOTICES | sha256sum -c -'
       - name: Exercise the built container and persisted data
         timeout-minutes: 6
         env:

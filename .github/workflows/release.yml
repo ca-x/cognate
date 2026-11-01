@@ -11,6 +11,10 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  GEMINI_LICENSE_SHA256: 58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd
+  GEMINI_NOTICES_SHA256: fb2528fa004c7597e258b80c46370e27c5fe74565f6afb64228a4e8ac0e5037c
+
 jobs:
   identify:
     runs-on: ubuntu-24.04
@@ -113,15 +117,80 @@ jobs:
               if [ "$os" = windows ]; then suffix='.exe'; fi
               test -f "$directory/$name$suffix"
               printf '%s  %s\n' 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6 "$directory/CODEX-0.166.0-LICENSE.txt" | sha256sum -c -
+              for file in GEMINI-0.61.0-LICENSE.txt GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt; do
+                test -f "$directory/$file"
+                test ! -L "$directory/$file"
+              done
+              printf '%s  %s\n' "$GEMINI_LICENSE_SHA256" "$directory/GEMINI-0.61.0-LICENSE.txt" | sha256sum -c -
+              printf '%s  %s\n' "$GEMINI_NOTICES_SHA256" "$directory/GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt" | sha256sum -c -
               if [ "$os" = windows ]; then
-                (cd "$directory" && python3 -m zipfile -c "$GITHUB_WORKSPACE/release/$name.zip" "$name$suffix" CODEX-0.166.0-LICENSE.txt)
+                (cd "$directory" && python3 -m zipfile -c "$GITHUB_WORKSPACE/release/$name.zip" "$name$suffix" CODEX-0.166.0-LICENSE.txt GEMINI-0.61.0-LICENSE.txt GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt)
               else
                 chmod 0755 "$directory/$name"
-                tar -czf "release/$name.tar.gz" -C "$directory" "$name" CODEX-0.166.0-LICENSE.txt
+                tar -czf "release/$name.tar.gz" -C "$directory" "$name" CODEX-0.166.0-LICENSE.txt GEMINI-0.61.0-LICENSE.txt GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt
               fi
             done
           done
           (cd release && sha256sum *.tar.gz *.zip > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - name: Verify actual CLI archive legal payloads
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import stat
+          import tarfile
+          import zipfile
+
+          expected = {
+              "CODEX-0.166.0-LICENSE.txt": (11558, "85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6"),
+              "GEMINI-0.61.0-LICENSE.txt": (11357, os.environ["GEMINI_LICENSE_SHA256"]),
+              "GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt": (166147, os.environ["GEMINI_NOTICES_SHA256"]),
+          }
+
+          def verify(name, body):
+              size, digest = expected[name]
+              if len(body) != size or hashlib.sha256(body).hexdigest() != digest:
+                  raise SystemExit("CLI archive legal bytes rejected: " + name)
+
+          for platform in ("linux", "darwin", "windows"):
+              for arch in ("amd64", "arm64"):
+                  binary = "cognate-" + platform + "-" + arch
+                  windows = platform == "windows"
+                  path = pathlib.Path("release") / (binary + (".zip" if windows else ".tar.gz"))
+                  if not stat.S_ISREG(path.lstat().st_mode):
+                      raise SystemExit("CLI archive is not regular")
+                  wanted = set(expected) | {binary + (".exe" if windows else "")}
+                  if windows:
+                      with zipfile.ZipFile(path) as archive:
+                          entries = archive.infolist()
+                          if len(entries) != len(wanted) or {entry.filename for entry in entries} != wanted:
+                              raise SystemExit("CLI ZIP members rejected")
+                          for entry in entries:
+                              mode = entry.external_attr >> 16
+                              if entry.is_dir() or not stat.S_ISREG(mode):
+                                  raise SystemExit("CLI ZIP member is not a regular payload")
+                              if entry.filename in expected:
+                                  size, _ = expected[entry.filename]
+                                  with archive.open(entry) as stream:
+                                      verify(entry.filename, stream.read(size + 1))
+                  else:
+                      with tarfile.open(path, "r|gz") as archive:
+                          found = set()
+                          for entry in archive:
+                              if entry.name not in wanted or entry.name in found or not entry.isfile():
+                                  raise SystemExit("CLI TAR members rejected")
+                              found.add(entry.name)
+                              if entry.name in expected:
+                                  size, _ = expected[entry.name]
+                                  if entry.size != size:
+                                      raise SystemExit("CLI TAR legal size rejected")
+                                  with archive.extractfile(entry) as stream:
+                                      verify(entry.name, stream.read(size + 1))
+                          if found != wanted:
+                              raise SystemExit("CLI TAR missing required payload")
+                  print("CLI legal payloads verified:", platform, arch)
+          PY
       - name: Create component-specific draft
         env:
           GH_TOKEN: ${{ github.token }}

@@ -124,6 +124,34 @@ transfer commands are not product-test failures or evidence of missing assets.
 Preview packaging does not qualify macOS/Windows installation or configuration
 application; see `PREVIEW-RELEASE.md` and `TODO.md`.
 
+## Gemini legal delivery gate
+
+Every subsequent build that includes the Gemini native profile must distribute
+the unchanged original Gemini CLI 0.61.0 `LICENSE` and complete
+`THIRD_PARTY_NOTICES` alongside the existing Codex combined license/notice.
+Exact source hashes, byte counts and recipient paths are in
+`THIRD-PARTY-NOTICES.md`. Gemini's original `LICENSE` has no EOF newline; do not
+normalize it on checkout, concatenate it with Codex text, or replace it with a
+summary/SPDX identifier.
+
+The build workflow checks both files after binary artifact download and inside
+each loaded final Docker image as the unprivileged runtime user. The CLI release
+workflow includes them in every tar.gz/ZIP and reopens each final archive to
+verify exact regular members and bytes before any draft is created. Server
+promotion continues to use the tested OCI archives without rebuilding.
+
+Desktop packaging uses the SDK's directory-resource support, retaining Codex's
+root `LICENSE` and Gemini's separate `native-profile-v0.61.0` directory. Both
+architectures must pass staged-resource checks **and** actual tar.gz/Debian,
+mounted DMG or extracted NSIS Setup legal checks on the corresponding runners.
+The Gemini input directory is restricted to its five pinned textual resources;
+Node/Gemini executables are not added to any distribution by this change.
+
+Do not mark those platform gates passed from local staging, plain Go builds or
+source checks. A missing notice, symlink, duplicate archive legal member, changed
+byte/newline or missing installer fails the gate. Prior release receipts remain
+historical and are not evidence that this new legal delivery was present.
+
 ## LazyCat Exec distribution
 
 The separately versioned packaging repository is

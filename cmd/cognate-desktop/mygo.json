@@ -6,7 +6,10 @@
   "main": ".",
   "icon": "../../assets/branding/client.png",
   "out": "../../dist/desktop",
-  "resources": ["../../internal/codexconfig/testdata/native-0.166.0/LICENSE"],
+  "resources": [
+    "../../internal/codexconfig/testdata/native-0.166.0/LICENSE",
+    "../../internal/geminiconfig/testdata/native-profile-v0.61.0"
+  ],
   "linux": {
     "webview": false,
     "categories": ["Development", "Utility"],

@@ -23,7 +23,9 @@ RUN mkdir /data && chmod 700 /data && chown 10001:10001 /data
 COPY --from=build /out/cognate /usr/local/bin/cognate
 COPY --from=build /out/cognate-server /usr/local/bin/cognate-server
 COPY --from=build --chmod=0644 /src/internal/codexconfig/testdata/native-0.166.0/LICENSE /usr/share/licenses/cognate/codex-0.166.0/LICENSE
-RUN chmod 0755 /usr/share/licenses /usr/share/licenses/cognate /usr/share/licenses/cognate/codex-0.166.0
+COPY --from=build --chmod=0644 /src/internal/geminiconfig/testdata/native-profile-v0.61.0/LICENSE /usr/share/licenses/cognate/gemini-0.61.0/LICENSE
+COPY --from=build --chmod=0644 /src/internal/geminiconfig/testdata/native-profile-v0.61.0/THIRD_PARTY_NOTICES /usr/share/licenses/cognate/gemini-0.61.0/THIRD_PARTY_NOTICES
+RUN chmod 0755 /usr/share/licenses /usr/share/licenses/cognate /usr/share/licenses/cognate/codex-0.166.0 /usr/share/licenses/cognate/gemini-0.61.0
 USER 10001:10001
 EXPOSE 8080
 ENTRYPOINT ["cognate-server"]

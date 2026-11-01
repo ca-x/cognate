@@ -12,6 +12,7 @@ on:
       - 'internal/state/**'
       - 'assets/branding/**'
       - 'internal/codexconfig/testdata/native-0.166.0/LICENSE'
+      - 'internal/geminiconfig/testdata/native-profile-v0.61.0/**'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/desktop.yml'
@@ -36,6 +37,9 @@ env:
   GOTOOLCHAIN: local
   CODEX_LICENSE_SOURCE: internal/codexconfig/testdata/native-0.166.0/LICENSE
   CODEX_LICENSE_SHA256: 85e1d58a617d42cc2095caf2a4b4bac26d3d260b4907e3e7020be545192c6aa6
+  GEMINI_LEGAL_SOURCE: internal/geminiconfig/testdata/native-profile-v0.61.0
+  GEMINI_LICENSE_SHA256: 58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd
+  GEMINI_NOTICES_SHA256: fb2528fa004c7597e258b80c46370e27c5fe74565f6afb64228a4e8ac0e5037c
 
 jobs:
   release-tag:
@@ -70,11 +74,24 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - name: Build embedded server assets for native integration fixtures
         run: npm ci --prefix web && npm run build --prefix web
-      - name: Verify Codex legal input
+      - name: Verify Codex and Gemini legal inputs
         run: |
           test -f "$CODEX_LICENSE_SOURCE"
           test ! -L "$CODEX_LICENSE_SOURCE"
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$CODEX_LICENSE_SOURCE" | sha256sum -c -
+          python3 - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import stat
+          directory = pathlib.Path(os.environ["GEMINI_LEGAL_SOURCE"])
+          names = {"LICENSE", "THIRD_PARTY_NOTICES", "package-files.sha256", "source.json", "vectors.json"}
+          if not stat.S_ISDIR(directory.lstat().st_mode) or {path.name for path in directory.iterdir()} != names or any(not stat.S_ISREG((directory / name).lstat().st_mode) for name in names):
+              raise SystemExit("Gemini resource directory rejected")
+          for name, digest in (("LICENSE", os.environ["GEMINI_LICENSE_SHA256"]), ("THIRD_PARTY_NOTICES", os.environ["GEMINI_NOTICES_SHA256"])):
+              if hashlib.sha256((directory / name).read_bytes()).hexdigest() != digest:
+                  raise SystemExit("Gemini legal input rejected")
+          PY
       - name: Native text and GTK runtime
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-0t64 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libepoxy0 libgl1-mesa-dri fonts-noto-cjk xvfb xauth
       - name: Headless native HTTP integration tests
@@ -98,6 +115,9 @@ jobs:
           done
           cp "$CODEX_LICENSE_SOURCE" dist/cross/LICENSE
           cmp "$CODEX_LICENSE_SOURCE" dist/cross/LICENSE
+          cp -R "$GEMINI_LEGAL_SOURCE" dist/cross/native-profile-v0.61.0
+          cmp "$GEMINI_LEGAL_SOURCE/LICENSE" dist/cross/native-profile-v0.61.0/LICENSE
+          cmp "$GEMINI_LEGAL_SOURCE/THIRD_PARTY_NOTICES" dist/cross/native-profile-v0.61.0/THIRD_PARTY_NOTICES
           go list -deps ./cmd/cognate-desktop > dist/cross/dependencies.txt
           if grep -E '^github[.]com/(ca-x/cognate/internal/(server|cli)|MoeForge/moejs|spf13/cobra)(/|$)' dist/cross/dependencies.txt; then exit 1; fi
       - name: Real native window smoke (no installation)
@@ -129,6 +149,13 @@ jobs:
           test -f "$legal"
           test ! -L "$legal"
           printf '%s  %s\n' "$CODEX_LICENSE_SHA256" "$legal" | sha256sum -c -
+          for file in LICENSE THIRD_PARTY_NOTICES; do
+            legal="$ARTIFACT_DIR/cross/native-profile-v0.61.0/$file"
+            test -f "$legal"
+            test ! -L "$legal"
+          done
+          printf '%s  %s\n' "$GEMINI_LICENSE_SHA256" "$ARTIFACT_DIR/cross/native-profile-v0.61.0/LICENSE" | sha256sum -c -
+          printf '%s  %s\n' "$GEMINI_NOTICES_SHA256" "$ARTIFACT_DIR/cross/native-profile-v0.61.0/THIRD_PARTY_NOTICES" | sha256sum -c -
 
   package:
     needs: verify
@@ -175,6 +202,13 @@ jobs:
           legal = pathlib.Path(os.environ["CODEX_LICENSE_SOURCE"])
           if not stat.S_ISREG(legal.lstat().st_mode) or hashlib.sha256(legal.read_bytes()).hexdigest() != os.environ["CODEX_LICENSE_SHA256"]:
               raise SystemExit("Codex legal input rejected")
+          directory = pathlib.Path(os.environ["GEMINI_LEGAL_SOURCE"])
+          names = {"LICENSE", "THIRD_PARTY_NOTICES", "package-files.sha256", "source.json", "vectors.json"}
+          if not stat.S_ISDIR(directory.lstat().st_mode) or {path.name for path in directory.iterdir()} != names or any(not stat.S_ISREG((directory / name).lstat().st_mode) for name in names):
+              raise SystemExit("Gemini resource directory rejected")
+          for name, digest in (("LICENSE", os.environ["GEMINI_LICENSE_SHA256"]), ("THIRD_PARTY_NOTICES", os.environ["GEMINI_NOTICES_SHA256"])):
+              if hashlib.sha256((directory / name).read_bytes()).hexdigest() != digest:
+                  raise SystemExit("Gemini legal input rejected")
           PY
           go tool mygo build -platform '${{ matrix.platform }}/amd64,${{ matrix.platform }}/arm64' -sign '-' -skip-notarize -o "$GITHUB_WORKSPACE/dist/desktop" cmd/cognate-desktop
       - name: Verify packaged Go and source identities
@@ -255,6 +289,22 @@ jobs:
           if hashlib.sha256(original).hexdigest() != expected:
               raise SystemExit("Codex legal input hash rejected")
 
+          gemini = {}
+          directory = pathlib.Path(os.environ["GEMINI_LEGAL_SOURCE"])
+          for name, digest in (("LICENSE", os.environ["GEMINI_LICENSE_SHA256"]), ("THIRD_PARTY_NOTICES", os.environ["GEMINI_NOTICES_SHA256"])):
+              source = directory / name
+              if not stat.S_ISREG(source.lstat().st_mode):
+                  raise SystemExit("Gemini legal input is not regular")
+              body = source.read_bytes()
+              if hashlib.sha256(body).hexdigest() != digest:
+                  raise SystemExit("Gemini legal input hash rejected")
+              gemini["native-profile-v0.61.0/" + name] = (body, digest)
+
+          def verify_gemini(name, body):
+              canonical, digest = gemini[name]
+              if len(body) != len(canonical) or hashlib.sha256(body).hexdigest() != digest:
+                  raise SystemExit("Packaged Gemini legal bytes differ: " + name)
+
           def verify_bytes(body):
               if len(body) != len(original) or hashlib.sha256(body).hexdigest() != expected:
                   raise SystemExit("Packaged Codex LICENSE or NOTICE differs")
@@ -264,6 +314,12 @@ jobs:
                   raise SystemExit("Packaged Codex legal file is not regular")
               with path.open("rb") as stream:
                   verify_bytes(stream.read(len(original) + 1))
+              for name, (body, _) in gemini.items():
+                  legal = path.parent / name
+                  if not stat.S_ISREG(legal.lstat().st_mode):
+                      raise SystemExit("Packaged Gemini legal file is not regular")
+                  with legal.open("rb") as stream:
+                      verify_gemini(name, stream.read(len(body) + 1))
 
           def one_file(directory, pattern):
               matches = list(directory.glob(pattern))
@@ -273,7 +329,17 @@ jobs:
 
           def verify_tar(archive, target):
               found = 0
+              gemini_targets = {str(pathlib.PurePosixPath(target).parent / name): name for name in gemini}
+              gemini_found = {name: 0 for name in gemini}
               for entry in archive:
+                  name = gemini_targets.get(entry.name.removeprefix("./"))
+                  if name is not None:
+                      body, _ = gemini[name]
+                      if not entry.isfile() or entry.size != len(body):
+                          raise SystemExit("Archive Gemini legal member rejected")
+                      with archive.extractfile(entry) as stream:
+                          verify_gemini(name, stream.read(len(body) + 1))
+                      gemini_found[name] += 1
                   if entry.name not in (target, "./" + target):
                       continue
                   if not entry.isfile() or entry.size != len(original):
@@ -283,6 +349,8 @@ jobs:
                   found += 1
               if found != 1:
                   raise SystemExit("Archive must contain exactly one Codex legal member")
+              if any(count != 1 for count in gemini_found.values()):
+                  raise SystemExit("Archive must contain exactly one of each Gemini legal member")
 
           platform = os.environ["PACKAGE_PLATFORM"]
           if platform not in ("linux", "darwin", "windows"):
@@ -321,6 +389,9 @@ jobs:
                   package = one_file(directory, "*-setup-*-" + arch + ".exe")
                   result = subprocess.run([extractor, "x", "-so", "-bsp0", str(package), "LICENSE"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=60, check=True)
                   verify_bytes(result.stdout)
+                  for name in gemini:
+                      result = subprocess.run([extractor, "x", "-so", "-bsp0", str(package), name.replace("/", os.sep)], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=60, check=True)
+                      verify_gemini(name, result.stdout)
               else:
                   verify_file(directory / "Cognate.app/Contents/Resources/LICENSE")
                   package = one_file(directory, "*-" + arch + ".dmg")
@@ -332,7 +403,7 @@ jobs:
                           verify_file(mount / "Cognate.app/Contents/Resources/LICENSE")
                       finally:
                           subprocess.run(["hdiutil", "detach", str(mount)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60, check=True)
-              print("Codex LICENSE+NOTICE verified:", platform, arch)
+              print("Codex LICENSE+NOTICE and Gemini LICENSE+THIRD_PARTY_NOTICES verified:", platform, arch)
           PY
       - uses: actions/upload-artifact@v4
         with:

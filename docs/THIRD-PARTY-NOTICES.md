@@ -47,3 +47,45 @@ these delivery paths require coordinated review and updated payload checks.
 This notice describes the included metadata/prompt; it does not claim that
 all third-party components or the official Codex executable are covered by
 this one file.
+
+## Gemini CLI 0.61.0 profile sources
+
+The Gemini native provider profile derives from the fixed official
+`@google/gemini-cli` 0.61.0 package and source commit
+`bb523741c7429a44d03e964bc124c7c92df59d5f`. Its original Apache License 2.0
+and complete bundled third-party notices are separate from the Codex notice:
+
+| Canonical file under `internal/geminiconfig/testdata/native-profile-v0.61.0/` | Original package member | Bytes | SHA256 |
+|---|---|---:|---|
+| `LICENSE` | `LICENSE` | 11357 | `58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd` |
+| `THIRD_PARTY_NOTICES` | `bundle/bundled/third_party/THIRD_PARTY_NOTICES` | 166147 | `fb2528fa004c7597e258b80c46370e27c5fe74565f6afb64228a4e8ac0e5037c` |
+
+Both files are copied without rewriting, concatenation or newline conversion.
+In particular, the original Gemini `LICENSE` has **no final newline**; adding
+one changes the required bytes. The existing 449-file `package-files.sha256`
+records both original package members. No Node or Gemini executable is included
+by this legal-resource delivery, and no OAuth credentials are redistributed.
+
+| Distribution | Gemini legal locations |
+|---|---|
+| CLI/server CI binary artifact and final CLI tar.gz/ZIP, every OS/architecture | `GEMINI-0.61.0-LICENSE.txt` and `GEMINI-0.61.0-THIRD_PARTY_NOTICES.txt` beside the binary/binaries |
+| Final Docker image | `/usr/share/licenses/cognate/gemini-0.61.0/LICENSE` and `THIRD_PARTY_NOTICES`, readable by UID 10001 |
+| MyGo macOS app and mounted DMG | `Cognate.app/Contents/Resources/native-profile-v0.61.0/{LICENSE,THIRD_PARTY_NOTICES}` |
+| MyGo Windows application and actual NSIS Setup payload | `native-profile-v0.61.0/{LICENSE,THIRD_PARTY_NOTICES}` beside `Cognate.exe` |
+| MyGo Linux application and tar.gz | `native-profile-v0.61.0/{LICENSE,THIRD_PARTY_NOTICES}` beside `cognate-desktop` |
+| MyGo Debian payload | `/opt/cognate-desktop/native-profile-v0.61.0/{LICENSE,THIRD_PARTY_NOTICES}` |
+| Desktop raw cross-build artifact | `cross/native-profile-v0.61.0/{LICENSE,THIRD_PARTY_NOTICES}` |
+
+MyGo v0.7.1 supports a listed directory resource under its basename, including
+nested files. The five-text-file `native-profile-v0.61.0` directory also carries
+the pinned package manifest, source provenance and synthetic codec vectors. Its exact input allowlist
+rejects additional files or symlinks. This distinct directory preserves the
+existing Codex `LICENSE` at the resource root; the two must never overwrite one
+another. Runtime lookup remains `mygo.App.Path(mygo.PathResources)`.
+
+Workflow gates check pinned source bytes, downloaded binary artifacts, loaded
+final images and each actual release/archive/installer payload. Codex checks
+remain mandatory. Local resource staging is not evidence that a DMG was
+mounted, NSIS payload extracted, or a final Docker image built and read. These
+changes specify delivery gates for subsequent builds, not retroactive repair
+of already-published assets or new native-profile/platform qualification.
