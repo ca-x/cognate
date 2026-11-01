@@ -108,6 +108,10 @@ type Model struct {
 	configuration                     func() *configurationState
 	grok                              func() *grokEditorState
 	order                             func() *configurationOrderState
+	selection                         func() *selectionState
+	selectionLaunching                bool
+	selectionBarriers                 []selectionBarrier
+	packConfiguration                 func() *packConfigurationState
 }
 
 func NewModel(backend Backend, dispatch func(func())) *Model {
@@ -116,6 +120,7 @@ func NewModel(backend Backend, dispatch func(func())) *Model {
 }
 
 func (model *Model) Cancel() {
+	model.packConfigurationRetire()
 	model.order = nil
 	model.grokCancel()
 	model.configurationCancel(false)
@@ -131,6 +136,13 @@ func (model *Model) Cancel() {
 
 func (model *Model) cancelJob() {
 	wasBusy := model.Busy
+	if !model.selectionLaunching {
+		model.selectionCancel()
+	}
+	model.packConfigurationClearReview()
+	if wasBusy {
+		model.packConfigurationRetire()
+	}
 	model.orderClearReview()
 	model.configurationCancel(false)
 	model.generation++
@@ -145,6 +157,8 @@ func (model *Model) cancelJob() {
 }
 
 func (model *Model) clearOwner() {
+	model.packConfigurationRetire()
+	model.packConfiguration = nil
 	model.order = nil
 	model.grokCancel()
 	model.configurationCancel(true)

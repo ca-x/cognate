@@ -60,7 +60,8 @@ func TestNativeMagpiePreviewExplicitSelectionAndApply(test *testing.T) {
 	model.session.set(fixture.session)
 	model.FilePath = path
 	tester := ui.NewTester(model.View, 920, 760)
-	click(test, tester, "Magpie 导入")
+	click(test, tester, "导入")
+	click(test, tester, "旧版 Magpie（仅仓库）")
 	click(test, tester, "预览文件")
 	pump()
 	tester.Frame()

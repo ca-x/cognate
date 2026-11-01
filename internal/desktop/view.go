@@ -148,9 +148,10 @@ func (model *Model) packsView(context *ui.Context) {
 			ui.Text(row.Context, fmt.Sprintf("%s · 已应用 %d / 目标 %d · 启用 %t", record.Server, record.AppliedRevision, record.DesiredRevision, record.Enabled))
 		})
 	})
+	model.packConfigurationView(context)
 }
 
-func (model *Model) importView(context *ui.Context) {
+func (model *Model) legacyImportView(context *ui.Context) {
 	ui.Text(context, "Magpie 文件导入服务端仓库；不会直接安装到本机。")
 	ui.TextInput(context.Key("file"), &model.FilePath).Label("Magpie 导出路径").Placeholder("Magpie 导出 JSON 文件绝对路径").FillWidth()
 	ui.Row(context).Gap(8).Children(func() {

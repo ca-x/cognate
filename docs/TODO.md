@@ -73,10 +73,13 @@
 - [x] Codex 普通 CLI 唯一固定 profile 登记：Linux/amd64 0.166.0 effective-v2 完整 tuple，真实普通 CLI/PTY/App/SQLite和新鲜消费者矩阵、独立指令/effort负控与可读许可包验收通过；其它平台、版本和 MyGo不据此开放。
 - [ ] 完成各 agent 本机配置应用、差异预览、冲突拒绝、恢复及版本兼容；不静默丢弃未知字段。
 - [ ] 完成 cc-switch/Magpie 的 skills、仓库、配置独立选择导入闭环，保留来源版本与权限边界。
+- [x] MyGo 三来源选择导入入口：复用共享选择协议，独立上传批准、三类默认不选、真实 owner/仓库 pin、最终审阅及一次提交；Unknown 仅按原操作查询，取消和身份切换实际排空。两项功能分别独审后合入同一模型，新增真实 App/TLS/SQLite 共享生命周期回归；不开放来源尚不支持的候选或完整跨平台资格。
 - [x] Web 私有 MCP 连接配置资产编辑：有序stdio/HTTP/SSE、显式启停/存在位、凭据三态和每旧引用Clear、preview/CRUD/无密钥复制/排序、Unknown屏障及主题语言草稿保持经非作者独审；真实浏览器与原生200%缩放通过，不连接MCP或应用设备。
 - [x] MyGo Claude schema1 MCP 配置资产完整编辑：有序stdio/HTTP/SSE、存在位/启停、凭据三态/每旧引用Clear、CRUD/无密钥复制、精确审阅/逐槽批准、CAS/Unknown与身份排空经非作者限定 ACCEPT；普通Linux窗口真实登录及一次新建保存通过，不执行MCP或应用本机。
-- [ ] MyGo MCP普通已登录窗口的update/copy/delete及逐凭据完整矩阵、真人/跨平台体验与本机配置应用资格；不把真实App+ui.NewTester闭环或构建当作这些实窗/设备验收。
+- [x] MyGo MCP 后继独立普通 Linux 实窗：已登录 update/无密钥 copy/delete、四类旧引用的 KEEP/明确空 REPLACE/CLEAR、一次非空替换及已提交丢响应 Unknown、取消排空和真实 reduced-motion 代表链通过；仅为实际记录的有限矩阵，不推断其它 Unknown/transport/平台组合。
+- [ ] MyGo MCP 普通窗口逐凭据与 transport 的完整矩阵、其它 Unknown/在途身份变化、真人/跨平台体验与本机配置应用资格；不把有限实窗、组件闭环或构建当作这些验收。
 - [ ] 接通 Pack 配置附件的客户端选择、独立授权、消费和显式启用后的自动应用；公开分享仍不带配置密钥。
+- [x] MyGo Pack 所有者附件元数据编辑：完整有序引用、双 revision、精确一次确认、CAS/Unknown 只读核对、取消和身份排空；分别独审及共享生命周期回归通过，当前组合普通 Linux 窗口完成真实登录与一次替换读回。只保存引用，不读取正文/密钥，不代表客户端消费、授权或自动应用。
 - [x] Pack 配置附件所有者 Web 元数据管理：有序引用、双 CAS、显式审阅、Unknown 只读核对；143/156 读取/移动/移除焦点 PC-F1 独审 CLOSED。只保存引用，不读取正文/密钥，不代表客户端消费或自动应用。
 - [x] Pack 元数据读取的同步重复激活去重（P3）：组件内同步 guard 与 finally 释放，真实双激活/后继显式读取/失败释放/Unknown 零重放通过；独立旧/新构建验收 CLOSED，不声称全站查询互斥。
 - [x] MyGo 通用配置分区排序：完整元数据、未知schema/250项、全排列独立CAS、一次审阅与Unknown显式重读、内容Dirty及generation排空经非作者独审；Linux headless窗口及主线338 PASS/1 SKIP/0 FAIL通过，不代表全平台真人验收。

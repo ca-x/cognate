@@ -312,16 +312,11 @@ func (operation *Operation) Close() {
 	state.confirmation = ""
 }
 func (operation *Operation) Confirmation() string {
-	if operation == nil || operation.state == nil {
+	review, err := operation.Review()
+	if err != nil {
 		return ""
 	}
-	state := operation.state()
-	state.mutex.Lock()
-	defer state.mutex.Unlock()
-	if state.closed {
-		return ""
-	}
-	return state.confirmation
+	return review.Confirmation
 }
 func writeSummary(ctx context.Context, writer io.Writer, text string) error {
 	if ctx.Err() != nil {

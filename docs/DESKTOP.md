@@ -1,5 +1,20 @@
 # Cognate Native Desktop
 
+## 选择导入与 Pack 附件管理（2026-11-01）
+
+「导入」页提供三来源选择导入和显式旧版 Magpie 仓库入口。上传前独立批准，预览后技能、
+仓库、配置默认不选；只允许共享来源协议实际支持的候选，保留真实 owner、仓库和归档 pin。
+最终审阅及批准后只提交一次；Unknown 保留原操作 ID，通过同身份只读查询核对，不自动重放。
+操作与来源限制见 `DESKTOP-IMPORT-SELECTION.md`。
+
+「Pack 订阅 → 所有者配置附件」可编辑完整有序引用、明确升级或移除旧 pin、审阅并精确确认
+一次替换。原技能订阅与后台同步仍独立。此入口不读配置正文或秘密、不授消费权限、不应用设备；
+后续授权、消费和显式启用后的自动应用仍未交付，见 `PACK-CONFIGURATION-CONSUMPTION.md`。
+
+两功能分别完成非作者限定审查，再组合共享 Model 的取消、身份切换、Unknown 与关闭生命周期。
+当前组合的普通 Linux 软件渲染窗口另完成真实登录、完整附件审阅、一次替换及服务器读回；
+这不是普通窗口完整导入提交、全部失败矩阵、真人或 macOS/Windows 验收。
+
 ## MCP 连接配置资产（2026-11-01）
 
 在「AI 配置 → MCP 连接配置」管理当前账号的 Claude schema1 私有资产，复用 MyGo 原生
@@ -9,8 +24,10 @@ stdio/HTTP/SSE、有序声明、显式启停/集合存在位、Keep/Replace/Clea
 确认；CAS/Unknown 不自动重放，身份切换和关闭实际取消排空，未知格式只读。
 
 普通 Linux 软件绘制窗口已独立验证真实前门、账号登录和一次无凭据 stdio 新建保存；
-主线当前组合另验证含资产排序的未登录前门。普通实窗的 update/copy/delete/凭据矩阵、
-真人/硬件GPU/macOS/Windows 仍未逐项验收，不能用组件 CRUD 或六目标构建代替。
+主线当前组合另验证含资产排序的未登录前门。后继非作者普通实窗还完成 update/无密钥 copy/
+delete、四类旧引用 KEEP/明确空 REPLACE/CLEAR、一次非空替换、已提交丢响应 Unknown、
+取消排空及真实 reduced-motion 代表链。全部凭据/transport/其它 Unknown 与在途身份组合、
+真人/硬件GPU/macOS/Windows 仍未逐项验收，不能用有限实窗、组件 CRUD 或六目标构建代替。
 本功能不连接或启动 MCP、不应用本机、不管理网站 MCP token，不关闭完整 F12/UI/GA。
 操作与准确证据见 `DESKTOP-MCP-ASSETS.md`、`VERIFICATION.md`。
 

@@ -10,7 +10,7 @@ import (
 var nativePages = [...]struct{ label, heading string }{
 	{"公开目录", "发现与安装技能"},
 	{"Pack 订阅", "管理订阅与同步"},
-	{"Magpie 导入", "导入服务端仓库"},
+	{"导入", "选择导入技能、仓库与配置"},
 	{"账号", "账号与本机设置"},
 	{"AI 配置", "AI 配置工作区"},
 	{"Grok Build", "Grok Build 资产"},
@@ -138,6 +138,9 @@ func (model *Model) nativeStatus(context *ui.Context, theme *ui.Theme, panel ui.
 		}
 		ui.Column(context).Grow(1).MinWidth(0).Gap(theme.Space(1)).Children(func() {
 			ui.Text(context, model.Status)
+			if len(model.selectionBarriers) > 0 {
+				ui.Text(context, "导入结果待核实：退出前请到导入页保存原 operation ID；不自动重发").TextColor(theme.TextMuted)
+			}
 			if model.Page != 1 && model.watchLocksLocal() {
 				ui.Text(context, model.WatchStatus).TextColor(theme.TextMuted)
 			}
