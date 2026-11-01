@@ -4,6 +4,13 @@ Server, CLI and native GUI have independent versions and tag triggers. Push a ta
 only after its component has passed acceptance. A tag is not a declaration that
 the entire Cognate product is complete.
 
+The 2026-11-01 stable component release is described in `RELEASE-v0.1.0.md`:
+`server-v0.1.0`, `cli-v0.1.0`, and `gui-v0.1.1`. Published preview tags remain
+unchanged. Stable distribution does not waive the documented feature, platform,
+backup/restore, signing or complete-product acceptance gates. Publish CLI/GUI
+drafts only after verifying the delivered archives and checksums; replace draft
+notes with the component's supported scope and known limitations before publication.
+
 | Tag | Checks and output |
 | --- | --- |
 | `server-v0.1.0-rc.1` | Full shared Go/Web/Buf checks, both Docker architecture smoke tests, then promote the tested OCI artifacts to `ghcr.io/ca-x/cognate:server-v0.1.0-rc.1`; no CLI release or GUI packaging |

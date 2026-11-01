@@ -251,6 +251,20 @@ func newPackConfigurationFixture(test *testing.T, seeds ...func(*serverstate.Sto
 		})
 	}
 	test.Cleanup(fixture.stop)
+	client := &http.Client{Transport: transport, Timeout: 5 * time.Second}
+	request, err := http.NewRequestWithContext(test.Context(), http.MethodGet, origin+"/healthz", nil)
+	if err != nil {
+		test.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		test.Fatal("server readiness", err)
+	}
+	_, readError := io.Copy(io.Discard, io.LimitReader(response.Body, 4096))
+	closeError := response.Body.Close()
+	if readError != nil || closeError != nil || response.StatusCode != http.StatusOK {
+		test.Fatal("server not ready", readError, closeError, response.StatusCode)
+	}
 	return fixture
 }
 
