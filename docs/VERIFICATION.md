@@ -1,5 +1,47 @@
 # 开发预览验证
 
+## 2026-11-01：MyGo 私有 MCP 连接资产完整编辑
+
+exact12 为2修改、10新增，patch SHA256
+`17ba3ea7628975aba443ac4cdc6cb19411146790df8ba033758900418816c42b`，fullsource SHA256
+`540a5b24b8446c4e65091c5c2e7ec768a89bf84e6c33ecb70b44d4485a77ecec`。
+非作者 Spec/Quality 限定 ACCEPT：`/tmp/cognate-mcp-review-exact12-WHoeRQ/REPORT.md`，
+SHA256 `4f42da0e8c8a3be7c0cdda677bad867cb1f0b786b7d5f8842667f9a33ba909d0`，全冻结清单复核通过。
+独立重建全树/字节/模式，真实App/TLS/SQLite覆盖13种结构变换逐旧ref CLEAR、四类ref的
+KEEP/空REPLACE/CLEAR/再REPLACE、四操作提交后丢回复、CAS/只读/跨owner/排空；逐槽门和
+密码widget共享身份两项可编译减门均实际RED。独立定向64、附加37、公共生命周期12 PASS
+事件分轮有重叠，不累加为不同测试或主线全仓结果。
+
+独立普通binary `e641bfcabec4a99f41b2c31da156e7c3df11127710c68992cb0c22f39de88508`
+真实前门进入MCP，再在账号页真实TLS登录、新建stdio无slot配置、查看审阅、手输精确确认并
+提交。SQLite触发器旁证create=1/update=0/delete=0，native materialization RPC均0；不是
+只凭窗口状态。窗口及fixture各实际Wait0，App Serve/Wait/Close由helper确认；观察用sql.DB
+的Close返回值原helper未检查，不能扩称它或所有FD故障均验收。首轮错误导航/非法identifier/
+fixture stop超时FAIL及首次Unknown oracle误断言保留，不写成产品修复或用后继绿覆盖。
+
+主隔离组合 `/tmp/cognate-mygo-mcp-main-c8885b0-DTKuxUs5` 固定c8885+exact12，使用当前真实
+Web dist作embed前提。desktop/mcpclient/cli三包 `01-three-packages.*` 实际终态exit0：
+784 PASS事件、25条件SKIP、0 FAIL、3包通过。1个为既有desktop专用overlay入口、24个为
+CLI helper/需fixture的Codex资格入口；新MCP测试无SKIP，不冒称本轮重跑实际C6消费者。
+`02-vet.*` exit0，六个MyGo三OS双架构CGO0构建和metadata通过，见`03-*`。
+Go1.27.3、显式CGO_ENABLED=0、GOMAXPROCS4、私有HOME/tmp、离线只读模块缓存，无race。
+应用main后1443非文档输入与合格组合逐字相同；当前后继仅docs，不声称重跑全仓/十八构建。
+主线另新跑两包 `^(TestEditor|TestMCP)`，`05-main-directed.*` 实际exit0：
+66 PASS事件、0 SKIP、0 FAIL、2包通过。
+
+当前组合普通新Linux binary SHA256
+`f70bccb68fdb402e70645a6d53a0d0bf36a53a84285763c3575be3f4e986afdf`，无overlay/强制页面/
+预注入session，在新private HOME/config/data/runtime、dbus+cage Wayland/pixman/llvmpipe
+下从普通目录页出发，六Tab截图目视AI焦点后Return、四Tab截图目视MCP焦点后Return，确认
+已有资产排序与MCP页并存。真正Window.CapturePage最终图`04-native-final.png` SHA256
+`0310b539daea8374bb9a4c7c8240e71e08c0702257cacd6077aae443a4839579`已目视，
+NATIVE_WINDOW_CREATED/NATIVE_CAPTURE_OK与外层实际Wait0；没有初始化客户端key。
+
+实窗独立资格只到真实登录/一次无slot新建；实窗update/copy/delete/逐凭据矩阵尚未完成。
+主新组合窗口只证明未登录Linux软件绘制入口，不是真人/硬件GPU/其它平台/完整UI。
+本片不启动MCP、执行声明命令、连接声明URL、应用本机或加载客户端moejs，不等同网站
+MCP管理token，也不关闭各agent/完整F12/GA；Unknown无跨重启receipt或幂等键。
+
 ## 2026-11-01：T4 隔离候选净化与 owning-root 隔离
 
 exact26 为10修改、16新增，patch SHA256

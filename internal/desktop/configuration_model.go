@@ -187,20 +187,22 @@ type configurationPrompt struct {
 }
 
 type configurationState struct {
-	Identity             configurationIdentity
-	Assets               []configurationAsset
-	Selected             string
-	Form                 *configurationForm
-	Profile, OperationID string
-	History              []configurationOutcome
-	Outcome              configurationOutcome
-	Prompt               *configurationPrompt
-	PendingPage          int
-	PendingAction        string
-	ConfirmDelete        bool
-	List                 ui.ListState
-	ListIndex            int
-	Scroll               ui.ScrollState
+	MCP                   *mcpEditorState
+	MCPActive, MCPEnglish bool
+	Identity              configurationIdentity
+	Assets                []configurationAsset
+	Selected              string
+	Form                  *configurationForm
+	Profile, OperationID  string
+	History               []configurationOutcome
+	Outcome               configurationOutcome
+	Prompt                *configurationPrompt
+	PendingPage           int
+	PendingAction         string
+	ConfirmDelete         bool
+	List                  ui.ListState
+	ListIndex             int
+	Scroll                ui.ScrollState
 }
 
 func (model *Model) configurationState() *configurationState {
@@ -216,6 +218,7 @@ func (model *Model) configurationCancel(identityLost bool) {
 		return
 	}
 	state := model.configuration()
+	model.mcpCancel(identityLost)
 	state.Prompt = nil
 	if state.Form != nil {
 		state.Form.clearSecrets()
@@ -243,6 +246,11 @@ func (model *Model) configurationNavigate(page int) {
 		model.grokCancel()
 	}
 	state := model.configurationState()
+	if model.Page == 4 && page != 4 && state.MCPActive && state.MCP != nil && state.MCP.Form != nil && state.MCP.Form.Dirty {
+		state.MCP.Form.clearSecrets()
+		state.MCP.PendingPage = page
+		return
+	}
 	if state.Form != nil && state.Form.Dirty && model.Page == 4 && page != 4 {
 		state.PendingPage = page
 		return

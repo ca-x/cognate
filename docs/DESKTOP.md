@@ -1,5 +1,19 @@
 # Cognate Native Desktop
 
+## MCP 连接配置资产（2026-11-01）
+
+在「AI 配置 → MCP 连接配置」管理当前账号的 Claude schema1 私有资产，复用 MyGo 原生
+List/TextInput/Checkbox/Modal/Scroll 和共享 mcpclient，不读临时明文文件、不加载客户端插件。
+stdio/HTTP/SSE、有序声明、显式启停/集合存在位、Keep/Replace/Clear、每旧引用明确清理、
+无密钥复制与删除均有真实 App/TLS/SQLite 和组件流程验收。保存前完整审阅、逐槽批准与精确
+确认；CAS/Unknown 不自动重放，身份切换和关闭实际取消排空，未知格式只读。
+
+普通 Linux 软件绘制窗口已独立验证真实前门、账号登录和一次无凭据 stdio 新建保存；
+主线当前组合另验证含资产排序的未登录前门。普通实窗的 update/copy/delete/凭据矩阵、
+真人/硬件GPU/macOS/Windows 仍未逐项验收，不能用组件 CRUD 或六目标构建代替。
+本功能不连接或启动 MCP、不应用本机、不管理网站 MCP token，不关闭完整 F12/UI/GA。
+操作与准确证据见 `DESKTOP-MCP-ASSETS.md`、`VERIFICATION.md`。
+
 ## 通用资产排序（2026-11-01）
 
 原生“资产排序”页复用 MyGo Select/List/Scroll/Modal，对所有者完整 agent/配置类型分区进行

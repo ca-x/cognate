@@ -11,6 +11,12 @@ import (
 
 func (model *Model) configurationView(context *ui.Context) {
 	state := model.configurationState()
+	model.mcpWorkspaceTabs(context)
+	defer model.mcpModals(context)
+	if state.MCPActive {
+		model.mcpView(context)
+		return
+	}
 	ui.Scroll(context.Key("configuration-scroll")).Grow(1).TrackScroll(&state.Scroll).Children(func() {
 		ui.Column(context).FillWidth().Gap(10).Children(func() {
 			ui.Text(context, "AI 配置 · 保存与本机应用分离").Bold()

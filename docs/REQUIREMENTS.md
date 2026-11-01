@@ -174,6 +174,7 @@
 - 两种主题均须保证可读性、键盘焦点和对比度；尊重 prefers-reduced-motion，不以主题初始化为由放宽 CSP 的脚本策略。
 
 ### F12 AI 配置管理与应用（用户补充，2026-10-28）
+- 后继实现补记（2026-11-01，MyGo MCP）：原生 AI 配置页已接 Claude schema1 私有 MCP 连接资产完整表单，stdio/HTTP/SSE、有序声明/存在位/启停、凭据三态和每旧引用 Clear、逻辑预览、CRUD/无密钥复制、逐槽授权与精确确认经非作者限定验收。复用 mcpclient typed 内存接口，不用临时明文文件或客户端 moejs；CAS/Unknown 单写、只读核对及身份/取消/关闭排空保持。普通 Linux 软件窗口的前门/真实登录/一次新建保存已独立取证，其余实窗 CRUD/凭据矩阵及其它平台仍待逐项验收；不执行 MCP、不应用本机、不等同网站 MCP token 或完整 F12/GA。见 `DESKTOP-MCP-ASSETS.md`、`VERIFICATION.md`。
 
 - Web MCP 后继补记（2026-11-01）：`/configuration?section=mcp` 已提供私有 Claude schema1 连接资产的有序 stdio/HTTP/SSE 结构化编辑、显式启停、凭据引用 Keep/Replace/Clear、逻辑预览、CRUD/无密钥复制及完整分区排序。每个旧移除引用须明确 Clear；未知字段只读，冲突/Unknown 禁自动重放并需显式重读，主题/语言保留草稿。非作者独审、当前组合真实浏览器与原生200%缩放、全仓/CGO0构建通过；不连接 MCP、不执行进程、不应用设备，不代替 MyGo、其它 agent 或完整 F12，详见 `WEB-MCP-CONFIGURATIONS.md`。
 
