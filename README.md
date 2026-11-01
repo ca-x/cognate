@@ -1,6 +1,6 @@
 # Cognate
 
-首个正式组件版本已发布：Server/CLI `0.1.0`、GUI `0.1.2`、懒猫 `0.1.0`。分发范围与平台限制见 [正式发布说明](docs/RELEASE-v0.1.0.md)，实证见 [发布核验](docs/RELEASE-v0.1.0-VERIFICATION.md)，未完成功能见 [TODO](docs/TODO.md)。历史预览记录保留在 [预览说明](docs/PREVIEW-RELEASE.md)。
+当前正式组件版本：Server/CLI `0.2.0`、GUI `0.1.3`、懒猫 `0.2.0`。分发范围与平台限制见 [正式发布说明](docs/RELEASE-v0.2.0.md)，实证见 [发布核验](docs/RELEASE-v0.2.0-VERIFICATION.md)，未完成功能见 [TODO](docs/TODO.md)。[首个组件版本](docs/RELEASE-v0.1.0-VERIFICATION.md)与[预览记录](docs/PREVIEW-RELEASE.md)保持原范围。
 
 本页描述主线能力；新合入的功能不一定已包含在上述正式包中。组件正式分发不表示全部需求已完成。
 

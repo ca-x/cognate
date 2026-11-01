@@ -11,6 +11,8 @@
 
 ## 发布收尾
 
+- [x] 后继正式组件分发：`server-v0.2.0`、`cli-v0.2.0`、`gui-v0.1.3` 与喵喵 Exec LPK `0.2.0` 已发布；14 份 CLI/GUI 载荷及最终 LPK 完整下载核验、匿名镜像/Release 回读和商店接受见 `RELEASE-v0.2.0-VERIFICATION.md`。Darwin 原失败另列，不扩大完整功能或平台资格。
+
 - [ ] 排查 CLI-tag Platform run `41293225710` 的 Darwin fixture cleanup（sensitive detach_exit=16，still_mounted=false）及证据封装拒绝；根因未定，原失败未重跑，同源其它成功运行不覆盖，见 `RELEASE-v0.2.0-VERIFICATION.md`。
 
 - [x] 首个正式组件分发：`server-v0.1.0` 双架构镜像、`cli-v0.1.0` 六归档、`gui-v0.1.2` 八安装产物；独立 tag、完整下载校验、公开非 prerelease 回读及支持范围见 `RELEASE-v0.1.0-VERIFICATION.md`。不关闭本清单中的未完成产品能力。
