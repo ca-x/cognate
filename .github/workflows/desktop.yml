@@ -159,6 +159,7 @@ jobs:
 
   package:
     needs: verify
+    if: ${{ !cancelled() && needs.verify.result == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -411,9 +412,22 @@ jobs:
           path: dist/desktop/
           if-no-files-found: error
 
+  package-check:
+    needs: [verify, package]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require verified packages rather than skipped jobs
+        env:
+          VERIFY_RESULT: ${{ needs.verify.result }}
+          PACKAGE_RESULT: ${{ needs.package.result }}
+        run: |
+          test "$VERIFY_RESULT" = success
+          test "$PACKAGE_RESULT" = success
+
   publish:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
-    needs: package
+    needs: package-check
     runs-on: ubuntu-24.04
     permissions:
       contents: write
