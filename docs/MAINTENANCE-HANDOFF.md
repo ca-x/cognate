@@ -10,6 +10,8 @@ CLI 0.2.0、GUI 0.1.3 不重发。
 
 ## 已交付
 
+- 有限维护发布（2026-11-04）：Server `server-v0.4.0` 固定 `bb81f39b77c9776e42fba34566095c772cd2623a`，release `41679165153` success，双架构 Docker 与匿名访问校验通过；LazyCat `v0.4.0` 固定包装 `8720054f99a79b41d9737170fa51e765cf092ec6`，run `41681049194` success，最终 LPK 完整下载、许可/metadata/隔离启动通过。喵喵接受 version `4074`，回执 onlineVersion 仍 `0.3.0`，不等于店面已切换；官方关闭。详见 `RELEASE-v0.4.0-VERIFICATION.md`。下列旧版交付记录保留为历史，不恢复原 backlog。
+
 - 服务端 `server-v0.3.0`：源码 `20c7a193a9582cd14cf9d29cbbbdcfbf414e54ec`，
   Linux amd64/arm64 Docker 已发布且通过最终镜像校验，不更新 `latest`。
 - 懒猫 Exec `0.3.0`：包装仓库 `lazycat-contrib/cognate-lzcapp`，

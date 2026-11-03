@@ -1,6 +1,7 @@
 # Cognate 后续任务
 
 - [x] 用户额外授权三项修复（2026-11-04）：已认证 OIDC 关联当前账号与密码确认解绑；Web 接受 Magpie 界面密码加密导出并仅投影技能来源；cc-switch schema23/24 与 Web 64 MiB，用户授权本机库只读预览通过。该项不等于全部导入配置矩阵、完整备份恢复或平台 OIDC 真机验收。
+- [x] 上述维护修复发布 Server/LazyCat 0.4.0：双架构 Docker、最终 LPK 下载/许可/metadata/隔离启动均通过；喵喵接受 version 4074，onlineVersion 仍 0.3.0，店面切换与真机测试待用户确认。CLI/GUI 不重发，官方商店关闭。
 
 - [x] Grok provider Web 资产编辑：native/custom、七模型字段、密钥三态、无凭据复制、只读未知字段及 Unknown/CAS 防重放；不包含本机应用与 MyGo。
 - [x] 懒猫首次管理员、UUID、OIDC 与 GitHub 安装向导；rc.4 已由成功 CI 提交喵喵商店。
