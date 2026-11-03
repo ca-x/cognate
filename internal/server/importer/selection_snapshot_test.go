@@ -58,7 +58,7 @@ func TestSelectionSnapshotProjection(test *testing.T) {
 func TestSelectionSnapshotIsolation(test *testing.T) {
 	statements := string(selectionFixture(test, "ccswitch-schema24.sql"))
 	for _, suffix := range []string{
-		`PRAGMA user_version=23;`,
+		`PRAGMA user_version=22;`,
 		`DROP TABLE skills; CREATE VIEW skills AS SELECT 'x' id;`,
 		`DROP TABLE skill_repos; CREATE TABLE skill_repos(owner TEXT, name TEXT, branch TEXT GENERATED ALWAYS AS ('HEAD') VIRTUAL, enabled INTEGER);`,
 		`CREATE TRIGGER unsafe AFTER INSERT ON skills BEGIN SELECT 1; END;`,

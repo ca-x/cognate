@@ -50,12 +50,20 @@ scans the whole public repository, not only source-installed references.
 
 ## Protocol and limits
 
+Server 0.4.0 raises the Web/server snapshot limit and accepts schema23/24. The
+existing CLI/importclient limit remains 16 MiB; this release does not change or
+republish the CLI. Compatibility was checked using the explicitly authorized
+local schema23 database (about 45 MiB), read-only and projected in memory through
+the actual moejs and service preview path. No real rows or database files are
+included in fixtures or Git. WAL capture requirements above remain unchanged.
+
 `skillhub.import.v1.ImportService/PreviewCCSwitchSnapshot` accepts `snapshot_data`
 bytes, never a server path, owner, SQL command, plugin module or download URL.
 
-- Raw snapshot: nonempty, at most 16 MiB, SQLite header/page-count consistency,
+- Web/server raw snapshot: nonempty, at most 64 MiB, schema version 23 or 24 with
+  the required table/column structure, SQLite header/page-count consistency,
   rollback-mode read/write format versions and whole-file page alignment.
-- HTTP/Connect request: at most 24 MiB including ProtoJSON base64 overhead;
+- HTTP/Connect request: at most 88 MiB including ProtoJSON base64 overhead;
   identity encoding only. Response remains at most 2 MiB.
 - Authentication and admission precede body decoding. Both import RPCs share a
   process maximum of two active requests and one per owner, with no wait queue.

@@ -1,5 +1,30 @@
 # Server-only Magpie library preview
 
+## Web encrypted app exports (Server 0.4.0)
+
+Both Web import entry points now accept the password-protected `.magpie-backup`
+file produced by Magpie's graphical export screen, up to 64 MiB. Enter its export
+password in the form. WebCrypto decrypts it in the browser; neither the password
+nor the encrypted backup is uploaded. HTTPS (or localhost) is required for
+WebCrypto. Plain `library.json` remains supported up to 1 MiB without a password.
+
+The format was verified against `yetone/magpie` commit
+`502674abb767e48e7d48944fc4657d7549a25c2b`, `internal/backup/backup.go`:
+envelope version 1, PBKDF2-HMAC-SHA256, AES-256-GCM, and authenticated format/KDF
+metadata. Supported plaintext bundle versions are 1 and 2. Wrong passwords,
+tampering, unsupported versions and out-of-range KDF parameters fail before upload.
+
+Only bounded skill-source metadata from `bundle.library.skills` is normalized
+and sent to the existing server-only moejs importer. Bundled skill files,
+execution flags, provider credentials, settings and agent application mappings
+are not migrated. This is not a full backup restore. Other configuration types
+remain excluded or represented by safe unsupported placeholders; do not treat
+them as restored client configuration. No password is stored in browser storage;
+JavaScript strings cannot guarantee physical secure erasure.
+
+The existing server API described below continues to receive normalized
+`library.json` bytes, not the password or full backup.
+
 The adapter itself is an internal, read-only preview. It is now exposed through
 an authenticated, bounded Connect upload endpoint and a Web repository-selection
 workflow, not a completed M6 implementation. The server accepts explicitly

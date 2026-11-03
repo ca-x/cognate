@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/auth/v1/auth.proto.
  */
 export const file_skillhub_auth_v1_auth: GenFile = /*@__PURE__*/
-  fileDesc("Chtza2lsbGh1Yi9hdXRoL3YxL2F1dGgucHJvdG8SEHNraWxsaHViLmF1dGgudjEiNQoPUmVnaXN0ZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhAKCHBhc3N3b3JkGAIgASgJIiMKEFJlZ2lzdGVyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIyCgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEAoIcGFzc3dvcmQYAiABKAkiPwoNTG9naW5SZXNwb25zZRIVCg1zZXNzaW9uX3Rva2VuGAEgASgJEhcKD2V4cGlyZXNfYXRfdW5peBgCIAEoAyITChFHZXRTZXNzaW9uUmVxdWVzdCIlChJHZXRTZXNzaW9uUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIhgKFkdldExvZ2luT3B0aW9uc1JlcXVlc3QiLwoXR2V0TG9naW5PcHRpb25zUmVzcG9uc2USFAoMb2lkY19lbmFibGVkGAEgASgIIjUKFVN0YXJ0T0lEQ0xvZ2luUmVxdWVzdBIcChRsaW5rX2N1cnJlbnRfYWNjb3VudBgBIAEoCCIzChZTdGFydE9JRENMb2dpblJlc3BvbnNlEhkKEWF1dGhvcml6YXRpb25fdXJsGAEgASgJIhoKGENvbXBsZXRlT0lEQ0xvZ2luUmVxdWVzdCJcChlDb21wbGV0ZU9JRENMb2dpblJlc3BvbnNlEhUKDXNlc3Npb25fdG9rZW4YASABKAkSFwoPZXhwaXJlc19hdF91bml4GAIgASgDEg8KB3VzZXJfaWQYAyABKAkyiwUKC0F1dGhTZXJ2aWNlElEKCFJlZ2lzdGVyEiEuc2tpbGxodWIuYXV0aC52MS5SZWdpc3RlclJlcXVlc3QaIi5za2lsbGh1Yi5hdXRoLnYxLlJlZ2lzdGVyUmVzcG9uc2USSAoFTG9naW4SHi5za2lsbGh1Yi5hdXRoLnYxLkxvZ2luUmVxdWVzdBofLnNraWxsaHViLmF1dGgudjEuTG9naW5SZXNwb25zZRJXCgpHZXRTZXNzaW9uEiMuc2tpbGxodWIuYXV0aC52MS5HZXRTZXNzaW9uUmVxdWVzdBokLnNraWxsaHViLmF1dGgudjEuR2V0U2Vzc2lvblJlc3BvbnNlEksKBkxvZ291dBIfLnNraWxsaHViLmF1dGgudjEuTG9nb3V0UmVxdWVzdBogLnNraWxsaHViLmF1dGgudjEuTG9nb3V0UmVzcG9uc2USZgoPR2V0TG9naW5PcHRpb25zEiguc2tpbGxodWIuYXV0aC52MS5HZXRMb2dpbk9wdGlvbnNSZXF1ZXN0Gikuc2tpbGxodWIuYXV0aC52MS5HZXRMb2dpbk9wdGlvbnNSZXNwb25zZRJjCg5TdGFydE9JRENMb2dpbhInLnNraWxsaHViLmF1dGgudjEuU3RhcnRPSURDTG9naW5SZXF1ZXN0Giguc2tpbGxodWIuYXV0aC52MS5TdGFydE9JRENMb2dpblJlc3BvbnNlEmwKEUNvbXBsZXRlT0lEQ0xvZ2luEiouc2tpbGxodWIuYXV0aC52MS5Db21wbGV0ZU9JRENMb2dpblJlcXVlc3QaKy5za2lsbGh1Yi5hdXRoLnYxLkNvbXBsZXRlT0lEQ0xvZ2luUmVzcG9uc2VCNVozZ2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL2F1dGgvdjE7YXV0aHYxYgZwcm90bzM");
+  fileDesc("Chtza2lsbGh1Yi9hdXRoL3YxL2F1dGgucHJvdG8SEHNraWxsaHViLmF1dGgudjEiNQoPUmVnaXN0ZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhAKCHBhc3N3b3JkGAIgASgJIiMKEFJlZ2lzdGVyUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIyCgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEAoIcGFzc3dvcmQYAiABKAkiPwoNTG9naW5SZXNwb25zZRIVCg1zZXNzaW9uX3Rva2VuGAEgASgJEhcKD2V4cGlyZXNfYXRfdW5peBgCIAEoAyITChFHZXRTZXNzaW9uUmVxdWVzdCIlChJHZXRTZXNzaW9uUmVzcG9uc2USDwoHdXNlcl9pZBgBIAEoCSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIhgKFkdldExvZ2luT3B0aW9uc1JlcXVlc3QiLwoXR2V0TG9naW5PcHRpb25zUmVzcG9uc2USFAoMb2lkY19lbmFibGVkGAEgASgIIjUKFVN0YXJ0T0lEQ0xvZ2luUmVxdWVzdBIcChRsaW5rX2N1cnJlbnRfYWNjb3VudBgBIAEoCCIzChZTdGFydE9JRENMb2dpblJlc3BvbnNlEhkKEWF1dGhvcml6YXRpb25fdXJsGAEgASgJIhoKGENvbXBsZXRlT0lEQ0xvZ2luUmVxdWVzdCJcChlDb21wbGV0ZU9JRENMb2dpblJlc3BvbnNlEhUKDXNlc3Npb25fdG9rZW4YASABKAkSFwoPZXhwaXJlc19hdF91bml4GAIgASgDEg8KB3VzZXJfaWQYAyABKAkiGAoWR2V0T0lEQ0JpbmRpbmdzUmVxdWVzdCIyCgtPSURDQmluZGluZxITCgtpZGVudGl0eV9pZBgBIAEoAxIOCgZpc3N1ZXIYAiABKAkiXgoXR2V0T0lEQ0JpbmRpbmdzUmVzcG9uc2USLwoIYmluZGluZ3MYASADKAsyHS5za2lsbGh1Yi5hdXRoLnYxLk9JRENCaW5kaW5nEhIKCmNhbl91bmxpbmsYAiABKAgiPwoRVW5saW5rT0lEQ1JlcXVlc3QSEwoLaWRlbnRpdHlfaWQYASABKAMSFQoIcGFzc3dvcmQYAiABKAlCA4ABASIUChJVbmxpbmtPSURDUmVzcG9uc2UyzAYKC0F1dGhTZXJ2aWNlElEKCFJlZ2lzdGVyEiEuc2tpbGxodWIuYXV0aC52MS5SZWdpc3RlclJlcXVlc3QaIi5za2lsbGh1Yi5hdXRoLnYxLlJlZ2lzdGVyUmVzcG9uc2USSAoFTG9naW4SHi5za2lsbGh1Yi5hdXRoLnYxLkxvZ2luUmVxdWVzdBofLnNraWxsaHViLmF1dGgudjEuTG9naW5SZXNwb25zZRJXCgpHZXRTZXNzaW9uEiMuc2tpbGxodWIuYXV0aC52MS5HZXRTZXNzaW9uUmVxdWVzdBokLnNraWxsaHViLmF1dGgudjEuR2V0U2Vzc2lvblJlc3BvbnNlEksKBkxvZ291dBIfLnNraWxsaHViLmF1dGgudjEuTG9nb3V0UmVxdWVzdBogLnNraWxsaHViLmF1dGgudjEuTG9nb3V0UmVzcG9uc2USZgoPR2V0TG9naW5PcHRpb25zEiguc2tpbGxodWIuYXV0aC52MS5HZXRMb2dpbk9wdGlvbnNSZXF1ZXN0Gikuc2tpbGxodWIuYXV0aC52MS5HZXRMb2dpbk9wdGlvbnNSZXNwb25zZRJjCg5TdGFydE9JRENMb2dpbhInLnNraWxsaHViLmF1dGgudjEuU3RhcnRPSURDTG9naW5SZXF1ZXN0Giguc2tpbGxodWIuYXV0aC52MS5TdGFydE9JRENMb2dpblJlc3BvbnNlEmwKEUNvbXBsZXRlT0lEQ0xvZ2luEiouc2tpbGxodWIuYXV0aC52MS5Db21wbGV0ZU9JRENMb2dpblJlcXVlc3QaKy5za2lsbGh1Yi5hdXRoLnYxLkNvbXBsZXRlT0lEQ0xvZ2luUmVzcG9uc2USZgoPR2V0T0lEQ0JpbmRpbmdzEiguc2tpbGxodWIuYXV0aC52MS5HZXRPSURDQmluZGluZ3NSZXF1ZXN0Gikuc2tpbGxodWIuYXV0aC52MS5HZXRPSURDQmluZGluZ3NSZXNwb25zZRJXCgpVbmxpbmtPSURDEiMuc2tpbGxodWIuYXV0aC52MS5VbmxpbmtPSURDUmVxdWVzdBokLnNraWxsaHViLmF1dGgudjEuVW5saW5rT0lEQ1Jlc3BvbnNlQjVaM2dpdGh1Yi5jb20vY2EteC9jb2duYXRlL2dlbi9za2lsbGh1Yi9hdXRoL3YxO2F1dGh2MWIGcHJvdG8z");
 
 /**
  * @generated from message skillhub.auth.v1.RegisterRequest
@@ -256,6 +256,98 @@ export const CompleteOIDCLoginResponseSchema: GenMessage<CompleteOIDCLoginRespon
   messageDesc(file_skillhub_auth_v1_auth, 13);
 
 /**
+ * @generated from message skillhub.auth.v1.GetOIDCBindingsRequest
+ */
+export type GetOIDCBindingsRequest = Message<"skillhub.auth.v1.GetOIDCBindingsRequest"> & {
+};
+
+/**
+ * Describes the message skillhub.auth.v1.GetOIDCBindingsRequest.
+ * Use `create(GetOIDCBindingsRequestSchema)` to create a new message.
+ */
+export const GetOIDCBindingsRequestSchema: GenMessage<GetOIDCBindingsRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_auth_v1_auth, 14);
+
+/**
+ * @generated from message skillhub.auth.v1.OIDCBinding
+ */
+export type OIDCBinding = Message<"skillhub.auth.v1.OIDCBinding"> & {
+  /**
+   * @generated from field: int64 identity_id = 1;
+   */
+  identityId: bigint;
+
+  /**
+   * @generated from field: string issuer = 2;
+   */
+  issuer: string;
+};
+
+/**
+ * Describes the message skillhub.auth.v1.OIDCBinding.
+ * Use `create(OIDCBindingSchema)` to create a new message.
+ */
+export const OIDCBindingSchema: GenMessage<OIDCBinding> = /*@__PURE__*/
+  messageDesc(file_skillhub_auth_v1_auth, 15);
+
+/**
+ * @generated from message skillhub.auth.v1.GetOIDCBindingsResponse
+ */
+export type GetOIDCBindingsResponse = Message<"skillhub.auth.v1.GetOIDCBindingsResponse"> & {
+  /**
+   * @generated from field: repeated skillhub.auth.v1.OIDCBinding bindings = 1;
+   */
+  bindings: OIDCBinding[];
+
+  /**
+   * @generated from field: bool can_unlink = 2;
+   */
+  canUnlink: boolean;
+};
+
+/**
+ * Describes the message skillhub.auth.v1.GetOIDCBindingsResponse.
+ * Use `create(GetOIDCBindingsResponseSchema)` to create a new message.
+ */
+export const GetOIDCBindingsResponseSchema: GenMessage<GetOIDCBindingsResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_auth_v1_auth, 16);
+
+/**
+ * @generated from message skillhub.auth.v1.UnlinkOIDCRequest
+ */
+export type UnlinkOIDCRequest = Message<"skillhub.auth.v1.UnlinkOIDCRequest"> & {
+  /**
+   * @generated from field: int64 identity_id = 1;
+   */
+  identityId: bigint;
+
+  /**
+   * @generated from field: string password = 2;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message skillhub.auth.v1.UnlinkOIDCRequest.
+ * Use `create(UnlinkOIDCRequestSchema)` to create a new message.
+ */
+export const UnlinkOIDCRequestSchema: GenMessage<UnlinkOIDCRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_auth_v1_auth, 17);
+
+/**
+ * @generated from message skillhub.auth.v1.UnlinkOIDCResponse
+ */
+export type UnlinkOIDCResponse = Message<"skillhub.auth.v1.UnlinkOIDCResponse"> & {
+};
+
+/**
+ * Describes the message skillhub.auth.v1.UnlinkOIDCResponse.
+ * Use `create(UnlinkOIDCResponseSchema)` to create a new message.
+ */
+export const UnlinkOIDCResponseSchema: GenMessage<UnlinkOIDCResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_auth_v1_auth, 18);
+
+/**
  * @generated from service skillhub.auth.v1.AuthService
  */
 export const AuthService: GenService<{
@@ -314,6 +406,22 @@ export const AuthService: GenService<{
     methodKind: "unary";
     input: typeof CompleteOIDCLoginRequestSchema;
     output: typeof CompleteOIDCLoginResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.auth.v1.AuthService.GetOIDCBindings
+   */
+  getOIDCBindings: {
+    methodKind: "unary";
+    input: typeof GetOIDCBindingsRequestSchema;
+    output: typeof GetOIDCBindingsResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.auth.v1.AuthService.UnlinkOIDC
+   */
+  unlinkOIDC: {
+    methodKind: "unary";
+    input: typeof UnlinkOIDCRequestSchema;
+    output: typeof UnlinkOIDCResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_skillhub_auth_v1_auth, 0);

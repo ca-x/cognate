@@ -162,7 +162,7 @@ func TestImportSelectionCodecPositiveAndReplacement(test *testing.T) {
 }
 
 func TestImportSelectionCodecByteBounds(test *testing.T) {
-	selectionTestReject(test, "json", []byte("{"+strings.Repeat(" ", 24<<20)+"}"), &importv1.PreviewImportSelectionRequest{SourceData: []byte("before")})
+	selectionTestReject(test, "json", []byte("{"+strings.Repeat(" ", 88<<20)+"}"), &importv1.PreviewImportSelectionRequest{SourceData: []byte("before")})
 	selectionTestReject(test, "json", []byte("{"+strings.Repeat(" ", 64<<10)+"}"), &importv1.GetImportCommitStatusRequest{OperationId: []byte("before")})
 	selectionTestReject(test, "proto", selectionTestBytes(1, make([]byte, 64<<10)), &importv1.GetImportCommitStatusRequest{OperationId: []byte("before")})
 }
@@ -404,9 +404,9 @@ func TestImportSelectionCodecDepthWorkAndBoundary(test *testing.T) {
 		for _, message := range []proto.Message{&importv1.PreviewImportSelectionRequest{}, &importv1.CommitImportSelectionRequest{}} {
 			var oversized []byte
 			if codec == "json" {
-				oversized = []byte("{" + strings.Repeat(" ", 24<<20) + "}")
+				oversized = []byte("{" + strings.Repeat(" ", 88<<20) + "}")
 			} else {
-				oversized = selectionTestBytes(3, make([]byte, 24<<20))
+				oversized = selectionTestBytes(3, make([]byte, 88<<20))
 			}
 			selectionTestReject(test, codec, oversized, message)
 		}

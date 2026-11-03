@@ -3,8 +3,8 @@ import { ImportSelectionSource } from "./gen/skillhub/import/v1/import_pb"
 export type ImportSource = "magpie" | "cc-switch" | "npx-skills"
 
 export const selectionSources = {
-  magpie: { source: ImportSelectionSource.MAGPIE_LIBRARY_JSON, maximumBytes: 1024 * 1024, timeoutMs: 5000, accept: ".json,application/json", label: "Magpie JSON · 1 MiB" },
-  "cc-switch": { source: ImportSelectionSource.CCSWITCH_SCHEMA24, maximumBytes: 16 * 1024 * 1024, timeoutMs: 15000, accept: ".db,.sqlite,.sqlite3", label: "cc-switch schema24 SQLite · 16 MiB" },
+  magpie: { source: ImportSelectionSource.MAGPIE_LIBRARY_JSON, maximumBytes: 64 * 1024 * 1024, timeoutMs: 5000, accept: ".magpie-backup,.json,application/json", label: "Magpie 界面加密导出 · 64 MiB（兼容 library.json · 1 MiB）" },
+  "cc-switch": { source: ImportSelectionSource.CCSWITCH_SCHEMA24, maximumBytes: 64 * 1024 * 1024, timeoutMs: 15000, accept: ".db,.sqlite,.sqlite3", label: "cc-switch schema23/24 SQLite · 64 MiB" },
   "npx-skills": { source: ImportSelectionSource.NPX_SKILLS_LOCK, maximumBytes: 1024 * 1024, timeoutMs: 5000, accept: ".json,application/json", label: "npx skills lock v3 · 1 MiB" },
 } satisfies Record<ImportSource, { source: ImportSelectionSource; maximumBytes: number; timeoutMs: number; accept: string; label: string }>
 

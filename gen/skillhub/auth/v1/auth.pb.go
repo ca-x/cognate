@@ -637,6 +637,234 @@ func (x *CompleteOIDCLoginResponse) GetUserId() string {
 	return ""
 }
 
+type GetOIDCBindingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOIDCBindingsRequest) Reset() {
+	*x = GetOIDCBindingsRequest{}
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOIDCBindingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOIDCBindingsRequest) ProtoMessage() {}
+
+func (x *GetOIDCBindingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOIDCBindingsRequest.ProtoReflect.Descriptor instead.
+func (*GetOIDCBindingsRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_auth_v1_auth_proto_rawDescGZIP(), []int{14}
+}
+
+type OIDCBinding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IdentityId    int64                  `protobuf:"varint,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	Issuer        string                 `protobuf:"bytes,2,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OIDCBinding) Reset() {
+	*x = OIDCBinding{}
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OIDCBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OIDCBinding) ProtoMessage() {}
+
+func (x *OIDCBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OIDCBinding.ProtoReflect.Descriptor instead.
+func (*OIDCBinding) Descriptor() ([]byte, []int) {
+	return file_skillhub_auth_v1_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *OIDCBinding) GetIdentityId() int64 {
+	if x != nil {
+		return x.IdentityId
+	}
+	return 0
+}
+
+func (x *OIDCBinding) GetIssuer() string {
+	if x != nil {
+		return x.Issuer
+	}
+	return ""
+}
+
+type GetOIDCBindingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bindings      []*OIDCBinding         `protobuf:"bytes,1,rep,name=bindings,proto3" json:"bindings,omitempty"`
+	CanUnlink     bool                   `protobuf:"varint,2,opt,name=can_unlink,json=canUnlink,proto3" json:"can_unlink,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOIDCBindingsResponse) Reset() {
+	*x = GetOIDCBindingsResponse{}
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOIDCBindingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOIDCBindingsResponse) ProtoMessage() {}
+
+func (x *GetOIDCBindingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOIDCBindingsResponse.ProtoReflect.Descriptor instead.
+func (*GetOIDCBindingsResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_auth_v1_auth_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetOIDCBindingsResponse) GetBindings() []*OIDCBinding {
+	if x != nil {
+		return x.Bindings
+	}
+	return nil
+}
+
+func (x *GetOIDCBindingsResponse) GetCanUnlink() bool {
+	if x != nil {
+		return x.CanUnlink
+	}
+	return false
+}
+
+type UnlinkOIDCRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IdentityId    int64                  `protobuf:"varint,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnlinkOIDCRequest) Reset() {
+	*x = UnlinkOIDCRequest{}
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnlinkOIDCRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnlinkOIDCRequest) ProtoMessage() {}
+
+func (x *UnlinkOIDCRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnlinkOIDCRequest.ProtoReflect.Descriptor instead.
+func (*UnlinkOIDCRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_auth_v1_auth_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UnlinkOIDCRequest) GetIdentityId() int64 {
+	if x != nil {
+		return x.IdentityId
+	}
+	return 0
+}
+
+func (x *UnlinkOIDCRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type UnlinkOIDCResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnlinkOIDCResponse) Reset() {
+	*x = UnlinkOIDCResponse{}
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnlinkOIDCResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnlinkOIDCResponse) ProtoMessage() {}
+
+func (x *UnlinkOIDCResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_auth_v1_auth_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnlinkOIDCResponse.ProtoReflect.Descriptor instead.
+func (*UnlinkOIDCResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_auth_v1_auth_proto_rawDescGZIP(), []int{18}
+}
+
 var File_skillhub_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_skillhub_auth_v1_auth_proto_rawDesc = "" +
@@ -669,7 +897,21 @@ const file_skillhub_auth_v1_auth_proto_rawDesc = "" +
 	"\x19CompleteOIDCLoginResponse\x12#\n" +
 	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\x12&\n" +
 	"\x0fexpires_at_unix\x18\x02 \x01(\x03R\rexpiresAtUnix\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\tR\x06userId2\x8b\x05\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\"\x18\n" +
+	"\x16GetOIDCBindingsRequest\"F\n" +
+	"\vOIDCBinding\x12\x1f\n" +
+	"\videntity_id\x18\x01 \x01(\x03R\n" +
+	"identityId\x12\x16\n" +
+	"\x06issuer\x18\x02 \x01(\tR\x06issuer\"s\n" +
+	"\x17GetOIDCBindingsResponse\x129\n" +
+	"\bbindings\x18\x01 \x03(\v2\x1d.skillhub.auth.v1.OIDCBindingR\bbindings\x12\x1d\n" +
+	"\n" +
+	"can_unlink\x18\x02 \x01(\bR\tcanUnlink\"U\n" +
+	"\x11UnlinkOIDCRequest\x12\x1f\n" +
+	"\videntity_id\x18\x01 \x01(\x03R\n" +
+	"identityId\x12\x1f\n" +
+	"\bpassword\x18\x02 \x01(\tB\x03\x80\x01\x01R\bpassword\"\x14\n" +
+	"\x12UnlinkOIDCResponse2\xcc\x06\n" +
 	"\vAuthService\x12Q\n" +
 	"\bRegister\x12!.skillhub.auth.v1.RegisterRequest\x1a\".skillhub.auth.v1.RegisterResponse\x12H\n" +
 	"\x05Login\x12\x1e.skillhub.auth.v1.LoginRequest\x1a\x1f.skillhub.auth.v1.LoginResponse\x12W\n" +
@@ -678,7 +920,10 @@ const file_skillhub_auth_v1_auth_proto_rawDesc = "" +
 	"\x06Logout\x12\x1f.skillhub.auth.v1.LogoutRequest\x1a .skillhub.auth.v1.LogoutResponse\x12f\n" +
 	"\x0fGetLoginOptions\x12(.skillhub.auth.v1.GetLoginOptionsRequest\x1a).skillhub.auth.v1.GetLoginOptionsResponse\x12c\n" +
 	"\x0eStartOIDCLogin\x12'.skillhub.auth.v1.StartOIDCLoginRequest\x1a(.skillhub.auth.v1.StartOIDCLoginResponse\x12l\n" +
-	"\x11CompleteOIDCLogin\x12*.skillhub.auth.v1.CompleteOIDCLoginRequest\x1a+.skillhub.auth.v1.CompleteOIDCLoginResponseB5Z3github.com/ca-x/cognate/gen/skillhub/auth/v1;authv1b\x06proto3"
+	"\x11CompleteOIDCLogin\x12*.skillhub.auth.v1.CompleteOIDCLoginRequest\x1a+.skillhub.auth.v1.CompleteOIDCLoginResponse\x12f\n" +
+	"\x0fGetOIDCBindings\x12(.skillhub.auth.v1.GetOIDCBindingsRequest\x1a).skillhub.auth.v1.GetOIDCBindingsResponse\x12W\n" +
+	"\n" +
+	"UnlinkOIDC\x12#.skillhub.auth.v1.UnlinkOIDCRequest\x1a$.skillhub.auth.v1.UnlinkOIDCResponseB5Z3github.com/ca-x/cognate/gen/skillhub/auth/v1;authv1b\x06proto3"
 
 var (
 	file_skillhub_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -692,7 +937,7 @@ func file_skillhub_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_skillhub_auth_v1_auth_proto_rawDescData
 }
 
-var file_skillhub_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_skillhub_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_skillhub_auth_v1_auth_proto_goTypes = []any{
 	(*RegisterRequest)(nil),           // 0: skillhub.auth.v1.RegisterRequest
 	(*RegisterResponse)(nil),          // 1: skillhub.auth.v1.RegisterResponse
@@ -708,27 +953,37 @@ var file_skillhub_auth_v1_auth_proto_goTypes = []any{
 	(*StartOIDCLoginResponse)(nil),    // 11: skillhub.auth.v1.StartOIDCLoginResponse
 	(*CompleteOIDCLoginRequest)(nil),  // 12: skillhub.auth.v1.CompleteOIDCLoginRequest
 	(*CompleteOIDCLoginResponse)(nil), // 13: skillhub.auth.v1.CompleteOIDCLoginResponse
+	(*GetOIDCBindingsRequest)(nil),    // 14: skillhub.auth.v1.GetOIDCBindingsRequest
+	(*OIDCBinding)(nil),               // 15: skillhub.auth.v1.OIDCBinding
+	(*GetOIDCBindingsResponse)(nil),   // 16: skillhub.auth.v1.GetOIDCBindingsResponse
+	(*UnlinkOIDCRequest)(nil),         // 17: skillhub.auth.v1.UnlinkOIDCRequest
+	(*UnlinkOIDCResponse)(nil),        // 18: skillhub.auth.v1.UnlinkOIDCResponse
 }
 var file_skillhub_auth_v1_auth_proto_depIdxs = []int32{
-	0,  // 0: skillhub.auth.v1.AuthService.Register:input_type -> skillhub.auth.v1.RegisterRequest
-	2,  // 1: skillhub.auth.v1.AuthService.Login:input_type -> skillhub.auth.v1.LoginRequest
-	4,  // 2: skillhub.auth.v1.AuthService.GetSession:input_type -> skillhub.auth.v1.GetSessionRequest
-	6,  // 3: skillhub.auth.v1.AuthService.Logout:input_type -> skillhub.auth.v1.LogoutRequest
-	8,  // 4: skillhub.auth.v1.AuthService.GetLoginOptions:input_type -> skillhub.auth.v1.GetLoginOptionsRequest
-	10, // 5: skillhub.auth.v1.AuthService.StartOIDCLogin:input_type -> skillhub.auth.v1.StartOIDCLoginRequest
-	12, // 6: skillhub.auth.v1.AuthService.CompleteOIDCLogin:input_type -> skillhub.auth.v1.CompleteOIDCLoginRequest
-	1,  // 7: skillhub.auth.v1.AuthService.Register:output_type -> skillhub.auth.v1.RegisterResponse
-	3,  // 8: skillhub.auth.v1.AuthService.Login:output_type -> skillhub.auth.v1.LoginResponse
-	5,  // 9: skillhub.auth.v1.AuthService.GetSession:output_type -> skillhub.auth.v1.GetSessionResponse
-	7,  // 10: skillhub.auth.v1.AuthService.Logout:output_type -> skillhub.auth.v1.LogoutResponse
-	9,  // 11: skillhub.auth.v1.AuthService.GetLoginOptions:output_type -> skillhub.auth.v1.GetLoginOptionsResponse
-	11, // 12: skillhub.auth.v1.AuthService.StartOIDCLogin:output_type -> skillhub.auth.v1.StartOIDCLoginResponse
-	13, // 13: skillhub.auth.v1.AuthService.CompleteOIDCLogin:output_type -> skillhub.auth.v1.CompleteOIDCLoginResponse
-	7,  // [7:14] is the sub-list for method output_type
-	0,  // [0:7] is the sub-list for method input_type
-	0,  // [0:0] is the sub-list for extension type_name
-	0,  // [0:0] is the sub-list for extension extendee
-	0,  // [0:0] is the sub-list for field type_name
+	15, // 0: skillhub.auth.v1.GetOIDCBindingsResponse.bindings:type_name -> skillhub.auth.v1.OIDCBinding
+	0,  // 1: skillhub.auth.v1.AuthService.Register:input_type -> skillhub.auth.v1.RegisterRequest
+	2,  // 2: skillhub.auth.v1.AuthService.Login:input_type -> skillhub.auth.v1.LoginRequest
+	4,  // 3: skillhub.auth.v1.AuthService.GetSession:input_type -> skillhub.auth.v1.GetSessionRequest
+	6,  // 4: skillhub.auth.v1.AuthService.Logout:input_type -> skillhub.auth.v1.LogoutRequest
+	8,  // 5: skillhub.auth.v1.AuthService.GetLoginOptions:input_type -> skillhub.auth.v1.GetLoginOptionsRequest
+	10, // 6: skillhub.auth.v1.AuthService.StartOIDCLogin:input_type -> skillhub.auth.v1.StartOIDCLoginRequest
+	12, // 7: skillhub.auth.v1.AuthService.CompleteOIDCLogin:input_type -> skillhub.auth.v1.CompleteOIDCLoginRequest
+	14, // 8: skillhub.auth.v1.AuthService.GetOIDCBindings:input_type -> skillhub.auth.v1.GetOIDCBindingsRequest
+	17, // 9: skillhub.auth.v1.AuthService.UnlinkOIDC:input_type -> skillhub.auth.v1.UnlinkOIDCRequest
+	1,  // 10: skillhub.auth.v1.AuthService.Register:output_type -> skillhub.auth.v1.RegisterResponse
+	3,  // 11: skillhub.auth.v1.AuthService.Login:output_type -> skillhub.auth.v1.LoginResponse
+	5,  // 12: skillhub.auth.v1.AuthService.GetSession:output_type -> skillhub.auth.v1.GetSessionResponse
+	7,  // 13: skillhub.auth.v1.AuthService.Logout:output_type -> skillhub.auth.v1.LogoutResponse
+	9,  // 14: skillhub.auth.v1.AuthService.GetLoginOptions:output_type -> skillhub.auth.v1.GetLoginOptionsResponse
+	11, // 15: skillhub.auth.v1.AuthService.StartOIDCLogin:output_type -> skillhub.auth.v1.StartOIDCLoginResponse
+	13, // 16: skillhub.auth.v1.AuthService.CompleteOIDCLogin:output_type -> skillhub.auth.v1.CompleteOIDCLoginResponse
+	16, // 17: skillhub.auth.v1.AuthService.GetOIDCBindings:output_type -> skillhub.auth.v1.GetOIDCBindingsResponse
+	18, // 18: skillhub.auth.v1.AuthService.UnlinkOIDC:output_type -> skillhub.auth.v1.UnlinkOIDCResponse
+	10, // [10:19] is the sub-list for method output_type
+	1,  // [1:10] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_auth_v1_auth_proto_init() }
@@ -742,7 +997,7 @@ func file_skillhub_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_auth_v1_auth_proto_rawDesc), len(file_skillhub_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

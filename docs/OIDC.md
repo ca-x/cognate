@@ -5,7 +5,9 @@
 ## 身份与会话
 
 - 外部身份为精确、区分大小写的 `(issuer, subject)`，数据库唯一约束及不可变用户外键保证一项身份只属于一个内部用户。
-- 首次 OIDC 登录创建独立内部用户；已登录用户点击“绑定 OpenID Connect 账号”才执行绑定。回调时再次验证原本地会话仍有效；已属于另一用户的身份不转移、不合并。
+- 匿名首次 OIDC 登录创建独立内部用户；已认证的 `StartOIDCLogin` 默认关联当前账号，即使调用方未设置 `link_current_account`。无效 Authorization 不降级匿名登录。账号页提供“绑定 OpenID Connect 账号”。回调时再次验证原本地会话仍有效；已属于另一用户的身份不转移、不合并。
+- 账号页列出当前用户的关联 issuer，不返回 subject。拥有本地密码的账号可输入当前密码取消关联；错误密码不会退出当前会话。解绑事务重新核对会话和密码 hash，撤销当前账号的其它会话，保留当前会话、用户名和密码。仅 OIDC 的账号不能解绑，避免失去登录方式。
+- 历史版本已经创建的独立 OIDC 账号不会自动合并；绑定冲突仍拒绝，不能用邮箱或相同用户名转移其它账号身份。
 - ID token 校验签名、issuer、audience、有效期、nonce 和授权方；使用授权码流程和 S256 PKCE。Provider 地址只来自管理员配置，HTTPS 为默认，HTTP 仅允许 loopback 开发服务。
 - OIDC 与本地登录共用 HMAC 签名的随机会话及数据库 token hash；OIDC access/ID token 不落盘，客户端不接触 provider token。
 

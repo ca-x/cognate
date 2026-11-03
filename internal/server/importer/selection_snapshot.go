@@ -14,7 +14,7 @@ import (
 func projectCCSwitchSelection(ctx context.Context, raw []byte, view *SelectionView) error {
 	return readSelectionSnapshot(ctx, raw, func(ctx context.Context, connection *sql.Conn) error {
 		var version, triggers int
-		if connection.QueryRowContext(ctx, `PRAGMA user_version`).Scan(&version) != nil || version != 24 {
+		if connection.QueryRowContext(ctx, `PRAGMA user_version`).Scan(&version) != nil || (version != 23 && version != 24) {
 			return ErrSelectionUnsupported
 		}
 		if connection.QueryRowContext(ctx, `SELECT count(*) FROM sqlite_schema WHERE type='trigger'`).Scan(&triggers) != nil || triggers != 0 {

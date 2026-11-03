@@ -27,11 +27,11 @@ func TestImportSelectionOuterGuardWireLimits(test *testing.T) {
 		procedure string
 		limit     int64
 	}{
-		{"preview", importv1connect.ImportServicePreviewImportSelectionProcedure, 24 << 20},
-		{"commit", importv1connect.ImportServiceCommitImportSelectionProcedure, 24 << 20},
+		{"preview", importv1connect.ImportServicePreviewImportSelectionProcedure, 88 << 20},
+		{"commit", importv1connect.ImportServiceCommitImportSelectionProcedure, 88 << 20},
 		{"status", importv1connect.ImportServiceGetImportCommitStatusProcedure, 64 << 10},
 		{"legacy-library", importv1connect.ImportServicePreviewLibraryExportProcedure, 2 << 20},
-		{"legacy-snapshot", importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure, 24 << 20},
+		{"legacy-snapshot", importv1connect.ImportServicePreviewCCSwitchSnapshotProcedure, 88 << 20},
 		{"unknown", "/unknown", 4096},
 		{"selection-suffix", importv1connect.ImportServicePreviewImportSelectionProcedure + "Extra", 4096},
 		{"selection-child", importv1connect.ImportServiceCommitImportSelectionProcedure + "/child", 4096},

@@ -19,7 +19,7 @@ import (
 )
 
 const importMaxWireBytes = 2 << 20
-const importSnapshotMaxWireBytes = 24 << 20
+const importSnapshotMaxWireBytes = 88 << 20
 const importResponseGrace = time.Second
 
 type importOwnerKey struct{}

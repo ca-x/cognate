@@ -12,7 +12,7 @@ import (
 	sqlite3 "modernc.org/sqlite/lib"
 )
 
-const MaxCCSwitchSnapshotBytes = 16 << 20
+const MaxCCSwitchSnapshotBytes = 64 << 20
 
 func readSelectionSnapshot(ctx context.Context, data []byte, read func(context.Context, *sql.Conn) error) error {
 	if err := ctx.Err(); err != nil {

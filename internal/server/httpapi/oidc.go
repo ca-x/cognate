@@ -9,7 +9,9 @@ import (
 	"connectrpc.com/connect"
 	authv1 "github.com/ca-x/cognate/gen/skillhub/auth/v1"
 	"github.com/ca-x/cognate/gen/skillhub/auth/v1/authv1connect"
+	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/oidclogin"
+	"github.com/ca-x/cognate/internal/server/state"
 )
 
 const oidcStateCookie = "skillhub_oidc_state"
@@ -24,7 +26,7 @@ func (handler *authHandler) StartOIDCLogin(ctx context.Context, request *connect
 		return nil, oidcNotConfigured()
 	}
 	var binding string
-	if request.Msg.LinkCurrentAccount {
+	if request.Msg.LinkCurrentAccount || request.Header().Get("Authorization") != "" {
 		if _, err := handler.authenticate(ctx, request.Header()); err != nil {
 			return nil, err
 		}
@@ -37,6 +39,37 @@ func (handler *authHandler) StartOIDCLogin(ctx context.Context, request *connect
 	response := connect.NewResponse(&authv1.StartOIDCLoginResponse{AuthorizationUrl: started.AuthorizationURL})
 	response.Header().Add("Set-Cookie", handler.oidcCookie(oidcStateCookie, started.BrowserSecret, oidclogin.CallbackPath, 300).String())
 	return response, nil
+}
+
+func (handler *authHandler) GetOIDCBindings(ctx context.Context, request *connect.Request[authv1.GetOIDCBindingsRequest]) (*connect.Response[authv1.GetOIDCBindingsResponse], error) {
+	bindings, canUnlink, err := handler.service.OIDCBindings(ctx, bearer(request.Header()))
+	if err != nil {
+		return nil, oidcError(ctx, err)
+	}
+	response := &authv1.GetOIDCBindingsResponse{CanUnlink: canUnlink}
+	for _, binding := range bindings {
+		response.Bindings = append(response.Bindings, &authv1.OIDCBinding{IdentityId: int64(binding.ID), Issuer: binding.Issuer})
+	}
+	return connect.NewResponse(response), nil
+}
+
+func (handler *authHandler) UnlinkOIDC(ctx context.Context, request *connect.Request[authv1.UnlinkOIDCRequest]) (*connect.Response[authv1.UnlinkOIDCResponse], error) {
+	password := []byte(request.Msg.Password)
+	request.Msg.Password = ""
+	defer clear(password)
+	if request.Msg.IdentityId <= 0 || int64(int(request.Msg.IdentityId)) != request.Msg.IdentityId {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid identity"))
+	}
+	if err := handler.service.UnlinkOIDC(ctx, bearer(request.Header()), int(request.Msg.IdentityId), password); err != nil {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("password verification failed"))
+		}
+		if errors.Is(err, state.ErrOIDCIdentityConflict) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("identity is not linked to this account"))
+		}
+		return nil, oidcError(ctx, err)
+	}
+	return connect.NewResponse(&authv1.UnlinkOIDCResponse{}), nil
 }
 
 func (handler *authHandler) CompleteOIDCLogin(ctx context.Context, request *connect.Request[authv1.CompleteOIDCLoginRequest]) (*connect.Response[authv1.CompleteOIDCLoginResponse], error) {

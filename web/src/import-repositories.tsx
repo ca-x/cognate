@@ -15,6 +15,8 @@ import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { selectionSources } from "./npx-import-i18n"
+import { prepareMagpieExport } from "./magpie-export"
+import "./import-fixes-i18n"
 
 type Outcome = "pending" | "in_flight" | "collected" | "failed" | "unknown" | "not_attempted"
 type Candidate = Pick<RepositoryCandidate, "repository" | "branch" | "existingRepositoryId" | "sourceEnabled"> & { outcome: Outcome; code?: Code }
@@ -22,8 +24,8 @@ type Phase = "idle" | "reading" | "previewing" | "collecting"
 type Source = "magpie" | "cc-switch"
 
 const sourceOptions = {
-  magpie: { maximumBytes: 1024 * 1024, label: "Magpie JSON 导出（最大 1 MiB）", accept: ".json,application/json", invalidFile: "请选择非空 JSON 导出，最大 1 MiB。" },
-  "cc-switch": { maximumBytes: 16 * 1024 * 1024, label: "cc-switch SQLite 快照（最大 16 MiB）", accept: ".db,.sqlite,.sqlite3,application/vnd.sqlite3,application/x-sqlite3", invalidFile: "请选择非空、自包含的 SQLite 快照，最大 16 MiB。" },
+  magpie: { maximumBytes: 64 * 1024 * 1024, label: "Magpie 界面加密导出 · 64 MiB（兼容 library.json · 1 MiB）", accept: ".magpie-backup,.json,application/json", invalidFile: "请选择非空 Magpie 导出，最大 64 MiB。" },
+  "cc-switch": { maximumBytes: 64 * 1024 * 1024, label: "cc-switch schema23/24 SQLite · 64 MiB", accept: ".db,.sqlite,.sqlite3,application/vnd.sqlite3,application/x-sqlite3", invalidFile: "请选择非空、自包含的 SQLite 快照，最大 64 MiB。" },
 }
 const itemFailures = new Set([Code.InvalidArgument, Code.NotFound, Code.FailedPrecondition, Code.DataLoss])
 const outcomeLabels: Record<Outcome, string> = {
@@ -38,8 +40,8 @@ const outcomeLabels: Record<Outcome, string> = {
 function previewError(code: Code, source: Source) {
   switch (code) {
     case Code.InvalidArgument:
-    case Code.FailedPrecondition: return source === "magpie" ? "无法预览此导出。请使用有效的 Magpie library.json。" : "无法预览此快照。请提供有效 cc-switch schema 的独立 rollback-mode SQLite 快照；不接受 WAL 模式数据库。"
-    case Code.ResourceExhausted: return source === "magpie" ? "导出超过限制或预览请求较多，请检查 1 MiB 上限后稍后重试。" : "快照超过限制或预览请求较多，请检查 16 MiB 上限后稍后重试。"
+    case Code.FailedPrecondition: return source === "magpie" ? "无法预览此导出，请检查 Magpie 导出文件和密码。" : "无法预览此快照。请提供有效 cc-switch schema 的独立 rollback-mode SQLite 快照；不接受 WAL 模式数据库。"
+    case Code.ResourceExhausted: return "导出超过大小或条目限制，或预览请求较多，请检查后稍后重试。"
     case Code.Unauthenticated:
     case Code.PermissionDenied: return "会话已失效或没有权限，请重新登录后再试。"
     default: return "预览未完成，请检查连接后重新选择文件。未收录任何仓库。"
@@ -78,6 +80,7 @@ function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { coll
   const { imports, library, session } = useApi()
   const queryClient = useQueryClient()
   const file = useRef<File | null>(null)
+  const magpiePassword = useRef<HTMLInputElement>(null)
   const active = useRef<AbortController | null>(null)
   const generation = useRef(0)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -114,6 +117,7 @@ function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { coll
   }
 
   function clear() {
+    if (magpiePassword.current) magpiePassword.current.value = ""
     if (phase === "collecting") invalidate()
     generation.current++
     active.current?.abort()
@@ -155,6 +159,13 @@ function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { coll
     setPhase("reading")
     try {
       bytes = await readExport(selectedFile, controller.signal)
+      if (source === "magpie") {
+        const password = magpiePassword.current?.value ?? ""
+        if (magpiePassword.current) magpiePassword.current.value = ""
+        const normalized = await prepareMagpieExport(bytes, password, controller.signal)
+        if (normalized !== bytes) bytes.fill(0)
+        bytes = normalized
+      }
       if (attempt !== generation.current || controller.signal.aborted) return
       if (!bytes.length || bytes.length > options.maximumBytes) { setError(options.invalidFile); return }
       setPhase("previewing")
@@ -234,6 +245,7 @@ function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { coll
       <p id="magpie-scope" className="text-sm leading-6 text-muted-foreground">{t("仅支持公开 GitHub 仓库。确认后整仓扫描全部技能，不限于导出中列出的技能；不迁移本地修改、技能内容或客户端配置。新收录默认私有，不自动安装或发布。")}</p>
       {source === "cc-switch" && <div id="snapshot-warning" className="space-y-2 rounded-lg border border-border p-3 text-sm leading-6"><p className="font-medium">{t("整个数据库可能包含 API 密钥、token 等凭据。只有点击「上传并预览」才会发送完整快照，请仅上传到你信任的 Cognate 服务器。")}</p><p>{t("必须通过 SQLite backup API 或一致性导出生成 rollback-mode、自包含的独立快照。不能直接复制运行中的主数据库并忽略 WAL 文件。")}</p><p className="text-muted-foreground">{t("服务端仅在内存中 Deserialize，拒绝 WAL 模式或无效 schema，不将原始数据库写入磁盘。浏览器不执行 SQL、moejs 或来源适配器。")}</p></div>}
       <div className="space-y-2"><label htmlFor="magpie-export" className="text-sm font-medium">{t(options.label)}</label><Input id="magpie-export" type="file" accept={options.accept} disabled={busy} onChange={chooseFile} aria-describedby={`magpie-scope magpie-file-help${source === "cc-switch" ? " snapshot-warning" : ""}`} className="h-auto min-h-11 py-2" /><p id="magpie-file-help" className="text-sm text-muted-foreground">{hasFile ? t("已选择导出文件。点击上传并预览后才会发送。") : t("原文可能含密钥，不显示原文或文件名，不保存导出或凭据。")}</p></div>
+      {source === "magpie" && <div className="space-y-2"><label htmlFor="legacy-magpie-password">{t("Magpie 导出密码")}</label><Input ref={magpiePassword} id="legacy-magpie-password" type="password" autoComplete="off" maxLength={4096} disabled={busy} /><p className="text-sm text-muted-foreground">{t("密码仅在浏览器内解密，不发送到服务端。仅导入技能来源；备份中的文件内容与凭据不会迁移。明文 library.json 可留空。")}</p></div>}
       <div className="flex flex-wrap gap-3"><Button onClick={() => void preview()} disabled={busy || !hasFile}>{t("上传并预览")}</Button>{busy ? <Button variant="outline" onClick={cancel}>{t("停止等待及后续操作")}</Button> : (hasFile || candidates || error || notice) && <Button variant="ghost" onClick={clear}>{t("清除导入草稿")}</Button>}</div>
       {error && <p role="alert" className="text-sm text-destructive">{t(error)}</p>}
       <p role="status" aria-live="polite" className="min-h-6 text-sm leading-6 text-muted-foreground">{phase === "reading" ? t("正在读取导出…") : phase === "previewing" ? t("正在上传并预览，不会收录仓库…") : phase === "collecting" ? t("正在按选择顺序逐仓收录，同时最多一个请求。") : t(notice)}</p>
@@ -263,6 +275,7 @@ function LegacyImportRepositories({ collectionBusy, onCollectingChange }: { coll
 }
 
 function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLegacy }: { collectionBusy: boolean; onCollectingChange: (collecting: boolean) => void; onLegacy: () => void }) {
+  const magpiePassword = useRef<HTMLInputElement>(null)
   const { i18n } = useTranslation()
   const { imports, library, session } = useApi()
   const queryClient = useQueryClient()
@@ -305,6 +318,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   }, [owner, queryClient])
 
   function releaseSource() {
+    if (magpiePassword.current) magpiePassword.current.value = ""
     file.current = null
     bytes.current?.fill(0)
     bytes.current = null
@@ -402,7 +416,16 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
       if (!bytes.current) {
         const selected = file.current!
         file.current = null
-        const read = await readExport(selected, controller.signal)
+        let read = await readExport(selected, controller.signal)
+        if (source === "magpie") {
+          const password = magpiePassword.current?.value ?? ""
+          if (magpiePassword.current) magpiePassword.current.value = ""
+          try {
+            const normalized = await prepareMagpieExport(read, password, controller.signal)
+            if (normalized !== read) read.fill(0)
+            read = normalized
+          } catch (failure) { read.fill(0); throw failure }
+        }
         if (!isCurrent(attempt, captured, controller)) { read.fill(0); return }
         bytes.current = read
       }
@@ -533,7 +556,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   }
 
   return <>
-    <ImportSelectionForm source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
+    <ImportSelectionForm magpiePasswordRef={magpiePassword} source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
       onSource={(value) => requestReset(() => { reset(); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
       onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)} onBindingRepository={(id, repositoryId) => void loadBindings(id, repositoryId)}
       onConfirm={() => { if (canConfirmSelection(current.current) && !collectionBusy) setState((value) => ({ ...value, phase: "confirming" })) }} onConfirmClose={() => { if (current.current.phase === "confirming") setState((value) => ({ ...value, phase: "ready" })) }} onCommit={() => void commitSelection()}

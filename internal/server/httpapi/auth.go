@@ -87,7 +87,7 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 		path, handler := managementv1connect.NewLogManagementServiceHandler(&logManagementHandler{auth: authentication, logs: options.Logging, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
 		server.Any(path+"*", echo.WrapHandler(handler))
 	}
-	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
+	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(1<<20))
 	server.Any(path+"*", echo.WrapHandler(handler))
 	var nativeRequests http.Handler
 	if options.Configuration != nil {

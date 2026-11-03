@@ -12,6 +12,8 @@ service AuthService {
   rpc GetLoginOptions(GetLoginOptionsRequest) returns (GetLoginOptionsResponse);
   rpc StartOIDCLogin(StartOIDCLoginRequest) returns (StartOIDCLoginResponse);
   rpc CompleteOIDCLogin(CompleteOIDCLoginRequest) returns (CompleteOIDCLoginResponse);
+  rpc GetOIDCBindings(GetOIDCBindingsRequest) returns (GetOIDCBindingsResponse);
+  rpc UnlinkOIDC(UnlinkOIDCRequest) returns (UnlinkOIDCResponse);
 }
 
 message RegisterRequest {
@@ -64,3 +66,22 @@ message CompleteOIDCLoginResponse {
   int64 expires_at_unix = 2;
   string user_id = 3;
 }
+
+message GetOIDCBindingsRequest {}
+
+message OIDCBinding {
+  int64 identity_id = 1;
+  string issuer = 2;
+}
+
+message GetOIDCBindingsResponse {
+  repeated OIDCBinding bindings = 1;
+  bool can_unlink = 2;
+}
+
+message UnlinkOIDCRequest {
+  int64 identity_id = 1;
+  string password = 2 [debug_redact = true];
+}
+
+message UnlinkOIDCResponse {}

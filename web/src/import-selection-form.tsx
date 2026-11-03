@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ChangeEvent, type ReactNode } from "react"
+import { useId, useRef, useState, type ChangeEvent, type ReactNode, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import { clone } from "@bufbuild/protobuf"
 import { Code } from "@connectrpc/connect"
@@ -17,6 +17,7 @@ export type { ImportSource } from "./npx-import-i18n"
 export type BindingChoice = { label: string; binding: SkillBinding }
 export type BindingRepositoryChoice = { id: string; repository: string; branch: string; archiveHash: string }
 export type ImportSelectionFormProps = {
+  magpiePasswordRef?: RefObject<HTMLInputElement | null>
   source: ImportSource
   state: SelectionState
   hasFile: boolean
@@ -133,10 +134,11 @@ export function ImportSelectionForm(props: ImportSelectionFormProps) {
     <div className="source-card-heading"><div><h2 id={`${id}-heading`} data-import-selection-heading ref={heading} tabIndex={-1} className="font-semibold">{t("选择导入技能、仓库与配置")}</h2><p className="mt-1 text-sm text-muted-foreground">{t("三类独立选择，默认不选；保存资产不等于设备应用。")}</p></div></div>
     <div className="source-card-body space-y-4">
       <p className="text-sm leading-6">{t("整个导出可能含密钥。仅点击上传后发送到当前受信任服务端；原文、文件名和密钥不会显示或持久保存在浏览器。")}</p>
-      <div className="space-y-2"><label htmlFor={`${id}-source`}>{t("导入来源")}</label><Select value={source} disabled={state.phase === "unknown" || state.phase === "committing"} onValueChange={(value) => { if (isImportSource(value)) props.onSource(value) }}><SelectTrigger id={`${id}-source`} data-import-selection-source className="h-auto min-h-11 whitespace-normal text-left sm:max-w-md" aria-describedby={source === "npx-skills" ? `${id}-npx-boundaries ${id}-npx-binding` : undefined}><SelectValue /></SelectTrigger><SelectContent>{Object.entries(selectionSources).map(([value, option]) => <SelectItem key={value} value={value}>{option.label}</SelectItem>)}</SelectContent></Select></div>
+      <div className="space-y-2"><label htmlFor={`${id}-source`}>{t("导入来源")}</label><Select value={source} disabled={state.phase === "unknown" || state.phase === "committing"} onValueChange={(value) => { if (isImportSource(value)) props.onSource(value) }}><SelectTrigger id={`${id}-source`} data-import-selection-source className="h-auto min-h-11 whitespace-normal text-left sm:max-w-md" aria-describedby={source === "npx-skills" ? `${id}-npx-boundaries ${id}-npx-binding` : undefined}><SelectValue /></SelectTrigger><SelectContent>{Object.entries(selectionSources).map(([value, option]) => <SelectItem key={value} value={value}>{t(option.label)}</SelectItem>)}</SelectContent></Select></div>
       {source === "cc-switch" && <p className="text-sm text-muted-foreground">{t("仅接受自包含 rollback-mode SQLite 一致性快照，不接受 WAL 主数据库副本。")}</p>}
       {source === "npx-skills" && <div className="space-y-2 text-sm leading-6 text-muted-foreground"><p id={`${id}-npx-boundaries`}><NPXMessage text={npxImportText("boundaries", i18n.resolvedLanguage)} /></p><p id={`${id}-npx-binding`}>{npxImportText("binding", i18n.resolvedLanguage)}</p></div>}
       <div className="space-y-2"><label htmlFor={`${id}-file`}>{t("授权导出文件")}</label><Input id={`${id}-file`} type="file" disabled={locked} accept={selectionSources[source].accept} onChange={props.onFile} className="h-auto min-h-11 py-2" /><p className="text-sm text-muted-foreground">{props.hasFile ? t("已选择导出文件。点击上传并预览后才会发送。") : t("预览不收录、不创建资产、不下载技能。")}</p></div>
+      {source === "magpie" && <div className="space-y-2"><label htmlFor={`${id}-password`}>{t("Magpie 导出密码")}</label><Input ref={props.magpiePasswordRef} id={`${id}-password`} type="password" autoComplete="off" disabled={locked} maxLength={4096} /><p className="text-sm text-muted-foreground">{t("密码仅在浏览器内解密，不发送到服务端。仅导入技能来源；备份中的文件内容与凭据不会迁移。明文 library.json 可留空。")}</p></div>}
       <div className="flex flex-wrap gap-3"><Button disabled={locked || !props.hasFile} onClick={props.onPreview}>{state.stale ? t("重新预览同一快照") : t("上传并预览")}</Button>{busy && <Button variant="outline" onClick={props.onCancel}>{t("停止等待及后续操作")}</Button>}{!busy && state.phase !== "unknown" && (preview || props.hasFile || state.error !== undefined) && <Button variant="ghost" onClick={props.onClear}>{t("清除导入草稿")}</Button>}</div>
       {state.error !== undefined && <p role="alert" className="text-sm text-destructive">{source === "npx-skills" && [Code.InvalidArgument, Code.FailedPrecondition, Code.ResourceExhausted].includes(state.error) && !["unknown", "committing", "terminal"].includes(state.phase) ? <NPXMessage text={npxImportText(state.error === Code.ResourceExhausted ? "exhausted" : "invalid", i18n.resolvedLanguage)} /> : t("导入请求未完成或未通过校验；不会回显输入或自动重试。")}</p>}
       {busy && <p role="status" aria-live="polite" className="text-sm">{t(state.phase === "committing" ? "正在提交选择；停止等待不代表撤销写入。" : "正在读取并预览；尚未确认导入。")}</p>}

@@ -208,8 +208,10 @@ try {
   await until(() => evaluate("!!document.querySelector('form [role=alert]')"), "wrong password not rejected")
   fill("#password", ""); capture("login-wrong-password")
   await control("mode", "session-error")
+  const sessionRequestsBefore = (await control("state")).requests.filter(receipt => receipt.method === "GetSession").length
   fill("#password", ready.password); click("Sign in")
   await until(() => evaluate("!!document.querySelector('form [role=alert]')"), "GetSession failure not shown")
+  await until(async () => (await control("state")).requests.filter(receipt => receipt.method === "GetSession").length > sessionRequestsBefore && evaluate("document.querySelector('form')?.getAttribute('aria-busy') === 'false' && !!document.querySelector('form [role=alert]')"), "GetSession request must finish before inspecting its error")
   assert(evaluate("!!document.querySelector('#auth-title')"), "GetSession failure must not establish UI session")
   fill("#password", ""); capture("login-session-error")
   const failedLoginCount = (await control("state")).requests.filter(receipt => receipt.method === "Login").length

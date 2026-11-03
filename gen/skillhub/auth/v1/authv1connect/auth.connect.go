@@ -50,6 +50,11 @@ const (
 	// AuthServiceCompleteOIDCLoginProcedure is the fully-qualified name of the AuthService's
 	// CompleteOIDCLogin RPC.
 	AuthServiceCompleteOIDCLoginProcedure = "/skillhub.auth.v1.AuthService/CompleteOIDCLogin"
+	// AuthServiceGetOIDCBindingsProcedure is the fully-qualified name of the AuthService's
+	// GetOIDCBindings RPC.
+	AuthServiceGetOIDCBindingsProcedure = "/skillhub.auth.v1.AuthService/GetOIDCBindings"
+	// AuthServiceUnlinkOIDCProcedure is the fully-qualified name of the AuthService's UnlinkOIDC RPC.
+	AuthServiceUnlinkOIDCProcedure = "/skillhub.auth.v1.AuthService/UnlinkOIDC"
 )
 
 // AuthServiceClient is a client for the skillhub.auth.v1.AuthService service.
@@ -61,6 +66,8 @@ type AuthServiceClient interface {
 	GetLoginOptions(context.Context, *connect.Request[v1.GetLoginOptionsRequest]) (*connect.Response[v1.GetLoginOptionsResponse], error)
 	StartOIDCLogin(context.Context, *connect.Request[v1.StartOIDCLoginRequest]) (*connect.Response[v1.StartOIDCLoginResponse], error)
 	CompleteOIDCLogin(context.Context, *connect.Request[v1.CompleteOIDCLoginRequest]) (*connect.Response[v1.CompleteOIDCLoginResponse], error)
+	GetOIDCBindings(context.Context, *connect.Request[v1.GetOIDCBindingsRequest]) (*connect.Response[v1.GetOIDCBindingsResponse], error)
+	UnlinkOIDC(context.Context, *connect.Request[v1.UnlinkOIDCRequest]) (*connect.Response[v1.UnlinkOIDCResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the skillhub.auth.v1.AuthService service. By
@@ -116,6 +123,18 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("CompleteOIDCLogin")),
 			connect.WithClientOptions(opts...),
 		),
+		getOIDCBindings: connect.NewClient[v1.GetOIDCBindingsRequest, v1.GetOIDCBindingsResponse](
+			httpClient,
+			baseURL+AuthServiceGetOIDCBindingsProcedure,
+			connect.WithSchema(authServiceMethods.ByName("GetOIDCBindings")),
+			connect.WithClientOptions(opts...),
+		),
+		unlinkOIDC: connect.NewClient[v1.UnlinkOIDCRequest, v1.UnlinkOIDCResponse](
+			httpClient,
+			baseURL+AuthServiceUnlinkOIDCProcedure,
+			connect.WithSchema(authServiceMethods.ByName("UnlinkOIDC")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -128,6 +147,8 @@ type authServiceClient struct {
 	getLoginOptions   *connect.Client[v1.GetLoginOptionsRequest, v1.GetLoginOptionsResponse]
 	startOIDCLogin    *connect.Client[v1.StartOIDCLoginRequest, v1.StartOIDCLoginResponse]
 	completeOIDCLogin *connect.Client[v1.CompleteOIDCLoginRequest, v1.CompleteOIDCLoginResponse]
+	getOIDCBindings   *connect.Client[v1.GetOIDCBindingsRequest, v1.GetOIDCBindingsResponse]
+	unlinkOIDC        *connect.Client[v1.UnlinkOIDCRequest, v1.UnlinkOIDCResponse]
 }
 
 // Register calls skillhub.auth.v1.AuthService.Register.
@@ -165,6 +186,16 @@ func (c *authServiceClient) CompleteOIDCLogin(ctx context.Context, req *connect.
 	return c.completeOIDCLogin.CallUnary(ctx, req)
 }
 
+// GetOIDCBindings calls skillhub.auth.v1.AuthService.GetOIDCBindings.
+func (c *authServiceClient) GetOIDCBindings(ctx context.Context, req *connect.Request[v1.GetOIDCBindingsRequest]) (*connect.Response[v1.GetOIDCBindingsResponse], error) {
+	return c.getOIDCBindings.CallUnary(ctx, req)
+}
+
+// UnlinkOIDC calls skillhub.auth.v1.AuthService.UnlinkOIDC.
+func (c *authServiceClient) UnlinkOIDC(ctx context.Context, req *connect.Request[v1.UnlinkOIDCRequest]) (*connect.Response[v1.UnlinkOIDCResponse], error) {
+	return c.unlinkOIDC.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the skillhub.auth.v1.AuthService service.
 type AuthServiceHandler interface {
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
@@ -174,6 +205,8 @@ type AuthServiceHandler interface {
 	GetLoginOptions(context.Context, *connect.Request[v1.GetLoginOptionsRequest]) (*connect.Response[v1.GetLoginOptionsResponse], error)
 	StartOIDCLogin(context.Context, *connect.Request[v1.StartOIDCLoginRequest]) (*connect.Response[v1.StartOIDCLoginResponse], error)
 	CompleteOIDCLogin(context.Context, *connect.Request[v1.CompleteOIDCLoginRequest]) (*connect.Response[v1.CompleteOIDCLoginResponse], error)
+	GetOIDCBindings(context.Context, *connect.Request[v1.GetOIDCBindingsRequest]) (*connect.Response[v1.GetOIDCBindingsResponse], error)
+	UnlinkOIDC(context.Context, *connect.Request[v1.UnlinkOIDCRequest]) (*connect.Response[v1.UnlinkOIDCResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -225,6 +258,18 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("CompleteOIDCLogin")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceGetOIDCBindingsHandler := connect.NewUnaryHandler(
+		AuthServiceGetOIDCBindingsProcedure,
+		svc.GetOIDCBindings,
+		connect.WithSchema(authServiceMethods.ByName("GetOIDCBindings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceUnlinkOIDCHandler := connect.NewUnaryHandler(
+		AuthServiceUnlinkOIDCProcedure,
+		svc.UnlinkOIDC,
+		connect.WithSchema(authServiceMethods.ByName("UnlinkOIDC")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceRegisterProcedure:
@@ -241,6 +286,10 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceStartOIDCLoginHandler.ServeHTTP(w, r)
 		case AuthServiceCompleteOIDCLoginProcedure:
 			authServiceCompleteOIDCLoginHandler.ServeHTTP(w, r)
+		case AuthServiceGetOIDCBindingsProcedure:
+			authServiceGetOIDCBindingsHandler.ServeHTTP(w, r)
+		case AuthServiceUnlinkOIDCProcedure:
+			authServiceUnlinkOIDCHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -276,4 +325,12 @@ func (UnimplementedAuthServiceHandler) StartOIDCLogin(context.Context, *connect.
 
 func (UnimplementedAuthServiceHandler) CompleteOIDCLogin(context.Context, *connect.Request[v1.CompleteOIDCLoginRequest]) (*connect.Response[v1.CompleteOIDCLoginResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.auth.v1.AuthService.CompleteOIDCLogin is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetOIDCBindings(context.Context, *connect.Request[v1.GetOIDCBindingsRequest]) (*connect.Response[v1.GetOIDCBindingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.auth.v1.AuthService.GetOIDCBindings is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) UnlinkOIDC(context.Context, *connect.Request[v1.UnlinkOIDCRequest]) (*connect.Response[v1.UnlinkOIDCResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.auth.v1.AuthService.UnlinkOIDC is not implemented"))
 }

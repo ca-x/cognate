@@ -1,6 +1,15 @@
 import i18n from "./i18n"
 
 const english = {
+  "已关联的 OIDC 身份": "Linked OIDC identities",
+  "无法读取关联身份，请重试。": "Could not load linked identities. Try again.",
+  "取消 OIDC 关联": "Unlink OIDC identity",
+  "输入当前账号密码以取消关联": "Enter your current account password to unlink",
+  "取消关联后保留当前会话，退出其他会话。之后仍可使用原用户名和密码登录。": "Unlinking keeps this session and signs out other sessions. Your original username and password will still work.",
+  "此账号没有本地密码，不能移除唯一登录方式。": "This account has no local password. Its sign-in method cannot be removed.",
+  "尚未关联 OIDC 身份。": "No OIDC identity is linked.",
+  "取消关联失败，请检查当前账号密码并重试。": "Could not unlink. Check your current account password and try again.",
+  "OIDC 关联已取消。": "OIDC identity unlinked.",
   "工作空间访问": "Workspace access",
   "账号已创建，正在完成登录。": "Account created. Completing sign-in…",
   "其他登录方式": "Other sign-in methods",
