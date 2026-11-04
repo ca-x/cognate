@@ -1,5 +1,11 @@
 # 维护交接
 
+随后用户额外授权 Web 界面与交互维护并发布 **Server/懒猫 0.5.0**：仓库内容优先、添加弹层、
+导入渐进展开、配置筛选和导航代码预热；不恢复完整 backlog，不包含原生 GUI 更新。
+变更见 `RELEASE-v0.5.0.md`，最终 Docker、LPK 完整下载/隔离启动及喵喵接受见
+`RELEASE-v0.5.0-VERIFICATION.md`。喵喵回执 onlineVersion 仍 0.4.0，真机与店面切换待验证。
+独立 Darwin 观测 cleanup/seal 失败另记，不把 Linux 服务端成功扩大为客户端安装资格。
+
 2026-11-04 用户额外授权修复 OIDC 关联/解绑、Magpie 加密界面导出和 cc-switch
 数据库兼容性，并要求发布新版。本次为有限维护发布，不恢复下述原功能 backlog。
 Server/懒猫 0.4.0 的变更与验证见 `RELEASE-v0.4.0.md` 和发布验证记录；
@@ -9,6 +15,8 @@ CLI 0.2.0、GUI 0.1.3 不重发。
 或发布版本。完整需求仍以 `REQUIREMENTS.md` 为准，未完成清单见 `TODO.md`。
 
 ## 已交付
+
+- UI 维护发布（2026-11-04）：Server `server-v0.5.0` 固定 `66c8d76215f8696180a992e5cb5a1f0f5c7eb3b8`；release `41814175849`、源码 Build `41814073679` success。LazyCat `v0.5.0` 固定包装 `c712b3a48f0d9e69754519349ac7c2a4b002ef3c`，run `41815749938` success，公开 Release `433794212` 与最终包完整核验通过；喵喵接受 version `4128`，官方关闭。CLI 0.2.0、GUI 0.1.3 不重发。
 
 - 有限维护发布（2026-11-04）：Server `server-v0.4.0` 固定 `bb81f39b77c9776e42fba34566095c772cd2623a`，release `41679165153` success，双架构 Docker 与匿名访问校验通过；LazyCat `v0.4.0` 固定包装 `8720054f99a79b41d9737170fa51e765cf092ec6`，run `41681049194` success，最终 LPK 完整下载、许可/metadata/隔离启动通过。喵喵接受 version `4074`，回执 onlineVersion 仍 `0.3.0`，不等于店面已切换；官方关闭。详见 `RELEASE-v0.4.0-VERIFICATION.md`。下列旧版交付记录保留为历史，不恢复原 backlog。
 

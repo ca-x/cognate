@@ -1,5 +1,8 @@
 # Cognate 后续任务
 
+- [x] Web 工作流维护与 Server/LazyCat 0.5.0 发布：仓库列表优先、Radix 添加弹层、导入渐进展开、Agent/名称筛选、导航分组和模块预热；真实中英/主题/窄屏/键盘回归、Docker 与最终 LPK 完整核验通过，喵喵接受 version 4128（回执 onlineVersion 0.4.0）。限定本轮 Web 范围，不关闭整体产品 UI、原生 GUI 或原 backlog，见 `RELEASE-v0.5.0-VERIFICATION.md`。
+- [ ] 独立 Platform run `41814175840` 的 Darwin baseline observation 在 cleanup 与 evidence seal 失败；三系统原语通过，但该 run 不算完整通过。本轮未修改相关路径，保留失败待维护；不扩大客户端安装资格。
+
 - [x] 用户额外授权三项修复（2026-11-04）：已认证 OIDC 关联当前账号与密码确认解绑；Web 接受 Magpie 界面密码加密导出并仅投影技能来源；cc-switch schema23/24 与 Web 64 MiB，用户授权本机库只读预览通过。该项不等于全部导入配置矩阵、完整备份恢复或平台 OIDC 真机验收。
 - [x] 上述维护修复发布 Server/LazyCat 0.4.0：双架构 Docker、最终 LPK 下载/许可/metadata/隔离启动均通过；喵喵接受 version 4074，onlineVersion 仍 0.3.0，店面切换与真机测试待用户确认。CLI/GUI 不重发，官方商店关闭。
 
