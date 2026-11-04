@@ -19,7 +19,7 @@ const evidence = []
 let ready, failure, browserStarted = false
 function browser(args, input) {
   const result = spawnSync(resolve(values["browser-bin"]), ["--session", session, "--executable-path", resolve(values["chrome-bin"]), "--allowed-domains", "127.0.0.1", "--ignore-https-errors", "--json", ...args], { env: process.env, input, encoding: "utf8", timeout: 30000, maxBuffer: 2 << 20 })
-  assert.equal(result.status, 0, `browser command failed: ${args[0]}`)
+  assert.equal(result.status, 0, `browser command failed: ${args[0]}${args[0] === "find" ? ` ${args[1] === "label" ? args[2] : args[args.indexOf("--name") + 1]}` : ""}`)
   const parsed = JSON.parse(result.stdout)
   assert.notEqual(parsed.success, false, "browser operation rejected")
   return parsed.data
@@ -32,7 +32,7 @@ function mark(expression) {
 }
 function click(name) { mark(`Array.from((Array.from(document.querySelectorAll('[role=dialog]')).at(-1) ?? document).querySelectorAll('button')).find(node=>node.textContent===${JSON.stringify(name)} || node.getAttribute('aria-label')===${JSON.stringify(name)})`) }
 function fill(label, value) { browser(["find", "label", label, "fill", value, "--exact"]) }
-function select(label, value) { browser(["find", "label", label, "click", "--exact"]); browser(["find", "role", "option", "click", "--name", value, "--exact"]) }
+function select(label, value) { mark(`Array.from(document.querySelectorAll('label')).find(node=>node.textContent===${JSON.stringify(label)})?.control`); browser(["find", "role", "option", "click", "--name", value, "--exact"]) }
 function secret() { evaluate(`(() => { const input=Array.from(document.querySelectorAll('[role=dialog] input[type=password]')).at(-1); if(!input)return false; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(ready.replacement)}); input.dispatchEvent(new Event('input',{bubbles:true})); return true })()`) }
 function row(name, action) { mark(`Array.from(document.querySelectorAll('li')).find(node=>node.querySelector('h3')?.textContent===${JSON.stringify(name)})?.querySelectorAll('button') && Array.from(Array.from(document.querySelectorAll('li')).find(node=>node.querySelector('h3')?.textContent===${JSON.stringify(name)}).querySelectorAll('button')).find(node=>node.textContent===${JSON.stringify(action)})`) }
 async function state() { const response = await fetch(`${ready.controlURL}/state`, { headers: { "X-Fixture-Capability": ready.capability, Connection: "close" }, signal: AbortSignal.timeout(5000) }); assert.equal(response.status, 200); return response.json() }
@@ -72,6 +72,26 @@ try {
   assert.deepEqual(custom.grokProvider.model, { profile: "profile-one", upstreamModel: "x-ai/model", endpoint: "https://ExAmPle.invalid:443/a%2Fb", name: "Model title", apiBackend: "responses", contextWindow: 9007199254740991, envKey: "GROK_REF" })
   assert.equal((await state()).plaintextAbsent, true)
   evidence.push("full-model-max-integer-and-key-durable-encrypted")
+  evaluate("window.__browseRequests=[]; const original=window.fetch; window.fetch=function(input,init){window.__browseRequests.push(new URL(input instanceof Request ? input.url : input,location.href).pathname);return original.call(this,input,init)}")
+  browser(["fill", ".configuration-browse input", "Grok custom"])
+  assert.equal(evaluate("document.querySelectorAll('.configuration-asset').length"), 1)
+  assert.equal(evaluate("document.querySelector('.configuration-asset h3').textContent"), "Grok custom")
+  browser(["fill", ".configuration-browse input", "no matching asset"])
+  assert.equal(evaluate("document.querySelectorAll('.configuration-asset').length"), 0)
+  click("清除筛选")
+  const count = evaluate("document.querySelectorAll('.configuration-asset').length")
+  mark("[...document.querySelectorAll('.configuration-agent-filters button')].find(node=>node.textContent.startsWith('grok'))")
+  assert(evaluate("[...document.querySelectorAll('.configuration-group')].every(node=>node.getAttribute('aria-label').startsWith('grok'))"))
+  click("全部 Agent")
+  assert.equal(evaluate("document.querySelectorAll('.configuration-asset').length"), count)
+  assert(evaluate("!window.__browseRequests.some(path=>/ReadDraft|CreateAsset|UpdateAsset|DeleteAsset/.test(path))"), "browsing must not read drafts or write assets")
+  for (const width of [375, 1440]) {
+    browser(["set", "viewport", String(width), "1000"])
+    assert(evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "configuration filters overflow")
+    assert(evaluate("![...document.querySelectorAll('input[type=password]')].some(node=>node.value)"), "never capture credentials")
+    browser(["screenshot", join(output, `configuration-${values.theme}-${width}.png`), "--full"])
+  }
+  evidence.push("metadata-name-and-agent-filters-clear-and-responsive-without-draft-read")
   row("Grok custom", "复制（不带凭据）")
   await until(() => evaluate("!!document.querySelector('[role=dialog] input') && !document.querySelector('[role=dialog] button[type=submit]')?.disabled"), "copy source not validated")
   fill("新副本名称", "Grok copy"); click("复制为无凭据资产")

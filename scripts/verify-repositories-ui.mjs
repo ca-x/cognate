@@ -30,7 +30,7 @@ function evaluate(script) { const data = browser(["eval", "--stdin"], script); r
 async function until(check, message) { const deadline = Date.now() + 18000; while (Date.now() < deadline) { if (await check()) return; await delay(100) }; assert.fail(message) }
 function click(name) { browser(["find", "role", "button", "click", "--name", name, "--exact"]) }
 function clear(selector) { browser(["click", selector]); browser(["press", "Control+a"]); browser(["press", "Backspace"]) }
-function capture(name) { assert.equal(evaluate("!!document.querySelector('input[type=password]')"), false, "never capture credentials"); browser(["screenshot", join(output, `${name}.png`), "--full"]); evidence.push(name) }
+function capture(name) { assert.equal(evaluate("[...document.querySelectorAll('input[type=password]')].some(node => node.value.length > 0)"), false, "never capture credentials"); browser(["screenshot", join(output, `${name}.png`), "--full"]); evidence.push(name) }
 async function control(mode, procedure = "") { const response = await fetch(ready.controlURL + "/mode", { method: "POST", headers: { "X-Fixture-Capability": ready.capability }, body: JSON.stringify({ Mode: mode, Procedure: procedure }), signal: AbortSignal.timeout(5000) }); assert.equal(response.status, 200) }
 async function fixtureControl(path, method = "GET") { const response = await fetch(ready.controlURL + path, { method, headers: { "X-Fixture-Capability": ready.capability }, signal: AbortSignal.timeout(5000) }); assert.equal(response.status, 200); return method === "GET" ? response.json() : undefined }
 function rpc(service, method, body = {}, token) {
@@ -170,7 +170,7 @@ async function verify() {
   browser(["fill", "#username", "task2-owner"])
   browser(["fill", "#password", ready.password])
   browser(["click", "form button[type=submit]"])
-  await until(() => evaluate("!!document.querySelector('#repository-input')"), "authenticated library not ready")
+  await until(() => evaluate("!!document.querySelector('.repositories-ui')"), "authenticated library not ready")
   await preferences("dark", "en")
   if (values.phase === "focus") {
     const login = await rpc("auth.v1.AuthService", "Login", { username: "task2-owner", password: ready.password })
@@ -180,6 +180,15 @@ async function verify() {
   }
   await until(() => evaluate("document.body.textContent.includes('Your library is empty')"), "real empty library missing")
   capture("empty-library")
+  if (values.phase !== "before") {
+    assert.equal(evaluate("document.querySelector('.repository-import').open"), false, "low-frequency import starts collapsed")
+    const counts = await fixtureControl("/state")
+    browser(["hover", "a[href='/categories']"])
+    await until(() => evaluate("performance.getEntriesByType('resource').some(entry => /categories-[^/]+\\.js/.test(entry.name))"), "navigation intent did not preload category code")
+    assert.equal(evaluate("location.pathname"), "/repositories")
+    assert.equal((await fixtureControl("/state"))["/skillhub.catalog.v1.CategoryService/ListCategories"] ?? 0, counts["/skillhub.catalog.v1.CategoryService/ListCategories"] ?? 0, "preloading must not read private data")
+    evidence.push("intent-preloads-code-without-navigation-or-private-rpc")
+  }
   await control("slow", "ListCategories")
   await navigate("/categories")
   await until(() => evaluate("document.body.textContent.includes('Loading categories')"), "initial category loading missing")
@@ -194,6 +203,7 @@ async function verify() {
   browser(["click", ".page-content [role=alert] button"])
   await until(() => evaluate("document.body.textContent.includes('No categories yet')"), "initial category retry failed")
   await navigate("/repositories")
+  if (values.phase !== "before") click("Add a GitHub repository")
   browser(["fill", "#repository-input", "fixture/engineering-review-tools"])
   browser(["fill", "#branch-input", "feature/verified-engineering-review"])
   await control("slow", "*")
@@ -347,6 +357,7 @@ async function verify() {
   assert.equal((await library("ListRepositories", {})).body.code, "unauthenticated")
   assert.equal((await category("SetSkillCategories", { skillId: detail.body.skills[0].id, categoryIds: [ready.foreignCategory] }, token)).body.code, "not_found")
   evidence.push("real-owner-and-anonymous-isolation")
+  click("Add a GitHub repository")
   browser(["fill", "#repository-input", "fixture/missing"])
   browser(["click", "form button[type=submit]"])
   await until(() => evaluate("!!document.querySelector('form [role=alert]')"), "unavailable source should not look collected")
@@ -379,14 +390,21 @@ async function verify() {
     await skills(2)
   }
   await preferences("light", "en")
-  browser(["fill", "#repository-input", "fixture/unsubmitted-draft"])
   for (const theme of ["light", "dark"]) for (const locale of ["en", "zh-CN"]) for (const width of [320, 375]) {
     await preferences(theme, locale)
     browser(["set", "viewport", String(width), "900"])
     evaluate("document.documentElement.style.fontSize='200%'")
-    assert.equal(evaluate("document.querySelector('#repository-input').value"), "fixture/unsubmitted-draft")
     layout(`repositories-${theme}-${locale}-${width}-200pct`)
     capture(`repositories-${theme}-${locale}-${width}-200pct`)
+    click(locale === "en" ? "Add a GitHub repository" : "添加 GitHub 仓库")
+    browser(["fill", "#repository-input", "fixture/unsubmitted-draft"])
+    layout(`collection-${theme}-${locale}-${width}-200pct`)
+    capture(`collection-${theme}-${locale}-${width}-200pct`)
+    browser(["press", "Escape"])
+    assert.equal(evaluate("document.activeElement.textContent.trim()"), locale === "en" ? "Add a GitHub repository" : "添加 GitHub 仓库", "close must restore collection trigger focus")
+    click(locale === "en" ? "Add a GitHub repository" : "添加 GitHub 仓库")
+    assert.equal(evaluate("document.querySelector('#repository-input').value"), "fixture/unsubmitted-draft", "closing must retain the draft")
+    browser(["press", "Escape"])
     await navigate("/categories")
     await until(() => evaluate("document.querySelectorAll('.category-record').length === 1"), "categories missing")
     layout(`categories-${theme}-${locale}-${width}-200pct`)
@@ -404,7 +422,6 @@ async function verify() {
     assert.equal(evaluate("document.activeElement.getAttribute('aria-label')?.includes('Concurrent revision')"), true, "Radix must restore the trigger focus")
     await navigate("/repositories")
     await skills(2)
-    browser(["fill", "#repository-input", "fixture/unsubmitted-draft"])
   }
   evaluate("document.documentElement.style.fontSize='100%'")
   browser(["set", "viewport", "1440", "1000"])

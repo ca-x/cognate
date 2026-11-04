@@ -191,7 +191,7 @@ function click(name) { browser(["find", "role", "button", "click", "--name", nam
 function modern() { return "document.querySelector('[data-import-selection-heading]').closest('section')" }
 function text() { return evaluate(`${modern()}.textContent`) }
 function capture(name) {
-  assert.equal(evaluate("!!document.querySelector('input[type=password]')"), false, "never capture credentials")
+  assert.equal(evaluate("[...document.querySelectorAll('input[type=password]')].some(node => node.value.length > 0)"), false, "never capture credentials")
   assert.equal(evaluate("document.body.innerText.includes('PRIVATE_NPX_MARKER')"), false, "raw private data visible")
   for (const secret of [ready.password, ready.capability]) assert.equal(evaluate(`document.body.innerText.includes(${JSON.stringify(secret)})`), false, "secret visible")
   assert.equal(evaluate("[...document.querySelectorAll('input[type=file]')].some(node => node.value)"), false, "filename visible")
@@ -246,7 +246,7 @@ async function discardSourceFocus() {
   for (const confirm of [false, true]) {
     browser(["click", source])
     await until(() => evaluate("!!document.querySelector('[role=option]')"), "source menu did not open")
-    browser(["find", "role", "option", "click", "--name", "Magpie JSON · 1 MiB", "--exact"])
+    browser(["find", "role", "option", "click", "--name", "Magpie encrypted app export · 64 MiB (library.json · 1 MiB also supported)", "--exact"])
     await until(() => evaluate("!!document.querySelector('[role=dialog]')"), "source discard review did not open")
     if (confirm) click("Discard import draft")
     else browser(["press", "Escape"])
@@ -272,6 +272,8 @@ async function verify() {
   browser(["fill", "#password", ready.password])
   browser(["click", "form button[type=submit]"])
   await until(() => evaluate("!!document.querySelector('[data-import-selection-heading]')"), "owner Web not ready")
+  browser(["focus", ".repository-import > summary"])
+  browser(["press", "Enter"])
   await preferences("light", "en")
   browser(["click", "section:has([data-import-selection-heading]) [role=combobox]"])
   assert(evaluate("[...document.querySelectorAll('[role=option]')].some(node => node.textContent.includes('npx skills'))"), "RED: modern source picker lacks npx skills lock")
@@ -418,6 +420,8 @@ async function verify() {
     browser(["fill", "#password", ready.password])
     browser(["click", "form button[type=submit]"])
     await until(() => evaluate("!!document.querySelector('[data-import-selection-heading]')"), "new owner Web not ready")
+    browser(["focus", ".repository-import > summary"])
+    browser(["press", "Enter"])
     assert.equal(text().includes("Acknowledge exclusions"), false, "preview crossed owner/session")
     assert.equal(text().includes("Export selected"), false, "file crossed owner/session")
     assert.equal(text().includes("Query import status"), false, "operation crossed owner/session")

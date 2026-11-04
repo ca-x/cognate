@@ -1,5 +1,27 @@
 # Web 首发视觉与动效阶段记录
 
+## 2026-11-04：0.5.0 工作流打磨
+
+本轮用户授权界面与交互维护后发版，不恢复完整产品 backlog。面向维护自己技能与配置的用户，
+沿用冷中性/蓝色品牌 tokens、成熟 React/TanStack/Radix 和 MyGo 原生边界。
+参考本机 cc-switch `assets/screenshots/main-zh.png` 及 Magpie 官方 `agents-zh-light.png` 的
+内容优先、上下文操作和清晰分组，不复制其业务开关或声称配置已应用。
+
+实施顺序：先把浏览从低频表单前解放，再加入元数据筛选、模块预热，最后验证材质、反馈与可访问性。
+仓库添加进入 Radix 弹层；外部导入渐进展开且保留状态；发布控制后移但保留独立明确确认。
+配置按 Agent 和名称即时筛选，避免为了查找而打开编辑器。没有引入新动画库或虚构统计。
+
+前后实图在 `/tmp/cognate-ui-050/before-verified/collected-snapshot.png` 和
+`/tmp/cognate-ui-050/final-repositories/repositories-light-en-1440.png`，后者还有深色、中英和
+320/375px、200% 布局及弹层截图；配置截图见 `final2-config-dark`、`final-config-light`。
+真实浏览器验证及已发现的工具定位问题见 `RELEASE-v0.5.0-VERIFICATION.md`。
+这些截图不代表原生 GUI、真实懒猫升级或全部页面的视觉验收。
+
+续接检索采用 nmem CLI：query `Cognate UI 交互 精致`，mode `fast_bm25_vector`，scope `default`，
+无业务过滤、limit 3。首要依据为 rank 1 `6db8ad1e-1d5a-4792-b7c6-1eaa51763174`（UI 验收目标，score 0.99）
+与 rank 2 `3e6c698d-2090-4020-9099-b649da5ac3bb`（既有共享 UI 边界，score 0.7854628453957351）。
+没有确认远端图形页面能保持同一 owner/Space 授权边界，因此不自动打开记忆图。
+
 日期：2026-10-31。范围仅为 Web 共享设计与关键配置页，不代表全产品首发功能验收完成。
 
 ## 设计约束
