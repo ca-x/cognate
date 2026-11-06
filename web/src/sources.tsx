@@ -10,6 +10,7 @@ import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import { Checkbox } from "./components/ui/checkbox"
 import { DeviceFlow } from "./device-auth"
+import { SpotlightCard } from "./components/react-bits/spotlight-card"
 import "./sources.css"
 
 function useCatalog() {
@@ -95,9 +96,9 @@ export function SourcesPage() {
   return <div className="sources-page">
     <div className="page-heading">
       <div><h1>{t("GitHub 来源")}</h1><p>{t("连接 GitHub，选择要同步的收藏列表。")}</p></div>
-      {source?.connected && <Button variant="outline" disabled={busy} onClick={() => { setNotice(""); sync.mutate() }}><RefreshCw size={16} aria-hidden="true" />{sync.isPending ? t("同步中…") : t("立即同步")}</Button>}
+      {source?.connected && <Button variant="outline" disabled={busy} onClick={() => { setNotice(""); sync.mutate() }}><RefreshCw size={16} className={sync.isPending ? "motion-safe:animate-spin" : undefined} aria-hidden="true" />{sync.isPending ? t("同步中…") : t("立即同步")}</Button>}
     </div>
-    <section className="source-card" aria-labelledby="github-source-title" aria-busy={catalog.isPending}>
+    <SpotlightCard as="section" className="source-card" aria-labelledby="github-source-title" aria-busy={catalog.isPending}>
       <div className="source-card-heading">
         <div className="service-icon"><GitFork size={23} aria-hidden="true" /></div>
         <div className="sources-service"><h2 id="github-source-title">GitHub</h2><p>{t("Star Lists · 按你已有的分类收录仓库")}</p></div>
@@ -112,7 +113,7 @@ export function SourcesPage() {
         <SourceForm generation={source?.credentialGeneration} deviceEnabled={source?.deviceFlowEnabled} onConnected={connected} />
         <p className="sources-security"><LockKeyhole size={14} aria-hidden="true" />{t("token 不会通过查询接口返回。")}</p>
       </div>}
-    </section>
+    </SpotlightCard>
     {source?.connected && <section className="list-section" aria-labelledby="lists-title" aria-busy={busy}>
       <div className="section-toolbar">
         <div><h2 id="lists-title">{t("收藏列表 ")}{!listsUnavailable && <span className="sources-count">{formatNumber(source.lists.length)}</span>}</h2><p className="sources-selection-count">{listsUnavailable ? t("列表待确认") : t("已选择 {{selected}} / {{total}} 个列表", { selected: formatNumber(source.lists.filter((list) => list.subscribed).length), total: formatNumber(source.lists.length) })}</p></div>

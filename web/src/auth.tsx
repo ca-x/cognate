@@ -11,6 +11,8 @@ import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import logo from "../../assets/branding/server-web.png"
 import { Preferences } from "./preferences"
+import { SpotlightCard } from "./components/react-bits/spotlight-card"
+import { FadeContent } from "./components/react-bits/fade-content"
 
 export function AuthScreen() {
   useTranslation()
@@ -44,20 +46,20 @@ export function AuthScreen() {
   function submit(event: FormEvent) { event.preventDefault(); if (!login.isPending && !oidc.isPending) login.mutate() }
   const busy = login.isPending || oidc.isPending
   return <main className="auth-layout auth-ui">
-    <aside className="auth-story">
+    <SpotlightCard as="aside" className="auth-story">
       <div className="brand"><img src={logo} width="48" height="48" alt="" /><span>Cognate</span></div>
       <div className="auth-intro">
         <span className="text-sm text-slate-400">{t("你的 skill 工作空间")}</span>
         <h1>{t("好用的技能，")}<br />{t("随处可用。")}</h1>
         <p>{t("收录仓库、整理组合，让每个 coding agent")}<br className="hidden lg:block" /> {t(" 都用上你选好的 skills。")}</p>
-        <div className="source-flow" role="img" aria-label={t("GitHub 仓库经过服务端聚合后同步到本地 agents")}>
+        <FadeContent className="source-flow" role="img" aria-label={t("GitHub 仓库经过服务端聚合后同步到本地 agents")}>
           <div><FolderGit2 aria-hidden="true" /><span>{t("仓库")}</span></div><ArrowRight aria-hidden="true" size={16} />
           <div><Layers aria-hidden="true" /><span>{t("组合")}</span></div><ArrowRight aria-hidden="true" size={16} />
           <div><HardDrive aria-hidden="true" /><span>Agents</span></div>
-        </div>
+        </FadeContent>
       </div>
       <p className="text-xs text-slate-400">{t("自行托管，按你的方式整理。")}</p>
-    </aside>
+    </SpotlightCard>
     <section className="auth-form-area" aria-labelledby="auth-title">
       <div className="auth-form-content">
         <div className="auth-preferences"><Preferences /></div>

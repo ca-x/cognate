@@ -166,6 +166,17 @@ try {
   ready = JSON.parse(readFileSync(join(directory, "ready.json"), "utf8"))
   browser(["open", ready.url + "/explore"]); started = true
   await results()
+  if (values.phase === "after") {
+    await preferences("dark", "zh-CN", 1440)
+    const point = evaluate("(() => {const box=document.querySelector('.catalog-hero.bits-spotlight').getBoundingClientRect();return {x:Math.round(box.x+box.width*.6),y:Math.round(box.y+box.height*.5)}})()")
+    browser(["mouse", "move", String(point.x), String(point.y)])
+    await until(() => evaluate("Number(getComputedStyle(document.querySelector('.catalog-hero > .bits-spotlight-light')).opacity)===1"), "public introduction spotlight missing")
+    assert(evaluate("getComputedStyle(document.querySelector('.catalog-hero > .bits-spotlight-light')).pointerEvents==='none'"), "public decoration must not capture input")
+    capture("explore-spotlight-dark-1440")
+    browser(["press", "Tab"])
+    assert.equal(evaluate("getComputedStyle(document.querySelector('.catalog-hero > .bits-spotlight-light')).opacity"), "0", "keyboard must immediately hide public decoration")
+    evidence.push("public-hero-local-spotlight-non-blocking-keyboard-fallback")
+  }
   if (!values["checks-only"] && !values["geometry-only"]) for (const theme of ["light", "dark"]) for (const locale of ["zh-CN", "en"]) for (const width of [1440, 375]) {
     await preferences(theme, locale, width)
     capture(`explore-${theme}-${locale}-${width}`, false)
@@ -280,6 +291,7 @@ try {
     await preferences("dark", "en", 375)
     browser(["set", "media", "dark", "reduced-motion"])
     assert.equal(evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"), true)
+    assert.equal(evaluate("getComputedStyle(document.querySelector('.catalog-hero > .bits-spotlight-light')).display"), "none")
     assert.equal(evaluate("document.querySelector('.public-catalog').getAnimations({subtree:true}).some(animation=>animation.playState==='running')"), false)
     assert.equal(evaluate("getComputedStyle(document.querySelector('.catalog-skill-link svg')).transitionDuration"), "0s")
     capture("reduced-motion-en-375")

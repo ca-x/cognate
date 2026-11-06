@@ -82,12 +82,15 @@ function Workspace() {
       document.documentElement.dataset.input = "keyboard"
       document.querySelectorAll<HTMLElement>('[data-motion="on"]').forEach((node) => { node.dataset.motion = "off" })
     }
-    const pointer = () => { document.documentElement.dataset.input = "pointer" }
+    const pointer = () => { if (document.documentElement.dataset.input !== "pointer") document.documentElement.dataset.input = "pointer" }
+    const hover = (event: PointerEvent) => { if (event.pointerType === "mouse") pointer() }
     document.addEventListener("keydown", keyboard, true)
     document.addEventListener("pointerdown", pointer, true)
+    document.addEventListener("pointermove", hover, { capture: true, passive: true })
     return () => {
       document.removeEventListener("keydown", keyboard, true)
       document.removeEventListener("pointerdown", pointer, true)
+      document.removeEventListener("pointermove", hover, true)
     }
   }, [])
   useTranslation()

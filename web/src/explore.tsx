@@ -11,6 +11,7 @@ import { catalogCategoryPageSize, catalogMaxPages, catalogPageSize, publicInstal
 import { CatalogError } from "./catalog-error"
 import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
+import { SpotlightCard } from "./components/react-bits/spotlight-card"
 import type { PublicSkill } from "./gen/skillhub/catalog/v1/catalog_pb"
 import "./explore.css"
 
@@ -87,7 +88,7 @@ export function ExplorePage() {
   const category = search.category ?? ""
   const key = JSON.stringify([query, category])
   return <div className="public-catalog">
-    <div className="page-heading"><div><p className="catalog-eyebrow"><Compass size={16} aria-hidden="true" />{t("公开目录")}</p><h1>{t("探索可复用的技能")}</h1><p>{t("浏览这个 Cognate 上明确公开的技能，无需登录，也无需分享 token。")}</p></div><span className="catalog-access"><Globe size={16} aria-hidden="true" />{t("明确公开 · 匿名浏览")}</span></div>
+    <SpotlightCard className="page-heading catalog-hero"><div><p className="catalog-eyebrow"><Compass size={16} aria-hidden="true" />{t("公开目录")}</p><h1>{t("探索可复用的技能")}</h1><p>{t("浏览这个 Cognate 上明确公开的技能，无需登录，也无需分享 token。")}</p></div><span className="catalog-access"><Globe size={16} aria-hidden="true" />{t("明确公开 · 匿名浏览")}</span></SpotlightCard>
     <CatalogSearch key={`search:${key}`} query={query} category={category} />
     {queryByteLength(query) > 128 ? <p role="alert" className="error-notice">{t("链接中的搜索词超过 128 个 UTF-8 字节。请缩短搜索词后重试，当前未请求技能列表。")}</p> : <SkillResults key={`skills:${key}`} query={query} category={category} />}
   </div>

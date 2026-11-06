@@ -9,6 +9,7 @@ import { canConfirmSelection, selectionNotices, selectionOption, selectionStatus
 import { Button } from "./components/ui/button"
 import { Checkbox } from "./components/ui/checkbox"
 import { Input } from "./components/ui/input"
+import { SearchInput } from "./components/ui/search-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./components/ui/dialog"
 import { isImportSource, npxImportText, selectionSources, type ImportSource } from "./npx-import-i18n"
@@ -114,12 +115,13 @@ function ConfigurationChoices({ candidate, option, disabled, onOption }: { candi
   </div>
 }
 
-function Column({ title, children, query, onQuery, count, selected, disabled, onSelect, onClear }: { title: string; children: ReactNode; query: string; onQuery: (value: string) => void; count: number; selected: number; disabled: boolean; onSelect: () => void; onClear: () => void }) {
+function Column({ title, children, query, onQuery, count, total, selected, selectable, disabled, onSelect, onClear }: { title: string; children: ReactNode; query: string; onQuery: (value: string) => void; count: number; total: number; selected: number; selectable: boolean; disabled: boolean; onSelect: () => void; onClear: () => void }) {
   const id = useId()
-  return <fieldset className="min-w-0 self-start space-y-3 rounded-lg border border-border p-3"><legend className="px-1 font-semibold">{title} · {formatNumber(count)}</legend>
-    <label htmlFor={id} className="sr-only">{t("筛选 {{title}}", { title })}</label><Input id={id} value={query} onChange={(event) => onQuery(event.target.value)} placeholder={t("筛选 {{title}}", { title })} />
-    <div className="flex flex-wrap items-center gap-2 text-xs"><span>{t("已选 {{count}} 项", { count: formatNumber(selected) })}</span><Button type="button" variant="ghost" className="min-h-9 px-2 text-xs" disabled={disabled} onClick={onSelect}>{t("选择可见可导入项")}</Button><Button type="button" variant="ghost" className="min-h-9 px-2 text-xs" disabled={disabled || selected === 0} onClick={onClear}>{t("清空此类选择")}</Button></div>
-    <div className="max-h-[26rem] space-y-3 overflow-y-auto overscroll-contain pr-1" tabIndex={0} role="region" aria-label={t("{{title}}候选列表", { title })}>{children}</div>
+  return <fieldset className="min-w-0 self-start space-y-3 rounded-lg border border-border p-3"><legend className="px-1 font-semibold">{title} · {formatNumber(total)}</legend>
+    <label htmlFor={id} className="sr-only">{t("筛选 {{title}}", { title })}</label><SearchInput id={id} value={query} onValueChange={onQuery} placeholder={t("筛选 {{title}}", { title })} clearLabel={t("清空 {{title}} 搜索", { title })} aria-controls={`${id}-results`} aria-describedby={`${id}-count`} />
+    <p id={`${id}-count`} role="status" className="text-xs text-muted-foreground">{t("显示 {{visible}} / {{total}} 项", { visible: formatNumber(count), total: formatNumber(total) })} · {t("已选 {{count}} 项", { count: formatNumber(selected) })}</p>
+    <div className="flex flex-wrap items-center gap-2 text-xs"><Button type="button" variant="ghost" className="px-2 text-xs" disabled={disabled || !selectable} onClick={onSelect}>{t("选择可见可导入项")}</Button><Button type="button" variant="ghost" className="px-2 text-xs" disabled={disabled || selected === 0} onClick={onClear}>{t("清空此类选择")}</Button></div>
+    <div id={`${id}-results`} className="max-h-[26rem] space-y-3 overflow-y-auto overscroll-contain pr-1" tabIndex={0} role="region" aria-label={t("{{title}}候选列表", { title })}>{children}</div>
   </fieldset>
 }
 
@@ -165,7 +167,7 @@ export function ImportSelectionForm(props: ImportSelectionFormProps) {
   const visibleRepositories = preview?.repositories.filter((entry) => matches("repositories", `${entry.hint?.repository} ${entry.hint?.branch}`)) ?? []
   const supportedConfigurations = preview?.configurations.filter((entry) => entry.draft && ![ImportCandidateStatus.UNSUPPORTED_AGENT, ImportCandidateStatus.UNSUPPORTED_KIND, ImportCandidateStatus.UNSUPPORTED_FIELD].includes(entry.status)) ?? []
   const visibleConfigurations = supportedConfigurations.filter((entry) => matches("configurations", `${entry.safeName} ${importAgentLabels[entry.knownAgentId] ?? entry.knownAgentId} ${configurationSummary(entry).join(" ")}`))
-  const columnProps = (group: SelectionGroup, entries: { id: string; status: ImportCandidateStatus }[]) => ({ query: queries[group], onQuery: (value: string) => setQueries((previous) => ({ ...previous, [group]: value })), count: entries.length, selected: state.chosen[group].length, disabled: locked || state.stale,
+  const columnProps = (group: SelectionGroup, entries: { id: string; status: ImportCandidateStatus }[]) => ({ query: queries[group], onQuery: (value: string) => setQueries((previous) => ({ ...previous, [group]: value })), count: entries.length, total: group === "configurations" ? supportedConfigurations.length : preview?.[group].length ?? 0, selected: state.chosen[group].length, selectable: entries.some((entry) => entry.status === ImportCandidateStatus.READY && !state.chosen[group].includes(entry.id)), disabled: locked || state.stale,
     onSelect: () => entries.filter((entry) => entry.status === ImportCandidateStatus.READY).forEach((entry) => props.onChoose(group, entry.id, true)), onClear: () => state.chosen[group].forEach((entry) => props.onChoose(group, entry, false)) })
   const chooseBox = (group: SelectionGroup, candidateId: string, status: ImportCandidateStatus, label: ReactNode) => <div className="flex items-start gap-3"><Checkbox id={`${id}-${candidateId}`} disabled={locked || state.stale || status !== ImportCandidateStatus.READY} checked={state.chosen[group].includes(candidateId)} onCheckedChange={(value) => props.onChoose(group, candidateId, value === true)} className="mt-3" /><label htmlFor={`${id}-${candidateId}`} className="min-h-11 min-w-0 flex-1 py-2 break-words">{label}</label></div>
   return <section className="source-card" aria-labelledby={`${id}-heading`}>

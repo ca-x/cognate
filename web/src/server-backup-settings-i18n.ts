@@ -1,6 +1,8 @@
 import i18n from "./i18n"
 
 const en = {
+  unsaved: "Unsaved changes", unchanged: "Matches the saved settings", unconfirmed: "Read the saved settings before continuing",
+  discardTitle: "Discard unsaved changes?", discardHelp: "Reloading replaces your edits with the saved settings and clears any credentials you entered. Nothing will be saved or restarted.", keepEditing: "Keep editing", discardReload: "Discard and reload",
   destination: "S3 destination and recovery key",
   title: "Backup settings", intro: "Manage this instance's backup destination and schedule here. Save to apply without restarting the server.",
   enable: "Enable server backups", enableHelp: "Allows encrypted backups to the S3 destination below. Disabling backups does not delete existing remote copies.",
@@ -18,6 +20,8 @@ const en = {
   unsupported: "This server does not support online backup settings. Upgrade the server to configure them here.", loadError: "Saved settings could not be read. No change has been made. Reload before editing.",
 }
 const zh: Record<keyof typeof en, string> = {
+  unsaved: "有未保存的修改", unchanged: "与已保存设置一致", unconfirmed: "请先重新读取已保存设置，再继续操作",
+  discardTitle: "放弃尚未保存的修改？", discardHelp: "重新读取将用已保存的设置替换当前草稿，并清空本次填写的凭据。不会保存修改，也不会重启服务。", keepEditing: "继续编辑", discardReload: "放弃修改并重新读取",
   destination: "S3 备份目标与恢复密钥",
   title: "备份设置", intro: "在这里管理本实例的备份目标与周期。保存后在线生效，无需重启服务端。",
   enable: "启用服务端备份", enableHelp: "允许将加密备份写入下方 S3 目标。关闭不会删除已有的远端备份。",

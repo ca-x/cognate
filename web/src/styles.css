@@ -15,7 +15,7 @@
   --color-success: #245f48;
 }
 
-:root { color-scheme: light; --shadow-surface: 0 1px 2px #172b4d06, 0 6px 20px #172b4d04; --shadow-popover: 0 12px 40px #172b4d1a, 0 2px 6px #172b4d0a; --surface-highlight: #fff; --motion-feedback: 150ms; --motion-enter: 200ms; }
+:root { color-scheme: light; --shadow-surface: 0 1px 2px #172b4d06, 0 6px 20px #172b4d04; --shadow-popover: 0 12px 40px #172b4d1a, 0 2px 6px #172b4d0a; --surface-highlight: #fff; --motion-feedback: 150ms; --motion-enter: 200ms; --motion-stagger: 60ms; }
 :root[data-theme="dark"] { color-scheme: dark; --color-background: #0d131d; --color-foreground: #e5ecf5; --color-card: #151e2b; --color-primary: #91baff; --color-primary-foreground: #102343; --color-muted: #1e2b3d; --color-muted-foreground: #a0b0c5; --color-border: #2b394c; --color-destructive: #ff9aab; --color-sidebar: #101824; --color-accent-surface: #1c2e48; --color-success: #8bd8b4; --shadow-surface: 0 1px 2px #0002, 0 6px 20px #0001; --shadow-popover: 0 16px 48px #0006, 0 2px 8px #0003; --surface-highlight: #ffffff08; }
 
 :root { font: 100%/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif; color: var(--color-foreground); background: var(--color-background); font-optical-sizing: auto; --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }

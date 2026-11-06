@@ -59,6 +59,8 @@ jobs:
       - run: node scripts/verify-grok-import-state.mjs
       - run: node scripts/verify-magpie-export.mjs
       - run: node scripts/verify-backup-web-state.mjs
+      - run: node scripts/verify-backup-settings-state.mjs
+      - run: node scripts/verify-react-bits.mjs
       - run: node scripts/verify-sources-web.mjs --self-test-gate
       - run: node scripts/verify-backup-sqlite-locks.mjs --self-test
       - run: node scripts/verify-auth-ui.mjs --self-test

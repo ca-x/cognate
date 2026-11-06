@@ -1,5 +1,35 @@
 # Web 首发视觉与动效阶段记录
 
+## 2026-11-06：React Bits 按需动效与交互打磨
+
+本轮维护限定在 Web：登录引导、公开目录介绍和 GitHub 来源卡片增加局部追光；
+登录的「仓库 → 组合 → Agents」采用一次性渐入。来源同步图标仅在真实请求期间旋转。
+没有修改品牌、框架、桌面组件或导入/备份的安全门禁，也不恢复全部产品 backlog。
+
+- 参考 React Bits 固定提交 `4dc7b5b7772e1217c8fb8d2a7aa074302180e5b4` 的
+  SpotlightCard 与 FadeContent；明确为精简适配，不引入上游全量 API、GSAP、Canvas
+  或持续 RAF。来源和完整许可见 `web/src/components/react-bits/README.md` 及
+  `THIRD-PARTY-NOTICES.md`。
+- 局部追光：仅细指针鼠标移动时更新 CSS 坐标，颜色来自主题 primary token；只过渡
+  装饰层 opacity，200ms / 既有 ease-out，不移动正文、输入框或按钮。
+- 引导渐入：复用 surface-enter 的 6px translateY + opacity、200ms；共享新增
+  `--motion-stagger: 60ms`，最多五个节点。没有加载遮挡、无限动画或人为延迟输入。
+- 键盘输入立即取消入场与追光；重新移动鼠标恢复 hover，但不重播入场。减少动态效果
+  即时关闭装饰，触摸/笔事件不跟踪；所有装饰 aria-hidden、pointer-events:none。
+- 导入和仓库搜索组合现有 Input/Button：清空后保留焦点，Escape 仅清非空搜索，
+  IME composition 不误清；显示可见/总数与总已选数，零可导入结果不提供无效批选。
+- 备份表单清楚区分草稿与已生效状态；同 revision 重新读取也重置草稿，丢弃前确认。
+  保存使用已确认响应更新缓存、先取消旧读取，不追加二次读取；缓存页面回访不自动
+  读取覆盖草稿，显式重新读取仍取得最新设置。不同 revision 重载保留稳定焦点目标。
+  Unknown/CAS 不自动重放，凭据继续仅保留在 uncontrolled refs 并在提交/重载时清空。
+
+验证时优先真实浏览器。当前机器的新 headless Chrome 默认报告 hover/pointer:none；
+测试桌面追光请设置 `COGNATE_BROWSER_EXECUTABLE` 为实际 Chromium 路径，将
+`--chrome-bin scripts/chromium-desktop-pointer.sh` 传给既有 auth/sources/public-catalog
+验证脚本。该测试适配器配置 Blink 的真实媒体能力，不覆盖 JavaScript matchMedia，
+域名白名单仍保留。触摸/笔事件注入和移动 viewport 不是实体触屏硬件验收。
+本轮命令、截图与原始失败记录另见 `UI-INTERACTION-POLISH-VERIFICATION.md`。
+
 ## 后续开发默认规范（2026-11-06 用户确认）
 
 后续涉及前端开发、组件、布局、视觉或交互修改，优先读取并尽量采用以下五个 skill：

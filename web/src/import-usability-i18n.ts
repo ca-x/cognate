@@ -1,6 +1,9 @@
 import i18n from "./i18n"
 
 const english = {
+  "清空搜索": "Clear search",
+  "清空 {{title}} 搜索": "Clear {{title}} search",
+  "显示 {{visible}} / {{total}} 项": "Showing {{visible}} of {{total}} items",
   "重新选择文件": "Choose another file",
   "选择导出文件": "Choose an export file",
   "本次导入清单": "Items to import",

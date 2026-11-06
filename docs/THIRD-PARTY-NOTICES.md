@@ -1,5 +1,29 @@
 # Distribution license locations
 
+## React Bits Web effects
+
+The Web-only spotlight and mount-fade/stagger adapters reference DavidHDev/react-bits
+commit `4dc7b5b7772e1217c8fb8d2a7aa074302180e5b4`. They are reduced adaptations,
+not an unmodified upstream package or its complete component APIs. Provenance
+and adaptation boundaries are in `web/src/components/react-bits/README.md`.
+
+The full upstream MIT + Commons Clause license is preserved byte-for-byte at
+`web/public/assets/react-bits-LICENSE.txt` (2,060 bytes), SHA256
+`4bdd1fa59a6b7d5954bc3b213dbc34e455c635a94bbcecf9293553797d0fad02`.
+It is **not** an unrestricted MIT grant; do not redistribute these effects as
+a standalone component library. Cognate's root license does not replace it.
+
+Vite copies the notice to `dist/assets/react-bits-LICENSE.txt`; the server embeds
+that directory, including the complete text, into its executable. This keeps
+the readable notice with a server binary even without companion files. It is
+served anonymously at `/assets/react-bits-LICENSE.txt`, including in Docker/LPK
+builds containing that executable. The real HTTP browser fixture verifies the
+served bytes; `scripts/verify-react-bits.mjs` checks source and build output in
+CI. This describes subsequent build delivery, not a retroactive change to
+already-published 0.6.1 artifacts or a claim that a new release was published.
+
+## Codex model metadata
+
 The Codex model metadata and fallback prompt derive from OpenAI Codex source
 `6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`. Their readable distribution notice
 combines the full upstream Apache License 2.0 and original NOTICE, including

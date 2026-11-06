@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { createHash } from "node:crypto"
 import { spawn, spawnSync } from "node:child_process"
 import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
@@ -68,8 +69,14 @@ async function control(path, body) {
   assert.equal(response.status, 200)
   return body === undefined ? response.json() : undefined
 }
-function click(name) { browser(["find", "role", "button", "click", "--name", name, "--exact"]) }
-function fill(selector, value) { browser(["fill", selector, value]) }
+function click(name) {
+  browser(["wait", "--fn", `(() => {const button=Array.from(document.querySelectorAll('button')).find(node=>node.textContent.trim()===${JSON.stringify(name)});return !!button&&!button.disabled&&button.getAttribute('aria-disabled')!=='true'})()`])
+  browser(["find", "role", "button", "click", "--name", name, "--exact"])
+}
+function fill(selector, value) {
+  if (value !== "") { browser(["fill", selector, value]); return }
+  browser(["focus", selector]); browser(["press", "Control+A"]); browser(["press", "Backspace"])
+}
 function text() { return evaluate("document.body.innerText") }
 function capture(name, full = true) {
   assert(evaluate("Array.from(document.querySelectorAll('input[type=password]')).every(input => input.value === '')"), "clear passwords before screenshots")
@@ -135,7 +142,7 @@ async function backgroundFocusChecks() {
       await control("mode", "options-error")
       evaluate("window.dispatchEvent(new Event('visibilitychange'))")
       await until(() => text().includes("Could not read sign-in methods"), "stale background error did not appear")
-      assert(!text().includes(screen === "login" ? "Sign in with OpenID Connect" : "Link or verify OIDC identity"), "background failure must hide stale OIDC action")
+      assert(!text().includes(screen === "login" ? "Sign in with OpenID Connect" : "Link OIDC sign-in"), "background failure must hide stale OIDC action")
       const expected = focusedAction ? ".auth-options-refresh" : selector
       assert(evaluate(`document.activeElement?.matches(${JSON.stringify(expected)})`), `${screen}: background settings error lost or stole keyboard focus`)
       if (!focusedAction && screen === "login") assert.equal(evaluate("document.querySelector('#username').value"), "background-draft")
@@ -143,7 +150,7 @@ async function backgroundFocusChecks() {
       await control("mode", "enabled")
       if (focusedAction) browser(["press", "Enter"])
       else click("Retry sign-in methods")
-      await until(() => text().includes(screen === "login" ? "Sign in with OpenID Connect" : "Link or verify OIDC identity"), "explicit retry did not restore known settings")
+      await until(() => text().includes(screen === "login" ? "Sign in with OpenID Connect" : "Link OIDC sign-in"), "explicit retry did not restore known settings")
       assert(evaluate("document.activeElement?.matches('.auth-options-refresh')"), "background retry did not retain the stable trigger")
       checks.push(`${screen}: stale background failure ${focusedAction ? "returns removed action focus to refresh" : "does not steal unrelated focus"}; explicit retry recovers`)
     }
@@ -163,6 +170,36 @@ try {
     await backgroundFocusChecks()
   } else {
   capture(`${values.phase}-login-dark`)
+  if (values.phase === "after") {
+    const license = evaluate("(async () => {const response=await fetch('/assets/react-bits-LICENSE.txt');return {status:response.status,text:await response.text()}})()")
+    assert.equal(license.status, 200, "embedded React Bits license must be readable without signing in")
+    assert.equal(createHash("sha256").update(license.text).digest("hex"), "4bdd1fa59a6b7d5954bc3b213dbc34e455c635a94bbcecf9293553797d0fad02")
+    assert(evaluate("!!document.querySelector('.auth-story.bits-spotlight > [aria-hidden=true]') && document.querySelector('.source-flow').classList.contains('bits-fade-content')"), "login effects missing")
+    assert(evaluate("Array.from(document.querySelector('.source-flow').children).every(node=>getComputedStyle(node).animationName==='surface-enter')"), "login flow should reveal in order")
+    const point = evaluate("(() => {const rect=document.querySelector('.auth-story').getBoundingClientRect();return {x:Math.round(rect.x+rect.width*.65),y:Math.round(rect.y+rect.height*.45)}})()")
+    evaluate("window.__motionCSP=[];document.addEventListener('securitypolicyviolation',event=>window.__motionCSP.push(event.violatedDirective))")
+    browser(["mouse", "move", String(point.x), String(point.y)])
+    const motionState = evaluate("({hover:matchMedia('(hover: hover)').matches,fine:matchMedia('(pointer: fine)').matches,reduce:matchMedia('(prefers-reduced-motion: reduce)').matches,input:document.documentElement.dataset.input,surface:document.querySelector('.auth-story').dataset.spotlight,opacity:getComputedStyle(document.querySelector('.bits-spotlight-light')).opacity})")
+    await until(() => evaluate("Number(getComputedStyle(document.querySelector('.auth-story > .bits-spotlight-light')).opacity)===1"), `pointer did not light the login story: ${JSON.stringify(motionState)}`)
+    assert(evaluate("getComputedStyle(document.querySelector('.bits-spotlight-light')).pointerEvents==='none'"), "decoration must not capture pointer input")
+    assert(evaluate("Array.from(document.getAnimations()).every(animation=>animation.effect.getTiming().iterations!==Infinity)"), "login must not run continuous decorative animation")
+    evaluate("(async () => {await Promise.all(document.querySelector('.source-flow').getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})))})()")
+    await until(() => evaluate("Array.from(document.querySelector('.source-flow').children).every(node=>getComputedStyle(node).opacity==='1')"), "login flow must become completely visible without input")
+    const flow = evaluate("Array.from(document.querySelector('.source-flow').children,node=>({tag:node.tagName,visible:node.checkVisibility({opacityProperty:true}),box:node.getBoundingClientRect().toJSON(),opacity:getComputedStyle(node).opacity}))")
+    const viewportWidth = evaluate("innerWidth")
+    assert.equal(flow.length, 5, "the complete repository-to-pack-to-agent explanation must remain present")
+    assert(flow.every(node=>node.visible&&node.box.width>0&&node.box.right<=viewportWidth), "all flow steps must be visibly laid out")
+    writeFileSync(join(output, "motion-flow.json"), JSON.stringify(flow, null, 2), { mode: 0o600 })
+    capture("login-spotlight-dark-1440")
+    browser(["press", "Tab"])
+    assert(evaluate("getComputedStyle(document.querySelector('.bits-spotlight-light')).opacity==='0' && Array.from(document.querySelector('.source-flow').children).every(node=>getComputedStyle(node).animationName==='none')"), "keyboard must stop decoration without delaying focus")
+    browser(["mouse", "move", String(point.x + 12), String(point.y)])
+    await until(() => evaluate("Number(getComputedStyle(document.querySelector('.auth-story > .bits-spotlight-light')).opacity)===1"), "returning to the mouse must restore hover without needing a click")
+    assert(evaluate("Array.from(document.querySelector('.source-flow').children).every(node=>getComputedStyle(node).animationName==='none')"), "returning to the mouse must not replay entrance motion")
+    capture("login-spotlight-settled-dark-1440")
+    assert.deepEqual(evaluate("window.__motionCSP"), [], "pointer updates must satisfy the server CSP")
+    checks.push("login spotlight, finite stagger, non-blocking hit testing, keyboard interruption and embedded license")
+  }
   if (values.phase === "before") {
     fill("#username", "auth-fixture"); fill("#password", ready.password); click("Sign in")
     await until(() => text().includes("Account and sign-in"), "baseline real account did not mount")
@@ -241,7 +278,7 @@ try {
   click("Refresh sign-in methods")
   await until(() => text().includes("Could not read sign-in methods"), "cached enabled options hid background error")
   assert(evaluate("document.activeElement?.matches('.auth-options-refresh')"), "account refresh failure lost focus")
-  assert(!text().includes("Link or verify OIDC identity"), "binding must not use stale enabled options after error")
+  assert(!text().includes("Link OIDC sign-in"), "binding must not use stale enabled options after error")
   capture("account-options-background-error")
   await control("mode", "disabled")
   click("Retry sign-in methods")
@@ -249,9 +286,9 @@ try {
   capture("account-oidc-disabled")
   await control("mode", "enabled")
   click("Refresh sign-in methods")
-  await until(() => text().includes("Link or verify OIDC identity"), "enabled account did not refresh")
+  await until(() => text().includes("Link OIDC sign-in"), "enabled account did not refresh")
   await control("mode", "oidc-error")
-  click("Link or verify OIDC identity")
+  click("Link OIDC sign-in")
   await until(() => evaluate("!!document.querySelector('.account-ui [role=alert]')"), "bind start failure missing")
   capture("account-bind-start-error")
   checks.push("cached options error is unknown, explicit retry recovers disabled, explicit binding failure")
@@ -291,6 +328,7 @@ try {
   browser(["set", "media", "light", "reduced-motion"])
   await until(() => evaluate("document.documentElement.dataset.theme === 'light'"), "system light theme did not update")
   assert(evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"), "reduced motion not active")
+  assert(evaluate("getComputedStyle(document.querySelector('.bits-spotlight-light')).display==='none' && Array.from(document.querySelector('.source-flow').children).every(node=>getComputedStyle(node).animationName==='none')"), "reduced motion must disable story effects immediately")
   await keyboardReveal("form button[type=submit]")
   assert(evaluate("getComputedStyle(document.activeElement).transitionDuration.split(',').every(value => parseFloat(value) === 0)"), "reduced motion still animates auth controls")
   fill("#username", ""); fill("#password", ""); capture("login-system-light-reduced-motion")
@@ -303,6 +341,13 @@ try {
   assert(evaluate("Object.keys(localStorage).every(key => ['skillhub.theme','skillhub.locale'].includes(key))"), "unexpected persistent browser data")
   writeFileSync(join(output, "receipts.json"), JSON.stringify(receipts, null, 2), { mode: 0o600 })
   checks.push("draft survives preferences; live system theme; reduced motion; explicit binding bit; only preferences persist")
+  browser(["set", "media", "dark"])
+  browser(["set", "device", "iPhone 16"])
+  await load()
+  assert(evaluate("(() => {const surface=document.querySelector('.auth-story');for(const pointerType of ['touch','pen']) surface.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType,clientX:20,clientY:20}));return !matchMedia('(prefers-reduced-motion: reduce)').matches && !surface.dataset.spotlight && getComputedStyle(surface.querySelector('.bits-spotlight-light')).opacity==='0'})()"), "touch and pen pointer events must not activate decorative tracking")
+  geometry({ screen: "login", input: "simulated-touch-and-pen", language: "en", theme: "dark" })
+  capture("login-touch-static")
+  checks.push("simulated touch/pen pointer events do not track; mobile viewport layout")
   }
 } catch (error) {
   failure = error
