@@ -16,6 +16,7 @@ on:
       - 'internal/server/state/**'
       - 'go.mod'
       - 'go.sum'
+      - 'scripts/test-darwin-cleanup.py'
       - '.github/workflows/platform-primitives.yml'
   workflow_dispatch:
 
@@ -40,6 +41,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Test cleanup diagnostics and unchanged refusal gates
+        run: python3 scripts/test-darwin-cleanup.py
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
@@ -1012,6 +1015,25 @@ jobs:
           import subprocess
           import time
 
+          def detach_diagnostic(result):
+              diagnostic = {"class": "success" if result.returncode == 0 else "nonzero", "exit": result.returncode,
+                            "stdout_bytes": len(result.stdout), "stderr_bytes": len(result.stderr)}
+              if result.returncode != 0:
+                  prefix = b"hdiutil: detach failed - "
+                  for message, category in [(b"Resource busy", "resource-busy"), (b"Invalid argument", "invalid-argument"),
+                                            (b"Permission denied", "permission-denied"), (b"Operation not permitted", "not-permitted"),
+                                            (b"No such file or directory", "not-found")]:
+                      if result.stderr in {prefix + message, prefix + message + b"\n"}:
+                          diagnostic["class"] = category
+              return diagnostic
+          def cache_inspection_limit(depth, checked, now, deadline):
+              if depth > 64:
+                  return "depth"
+              if checked > 200000:
+                  return "entries"
+              if now > deadline:
+                  return "time"
+              return "none"
           def owned_root(root):
               try:
                   info = root.lstat()
@@ -1022,6 +1044,7 @@ jobs:
                   return False
           def clean_module_cache(root):
               descriptors = []
+              progress = {"phase": "module-cache", "entries": 0, "max_depth": 0, "limit": "none", "inspection_ms": 0}
               try:
                   if not owned_root(root) or os.environ.get("GOPATH") != str(root / "gopath") or os.environ.get("GOMODCACHE") != str(root / "gopath/pkg/mod"):
                       return "unsafe-cache"
@@ -1039,17 +1062,23 @@ jobs:
                           raise ValueError("unsafe cache directory")
                       return descriptor
                   gopath_descriptor = open_owned("gopath", root_descriptor)
-                  deadline = time.monotonic() + 10
+                  started = time.monotonic()
+                  deadline = started + 10
                   checked = 0
+                  def check_limit(depth):
+                      now = time.monotonic()
+                      progress.update(entries=checked, max_depth=max(depth, progress["max_depth"]),
+                                      inspection_ms=max(0, int((now - started) * 1000)))
+                      progress["limit"] = cache_inspection_limit(depth, checked, now, deadline)
+                      if progress["limit"] != "none":
+                          raise RuntimeError("cache inspection limit")
                   def inspect(descriptor, depth):
                       nonlocal checked
-                      if depth > 64 or time.monotonic() > deadline:
-                          raise RuntimeError("cache inspection limit")
+                      check_limit(depth)
                       with os.scandir(descriptor) as entries:
                           for entry in entries:
                               checked += 1
-                              if checked > 200000 or time.monotonic() > deadline:
-                                  raise RuntimeError("cache inspection limit")
+                              check_limit(depth)
                               info = entry.stat(follow_symlinks=False)
                               if info.st_uid != os.geteuid() or info.st_dev != root_info.st_dev or info.st_mode & 0o022:
                                   raise ValueError("unsafe cache entry")
@@ -1110,6 +1139,7 @@ jobs:
               finally:
                   for descriptor in reversed(descriptors):
                       os.close(descriptor)
+                  print(json.dumps(progress, sort_keys=True))
           value = os.environ.get("COGNATE_BASELINE_ROOT")
           if value is None:
               raise SystemExit("BLOCKED: no isolated root cleanup receipt")
@@ -1131,8 +1161,10 @@ jobs:
                   try:
                       result = subprocess.run(["hdiutil", "detach", str(mount)], capture_output=True, timeout=30)
                       receipt["detach_exit"] = result.returncode
+                      print(json.dumps({"phase": "detach", "role": label, **detach_diagnostic(result)}, sort_keys=True))
                   except subprocess.TimeoutExpired:
                       receipt["detach_timeout"] = True
+                      print(json.dumps({"phase": "detach", "role": label, "class": "timeout"}, sort_keys=True))
               receipt["still_mounted"] = os.path.ismount(mount)
               if (receipt["still_mounted"] or receipt["attachment_unknown"] or receipt["creation_unknown"]
                       or receipt["was_mounted"] and (receipt.get("detach_exit") != 0 or receipt.get("detach_timeout", False))):
