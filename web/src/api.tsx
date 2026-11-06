@@ -16,6 +16,7 @@ import { ImportService } from "./gen/skillhub/import/v1/import_pb"
 import { ConfigurationService } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { LogManagementService } from "./gen/skillhub/management/v1/logging_pb"
 import { BackupManagementService } from "./gen/skillhub/management/v1/backup_pb"
+import { GitHubProxyManagementService } from "./gen/skillhub/management/v1/github_proxy_pb"
 
 type Session = { token: string; userId: string; username: string }
 type ApiContext = {
@@ -35,6 +36,7 @@ type ApiContext = {
   configuration: Client<typeof ConfigurationService>
   logManagement: Client<typeof LogManagementService>
   backupManagement: Client<typeof BackupManagementService>
+  githubProxyManagement: Client<typeof GitHubProxyManagementService>
   completingLogin: boolean
   loginNotice: string
 }
@@ -117,7 +119,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       interceptors: [authenticate],
     })
     const packTransport = createConnectTransport({ baseUrl: window.location.origin, defaultTimeoutMs: 20_000, interceptors: [authenticate], fetch: packConfigurationFetch })
-    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), packConfigurations: createClient(PackConfigurationService, packTransport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), mcpConfiguration: createClient(MCPConfigurationService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport) }
+    return { auth: createClient(AuthService, transport), github: createClient(GitHubService, transport), library: createClient(LibraryService, transport), packs: createClient(PackService, transport), packConfigurations: createClient(PackConfigurationService, packTransport), categories: createClient(CategoryService, transport), publications: createClient(PublicationService, transport), mcp: createClient(MCPManagementService, transport), mcpConfiguration: createClient(MCPConfigurationService, transport), imports: createClient(ImportService, transport), configuration: createClient(ConfigurationService, transport), logManagement: createClient(LogManagementService, transport), backupManagement: createClient(BackupManagementService, transport), githubProxyManagement: createClient(GitHubProxyManagementService, transport) }
   }, [session, setSession])
   const value = { session, setSession, ...clients, publicCatalog, completingLogin, loginNotice }
   useEffect(() => {

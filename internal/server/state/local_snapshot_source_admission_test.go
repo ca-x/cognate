@@ -227,13 +227,13 @@ func TestLocalSnapshotSourceCancelAndPlatform(test *testing.T) {
 	}
 }
 
-func TestLocalSnapshotSourceR553PreEngine(test *testing.T) {
+func TestLocalSnapshotSourceR554PreEngine(test *testing.T) {
 	path := sourceAdmissionSeed(test, 512, false)
 	file, err := os.OpenFile(path+"-wal", os.O_WRONLY, 0)
 	if err != nil {
 		test.Fatal(err)
 	}
-	frames := int64(552*4096 - 33)
+	frames := int64(553*4096 - 33)
 	if err := errors.Join(file.Truncate(32+frames*536), file.Close()); err != nil {
 		test.Fatal(err)
 	}
@@ -245,9 +245,9 @@ func TestLocalSnapshotSourceR553PreEngine(test *testing.T) {
 		backups++
 	}
 	if !errors.Is(err, errSnapshotSourceBudget) || result != (localSnapshotSourceObservation{}) || connections != 0 || backups != 0 {
-		test.Fatal("R553 entered source engine or failed for wrong reason", err)
+		test.Fatal("R554 entered source engine or failed for wrong reason", err)
 	}
-	test.Log("R553 refused: source Conn=0 Backup=0; fixture engine already closed")
+	test.Log("R554 refused: source Conn=0 Backup=0; fixture engine already closed")
 }
 
 func TestLocalSnapshotSourceReadBudget(test *testing.T) {
@@ -579,14 +579,14 @@ func TestLocalSnapshotSourceFixedReadsAndFDs(test *testing.T) {
 }
 
 func TestLocalSnapshotSourceArithmetic(test *testing.T) {
-	for _, entry := range []struct{ pageSize, expected uint64 }{{512, 18155128}, {4096, 18162296}, {8192, 18170488}, {65536, 18285176}} {
+	for _, entry := range []struct{ pageSize, expected uint64 }{{512, 18165196}, {4096, 18172364}, {8192, 18180556}, {65536, 18295244}} {
 		actual, ok := snapshotSourceEnvelope(entry.pageSize, 1)
 		if !ok || actual != entry.expected {
 			test.Fatalf("E(P,1) changed P=%d got=%d", entry.pageSize, actual)
 		}
 	}
-	if actual, ok := snapshotSourceEnvelope(512, 2); !ok || actual != 18156280 {
-		test.Fatal("original N2 envelope changed")
+	if actual, ok := snapshotSourceEnvelope(512, 2); !ok || actual != 18166348 {
+		test.Fatal("current N2 envelope changed")
 	}
 	for _, entry := range []struct{ pageSize, pages uint64 }{{0, 1}, {513, 1}, {131072, 1}, {512, 0}, {512, math.MaxUint64}, {65536, math.MaxInt64}} {
 		if _, ok := snapshotSourceEnvelope(entry.pageSize, entry.pages); ok {
@@ -602,6 +602,14 @@ func TestLocalSnapshotSourceArithmetic(test *testing.T) {
 	result := localSnapshotSourceObservation{pageSize: 512, regions: 553, baselineEnvelope: 18156280}
 	if !errors.Is(snapshotSourceNecessaryRefusal(&result), errSnapshotSourceBudget) || result.mappingLower+snapshotSourceLiveCoreLower+512+24+32768 != 18157144 {
 		test.Fatal("R553 lower/refusal changed")
+	}
+	result.baselineEnvelope = 18166348
+	if err := snapshotSourceNecessaryRefusal(&result); err != nil {
+		test.Fatal("R553 refused under the larger current schema planning envelope", err)
+	}
+	result.regions = 554
+	if !errors.Is(snapshotSourceNecessaryRefusal(&result), errSnapshotSourceBudget) || result.mappingLower+snapshotSourceLiveCoreLower+512+24+32768 != 18189912 {
+		test.Fatal("current R554 lower/refusal changed")
 	}
 }
 

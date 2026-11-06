@@ -41,6 +41,7 @@ const (
 	SelectionCandidateUnsupportedKind
 	SelectionCandidateUnsupportedField
 	SelectionCandidateNameConflict
+	SelectionCandidateSourceReferenceReady
 )
 
 type SelectionRepositoryCandidate struct {
@@ -58,6 +59,7 @@ type SelectionSkillCandidate struct {
 	RepositoryCandidateID string
 	Status                SelectionCandidateStatus
 	Binding               *state.ImportSkillBinding
+	SourceReference       *state.ImportSkillSourceReference
 	Notices               []state.ImportReceiptNotice
 }
 
@@ -324,7 +326,7 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 	if err != nil {
 		return state.ImportReceiptView{}, selectionServiceError(ctx, err)
 	}
-	plan := state.ImportSelectionPlan{RepositoryIDs: input.RepositoryIDs, SkillCount: len(input.SkillIDs), ConfigurationCount: len(input.ConfigurationIDs)}
+	plan := state.ImportSelectionPlan{RepositoryIDs: input.RepositoryIDs, SkillCount: len(input.SkillIDs), ConfigurationCount: len(input.ConfigurationIDs), RegisterSources: input.Options.RegisterSources}
 	if found {
 		observed, err := service.store.ReserveImportReceipt(ctx, call.credential, service.origin, state.ImportTicket{}, input.OperationID, digest, plan)
 		if err != nil {
@@ -374,6 +376,9 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 	outcomes := slices.Clone(reservation.Receipt.RepositoryOutcomes)
 	execution := reservation.Execution
 	for index, candidate := range selected.repositories {
+		if input.Options.RegisterSources {
+			break
+		}
 		if err := ctx.Err(); err != nil {
 			return state.ImportReceiptView{}, err
 		}
@@ -431,7 +436,12 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 		}
 		service.mutex.Unlock()
 	}
-	finish := state.ImportFinishSelection{RepositoryOutcomes: outcomes, Skills: selected.skills}
+	finish := state.ImportFinishSelection{RepositoryOutcomes: outcomes, Skills: selected.skills, SkillSources: selected.skillSources}
+	if input.Options.RegisterSources {
+		for _, candidate := range selected.repositories {
+			finish.Sources = append(finish.Sources, state.ImportRepositorySourceDraft{CandidateID: candidate.ID, Repository: candidate.Repository, Branch: candidate.Branch})
+		}
+	}
 	for _, candidate := range selected.configurations {
 		if candidate.Draft == nil {
 			return state.ImportReceiptView{}, state.ErrImportOutcomeUnknown
@@ -446,6 +456,9 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 		finish.Drafts = append(finish.Drafts, draft)
 	}
 	finish.Phase = selectionFinishPhase(outcomes, len(finish.Drafts)+len(finish.Skills), true)
+	if input.Options.RegisterSources {
+		finish.Phase = state.ImportCompleted
+	}
 	view, err := service.store.FinishImportSelection(ctx, call.credential, execution, finish)
 	if err == nil {
 		return view, nil
@@ -453,7 +466,7 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 	if errors.Is(err, state.ErrImportOutcomeUnknown) || ctx.Err() != nil || errors.Is(err, state.ErrImportUnauthorized) {
 		return state.ImportReceiptView{}, selectionServiceError(ctx, err)
 	}
-	if len(finish.Drafts)+len(finish.Skills) > 0 && selectionDefiniteRollback(err) {
+	if (input.Options.RegisterSources || len(finish.Drafts)+len(finish.Skills) > 0) && selectionDefiniteRollback(err) {
 		failure := state.ImportFinishSelection{Phase: selectionFinishPhase(outcomes, 0, false), RepositoryOutcomes: outcomes}
 		terminal, finalErr := service.store.FinishImportSelection(ctx, call.credential, execution, failure)
 		if finalErr != nil {
@@ -467,6 +480,7 @@ func (service *SelectionService) Commit(call *SelectionCall, request SelectionCo
 type selectionSelected struct {
 	repositories   []SelectionRepositoryCandidate
 	skills         []state.ImportSkillBinding
+	skillSources   []state.ImportSkillSourceReference
 	configurations []SelectionConfigurationCandidate
 }
 
@@ -498,10 +512,21 @@ func selectionSelect(view SelectionPreviewView, input SelectionCommitInput) (sel
 		}
 	}
 	seenSkills := make(map[string]bool)
+	seenSources := make(map[state.ImportSkillSourceReference]bool)
 	for _, id := range input.SkillIDs {
 		found := false
 		for _, candidate := range view.Skills {
 			if candidate.ID == id {
+				if input.Options.RegisterSources && candidate.Status == SelectionCandidateSourceReferenceReady && candidate.SourceReference != nil && candidate.Binding == nil {
+					source := *candidate.SourceReference
+					if seenSources[source] {
+						return result, state.ErrImportPrecondition
+					}
+					seenSources[source] = true
+					result.skillSources = append(result.skillSources, source)
+					found = true
+					break
+				}
 				if candidate.Status != SelectionCandidateReady || candidate.Binding == nil || seenSkills[candidate.Binding.SkillID] {
 					return result, state.ErrImportPrecondition
 				}
@@ -882,6 +907,9 @@ func selectionOptionsDigest(options SelectionOptions) ([32]byte, error) {
 		return [32]byte{}, ErrSelectionLimit
 	}
 	transcript := selectionTranscriptFor("cognate/import-selection/v1/options")
+	if options.RegisterSources {
+		transcript.text("register-sources-v1")
+	}
 	transcript.count(len(options.Candidates))
 	seen := make(map[string]bool)
 	for _, option := range options.Candidates {
@@ -1019,6 +1047,8 @@ func selectionStatusText(status SelectionCandidateStatus) string {
 		return "unsupported-field"
 	case SelectionCandidateNameConflict:
 		return "name-conflict"
+	case SelectionCandidateSourceReferenceReady:
+		return "source-reference-ready"
 	default:
 		return "invalid"
 	}
@@ -1153,6 +1183,9 @@ func selectionGlobalNotices(ctx context.Context, source SelectionSource, raw []b
 
 func (service *SelectionService) resolve(ctx context.Context, owner string, source SelectionSource, raw []byte, options SelectionOptions) (selectionResolution, error) {
 	var result selectionResolution
+	if options.RegisterSources && source != SelectionMagpie && source != SelectionCCSwitch24 {
+		return result, ErrSelectionInvalid
+	}
 	optionsDigest, err := selectionOptionsDigest(options)
 	if err != nil {
 		return result, err
@@ -1170,6 +1203,16 @@ func (service *SelectionService) resolve(ctx context.Context, owner string, sour
 	view, err := candidates.View()
 	if err != nil {
 		return result, err
+	}
+	if options.RegisterSources {
+		for _, candidate := range view.Skills {
+			if candidate.Status == SelectionNeedsBinding {
+				appendSelectionRepository(&view, candidate.Repository, candidate.Branch, nil)
+			}
+		}
+		if len(view.Repositories) > MaxSelectionPreviewRepositories {
+			return result, ErrSelectionLimit
+		}
 	}
 	projectionDigest, err := selectionProjectionDigest(view)
 	if err != nil {
@@ -1268,6 +1311,23 @@ func (service *SelectionService) resolve(ctx context.Context, owner string, sour
 			}
 		}
 	}
+	if options.RegisterSources {
+		for index, candidate := range view.Skills {
+			resolved := &result.preview.Skills[index]
+			if candidate.Status != SelectionNeedsBinding || resolved.Status == SelectionCandidateReady || resolved.RepositoryCandidateID == "" {
+				continue
+			}
+			path := ""
+			if candidate.Path != nil {
+				path = *candidate.Path
+			}
+			resolved.Status = SelectionCandidateSourceReferenceReady
+			resolved.SourceReference = &state.ImportSkillSourceReference{Repository: candidate.Repository, Branch: candidate.Branch, LogicalPath: path, SafeName: candidate.Name}
+			if !resolved.SourceReference.Valid() {
+				return result, ErrSelectionInvalid
+			}
+		}
+	}
 	for _, candidate := range view.Configurations {
 		notices, err := selectionMapNotices(view.SourceDigest, "configuration", candidate.ID, candidate.Notices)
 		if err != nil {
@@ -1353,6 +1413,12 @@ func selectionResolutionDigest(owner string, resolution selectionResolution) ([3
 			binding = selectionSourceBinding(*candidate.Binding)
 		}
 		transcript.binding(binding)
+		if candidate.SourceReference != nil {
+			transcript.text("source-reference-v1")
+			for _, value := range []string{candidate.SourceReference.Repository, candidate.SourceReference.Branch, candidate.SourceReference.LogicalPath, candidate.SourceReference.SafeName} {
+				transcript.text(value)
+			}
+		}
 	}
 	transcript.count(len(resolution.preview.Configurations))
 	for index, candidate := range resolution.preview.Configurations {

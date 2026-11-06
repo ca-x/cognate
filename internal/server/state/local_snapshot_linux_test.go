@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/ca-x/cognate/internal/repository"
 )
 
 func TestMain(tests *testing.M) {
@@ -34,6 +36,7 @@ func TestMain(tests *testing.M) {
 func TestLocalSnapshotExactBudgets(test *testing.T) {
 	store, _ := snapshotTestStore(test)
 	snapshotSeedRelations(test, store, 1)
+	source := snapshotSeedRepositorySource(test, store, 1, "budget-source", "org/source", []repository.SkillSource{{Name: "Root", Path: ""}, {Name: "Example", Path: "skills/example"}})
 	summary, err := store.WithLocalSnapshot(test.Context(), snapshotTestLimits(), func(context.Context, LocalSnapshotView) error { return nil })
 	if err != nil {
 		test.Fatal(err)
@@ -46,7 +49,7 @@ func TestLocalSnapshotExactBudgets(test *testing.T) {
 				limits := snapshotTestLimits()
 				limits.MaxDBBytes = databaseBytes
 				limits.MaxInventoryBytes = referenceBytes
-				limits.MaxRecords = 6
+				limits.MaxRecords = uint64(4 + 2 + 1 + len(source.Skills))
 				limits.MaxStagingBytes = max(databaseBytes, 4096) + referenceBytes + 65536
 				switch kind {
 				case "database":

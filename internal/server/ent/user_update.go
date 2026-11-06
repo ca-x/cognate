@@ -27,6 +27,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -170,6 +171,21 @@ func (_u *UserUpdate) AddCollectedRepositories(v ...*CollectedRepository) *UserU
 		ids[i] = v[i].ID
 	}
 	return _u.AddCollectedRepositoryIDs(ids...)
+}
+
+// AddRepositorySourceIDs adds the "repository_sources" edge to the RepositorySource entity by IDs.
+func (_u *UserUpdate) AddRepositorySourceIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddRepositorySourceIDs(ids...)
+	return _u
+}
+
+// AddRepositorySources adds the "repository_sources" edges to the RepositorySource entity.
+func (_u *UserUpdate) AddRepositorySources(v ...*RepositorySource) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRepositorySourceIDs(ids...)
 }
 
 // AddPackIDs adds the "packs" edge to the Pack entity by IDs.
@@ -448,6 +464,27 @@ func (_u *UserUpdate) RemoveCollectedRepositories(v ...*CollectedRepository) *Us
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCollectedRepositoryIDs(ids...)
+}
+
+// ClearRepositorySources clears all "repository_sources" edges to the RepositorySource entity.
+func (_u *UserUpdate) ClearRepositorySources() *UserUpdate {
+	_u.mutation.ClearRepositorySources()
+	return _u
+}
+
+// RemoveRepositorySourceIDs removes the "repository_sources" edge to RepositorySource entities by IDs.
+func (_u *UserUpdate) RemoveRepositorySourceIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveRepositorySourceIDs(ids...)
+	return _u
+}
+
+// RemoveRepositorySources removes "repository_sources" edges to RepositorySource entities.
+func (_u *UserUpdate) RemoveRepositorySources(v ...*RepositorySource) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRepositorySourceIDs(ids...)
 }
 
 // ClearPacks clears all "packs" edges to the Pack entity.
@@ -996,6 +1033,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectedrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RepositorySourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRepositorySourcesIDs(); len(nodes) > 0 && !_u.mutation.RepositorySourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RepositorySourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1556,6 +1638,21 @@ func (_u *UserUpdateOne) AddCollectedRepositories(v ...*CollectedRepository) *Us
 	return _u.AddCollectedRepositoryIDs(ids...)
 }
 
+// AddRepositorySourceIDs adds the "repository_sources" edge to the RepositorySource entity by IDs.
+func (_u *UserUpdateOne) AddRepositorySourceIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddRepositorySourceIDs(ids...)
+	return _u
+}
+
+// AddRepositorySources adds the "repository_sources" edges to the RepositorySource entity.
+func (_u *UserUpdateOne) AddRepositorySources(v ...*RepositorySource) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRepositorySourceIDs(ids...)
+}
+
 // AddPackIDs adds the "packs" edge to the Pack entity by IDs.
 func (_u *UserUpdateOne) AddPackIDs(ids ...int) *UserUpdateOne {
 	_u.mutation.AddPackIDs(ids...)
@@ -1832,6 +1929,27 @@ func (_u *UserUpdateOne) RemoveCollectedRepositories(v ...*CollectedRepository) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCollectedRepositoryIDs(ids...)
+}
+
+// ClearRepositorySources clears all "repository_sources" edges to the RepositorySource entity.
+func (_u *UserUpdateOne) ClearRepositorySources() *UserUpdateOne {
+	_u.mutation.ClearRepositorySources()
+	return _u
+}
+
+// RemoveRepositorySourceIDs removes the "repository_sources" edge to RepositorySource entities by IDs.
+func (_u *UserUpdateOne) RemoveRepositorySourceIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveRepositorySourceIDs(ids...)
+	return _u
+}
+
+// RemoveRepositorySources removes "repository_sources" edges to RepositorySource entities.
+func (_u *UserUpdateOne) RemoveRepositorySources(v ...*RepositorySource) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRepositorySourceIDs(ids...)
 }
 
 // ClearPacks clears all "packs" edges to the Pack entity.
@@ -2410,6 +2528,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectedrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RepositorySourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRepositorySourcesIDs(); len(nodes) > 0 && !_u.mutation.RepositorySourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RepositorySourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

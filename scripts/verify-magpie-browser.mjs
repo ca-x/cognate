@@ -115,10 +115,11 @@ try {
   await until(() => evaluate("!!document.querySelector('[role=dialog]')"), "confirmation missing")
   click("Import the selected items")
   await until(() => evaluate("document.body.innerText.includes('Import completed (not installed or applied to a device)')"), "real repository import did not finish")
-  assert(evaluate("document.body.innerText.includes('Collected and scanned')"), "receipt must explain repository outcome")
+  assert(evaluate("document.body.innerText.includes('Private source saved, not downloaded')"), "receipt must distinguish source registration from downloaded content")
   assert(evaluate("!document.body.innerText.includes('magpie-2026-11-06.magpie-backup')"), "completed import must release local file metadata")
   const requests = await fetch(ready.controlURL + "/state", { headers: { "X-Fixture-Capability": ready.capability } }).then(response => response.json())
   assert.equal(requests['/skillhub.import.v1.ImportService/CommitImportSelection'], 1, "group acknowledgement must preserve one commit")
+  assert.equal(requests['fixture.archive_requests'], 0, "repository-only import must save without downloading")
   console.log("PASS: native extension and local filename, 60-item bounded/filterable preview, grouped explicit acknowledgements, repository-only bulk selection and real single commit, visible receipt, wrong-password and secret boundaries")
 } catch (error) {
   failure = error

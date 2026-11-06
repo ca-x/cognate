@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Code, ConnectError } from "@connectrpc/connect"
-import { ArrowDownToLine, ChevronDown, CircleAlert, ExternalLink, FileText, FolderGit2, GitBranch, Plus, RefreshCw } from "lucide-react"
+import { ArrowDownToLine, ChevronDown, CircleAlert, ExternalLink, FileText, FolderGit2, GitBranch, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { errorMessage, useApi } from "./api"
 import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
@@ -16,9 +16,12 @@ import { SkillCategories } from "./skill-categories"
 import { CatalogError } from "./catalog-error"
 import { ImportRepositories } from "./import-repositories"
 import { RepositoryRefreshControl } from "./repository-refresh"
+import { sourcePathLabel } from "./import-selection-presentation"
+import type { RepositorySource } from "./gen/skillhub/library/v1/library_pb"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import "./repositories-ui-i18n"
 import "./repositories-ui.css"
+import "./import-sources-i18n"
 
 function collectionError(error: unknown) {
   switch (ConnectError.from(error).code) {
@@ -66,6 +69,76 @@ function RepositorySkills({ repositoryId }: { repositoryId: string }) {
   </section>
 }
 
+function SavedRepositorySources({ owner, busy, onBusyChange, onCollected }: { owner: string; busy: boolean; onBusyChange: (value: boolean) => void; onCollected: (repositoryId: string) => void }) {
+  useTranslation()
+  const { library } = useApi()
+  const cache = useQueryClient()
+  const [selected, setSelected] = useState("")
+  const [filter, setFilter] = useState("")
+  const [removing, setRemoving] = useState<RepositorySource | null>(null)
+  const cancelDelete = useRef<HTMLButtonElement>(null)
+  const removeTrigger = useRef<HTMLButtonElement>(null)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const active = useRef<AbortController | null>(null)
+  const mounted = useRef(false)
+  const queryKey = ["repository-sources", owner]
+  const query = useQuery({ queryKey, queryFn: ({ signal }) => library.listRepositorySources({}, { signal }), retry: false })
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; active.current?.abort() } }, [library])
+  const sync = useMutation({
+    retry: false,
+    mutationFn: async (source: RepositorySource) => {
+      const controller = new AbortController()
+      active.current = controller
+      try {
+        const result = await library.collectRepository({ repository: source.nameWithOwner, branch: source.branch }, { signal: controller.signal, timeoutMs: 120000 })
+        if (!result.repository) throw new ConnectError("", Code.DataLoss)
+        return result.repository
+      } finally { if (active.current === controller) active.current = null }
+    },
+    onSuccess: (repository) => { if (mounted.current) onCollected(repository.id) },
+    onSettled: () => {
+      if (!mounted.current) return
+      for (const key of ["library-repositories", "collected-repositories", "repository-skills", "repository-sources"]) void cache.invalidateQueries({ queryKey: [key, owner] })
+    },
+  })
+  const deletion = useMutation({
+    retry: false,
+    mutationFn: async (sourceId: string) => {
+      const controller = new AbortController()
+      active.current = controller
+      try { return await library.deleteRepositorySource({ sourceId }, { signal: controller.signal }) }
+      finally { if (active.current === controller) active.current = null }
+    },
+    onSuccess: () => { if (mounted.current) setRemoving(null) },
+    onSettled: () => { if (mounted.current) void cache.invalidateQueries({ queryKey }) },
+  })
+  const working = sync.isPending || deletion.isPending
+  useEffect(() => { onBusyChange(working); return () => onBusyChange(false) }, [working, onBusyChange])
+  const sources = query.data?.sources ?? []
+  const visible = sources.filter((entry) => `${entry.nameWithOwner} ${entry.branch}`.toLocaleLowerCase().includes(filter.trim().toLocaleLowerCase()))
+  const source = sources.find((entry) => entry.id === selected) ?? sources[0]
+  const locked = busy || working || query.isError
+  return <section className="list-section saved-sources" aria-labelledby="repository-sources-title">
+    <div className="section-toolbar"><div><h2 ref={heading} tabIndex={-1} id="repository-sources-title" className="font-semibold">{t("已保存来源")}{query.isSuccess && <span className="repository-count">{formatNumber(sources.length)}</span>}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{t("仅当前账号可见。这里保存仓库与技能线索，不代表内容已下载、验证或安装。")}</p>{query.isSuccess && <p className="mt-2 text-sm text-muted-foreground">{t("待同步 {{count}} 个来源", { count: formatNumber(sources.filter((entry) => !entry.collectedRepositoryId).length) })}</p>}</div><div className="w-full space-y-2 sm:max-w-60"><SearchInput value={filter} onValueChange={setFilter} aria-label={t("筛选已保存来源")} placeholder={t("按仓库或分支筛选…")} clearLabel={t("清空搜索")} /><Button variant="ghost" disabled={working || query.isFetching} onClick={() => { void query.refetch() }}>{t("重新读取来源")}</Button></div></div>
+    {query.isError && <div className="error-notice" role="alert"><p>{t("无法读取来源；保留上次列表，不代表当前状态。请重新读取后再操作。")}</p></div>}
+    {query.isPending ? <p role="status" className="py-6 text-sm text-muted-foreground">{t("正在读取已保存来源…")}</p> : sources.length === 0 ? query.isSuccess && <div className="list-surface p-5 text-sm leading-6 text-muted-foreground">{t("尚无已保存来源。从 Magpie 或 cc-switch 选择仓库或技能导入后，会保存在这里；同步前不会下载。")}</div> : <div className="library-workbench">
+      <div className="collected-repositories max-h-[32rem] overflow-y-auto overscroll-contain" role="group" aria-label={t("选择已保存的来源")}>
+        {!visible.length && <p className="p-5 text-sm text-muted-foreground" role="status">{t("没有匹配的来源，当前选择仍保留。")}</p>}
+        {visible.map((entry) => <button type="button" key={entry.id} className="collected-repository-select" aria-pressed={source?.id === entry.id} onClick={() => { setSelected(entry.id); sync.reset(); deletion.reset() }} disabled={working}><span className="repository-choice-heading"><span className="break-words text-sm font-medium">{entry.nameWithOwner}</span>{source?.id === entry.id && <span className="repository-selected">{t("已选")}</span>}</span><span className="repository-choice-branch">{entry.branch || t("默认分支")}</span><span className="mt-2 block text-xs text-muted-foreground">{t(entry.collectedRepositoryId ? "已有收录记录" : "待同步，尚未下载")}</span></button>)}
+      </div>
+      {source && <div className="library-detail min-w-0 space-y-4" aria-label={t("来源技能引用")}>
+        <div className="space-y-2"><h3 className="break-words font-semibold">{source.nameWithOwner}</h3><p className="break-all text-sm text-muted-foreground">{source.branch || t("默认分支")}</p><p className="text-sm leading-6 text-muted-foreground">{t(source.collectedRepositoryId ? "已有仓库收录记录；下列仍是来源引用，内容状态请到“已收录”查看。" : "尚未下载技能。同步会拉取整个仓库并扫描 SKILL.md，不会安装或自动加入组合。")}</p></div>
+        {source.skills.length ? <ul className="max-h-96 divide-y divide-border overflow-y-auto overscroll-contain" tabIndex={0} aria-label={t("已保存的技能线索")}>{source.skills.map((skill, index) => <li key={`${skill.name}-${skill.path}-${index}`} className="py-3"><p className="break-words text-sm font-medium">{skill.name}</p><p className="mt-1 break-all text-xs text-muted-foreground">{sourcePathLabel(skill.path, t)}</p></li>)}</ul> : <p className="text-sm text-muted-foreground">{t("未单独保存技能引用；同步时会扫描整个仓库。")}</p>}
+        <div className="flex flex-wrap gap-3"><Button disabled={locked} onClick={() => { deletion.reset(); sync.mutate(source) }}><RefreshCw size={16} aria-hidden="true" className={sync.isPending ? "motion-safe:animate-spin" : undefined} />{t(sync.isPending ? "正在同步技能…" : "同步技能")}</Button><Button ref={removeTrigger} variant="outline" disabled={locked} onClick={() => { deletion.reset(); setRemoving(source) }}><Trash2 size={16} aria-hidden="true" />{t("删除来源")}</Button></div>
+        {sync.isPending && <p role="status" className="text-sm text-muted-foreground">{t("服务端正在拉取并验证，来源记录会保留。")}</p>}
+        {sync.isError && <div className="space-y-3"><LibraryError error={sync.error} /><p role="status" className="text-sm text-muted-foreground">{t("来源记录仍保留。可先重新读取结果，再点击“同步技能”重试；不会自动重试。")}</p></div>}
+        {sync.isSuccess && <p role="status" className="text-sm">{t("同步完成。来源引用仍保留，实际技能请查看已收录仓库。")}</p>}
+      </div>}
+    </div>}
+    <Dialog open={!!removing} onOpenChange={(open) => { if (!open && !deletion.isPending) setRemoving(null) }}><DialogContent className="repositories-ui-dialog" onOpenAutoFocus={(event) => { event.preventDefault(); cancelDelete.current?.focus() }} onCloseAutoFocus={(event) => { event.preventDefault(); if (removeTrigger.current && !removeTrigger.current.disabled) removeTrigger.current.focus(); else heading.current?.focus() }}><DialogTitle>{t("删除已保存来源？")}</DialogTitle><DialogDescription>{t("仅删除此仓库的来源与技能线索，不删除已收录仓库或已验证技能。")}</DialogDescription><p className="mt-3 break-all text-sm">{removing?.nameWithOwner} · {removing?.branch || t("默认分支")}</p>{deletion.isError && <p role="alert" className="mt-3 error-message">{t("无法确认删除结果。请关闭对话框并重新读取来源，核对后再操作；不会自动重试。")}</p>}<div className="mt-5 flex flex-wrap gap-3"><Button ref={cancelDelete} variant="outline" disabled={deletion.isPending} onClick={() => setRemoving(null)}>{t("取消")}</Button><Button disabled={busy || deletion.isPending || deletion.isError || !removing} onClick={() => { if (removing) deletion.mutate(removing.id) }}>{t(deletion.isPending ? "正在删除来源…" : "仅删除来源")}</Button></div></DialogContent></Dialog>
+  </section>
+}
+
 export function RepositoriesPage() {
   useTranslation()
   const { library, session } = useApi()
@@ -76,6 +149,7 @@ export function RepositoriesPage() {
   const [selected, setSelected] = useState("")
   const [notice, setNotice] = useNotice()
   const [importCollecting, setImportCollecting] = useState(false)
+  const [sourcesBusy, setSourcesBusy] = useState(false)
   const [collectOpen, setCollectOpen] = useState(false)
   const active = useRef<AbortController | null>(null)
   const key = ["library-repositories", session?.userId]
@@ -99,9 +173,9 @@ export function RepositoriesPage() {
       if (input.fromForm) { setRepository(""); setBranch(""); setCollectOpen(false) }
     },
     onError: (error) => { if (ConnectError.from(error).code === Code.Canceled) setNotice("已停止等待。如果服务端已经完成收录，刷新后仍会显示结果。") },
-    onSettled: () => { void queryClient.invalidateQueries({ queryKey: key }) },
+    onSettled: () => { for (const name of ["library-repositories", "collected-repositories", "repository-sources"]) void queryClient.invalidateQueries({ queryKey: [name, session?.userId] }) },
   })
-  function submit(event: FormEvent) { event.preventDefault(); if (!collection.isPending && !importCollecting) collection.mutate({ repository, branch, fromForm: true }) }
+  function submit(event: FormEvent) { event.preventDefault(); if (!collection.isPending && !importCollecting && !sourcesBusy) collection.mutate({ repository, branch, fromForm: true }) }
   const repositories = query.data?.repositories ?? []
   const visible = repositories.filter((entry) => `${entry.nameWithOwner} ${entry.branch}`.toLocaleLowerCase().includes(filter.toLocaleLowerCase()))
   const selectedId = repositories.some((entry) => entry.id === selected) ? selected : repositories[0]?.id
@@ -113,7 +187,7 @@ export function RepositoriesPage() {
       <form className="source-card-body" onSubmit={submit} aria-busy={collection.isPending}>
         <div className="collection-fields"><div className="space-y-2"><label htmlFor="repository-input">{t("GitHub 仓库")}</label><Input id="repository-input" name="repository" placeholder={t("owner/repo 或 https://github.com/owner/repo")} autoComplete="off" maxLength={512} required disabled={collection.isPending} value={repository} onChange={(event) => setRepository(event.target.value)} aria-describedby="collection-help repository-access-help" /></div><div className="space-y-2"><label htmlFor="branch-input">{t("分支 ")}<span className="font-normal text-muted-foreground">{t("（可选）")}</span></label><Input id="branch-input" name="branch" placeholder={t("默认分支")} autoComplete="off" maxLength={256} disabled={collection.isPending} value={branch} onChange={(event) => setBranch(event.target.value)} /></div></div>
         <p className="field-help mt-3" id="collection-help">{t("归档上限 32 MiB，解压后 64 MiB、最多 512 个技能；符号链接不跟随。留空分支或填写 HEAD 都使用默认分支。")}</p>
-        <div className="mt-5 flex flex-wrap items-center gap-3"><Button type="submit" disabled={collection.isPending || importCollecting || !repository.trim()}><FolderGit2 size={16} aria-hidden="true" />{collection.isPending ? t("正在拉取并扫描…") : t("收录并扫描")}</Button>{collection.isPending && <Button variant="ghost" onClick={() => active.current?.abort()}>{t("停止等待")}</Button>}</div>
+        <div className="mt-5 flex flex-wrap items-center gap-3"><Button type="submit" disabled={collection.isPending || importCollecting || sourcesBusy || !repository.trim()}><FolderGit2 size={16} aria-hidden="true" />{collection.isPending ? t("正在拉取并扫描…") : t("收录并扫描")}</Button>{collection.isPending && <Button variant="ghost" onClick={() => active.current?.abort()}>{t("停止等待")}</Button>}</div>
         <p className="field-help mt-3" id="repository-access-help">{t("私有来源需要服务端 GitHub 授权。收录默认不公开；只有另行确认发布，才允许匿名下载。")}</p>
         {collection.isError && ConnectError.from(collection.error).code !== Code.Canceled && <LibraryError error={collection.error} />}
         <p className="mt-3 min-h-6 text-sm leading-6 text-muted-foreground" role="status" aria-live="polite">{collection.isPending ? t("服务端正在获取仓库和校验技能内容，请稍候。") : notice}</p>
@@ -126,7 +200,8 @@ export function RepositoriesPage() {
       {query.isError && <><LibraryError error={query.error} retry={() => { void query.refetch() }} />{query.data && <p className="snapshot-unknown" role="status">{t("快照状态未知；下面保留上次读取的内容与筛选，不代表当前校验成功。")}</p>}</>}
       {query.isPending ? <p role="status" className="py-8 text-sm text-muted-foreground">{t("正在读取已收录仓库…")}</p> : !query.data ? null : repositories.length === 0 ? !query.isError && <div className="list-surface empty-state"><FolderGit2 size={26} className="empty-icon" aria-hidden="true" /><h3 className="font-medium">{t("资料库还是空的")}</h3><p className="mt-2 text-sm text-muted-foreground">{t("添加第一个技能仓库，或从下方 Lists 候选中明确选择并收录。")}</p></div> : <div className="library-workbench"><div className="collected-repositories" role="group" aria-label={t("选择已收录的仓库")}>{visible.length === 0 ? <p className="p-5 text-sm text-muted-foreground" role="status">{t("没有匹配的仓库。当前详情仍保留所选快照。")}</p> : visible.map((entry) => <button type="button" key={entry.id} className="collected-repository-select" aria-pressed={selectedId === entry.id} onClick={() => setSelected(entry.id)}><span className="repository-choice-heading"><span className="break-words font-mono text-sm font-medium">{entry.nameWithOwner}</span>{selectedId === entry.id && <span className="repository-selected">{t("已选")}</span>}</span><span className="mt-2 block text-xs text-muted-foreground">{formatNumber(entry.skillCount)} {t(" 个技能 · ")}{entry.manual ? t("手动收录") : t("同步收录")}</span><span className="repository-choice-branch">{entry.branch || t("默认分支")}</span></button>)}</div>{selectedId && <RepositorySkills key={selectedId} repositoryId={selectedId} />}</div>}
     </section>
-    <details className="repository-import"><summary><ArrowDownToLine size={18} aria-hidden="true" /><span>{t("从其他工具导入")}</span><span className="repository-import-tools">Magpie / cc-switch</span><ChevronDown size={16} aria-hidden="true" /></summary><ImportRepositories key={session?.token ?? "signed-out"} collectionBusy={collection.isPending} onCollectingChange={setImportCollecting} /></details>
-    <details className="discovered-repositories"><summary>{t("从 GitHub Lists 收录仓库")}</summary><div className="pt-5"><DiscoveredRepositories busy={collection.isPending || importCollecting} onCollect={(name) => { if (!collection.isPending && !importCollecting) collection.mutate({ repository: name, branch: "", fromForm: false }) }} /></div></details>
+    {session && <SavedRepositorySources key={session.token} owner={session.userId} busy={collection.isPending || importCollecting} onBusyChange={setSourcesBusy} onCollected={(repositoryId) => { setSelected(repositoryId); setFilter("") }} />}
+    <details className="repository-import"><summary><ArrowDownToLine size={18} aria-hidden="true" /><span>{t("从其他工具导入")}</span><span className="repository-import-tools">Magpie / cc-switch</span><ChevronDown size={16} aria-hidden="true" /></summary><ImportRepositories key={session?.token ?? "signed-out"} collectionBusy={collection.isPending || sourcesBusy} onCollectingChange={setImportCollecting} /></details>
+    <details className="discovered-repositories"><summary>{t("从 GitHub Lists 收录仓库")}</summary><div className="pt-5"><DiscoveredRepositories busy={collection.isPending || importCollecting || sourcesBusy} onCollect={(name) => { if (!collection.isPending && !importCollecting && !sourcesBusy) collection.mutate({ repository: name, branch: "", fromForm: false }) }} /></div></details>
   </div>
 }

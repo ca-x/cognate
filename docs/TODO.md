@@ -1,5 +1,6 @@
 # Cognate 后续任务
 
+- [x] 2026-11-07 导入来源登记与 GitHub 正向代理（源码阶段，未发布）：真实 Magpie 14 仓库/35 技能引用离线提交及重启/浏览器通过；先登记、后显式同步，失败保留来源。管理员代理加密持久化、CAS、热生效，支持 HTTP(S)/SOCKS5(h)，不改写下载镜像；256 来源与 512 引用边界/回滚、旧协议/旧 schema 兼容和三平台无 cgo 编译通过。最终串行全量 53 个测试包通过，过程及保留失败见 `IMPORT-SOURCES-PROXY-VERIFICATION.md`。
 - [x] 2026-11-06 Web 交互打磨（已随 Server/LazyCat 0.6.2 发布）：按需适配 React Bits 局部追光与一次性引导渐入，保留主题/多语言/键盘/reduced-motion；搜索清空、计数与无效批选反馈；备份草稿确认、旧读取取消及跨 revision 焦点恢复。有限验证与 Go CAS 首次失败记录见 `UI-INTERACTION-POLISH-VERIFICATION.md`，不关闭完整产品或原生 GUI 的 UI 验收。
 - [x] Server/LazyCat 0.6.2 patch：双架构 Docker、最终 LPK 匿名完整下载/许可/metadata/隔离 root 启动通过，喵喵接受 app670/version4295（回执 onlineVersion 0.6.1）。懒猫首轮依赖安装网络停滞，取消且确认未执行发布后同源码重跑一次成功；CLI/GUI 不重发，官方关闭，店面切换与真机升级待确认。见 `RELEASE-v0.6.2-VERIFICATION.md`。
 - [x] 2026-11-06 导入可用性修复：本地文件名与大小、Magpie 原生后缀、分列筛选与批选、有界列表、通俗分组排除确认、来源/客户端/模型摘要；修复分组取消重勾改变通知顺序导致真实提交失败。Magpie 60 项与 cc-switch/OpenCode 八种布局浏览器回归通过，技术详情保留按需展开。

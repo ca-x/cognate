@@ -39,6 +39,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -97,6 +98,8 @@ type Client struct {
 	PackShare *PackShareClient
 	// RepositoryPrivateHistory is the client for interacting with the RepositoryPrivateHistory builders.
 	RepositoryPrivateHistory *RepositoryPrivateHistoryClient
+	// RepositorySource is the client for interacting with the RepositorySource builders.
+	RepositorySource *RepositorySourceClient
 	// ServerMetadata is the client for interacting with the ServerMetadata builders.
 	ServerMetadata *ServerMetadataClient
 	// Session is the client for interacting with the Session builders.
@@ -138,6 +141,7 @@ func (c *Client) init() {
 	c.PackItem = NewPackItemClient(c.config)
 	c.PackShare = NewPackShareClient(c.config)
 	c.RepositoryPrivateHistory = NewRepositoryPrivateHistoryClient(c.config)
+	c.RepositorySource = NewRepositorySourceClient(c.config)
 	c.ServerMetadata = NewServerMetadataClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -257,6 +261,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PackItem:                    NewPackItemClient(cfg),
 		PackShare:                   NewPackShareClient(cfg),
 		RepositoryPrivateHistory:    NewRepositoryPrivateHistoryClient(cfg),
+		RepositorySource:            NewRepositorySourceClient(cfg),
 		ServerMetadata:              NewServerMetadataClient(cfg),
 		Session:                     NewSessionClient(cfg),
 		User:                        NewUserClient(cfg),
@@ -303,6 +308,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PackItem:                    NewPackItemClient(cfg),
 		PackShare:                   NewPackShareClient(cfg),
 		RepositoryPrivateHistory:    NewRepositoryPrivateHistoryClient(cfg),
+		RepositorySource:            NewRepositorySourceClient(cfg),
 		ServerMetadata:              NewServerMetadataClient(cfg),
 		Session:                     NewSessionClient(cfg),
 		User:                        NewUserClient(cfg),
@@ -342,7 +348,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
 		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
-		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
+		c.RepositoryPrivateHistory, c.RepositorySource, c.ServerMetadata, c.Session,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -359,7 +366,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NativeConsumerChallenge, c.NativeConsumerSession,
 		c.NativeMaterializationGrant, c.OIDCIdentity, c.Pack,
 		c.PackConfigurationAttachment, c.PackItem, c.PackShare,
-		c.RepositoryPrivateHistory, c.ServerMetadata, c.Session, c.User,
+		c.RepositoryPrivateHistory, c.RepositorySource, c.ServerMetadata, c.Session,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -416,6 +424,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PackShare.mutate(ctx, m)
 	case *RepositoryPrivateHistoryMutation:
 		return c.RepositoryPrivateHistory.mutate(ctx, m)
+	case *RepositorySourceMutation:
+		return c.RepositorySource.mutate(ctx, m)
 	case *ServerMetadataMutation:
 		return c.ServerMetadata.mutate(ctx, m)
 	case *SessionMutation:
@@ -4371,6 +4381,155 @@ func (c *RepositoryPrivateHistoryClient) mutate(ctx context.Context, m *Reposito
 	}
 }
 
+// RepositorySourceClient is a client for the RepositorySource schema.
+type RepositorySourceClient struct {
+	config
+}
+
+// NewRepositorySourceClient returns a client for the RepositorySource from the given config.
+func NewRepositorySourceClient(c config) *RepositorySourceClient {
+	return &RepositorySourceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `repositorysource.Hooks(f(g(h())))`.
+func (c *RepositorySourceClient) Use(hooks ...Hook) {
+	c.hooks.RepositorySource = append(c.hooks.RepositorySource, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `repositorysource.Intercept(f(g(h())))`.
+func (c *RepositorySourceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RepositorySource = append(c.inters.RepositorySource, interceptors...)
+}
+
+// Create returns a builder for creating a RepositorySource entity.
+func (c *RepositorySourceClient) Create() *RepositorySourceCreate {
+	mutation := newRepositorySourceMutation(c.config, OpCreate)
+	return &RepositorySourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RepositorySource entities.
+func (c *RepositorySourceClient) CreateBulk(builders ...*RepositorySourceCreate) *RepositorySourceCreateBulk {
+	return &RepositorySourceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RepositorySourceClient) MapCreateBulk(slice any, setFunc func(*RepositorySourceCreate, int)) *RepositorySourceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RepositorySourceCreateBulk{err: fmt.Errorf("calling to RepositorySourceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RepositorySourceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RepositorySourceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RepositorySource.
+func (c *RepositorySourceClient) Update() *RepositorySourceUpdate {
+	mutation := newRepositorySourceMutation(c.config, OpUpdate)
+	return &RepositorySourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RepositorySourceClient) UpdateOne(_m *RepositorySource) *RepositorySourceUpdateOne {
+	mutation := newRepositorySourceMutation(c.config, OpUpdateOne, withRepositorySource(_m))
+	return &RepositorySourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RepositorySourceClient) UpdateOneID(id int) *RepositorySourceUpdateOne {
+	mutation := newRepositorySourceMutation(c.config, OpUpdateOne, withRepositorySourceID(id))
+	return &RepositorySourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RepositorySource.
+func (c *RepositorySourceClient) Delete() *RepositorySourceDelete {
+	mutation := newRepositorySourceMutation(c.config, OpDelete)
+	return &RepositorySourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RepositorySourceClient) DeleteOne(_m *RepositorySource) *RepositorySourceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RepositorySourceClient) DeleteOneID(id int) *RepositorySourceDeleteOne {
+	builder := c.Delete().Where(repositorysource.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RepositorySourceDeleteOne{builder}
+}
+
+// Query returns a query builder for RepositorySource.
+func (c *RepositorySourceClient) Query() *RepositorySourceQuery {
+	return &RepositorySourceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRepositorySource},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RepositorySource entity by its id.
+func (c *RepositorySourceClient) Get(ctx context.Context, id int) (*RepositorySource, error) {
+	return c.Query().Where(repositorysource.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RepositorySourceClient) GetX(ctx context.Context, id int) *RepositorySource {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RepositorySource.
+func (c *RepositorySourceClient) QueryUser(_m *RepositorySource) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repositorysource.Table, repositorysource.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, repositorysource.UserTable, repositorysource.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RepositorySourceClient) Hooks() []Hook {
+	return c.hooks.RepositorySource
+}
+
+// Interceptors returns the client interceptors.
+func (c *RepositorySourceClient) Interceptors() []Interceptor {
+	return c.inters.RepositorySource
+}
+
+func (c *RepositorySourceClient) mutate(ctx context.Context, m *RepositorySourceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RepositorySourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RepositorySourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RepositorySourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RepositorySourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RepositorySource mutation op: %q", m.Op())
+	}
+}
+
 // ServerMetadataClient is a client for the ServerMetadata schema.
 type ServerMetadataClient struct {
 	config
@@ -4921,6 +5080,22 @@ func (c *UserClient) QueryCollectedRepositories(_m *User) *CollectedRepositoryQu
 	return query
 }
 
+// QueryRepositorySources queries the repository_sources edge of a User.
+func (c *UserClient) QueryRepositorySources(_m *User) *RepositorySourceQuery {
+	query := (&RepositorySourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(repositorysource.Table, repositorysource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RepositorySourcesTable, user.RepositorySourcesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryPacks queries the packs edge of a User.
 func (c *UserClient) QueryPacks(_m *User) *PackQuery {
 	query := (&PackClient{config: c.config}).Query()
@@ -5099,7 +5274,7 @@ type (
 		MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
 		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
 		PackConfigurationAttachment, PackItem, PackShare, RepositoryPrivateHistory,
-		ServerMetadata, Session, User []ent.Hook
+		RepositorySource, ServerMetadata, Session, User []ent.Hook
 	}
 	inters struct {
 		Category, CollectedRepository, CollectedSkill, ConfigurationAsset,
@@ -5108,6 +5283,6 @@ type (
 		MCPCredential, NativeApplyPreparation, NativeConsumerChallenge,
 		NativeConsumerSession, NativeMaterializationGrant, OIDCIdentity, Pack,
 		PackConfigurationAttachment, PackItem, PackShare, RepositoryPrivateHistory,
-		ServerMetadata, Session, User []ent.Interceptor
+		RepositorySource, ServerMetadata, Session, User []ent.Interceptor
 	}
 )

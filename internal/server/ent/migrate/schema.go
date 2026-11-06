@@ -885,6 +885,37 @@ var (
 			},
 		},
 	}
+	// RepositorySourcesColumns holds the columns for the "repository_sources" table.
+	RepositorySourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "public_id", Type: field.TypeString, Unique: true},
+		{Name: "name_with_owner", Type: field.TypeString},
+		{Name: "branch", Type: field.TypeString, Default: ""},
+		{Name: "skills", Type: field.TypeJSON},
+		{Name: "registered_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// RepositorySourcesTable holds the schema information for the "repository_sources" table.
+	RepositorySourcesTable = &schema.Table{
+		Name:       "repository_sources",
+		Columns:    RepositorySourcesColumns,
+		PrimaryKey: []*schema.Column{RepositorySourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "repository_sources_users_repository_sources",
+				Columns:    []*schema.Column{RepositorySourcesColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "repositorysource_user_id_name_with_owner_branch",
+				Unique:  true,
+				Columns: []*schema.Column{RepositorySourcesColumns[6], RepositorySourcesColumns[2], RepositorySourcesColumns[3]},
+			},
+		},
+	}
 	// ServerMetadataColumns holds the columns for the "server_metadata" table.
 	ServerMetadataColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -982,6 +1013,7 @@ var (
 		PackItemsTable,
 		PackSharesTable,
 		RepositoryPrivateHistoriesTable,
+		RepositorySourcesTable,
 		ServerMetadataTable,
 		SessionsTable,
 		UsersTable,
@@ -1023,6 +1055,7 @@ func init() {
 	PackItemsTable.ForeignKeys[1].RefTable = PacksTable
 	PackSharesTable.ForeignKeys[0].RefTable = PacksTable
 	RepositoryPrivateHistoriesTable.ForeignKeys[0].RefTable = UsersTable
+	RepositorySourcesTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	CategorySkillsTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySkillsTable.ForeignKeys[1].RefTable = CollectedSkillsTable

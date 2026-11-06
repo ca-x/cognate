@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -69,7 +70,9 @@ func selectionBrowserFixture(test *testing.T, directory string, opencode bool) {
 		}
 	}
 	archive := repositoriesUIArchive(test)
+	var archiveRequests atomic.Int64
 	fetcher := repository.NewArchiveFetcher(&http.Client{Transport: graphTransport(func(request *http.Request) (*http.Response, error) {
+		archiveRequests.Add(1)
 		return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(bytes.NewReader(archive))}, nil
 	})})
 	cache, err := library.OpenArchiveCache(filepath.Join(test.TempDir(), "archives"))
@@ -128,6 +131,7 @@ func selectionBrowserFixture(test *testing.T, directory string, opencode bool) {
 		defer mutex.Unlock()
 		switch request.Method + " " + request.URL.Path {
 		case "GET /state":
+			requests["fixture.archive_requests"] = int(archiveRequests.Load())
 			json.MarshalWrite(writer, requests)
 		case "POST /lost":
 			lost = true

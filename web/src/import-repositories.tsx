@@ -280,7 +280,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   const { imports, library, session } = useApi()
   const queryClient = useQueryClient()
   const [source, setSource] = useState<ImportSource>("magpie")
-  const [state, updateState] = useState<SelectionState>(initialSelectionState)
+  const [state, updateState] = useState<SelectionState>(() => initialSelectionState(true))
   const current = useRef(state)
   const setState = useCallback((next: SelectionState | ((previous: SelectionState) => SelectionState)) => {
     const value = typeof next === "function" ? next(current.current) : next
@@ -315,7 +315,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
 
   const invalidate = useCallback(() => {
     if (!owner) return
-    for (const key of ["configuration-assets", "library-repositories", "repository-skills", "collected-repositories"]) void queryClient.invalidateQueries({ queryKey: [key, owner] })
+    for (const key of ["configuration-assets", "library-repositories", "repository-skills", "collected-repositories", "repository-sources"]) void queryClient.invalidateQueries({ queryKey: [key, owner] })
   }, [owner, queryClient])
 
   function releaseSource() {
@@ -341,7 +341,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     return uncertain
   }
 
-  function reset() {
+  function reset(nextSource: ImportSource = source) {
     const uncertain = interrupt()
     setHasFile(false)
     setStatusPending(false)
@@ -352,14 +352,14 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     setDiscardOpen(false)
     discardAction.current = null
     if (uncertain) { setState((previous) => ({ ...previous, phase: "unknown", stale: true })); invalidate() }
-    else { operation.current = null; setState(initialSelectionState()) }
+    else { operation.current = null; setState(initialSelectionState(nextSource !== "npx-skills")) }
   }
 
   useLayoutEffect(() => {
     if (previousIdentity.current !== identity) {
       interrupt()
       operation.current = null
-      setState(initialSelectionState())
+      setState(initialSelectionState(source !== "npx-skills"))
       setHasFile(false)
       setStatusPending(false)
       setBindingPending(false)
@@ -435,7 +435,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
       const raw = bytes.current
       if (!raw.length || raw.length > selectionSources[source].maximumBytes) throw new ConnectError("", Code.ResourceExhausted)
       setState((value) => ({ ...value, phase: "previewing" }))
-      const response = await imports.previewImportSelection({ source: selectionSources[source].source, sourceData: raw, options: previous.options }, { signal: controller.signal, timeoutMs: selectionSources[source].timeoutMs })
+      const response = await imports.previewImportSelection({ source: selectionSources[source].source, sourceData: raw, options: previous.options, registerSources: previous.registerSources ?? false }, { signal: controller.signal, timeoutMs: selectionSources[source].timeoutMs })
       if (!isCurrent(attempt, captured, controller)) { response.ticket.fill(0); return }
       let next: SelectionState
       try { next = withSelectionPreview(previous, response) } catch (failure) { response.ticket.fill(0); throw failure }
@@ -452,7 +452,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
         setState((value) => ({ ...value, error: Code.FailedPrecondition }))
       }, Math.max(0, Number(response.expiresMs - BigInt(Date.now()))))
     } catch (failure) {
-      if (isCurrent(attempt, captured, controller)) { releaseSource(); setHasFile(false); setState({ ...initialSelectionState(), options: previous.options, error: ConnectError.from(failure).code }) }
+      if (isCurrent(attempt, captured, controller)) { releaseSource(); setHasFile(false); setState({ ...initialSelectionState(previous.registerSources), options: previous.options, error: ConnectError.from(failure).code }) }
     } finally {
       if (isCurrent(attempt, captured, controller)) active.current = null
     }
@@ -524,7 +524,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
     expiry.current = null
     setState((value) => ({ ...value, phase: "committing", error: undefined }))
     try {
-      const response = await imports.commitImportSelection({ ticket: ticket.current, source: selectionSources[source].source, sourceData: bytes.current, options: plan.options, operationId: id, repositoryIds: plan.repositoryIds, skillIds: plan.skillIds, configurationIds: plan.configurationIds, ackNoticeIds: plan.ackNoticeIds }, { signal: controller.signal, timeoutMs: 120000 })
+      const response = await imports.commitImportSelection({ ticket: ticket.current, source: selectionSources[source].source, sourceData: bytes.current, options: plan.options, operationId: id, repositoryIds: plan.repositoryIds, skillIds: plan.skillIds, configurationIds: plan.configurationIds, ackNoticeIds: plan.ackNoticeIds, registerSources: plan.registerSources ?? false }, { signal: controller.signal, timeoutMs: 120000 })
       if (!isCurrent(attempt, captured, controller)) return
       const receipt = acceptSelectionReceipt(response.receipt, id, plan)
       const terminal = [ImportReceiptPhase.COMPLETED, ImportReceiptPhase.PARTIAL, ImportReceiptPhase.FAILED].includes(receipt.phase)
@@ -560,7 +560,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
 
   return <>
     <ImportSelectionForm magpiePasswordRef={magpiePassword} selectedFile={selectedFile.current} source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
-      onSource={(value) => requestReset(() => { reset(); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
+      onSource={(value) => requestReset(() => { reset(value); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
       onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)} onBindingRepository={(id, repositoryId) => void loadBindings(id, repositoryId)}
       onConfirm={() => { if (canConfirmSelection(current.current) && !collectionBusy) setState((value) => ({ ...value, phase: "confirming" })) }} onConfirmClose={() => { if (current.current.phase === "confirming") setState((value) => ({ ...value, phase: "ready" })) }} onCommit={() => void commitSelection()}
       onCancel={reset} onClear={() => requestReset(reset)} onStatus={() => void queryStatus()} />

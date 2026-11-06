@@ -18,8 +18,28 @@ import (
 	"github.com/ca-x/cognate/internal/skill"
 )
 
-const snapshotKnownSchema = "34738287b1235358fc73bbefed6fabdde0968bf8340dee784fc0a9b448bc9235"
-const snapshotKnownNormalizedSchema = "7e56e095b6943f47835a6a019ad99655b601224afa02726f2270312a5a404cfc"
+const snapshotKnownSchema = "90ed016f16f332f11000262d81c01687a8668c0f1c4c3bfab830d632f468e74d"
+const snapshotKnownNormalizedSchema = "a823acaa8121faf623a22263331ca8d4629b40951bc0905d5b2c753dd251ffcb"
+
+type snapshotSchemaSpec struct {
+	hash, normalized      string
+	objects, applications int
+	repositorySources     bool
+}
+
+var snapshotKnownSchemas = [...]snapshotSchemaSpec{
+	{hash: snapshotKnownSchema, normalized: snapshotKnownNormalizedSchema, objects: 95, applications: 93, repositorySources: true},
+	{hash: "34738287b1235358fc73bbefed6fabdde0968bf8340dee784fc0a9b448bc9235", normalized: "7e56e095b6943f47835a6a019ad99655b601224afa02726f2270312a5a404cfc", objects: 92, applications: 90},
+}
+
+func snapshotLookupSchema(hash string) (snapshotSchemaSpec, bool) {
+	for _, known := range snapshotKnownSchemas {
+		if hash == known.hash {
+			return known, true
+		}
+	}
+	return snapshotSchemaSpec{}, false
+}
 
 type snapshotInventoryCount struct{ repositories, skills, packs, items, total uint64 }
 
@@ -27,7 +47,11 @@ func snapshotText(column string, maximum int) string {
 	return "CASE WHEN length(CAST(" + column + " AS BLOB))<=" + strconv.Itoa(maximum) + " THEN " + column + " END"
 }
 
-func snapshotWriteInventory(ctx context.Context, pool *sql.DB, output io.Writer, limits LocalSnapshotLimits) (counts snapshotInventoryCount, size int64, digest [32]byte, returnedError error) {
+func snapshotWriteInventory(ctx context.Context, pool *sql.DB, output io.Writer, limits LocalSnapshotLimits, schemaHash [32]byte) (counts snapshotInventoryCount, size int64, digest [32]byte, returnedError error) {
+	known, ok := snapshotLookupSchema(hex.EncodeToString(schemaHash[:]))
+	if !ok {
+		return counts, size, digest, ErrLocalSnapshotInvalid
+	}
 	hash := sha256.New()
 	for _, kind := range []string{"repository", "skill", "pack", "pack_item"} {
 		var after int64
@@ -115,7 +139,15 @@ func snapshotWriteInventory(ctx context.Context, pool *sql.DB, output io.Writer,
 			}
 		}
 	}
-	if err := snapshotValidateCategories(ctx, pool, limits.MaxRecords-counts.total); err != nil {
+	remaining := limits.MaxRecords - counts.total
+	if known.repositorySources {
+		var err error
+		remaining, err = snapshotValidateRepositorySources(ctx, pool, remaining)
+		if err != nil {
+			return counts, size, digest, err
+		}
+	}
+	if err := snapshotValidateCategories(ctx, pool, remaining); err != nil {
 		return counts, size, digest, err
 	}
 	copy(digest[:], hash.Sum(nil))

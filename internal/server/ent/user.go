@@ -44,6 +44,8 @@ type UserEdges struct {
 	OidcIdentities []*OIDCIdentity `json:"oidc_identities,omitempty"`
 	// CollectedRepositories holds the value of the collected_repositories edge.
 	CollectedRepositories []*CollectedRepository `json:"collected_repositories,omitempty"`
+	// RepositorySources holds the value of the repository_sources edge.
+	RepositorySources []*RepositorySource `json:"repository_sources,omitempty"`
 	// Packs holds the value of the packs edge.
 	Packs []*Pack `json:"packs,omitempty"`
 	// McpCredentials holds the value of the mcp_credentials edge.
@@ -64,7 +66,7 @@ type UserEdges struct {
 	NativeMaterializationGrants []*NativeMaterializationGrant `json:"native_materialization_grants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [17]bool
+	loadedTypes [18]bool
 }
 
 // GithubCredentialOrErr returns the GithubCredential value or an error if the edge
@@ -143,10 +145,19 @@ func (e UserEdges) CollectedRepositoriesOrErr() ([]*CollectedRepository, error) 
 	return nil, &NotLoadedError{edge: "collected_repositories"}
 }
 
+// RepositorySourcesOrErr returns the RepositorySources value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RepositorySourcesOrErr() ([]*RepositorySource, error) {
+	if e.loadedTypes[8] {
+		return e.RepositorySources, nil
+	}
+	return nil, &NotLoadedError{edge: "repository_sources"}
+}
+
 // PacksOrErr returns the Packs value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) PacksOrErr() ([]*Pack, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Packs, nil
 	}
 	return nil, &NotLoadedError{edge: "packs"}
@@ -155,7 +166,7 @@ func (e UserEdges) PacksOrErr() ([]*Pack, error) {
 // McpCredentialsOrErr returns the McpCredentials value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) McpCredentialsOrErr() ([]*MCPCredential, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.McpCredentials, nil
 	}
 	return nil, &NotLoadedError{edge: "mcp_credentials"}
@@ -164,7 +175,7 @@ func (e UserEdges) McpCredentialsOrErr() ([]*MCPCredential, error) {
 // CategoriesOrErr returns the Categories value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CategoriesOrErr() ([]*Category, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.Categories, nil
 	}
 	return nil, &NotLoadedError{edge: "categories"}
@@ -173,7 +184,7 @@ func (e UserEdges) CategoriesOrErr() ([]*Category, error) {
 // ConfigurationAssetsOrErr returns the ConfigurationAssets value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.ConfigurationAssets, nil
 	}
 	return nil, &NotLoadedError{edge: "configuration_assets"}
@@ -182,7 +193,7 @@ func (e UserEdges) ConfigurationAssetsOrErr() ([]*ConfigurationAsset, error) {
 // ImportReceiptsOrErr returns the ImportReceipts value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ImportReceiptsOrErr() ([]*ImportReceipt, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.ImportReceipts, nil
 	}
 	return nil, &NotLoadedError{edge: "import_receipts"}
@@ -191,7 +202,7 @@ func (e UserEdges) ImportReceiptsOrErr() ([]*ImportReceipt, error) {
 // NativeConsumerChallengesOrErr returns the NativeConsumerChallenges value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.NativeConsumerChallenges, nil
 	}
 	return nil, &NotLoadedError{edge: "native_consumer_challenges"}
@@ -200,7 +211,7 @@ func (e UserEdges) NativeConsumerChallengesOrErr() ([]*NativeConsumerChallenge, 
 // NativeConsumerSessionsOrErr returns the NativeConsumerSessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.NativeConsumerSessions, nil
 	}
 	return nil, &NotLoadedError{edge: "native_consumer_sessions"}
@@ -209,7 +220,7 @@ func (e UserEdges) NativeConsumerSessionsOrErr() ([]*NativeConsumerSession, erro
 // NativeApplyPreparationsOrErr returns the NativeApplyPreparations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeApplyPreparationsOrErr() ([]*NativeApplyPreparation, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[16] {
 		return e.NativeApplyPreparations, nil
 	}
 	return nil, &NotLoadedError{edge: "native_apply_preparations"}
@@ -218,7 +229,7 @@ func (e UserEdges) NativeApplyPreparationsOrErr() ([]*NativeApplyPreparation, er
 // NativeMaterializationGrantsOrErr returns the NativeMaterializationGrants value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NativeMaterializationGrantsOrErr() ([]*NativeMaterializationGrant, error) {
-	if e.loadedTypes[16] {
+	if e.loadedTypes[17] {
 		return e.NativeMaterializationGrants, nil
 	}
 	return nil, &NotLoadedError{edge: "native_materialization_grants"}
@@ -311,6 +322,11 @@ func (_m *User) QueryOidcIdentities() *OIDCIdentityQuery {
 // QueryCollectedRepositories queries the "collected_repositories" edge of the User entity.
 func (_m *User) QueryCollectedRepositories() *CollectedRepositoryQuery {
 	return NewUserClient(_m.config).QueryCollectedRepositories(_m)
+}
+
+// QueryRepositorySources queries the "repository_sources" edge of the User entity.
+func (_m *User) QueryRepositorySources() *RepositorySourceQuery {
+	return NewUserClient(_m.config).QueryRepositorySources(_m)
 }
 
 // QueryPacks queries the "packs" edge of the User entity.

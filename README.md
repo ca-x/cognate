@@ -30,7 +30,7 @@ CGO_ENABLED=0 go build -o cognate ./cmd/cognate
 
 `search` 直接查询公开的 `skills.sh` 搜索索引，查询词会发送给该服务；结果仅供发现，不自动下载或安装。独立浏览模式与现有 Pack 订阅/显式同步分开，Pack 客户端仍须通过 Cognate 服务端获取内容。
 
-第三方导入插件仅在服务端执行；客户端插件入口已撤下。服务端已有 cc-switch 与源格式验证后的 Magpie 内部只读预览，完整授权上传/持久化/配置导入仍在开发，见 `docs/PLUGIN-IMPORT.md` 和 `docs/MAGPIE-IMPORTER.md`。
+第三方导入插件仅在服务端执行；客户端插件入口已撤下。Web 支持 cc-switch SQLite 快照、Magpie 原生加密备份与 npx lock 选择导入。Magpie/cc-switch 可先保存仓库和技能来源，再显式同步，不因网络失败丢失记录；未下载来源不等于已安装技能。当前支持的配置与安全边界见 `docs/IMPORT-SELECTION.md`，GitHub 拉取代理见 `docs/GITHUB-PROXY.md`；完整十四类 agent 配置导入仍未交付。
 
 首次使用本地安装、Pack 同步或配置应用前，先显式运行 `./cognate client-key init`；可用 `--timeout 30s` 设置初始化期限（大于零且不超过两分钟）。该命令只初始化或核实本机加密密钥，不登录服务端、不访问网络。MyGo 对应入口在“账号 → 本机设置”。已有密钥会原样保留；缺失且存在初始化标记或客户端数据时必须恢复原密钥，不会自动生成替代。密钥默认位于 `~/.config/skillhub/client.key`，请单独安全备份，勿上传或写入日志。`scan`、`browse`、`search` 不需要初始化；匿名安装虽然不需要服务端 token，仍需要本机密钥准入。当前本机初始化仅支持 Linux，不能以交叉构建成功代替其他平台支持。
 

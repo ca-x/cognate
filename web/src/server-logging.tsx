@@ -12,6 +12,7 @@ import { Input } from "./components/ui/input"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "./components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { GetLogSettingsResponseSchema, type GetLogSettingsResponse, type LogSettings } from "./gen/skillhub/management/v1/logging_pb"
+import { GitHubProxySettingsPanel } from "./server-github-proxy"
 
 type Draft = { level: string; maxFileMib: string; maxBackups: string; retentionDays: string }
 type Notice = "saved" | "reloaded" | "conflict" | "uncertain" | "invalid" | "unavailable" | ""
@@ -151,5 +152,6 @@ export function ServerLoggingPage() {
     {query.isPending && <p role="status">{t("loading")}</p>}
     {query.isError && <div className="management-feedback space-y-4" role="alert"><h2 className="font-semibold">{t(code === Code.PermissionDenied ? "restricted" : code === Code.Unimplemented ? "unsupported" : "unavailable")}</h2>{code === Code.PermissionDenied ? <><p className="text-sm leading-6 text-muted-foreground">{t("restrictedHelp")}</p><p className="text-sm">{t("identity")}</p><code className="block break-all text-sm">{session.userId}</code></> : <Button variant="outline" disabled={query.isFetching} onClick={() => { void query.refetch() }}>{query.isFetching ? t("reloading") : t("reload")}</Button>}</div>}
     {query.data?.settings ? <LoggingEditor key={session.userId} initial={{ ...query.data, settings: query.data.settings }} owner={session.userId} unverified={query.isError} /> : !query.isPending && !query.isError && <p role="alert" className="error-message">{t("unavailable")}</p>}
+    <GitHubProxySettingsPanel key={session.token} owner={session.userId} />
   </div>
 }

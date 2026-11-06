@@ -29,20 +29,21 @@ Protobuf omission alone does not make a required business value valid.
 
 | Message | Tags |
 | --- | --- |
-| PreviewImportSelectionRequest | source=1; source_data=2 bytes, redacted; options=3 repeated ImportCandidateOptions |
+| PreviewImportSelectionRequest | source=1; source_data=2 bytes, redacted; options=3 repeated ImportCandidateOptions; register_sources=4 bool |
 | ImportCandidateOptions | candidate_id=1; name=2 optional string; auth oneof { claude_auth_mode=3, gemini_auth_mode=4 }; gemini_key_transport=5 optional enum; skill_binding=6 SkillBinding |
 | PreviewImportSelectionResponse | ticket=1 bytes, redacted; expires_ms=2 int64; repositories=3 repeated ImportRepositoryCandidate; skills=4 repeated ImportSkillCandidate; configurations=5 repeated ImportConfigurationCandidate; notices=6 repeated ImportNotice |
 | ImportRepositoryCandidate | id=1; hint=2 existing RepositoryCandidate; status=3 ImportCandidateStatus |
-| ImportSkillCandidate | id=1; safe_name=2; repository_candidate_id=3; status=4; binding=5 SkillBinding; notices=6 repeated ImportNotice |
+| ImportSkillCandidate | id=1; safe_name=2; repository_candidate_id=3; status=4; binding=5 SkillBinding; notices=6 repeated ImportNotice; source_reference=7 SkillSourceReference |
+| SkillSourceReference | source_id=1; repository=2; branch=3; logical_path=4; safe_name=5 |
 | SkillBinding | repository_id=1; archive_hash=2; skill_id=3; logical_path=4; content_hash=5; repository=6; branch=7 |
 | ImportConfigurationCandidate | id=1; known_agent_id=2 string; kind=3 configuration.v1.AssetKind; status=4; draft=5 configuration.v1.Draft; notices=6 repeated ImportNotice; credential_slots=7 repeated ImportCredentialSlot; safe_name=8 |
 | ImportCredentialSlot | slot_id=1 string; present=2 bool |
 | ImportNotice | id=1; code=2 ImportNoticeCode; count=3 uint32 |
-| CommitImportSelectionRequest | ticket=1 bytes, redacted; source=2; source_data=3 bytes, redacted; options=4 repeated ImportCandidateOptions; operation_id=5 bytes16; repository_ids=6 repeated string; skill_ids=7 repeated string; configuration_ids=8 repeated string; ack_notice_ids=9 repeated string |
+| CommitImportSelectionRequest | ticket=1 bytes, redacted; source=2; source_data=3 bytes, redacted; options=4 repeated ImportCandidateOptions; operation_id=5 bytes16; repository_ids=6 repeated string; skill_ids=7 repeated string; configuration_ids=8 repeated string; ack_notice_ids=9 repeated string; register_sources=10 bool |
 | CommitImportSelectionResponse | receipt=1 ImportReceipt |
 | GetImportCommitStatusRequest | operation_id=1 bytes16 |
 | GetImportCommitStatusResponse | observation=1 ImportCommitObservation; receipt=2 ImportReceipt |
-| ImportReceipt | operation_id=1 bytes16; revision=2 int64; phase=3 ImportReceiptPhase; repository_outcomes=4 repeated ImportRepositoryOutcome; selected_skill_bindings=5 repeated SkillBinding; created_assets=6 repeated configuration.v1.Asset; notices=7 repeated ImportNotice |
+| ImportReceipt | operation_id=1 bytes16; revision=2 int64; phase=3 ImportReceiptPhase; repository_outcomes=4 repeated ImportRepositoryOutcome; selected_skill_bindings=5 repeated SkillBinding; created_assets=6 repeated configuration.v1.Asset; notices=7 repeated ImportNotice; selected_skill_sources=8 repeated SkillSourceReference |
 | ImportRepositoryOutcome | candidate_id=1; code=2 ImportRepositoryOutcomeCode; repository_id=3 optional string |
 
 All unspecified enum values are zero and invalid as a selected business state.
@@ -50,6 +51,24 @@ All unspecified enum values are zero and invalid as a selected business state.
 NPX_SKILLS_LOCK=3. The latter accepts explicitly uploaded v3 global lock JSON;
 see [NPX-SKILLS-IMPORT.md](NPX-SKILLS-IMPORT.md). Existing source numbers and
 the 290-byte sealed ticket format remain unchanged.
+
+`register_sources=true` is an additive opt-in for Magpie/cc-switch, used by Web.
+The flag is included in the sealed options/request digest. Its false/default
+preserves the original collect-and-verify flow. `SOURCE_REFERENCE_READY=9` is a
+selectable unverified skill source: it has `source_reference` and no `binding`.
+The reference must match its repository candidate, name and exact optional path;
+empty path means unspecified, while `.` explicitly means the repository root.
+No archive hash, content hash or verified skill identity is invented.
+
+Source registration commits repository metadata, requested skill references,
+configuration assets and the final receipt atomically without any network
+operation. Selecting a skill implicitly registers its source repository. Outcomes
+`REGISTERED=9` / `ALREADY_REGISTERED=10` identify saved source IDs, not collected
+repository IDs. Saved references are returned in `selected_skill_sources`; verified
+pins remain in `selected_skill_bindings`. The selected skill count is their sum.
+The terminal receipt and no-blind-replay rules remain in force. References are
+private, bounded and independently deletable; only a subsequent explicit library
+collection can produce verified content usable for publication, Packs or install.
 The auth and transport enums reuse configuration.v1, including their existing
 numbers; no new import-specific auth interpretation exists.
 

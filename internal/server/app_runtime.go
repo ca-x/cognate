@@ -14,9 +14,10 @@ import (
 )
 
 type appRuntimeHooks struct {
-	observe func(string)
-	close   func(string, error) error
-	store   func(context.Context, string, []byte, state.Options) (*state.Store, error)
+	archiveClient *http.Client
+	observe       func(string)
+	close         func(string, error) error
+	store         func(context.Context, string, []byte, state.Options) (*state.Store, error)
 }
 
 type appRuntime struct {
@@ -165,6 +166,9 @@ func (app *App) Close() error {
 			}
 			shutdown.Wait()
 			result = libraryError
+			if result == nil && app.githubProxy != nil {
+				result = app.githubProxy.Close()
+			}
 			if result == nil && app.store != nil {
 				result = app.closeRuntimeResource("store", app.store.Close)
 			}

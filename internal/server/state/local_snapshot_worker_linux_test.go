@@ -126,11 +126,11 @@ func TestSnapshotTask0TrustedCatalog(test *testing.T) {
 	var encodedCount [4]byte
 	binary.BigEndian.PutUint32(encodedCount[:], uint32(count))
 	hash.Write(encodedCount[:])
-	if fmt.Sprintf("%x", hash.Sum(nil)) != "89fb8b48f9321c2777b75e5fb552d34938ae7bb9985874292847ee99116e0129" || count != 92 {
+	if fmt.Sprintf("%x", hash.Sum(nil)) != "503b5c98bd43d02ef6730caa4c0a61294e53f93b1d0cb7d45432f3ac9e299c62" || count != 95 {
 		test.Fatal("independent complete catalog golden differs")
 	}
 	applicationHash, err := snapshotSchema(test.Context(), pool)
-	if err != nil || fmt.Sprintf("%x", applicationHash) != "34738287b1235358fc73bbefed6fabdde0968bf8340dee784fc0a9b448bc9235" {
+	if err != nil || fmt.Sprintf("%x", applicationHash) != "90ed016f16f332f11000262d81c01687a8668c0f1c4c3bfab830d632f468e74d" {
 		test.Fatal("complete census changed original application fingerprint")
 	}
 	test.Logf("TRUSTED_COMPLETE_CATALOG=%x ENTRIES=%d APPLICATION=%x", hash.Sum(nil), count, applicationHash)
@@ -199,13 +199,13 @@ func TestSnapshotPersistentCatalogRefusal(test *testing.T) {
 		parserRefusal                   bool
 		rows                            int
 	}{
-		{name: "literal", mutation: "CREATE TABLE sqlite_review(value INTEGER); INSERT INTO sqlite_review VALUES(73)", object: "sqlite_review", payload: "SELECT count(*) FROM sqlite_review WHERE value=73", rows: 93},
-		{name: "uppercase", mutation: "CREATE TABLE SQLITE_REVIEW(value INTEGER); INSERT INTO SQLITE_REVIEW VALUES(73)", object: "SQLITE_REVIEW", payload: "SELECT count(*) FROM SQLITE_REVIEW WHERE value=73", rows: 93},
-		{name: "fake-autoindex", mutation: "CREATE TABLE sqlite_autoindex_review_1(value INTEGER); INSERT INTO sqlite_autoindex_review_1 VALUES(73)", object: "sqlite_autoindex_review_1", payload: "SELECT count(*) FROM sqlite_autoindex_review_1 WHERE value=73", rows: 93},
-		{name: "rename-application-same-count", mutation: "ALTER TABLE users RENAME TO sqlite_renamed_application", object: "sqlite_renamed_application", payload: "SELECT count(*) FROM sqlite_renamed_application WHERE user_key='snapshot-private-owner'", rows: 92},
-		{name: "known-sequence-definition", mutation: "UPDATE sqlite_schema SET sql='CREATE TABLE sqlite_sequence(name,seq,review)' WHERE name='sqlite_sequence'", object: "sqlite_sequence", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 92},
-		{name: "known-index-type-readable", mutation: "UPDATE sqlite_schema SET type='table' WHERE name='sqlite_autoindex_category_skills_1'", object: "sqlite_autoindex_category_skills_1", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 92},
-		{name: "known-index-owner-readable", mutation: "UPDATE sqlite_schema SET tbl_name='users' WHERE name='sqlite_autoindex_category_skills_1'", object: "sqlite_autoindex_category_skills_1", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 92},
+		{name: "literal", mutation: "CREATE TABLE sqlite_review(value INTEGER); INSERT INTO sqlite_review VALUES(73)", object: "sqlite_review", payload: "SELECT count(*) FROM sqlite_review WHERE value=73", rows: 96},
+		{name: "uppercase", mutation: "CREATE TABLE SQLITE_REVIEW(value INTEGER); INSERT INTO SQLITE_REVIEW VALUES(73)", object: "SQLITE_REVIEW", payload: "SELECT count(*) FROM SQLITE_REVIEW WHERE value=73", rows: 96},
+		{name: "fake-autoindex", mutation: "CREATE TABLE sqlite_autoindex_review_1(value INTEGER); INSERT INTO sqlite_autoindex_review_1 VALUES(73)", object: "sqlite_autoindex_review_1", payload: "SELECT count(*) FROM sqlite_autoindex_review_1 WHERE value=73", rows: 96},
+		{name: "rename-application-same-count", mutation: "ALTER TABLE users RENAME TO sqlite_renamed_application", object: "sqlite_renamed_application", payload: "SELECT count(*) FROM sqlite_renamed_application WHERE user_key='snapshot-private-owner'", rows: 95},
+		{name: "known-sequence-definition", mutation: "UPDATE sqlite_schema SET sql='CREATE TABLE sqlite_sequence(name,seq,review)' WHERE name='sqlite_sequence'", object: "sqlite_sequence", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 95},
+		{name: "known-index-type-readable", mutation: "UPDATE sqlite_schema SET type='table' WHERE name='sqlite_autoindex_category_skills_1'", object: "sqlite_autoindex_category_skills_1", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 95},
+		{name: "known-index-owner-readable", mutation: "UPDATE sqlite_schema SET tbl_name='users' WHERE name='sqlite_autoindex_category_skills_1'", object: "sqlite_autoindex_category_skills_1", payload: "SELECT count(*) FROM users WHERE user_key='snapshot-private-owner'", rows: 95},
 		{name: "invalid-sequence-sql-parser", mutation: "UPDATE sqlite_schema SET sql='not sql' WHERE name='sqlite_sequence'", object: "sqlite_sequence", parserRefusal: true},
 	} {
 		test.Run(scenario.name, func(test *testing.T) {
@@ -402,7 +402,7 @@ func snapshotCatalogCleanRowset(test *testing.T) *sql.DB {
 		}
 		count++
 	}
-	if rows.Err() != nil || count != 92 {
+	if rows.Err() != nil || count != 95 {
 		test.Fatal("clean unfiltered rowset fixture differs")
 	}
 	return pool
@@ -429,6 +429,9 @@ func TestSnapshotCatalogClosedRowsets(test *testing.T) {
 		{name: "duplicate-internal", mutation: "INSERT INTO review_catalog SELECT * FROM review_catalog WHERE name='sqlite_sequence'"},
 		{name: "same-count-missing-and-duplicate", mutation: "DELETE FROM review_catalog WHERE name='sqlite_sequence'; INSERT INTO review_catalog SELECT * FROM review_catalog WHERE name='sqlite_autoindex_category_skills_1'"},
 		{name: "missing-application", mutation: "DELETE FROM review_catalog WHERE name='users'"},
+		{name: "missing-source-table", mutation: "DELETE FROM review_catalog WHERE name='repository_sources'"},
+		{name: "missing-source-indexes", mutation: "DELETE FROM review_catalog WHERE tbl_name='repository_sources' AND type='index'"},
+		{name: "source-definition-whitespace", mutation: "UPDATE review_catalog SET sql=sql||' ' WHERE name='repository_sources'"},
 		{name: "null-application", mutation: "UPDATE review_catalog SET sql=NULL WHERE name='users'"},
 		{name: "extra-fake-internal", mutation: "INSERT INTO review_catalog VALUES('table','sqlite_review','sqlite_review','CREATE TABLE sqlite_review(value INTEGER)')"},
 	} {
@@ -445,7 +448,7 @@ func TestSnapshotCatalogClosedRowsets(test *testing.T) {
 			}
 			fingerprint, err := snapshotReadCatalog(test.Context(), rows)
 			if scenario.valid {
-				if err != nil || fmt.Sprintf("%x", fingerprint) != "34738287b1235358fc73bbefed6fabdde0968bf8340dee784fc0a9b448bc9235" {
+				if err != nil || fmt.Sprintf("%x", fingerprint) != "90ed016f16f332f11000262d81c01687a8668c0f1c4c3bfab830d632f468e74d" {
 					test.Fatal("complete clean SQL rowset refused")
 				}
 			} else if !errors.Is(err, ErrLocalSnapshotInvalid) || fingerprint != ([32]byte{}) {

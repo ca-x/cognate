@@ -25,6 +25,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("sessions", Session.Type),
 		edge.To("oidc_identities", OIDCIdentity.Type),
 		edge.To("collected_repositories", CollectedRepository.Type),
+		edge.To("repository_sources", RepositorySource.Type),
 		edge.To("packs", Pack.Type),
 		edge.To("mcp_credentials", MCPCredential.Type),
 		edge.To("categories", Category.Type),

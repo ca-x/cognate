@@ -61,6 +61,7 @@ enum ImportCandidateStatus {
   IMPORT_CANDIDATE_STATUS_UNSUPPORTED_KIND = 6;
   IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD = 7;
   IMPORT_CANDIDATE_STATUS_NAME_CONFLICT = 8;
+  IMPORT_CANDIDATE_STATUS_SOURCE_REFERENCE_READY = 9;
 }
 
 enum ImportNoticeCode {
@@ -99,12 +100,15 @@ enum ImportRepositoryOutcomeCode {
   IMPORT_REPOSITORY_OUTCOME_CODE_SOURCE_REJECTED = 6;
   IMPORT_REPOSITORY_OUTCOME_CODE_CAPACITY_EXHAUSTED = 7;
   IMPORT_REPOSITORY_OUTCOME_CODE_UNKNOWN = 8;
+  IMPORT_REPOSITORY_OUTCOME_CODE_REGISTERED = 9;
+  IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_REGISTERED = 10;
 }
 
 message PreviewImportSelectionRequest {
   ImportSelectionSource source = 1;
   bytes source_data = 2 [debug_redact = true];
   repeated ImportCandidateOptions options = 3;
+  bool register_sources = 4;
 }
 
 message ImportCandidateOptions {
@@ -140,6 +144,15 @@ message ImportSkillCandidate {
   ImportCandidateStatus status = 4;
   SkillBinding binding = 5;
   repeated ImportNotice notices = 6;
+  SkillSourceReference source_reference = 7;
+}
+
+message SkillSourceReference {
+  string source_id = 1;
+  string repository = 2;
+  string branch = 3;
+  string logical_path = 4;
+  string safe_name = 5;
 }
 
 message SkillBinding {
@@ -184,6 +197,7 @@ message CommitImportSelectionRequest {
   repeated string skill_ids = 7;
   repeated string configuration_ids = 8;
   repeated string ack_notice_ids = 9;
+  bool register_sources = 10;
 }
 
 message CommitImportSelectionResponse {
@@ -207,6 +221,7 @@ message ImportReceipt {
   repeated SkillBinding selected_skill_bindings = 5;
   repeated skillhub.configuration.v1.Asset created_assets = 6;
   repeated ImportNotice notices = 7;
+  repeated SkillSourceReference selected_skill_sources = 8;
 }
 
 message ImportRepositoryOutcome {

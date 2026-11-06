@@ -182,7 +182,7 @@ func restoreDatabaseCheck(ctx context.Context, database *os.File, key []byte, si
 	if err := restoreDatabaseIDDomains(ctx, pool); err != nil {
 		return facts, err
 	}
-	counts, referenceBytes, referenceHash, err := snapshotWriteInventory(ctx, pool, io.Discard, limits)
+	counts, referenceBytes, referenceHash, err := snapshotWriteInventory(ctx, pool, io.Discard, limits, facts.SchemaHash)
 	if err != nil {
 		return facts, err
 	}

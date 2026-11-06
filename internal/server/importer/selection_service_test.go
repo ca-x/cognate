@@ -1223,16 +1223,16 @@ func TestSelectionServiceStatusStorageFailureAndOrigin(test *testing.T) {
 
 func TestSelectionCanonicalCompiledHostIdentity(test *testing.T) {
 	host, err := selectionHostDigest()
-	if err != nil || hex.EncodeToString(host[:]) != "58cdce2bdfc2cd51c28d9dad77545d3a848fbe3cd432d92b4793c0a039cc79d3" {
+	if err != nil || hex.EncodeToString(host[:]) != "4c1fc60be63c9ed1f5a1af9b50323afb512ff908c2bb0ee0bc7da2f9de244f55" {
 		test.Fatal("actual compiled thirteen-file host bytes changed", err)
 	}
 	for _, fixture := range []struct {
 		source        SelectionSource
 		module, bound string
 	}{
-		{SelectionCCSwitch24, "5d50fb218db1cca7de85b0d2dd30c9634a07da3549a22801321068e769073380", "2d07816fa3de3f56dc9c82b7ea6af03446e38b2b6d12b2021b8b7064cf9c5e0c"},
-		{SelectionMagpie, "009724f358a2c537b342b4ce8f0967eaddd8b95907ff2f07c5039a0b6cc67596", "7abcc1a4cbdbd1b46cd1fede92bf900b9ea363eb9e8b36d9fed1c4f1848e74e8"},
-		{SelectionNPXSkills, "263d2dede4ed27e3d46716516b1d2109f8b8c56b884cc48a44280d287231dc75", "c77c4e6a89923b8b1abced94c86b9cbc53586540df96d25428147517043f170c"},
+		{SelectionCCSwitch24, "5d50fb218db1cca7de85b0d2dd30c9634a07da3549a22801321068e769073380", "1a9d4d8be652bc4acae4bb05ffd9ed893bfadd128d4b5a33f6a9d7aae057f6dc"},
+		{SelectionMagpie, "009724f358a2c537b342b4ce8f0967eaddd8b95907ff2f07c5039a0b6cc67596", "4eb608fe53ca088055496cfc5296f2eb69c7a6b1d738e7a1974b390d0c474d24"},
+		{SelectionNPXSkills, "263d2dede4ed27e3d46716516b1d2109f8b8c56b884cc48a44280d287231dc75", "6f5d6fc305b7f875898f517521b4f87007463b425c34fafb622c0ff3c76aacc6"},
 	} {
 		module, err := SelectionAdapterDigest(fixture.source)
 		if err != nil || module != fixture.module {

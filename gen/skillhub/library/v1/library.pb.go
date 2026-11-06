@@ -21,6 +21,302 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ListRepositorySourcesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepositorySourcesRequest) Reset() {
+	*x = ListRepositorySourcesRequest{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepositorySourcesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepositorySourcesRequest) ProtoMessage() {}
+
+func (x *ListRepositorySourcesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepositorySourcesRequest.ProtoReflect.Descriptor instead.
+func (*ListRepositorySourcesRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{0}
+}
+
+type ListRepositorySourcesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sources       []*RepositorySource    `protobuf:"bytes,1,rep,name=sources,proto3" json:"sources,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRepositorySourcesResponse) Reset() {
+	*x = ListRepositorySourcesResponse{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepositorySourcesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepositorySourcesResponse) ProtoMessage() {}
+
+func (x *ListRepositorySourcesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepositorySourcesResponse.ProtoReflect.Descriptor instead.
+func (*ListRepositorySourcesResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListRepositorySourcesResponse) GetSources() []*RepositorySource {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+type DeleteRepositorySourceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SourceId      string                 `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRepositorySourceRequest) Reset() {
+	*x = DeleteRepositorySourceRequest{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRepositorySourceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRepositorySourceRequest) ProtoMessage() {}
+
+func (x *DeleteRepositorySourceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRepositorySourceRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRepositorySourceRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DeleteRepositorySourceRequest) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+type DeleteRepositorySourceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRepositorySourceResponse) Reset() {
+	*x = DeleteRepositorySourceResponse{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRepositorySourceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRepositorySourceResponse) ProtoMessage() {}
+
+func (x *DeleteRepositorySourceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRepositorySourceResponse.ProtoReflect.Descriptor instead.
+func (*DeleteRepositorySourceResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{3}
+}
+
+type RepositorySource struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	NameWithOwner         string                 `protobuf:"bytes,2,opt,name=name_with_owner,json=nameWithOwner,proto3" json:"name_with_owner,omitempty"`
+	Branch                string                 `protobuf:"bytes,3,opt,name=branch,proto3" json:"branch,omitempty"`
+	RegisteredAtUnix      int64                  `protobuf:"varint,4,opt,name=registered_at_unix,json=registeredAtUnix,proto3" json:"registered_at_unix,omitempty"`
+	CollectedRepositoryId string                 `protobuf:"bytes,5,opt,name=collected_repository_id,json=collectedRepositoryId,proto3" json:"collected_repository_id,omitempty"`
+	Skills                []*SourceSkill         `protobuf:"bytes,6,rep,name=skills,proto3" json:"skills,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *RepositorySource) Reset() {
+	*x = RepositorySource{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RepositorySource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RepositorySource) ProtoMessage() {}
+
+func (x *RepositorySource) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RepositorySource.ProtoReflect.Descriptor instead.
+func (*RepositorySource) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *RepositorySource) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RepositorySource) GetNameWithOwner() string {
+	if x != nil {
+		return x.NameWithOwner
+	}
+	return ""
+}
+
+func (x *RepositorySource) GetBranch() string {
+	if x != nil {
+		return x.Branch
+	}
+	return ""
+}
+
+func (x *RepositorySource) GetRegisteredAtUnix() int64 {
+	if x != nil {
+		return x.RegisteredAtUnix
+	}
+	return 0
+}
+
+func (x *RepositorySource) GetCollectedRepositoryId() string {
+	if x != nil {
+		return x.CollectedRepositoryId
+	}
+	return ""
+}
+
+func (x *RepositorySource) GetSkills() []*SourceSkill {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+type SourceSkill struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SourceSkill) Reset() {
+	*x = SourceSkill{}
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourceSkill) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourceSkill) ProtoMessage() {}
+
+func (x *SourceSkill) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourceSkill.ProtoReflect.Descriptor instead.
+func (*SourceSkill) Descriptor() ([]byte, []int) {
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SourceSkill) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SourceSkill) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
 type CollectRepositoryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repository    string                 `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
@@ -31,7 +327,7 @@ type CollectRepositoryRequest struct {
 
 func (x *CollectRepositoryRequest) Reset() {
 	*x = CollectRepositoryRequest{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[0]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +339,7 @@ func (x *CollectRepositoryRequest) String() string {
 func (*CollectRepositoryRequest) ProtoMessage() {}
 
 func (x *CollectRepositoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[0]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +352,7 @@ func (x *CollectRepositoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectRepositoryRequest.ProtoReflect.Descriptor instead.
 func (*CollectRepositoryRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{0}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CollectRepositoryRequest) GetRepository() string {
@@ -82,7 +378,7 @@ type CollectRepositoryResponse struct {
 
 func (x *CollectRepositoryResponse) Reset() {
 	*x = CollectRepositoryResponse{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[1]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +390,7 @@ func (x *CollectRepositoryResponse) String() string {
 func (*CollectRepositoryResponse) ProtoMessage() {}
 
 func (x *CollectRepositoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[1]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +403,7 @@ func (x *CollectRepositoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectRepositoryResponse.ProtoReflect.Descriptor instead.
 func (*CollectRepositoryResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{1}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CollectRepositoryResponse) GetRepository() *Repository {
@@ -125,7 +421,7 @@ type ListRepositoriesRequest struct {
 
 func (x *ListRepositoriesRequest) Reset() {
 	*x = ListRepositoriesRequest{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[2]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -137,7 +433,7 @@ func (x *ListRepositoriesRequest) String() string {
 func (*ListRepositoriesRequest) ProtoMessage() {}
 
 func (x *ListRepositoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[2]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -150,7 +446,7 @@ func (x *ListRepositoriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRepositoriesRequest.ProtoReflect.Descriptor instead.
 func (*ListRepositoriesRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{2}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{8}
 }
 
 type ListRepositoriesResponse struct {
@@ -162,7 +458,7 @@ type ListRepositoriesResponse struct {
 
 func (x *ListRepositoriesResponse) Reset() {
 	*x = ListRepositoriesResponse{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[3]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -174,7 +470,7 @@ func (x *ListRepositoriesResponse) String() string {
 func (*ListRepositoriesResponse) ProtoMessage() {}
 
 func (x *ListRepositoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[3]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -187,7 +483,7 @@ func (x *ListRepositoriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRepositoriesResponse.ProtoReflect.Descriptor instead.
 func (*ListRepositoriesResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{3}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListRepositoriesResponse) GetRepositories() []*Repository {
@@ -206,7 +502,7 @@ type GetRepositoryRequest struct {
 
 func (x *GetRepositoryRequest) Reset() {
 	*x = GetRepositoryRequest{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[4]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -218,7 +514,7 @@ func (x *GetRepositoryRequest) String() string {
 func (*GetRepositoryRequest) ProtoMessage() {}
 
 func (x *GetRepositoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[4]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -231,7 +527,7 @@ func (x *GetRepositoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRepositoryRequest.ProtoReflect.Descriptor instead.
 func (*GetRepositoryRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{4}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetRepositoryRequest) GetRepositoryId() string {
@@ -251,7 +547,7 @@ type GetRepositoryResponse struct {
 
 func (x *GetRepositoryResponse) Reset() {
 	*x = GetRepositoryResponse{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[5]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +559,7 @@ func (x *GetRepositoryResponse) String() string {
 func (*GetRepositoryResponse) ProtoMessage() {}
 
 func (x *GetRepositoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[5]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +572,7 @@ func (x *GetRepositoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRepositoryResponse.ProtoReflect.Descriptor instead.
 func (*GetRepositoryResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{5}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetRepositoryResponse) GetRepository() *Repository {
@@ -304,7 +600,7 @@ type RefreshRepositoryRequest struct {
 
 func (x *RefreshRepositoryRequest) Reset() {
 	*x = RefreshRepositoryRequest{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[6]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -316,7 +612,7 @@ func (x *RefreshRepositoryRequest) String() string {
 func (*RefreshRepositoryRequest) ProtoMessage() {}
 
 func (x *RefreshRepositoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[6]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -329,7 +625,7 @@ func (x *RefreshRepositoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRepositoryRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRepositoryRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{6}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *RefreshRepositoryRequest) GetRepositoryId() string {
@@ -367,7 +663,7 @@ type RefreshRepositoryResponse struct {
 
 func (x *RefreshRepositoryResponse) Reset() {
 	*x = RefreshRepositoryResponse{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[7]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -379,7 +675,7 @@ func (x *RefreshRepositoryResponse) String() string {
 func (*RefreshRepositoryResponse) ProtoMessage() {}
 
 func (x *RefreshRepositoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[7]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -392,7 +688,7 @@ func (x *RefreshRepositoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRepositoryResponse.ProtoReflect.Descriptor instead.
 func (*RefreshRepositoryResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{7}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RefreshRepositoryResponse) GetRepository() *Repository {
@@ -447,7 +743,7 @@ type RefreshedPack struct {
 
 func (x *RefreshedPack) Reset() {
 	*x = RefreshedPack{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[8]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -459,7 +755,7 @@ func (x *RefreshedPack) String() string {
 func (*RefreshedPack) ProtoMessage() {}
 
 func (x *RefreshedPack) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[8]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -472,7 +768,7 @@ func (x *RefreshedPack) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshedPack.ProtoReflect.Descriptor instead.
 func (*RefreshedPack) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{8}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *RefreshedPack) GetPackId() string {
@@ -505,7 +801,7 @@ type Repository struct {
 
 func (x *Repository) Reset() {
 	*x = Repository{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[9]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -517,7 +813,7 @@ func (x *Repository) String() string {
 func (*Repository) ProtoMessage() {}
 
 func (x *Repository) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[9]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -530,7 +826,7 @@ func (x *Repository) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Repository.ProtoReflect.Descriptor instead.
 func (*Repository) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{9}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Repository) GetId() string {
@@ -602,7 +898,7 @@ type Skill struct {
 
 func (x *Skill) Reset() {
 	*x = Skill{}
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[10]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -614,7 +910,7 @@ func (x *Skill) String() string {
 func (*Skill) ProtoMessage() {}
 
 func (x *Skill) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_library_v1_library_proto_msgTypes[10]
+	mi := &file_skillhub_library_v1_library_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +923,7 @@ func (x *Skill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Skill.ProtoReflect.Descriptor instead.
 func (*Skill) Descriptor() ([]byte, []int) {
-	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{10}
+	return file_skillhub_library_v1_library_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Skill) GetId() string {
@@ -669,7 +965,23 @@ var File_skillhub_library_v1_library_proto protoreflect.FileDescriptor
 
 const file_skillhub_library_v1_library_proto_rawDesc = "" +
 	"\n" +
-	"!skillhub/library/v1/library.proto\x12\x13skillhub.library.v1\"R\n" +
+	"!skillhub/library/v1/library.proto\x12\x13skillhub.library.v1\"\x1e\n" +
+	"\x1cListRepositorySourcesRequest\"`\n" +
+	"\x1dListRepositorySourcesResponse\x12?\n" +
+	"\asources\x18\x01 \x03(\v2%.skillhub.library.v1.RepositorySourceR\asources\"<\n" +
+	"\x1dDeleteRepositorySourceRequest\x12\x1b\n" +
+	"\tsource_id\x18\x01 \x01(\tR\bsourceId\" \n" +
+	"\x1eDeleteRepositorySourceResponse\"\x82\x02\n" +
+	"\x10RepositorySource\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\x0fname_with_owner\x18\x02 \x01(\tR\rnameWithOwner\x12\x16\n" +
+	"\x06branch\x18\x03 \x01(\tR\x06branch\x12,\n" +
+	"\x12registered_at_unix\x18\x04 \x01(\x03R\x10registeredAtUnix\x126\n" +
+	"\x17collected_repository_id\x18\x05 \x01(\tR\x15collectedRepositoryId\x128\n" +
+	"\x06skills\x18\x06 \x03(\v2 .skillhub.library.v1.SourceSkillR\x06skills\"5\n" +
+	"\vSourceSkill\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"R\n" +
 	"\x18CollectRepositoryRequest\x12\x1e\n" +
 	"\n" +
 	"repository\x18\x01 \x01(\tR\n" +
@@ -721,12 +1033,14 @@ const file_skillhub_library_v1_library_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
 	"\x04path\x18\x04 \x01(\tR\x04path\x12!\n" +
-	"\fcontent_hash\x18\x05 \x01(\tR\vcontentHash2\xd1\x03\n" +
+	"\fcontent_hash\x18\x05 \x01(\tR\vcontentHash2\xd5\x05\n" +
 	"\x0eLibraryService\x12r\n" +
 	"\x11CollectRepository\x12-.skillhub.library.v1.CollectRepositoryRequest\x1a..skillhub.library.v1.CollectRepositoryResponse\x12o\n" +
 	"\x10ListRepositories\x12,.skillhub.library.v1.ListRepositoriesRequest\x1a-.skillhub.library.v1.ListRepositoriesResponse\x12f\n" +
 	"\rGetRepository\x12).skillhub.library.v1.GetRepositoryRequest\x1a*.skillhub.library.v1.GetRepositoryResponse\x12r\n" +
-	"\x11RefreshRepository\x12-.skillhub.library.v1.RefreshRepositoryRequest\x1a..skillhub.library.v1.RefreshRepositoryResponseB;Z9github.com/ca-x/cognate/gen/skillhub/library/v1;libraryv1b\x06proto3"
+	"\x11RefreshRepository\x12-.skillhub.library.v1.RefreshRepositoryRequest\x1a..skillhub.library.v1.RefreshRepositoryResponse\x12~\n" +
+	"\x15ListRepositorySources\x121.skillhub.library.v1.ListRepositorySourcesRequest\x1a2.skillhub.library.v1.ListRepositorySourcesResponse\x12\x81\x01\n" +
+	"\x16DeleteRepositorySource\x122.skillhub.library.v1.DeleteRepositorySourceRequest\x1a3.skillhub.library.v1.DeleteRepositorySourceResponseB;Z9github.com/ca-x/cognate/gen/skillhub/library/v1;libraryv1b\x06proto3"
 
 var (
 	file_skillhub_library_v1_library_proto_rawDescOnce sync.Once
@@ -740,40 +1054,52 @@ func file_skillhub_library_v1_library_proto_rawDescGZIP() []byte {
 	return file_skillhub_library_v1_library_proto_rawDescData
 }
 
-var file_skillhub_library_v1_library_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_skillhub_library_v1_library_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_skillhub_library_v1_library_proto_goTypes = []any{
-	(*CollectRepositoryRequest)(nil),  // 0: skillhub.library.v1.CollectRepositoryRequest
-	(*CollectRepositoryResponse)(nil), // 1: skillhub.library.v1.CollectRepositoryResponse
-	(*ListRepositoriesRequest)(nil),   // 2: skillhub.library.v1.ListRepositoriesRequest
-	(*ListRepositoriesResponse)(nil),  // 3: skillhub.library.v1.ListRepositoriesResponse
-	(*GetRepositoryRequest)(nil),      // 4: skillhub.library.v1.GetRepositoryRequest
-	(*GetRepositoryResponse)(nil),     // 5: skillhub.library.v1.GetRepositoryResponse
-	(*RefreshRepositoryRequest)(nil),  // 6: skillhub.library.v1.RefreshRepositoryRequest
-	(*RefreshRepositoryResponse)(nil), // 7: skillhub.library.v1.RefreshRepositoryResponse
-	(*RefreshedPack)(nil),             // 8: skillhub.library.v1.RefreshedPack
-	(*Repository)(nil),                // 9: skillhub.library.v1.Repository
-	(*Skill)(nil),                     // 10: skillhub.library.v1.Skill
+	(*ListRepositorySourcesRequest)(nil),   // 0: skillhub.library.v1.ListRepositorySourcesRequest
+	(*ListRepositorySourcesResponse)(nil),  // 1: skillhub.library.v1.ListRepositorySourcesResponse
+	(*DeleteRepositorySourceRequest)(nil),  // 2: skillhub.library.v1.DeleteRepositorySourceRequest
+	(*DeleteRepositorySourceResponse)(nil), // 3: skillhub.library.v1.DeleteRepositorySourceResponse
+	(*RepositorySource)(nil),               // 4: skillhub.library.v1.RepositorySource
+	(*SourceSkill)(nil),                    // 5: skillhub.library.v1.SourceSkill
+	(*CollectRepositoryRequest)(nil),       // 6: skillhub.library.v1.CollectRepositoryRequest
+	(*CollectRepositoryResponse)(nil),      // 7: skillhub.library.v1.CollectRepositoryResponse
+	(*ListRepositoriesRequest)(nil),        // 8: skillhub.library.v1.ListRepositoriesRequest
+	(*ListRepositoriesResponse)(nil),       // 9: skillhub.library.v1.ListRepositoriesResponse
+	(*GetRepositoryRequest)(nil),           // 10: skillhub.library.v1.GetRepositoryRequest
+	(*GetRepositoryResponse)(nil),          // 11: skillhub.library.v1.GetRepositoryResponse
+	(*RefreshRepositoryRequest)(nil),       // 12: skillhub.library.v1.RefreshRepositoryRequest
+	(*RefreshRepositoryResponse)(nil),      // 13: skillhub.library.v1.RefreshRepositoryResponse
+	(*RefreshedPack)(nil),                  // 14: skillhub.library.v1.RefreshedPack
+	(*Repository)(nil),                     // 15: skillhub.library.v1.Repository
+	(*Skill)(nil),                          // 16: skillhub.library.v1.Skill
 }
 var file_skillhub_library_v1_library_proto_depIdxs = []int32{
-	9,  // 0: skillhub.library.v1.CollectRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
-	9,  // 1: skillhub.library.v1.ListRepositoriesResponse.repositories:type_name -> skillhub.library.v1.Repository
-	9,  // 2: skillhub.library.v1.GetRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
-	10, // 3: skillhub.library.v1.GetRepositoryResponse.skills:type_name -> skillhub.library.v1.Skill
-	9,  // 4: skillhub.library.v1.RefreshRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
-	8,  // 5: skillhub.library.v1.RefreshRepositoryResponse.packs:type_name -> skillhub.library.v1.RefreshedPack
-	0,  // 6: skillhub.library.v1.LibraryService.CollectRepository:input_type -> skillhub.library.v1.CollectRepositoryRequest
-	2,  // 7: skillhub.library.v1.LibraryService.ListRepositories:input_type -> skillhub.library.v1.ListRepositoriesRequest
-	4,  // 8: skillhub.library.v1.LibraryService.GetRepository:input_type -> skillhub.library.v1.GetRepositoryRequest
-	6,  // 9: skillhub.library.v1.LibraryService.RefreshRepository:input_type -> skillhub.library.v1.RefreshRepositoryRequest
-	1,  // 10: skillhub.library.v1.LibraryService.CollectRepository:output_type -> skillhub.library.v1.CollectRepositoryResponse
-	3,  // 11: skillhub.library.v1.LibraryService.ListRepositories:output_type -> skillhub.library.v1.ListRepositoriesResponse
-	5,  // 12: skillhub.library.v1.LibraryService.GetRepository:output_type -> skillhub.library.v1.GetRepositoryResponse
-	7,  // 13: skillhub.library.v1.LibraryService.RefreshRepository:output_type -> skillhub.library.v1.RefreshRepositoryResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	4,  // 0: skillhub.library.v1.ListRepositorySourcesResponse.sources:type_name -> skillhub.library.v1.RepositorySource
+	5,  // 1: skillhub.library.v1.RepositorySource.skills:type_name -> skillhub.library.v1.SourceSkill
+	15, // 2: skillhub.library.v1.CollectRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
+	15, // 3: skillhub.library.v1.ListRepositoriesResponse.repositories:type_name -> skillhub.library.v1.Repository
+	15, // 4: skillhub.library.v1.GetRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
+	16, // 5: skillhub.library.v1.GetRepositoryResponse.skills:type_name -> skillhub.library.v1.Skill
+	15, // 6: skillhub.library.v1.RefreshRepositoryResponse.repository:type_name -> skillhub.library.v1.Repository
+	14, // 7: skillhub.library.v1.RefreshRepositoryResponse.packs:type_name -> skillhub.library.v1.RefreshedPack
+	6,  // 8: skillhub.library.v1.LibraryService.CollectRepository:input_type -> skillhub.library.v1.CollectRepositoryRequest
+	8,  // 9: skillhub.library.v1.LibraryService.ListRepositories:input_type -> skillhub.library.v1.ListRepositoriesRequest
+	10, // 10: skillhub.library.v1.LibraryService.GetRepository:input_type -> skillhub.library.v1.GetRepositoryRequest
+	12, // 11: skillhub.library.v1.LibraryService.RefreshRepository:input_type -> skillhub.library.v1.RefreshRepositoryRequest
+	0,  // 12: skillhub.library.v1.LibraryService.ListRepositorySources:input_type -> skillhub.library.v1.ListRepositorySourcesRequest
+	2,  // 13: skillhub.library.v1.LibraryService.DeleteRepositorySource:input_type -> skillhub.library.v1.DeleteRepositorySourceRequest
+	7,  // 14: skillhub.library.v1.LibraryService.CollectRepository:output_type -> skillhub.library.v1.CollectRepositoryResponse
+	9,  // 15: skillhub.library.v1.LibraryService.ListRepositories:output_type -> skillhub.library.v1.ListRepositoriesResponse
+	11, // 16: skillhub.library.v1.LibraryService.GetRepository:output_type -> skillhub.library.v1.GetRepositoryResponse
+	13, // 17: skillhub.library.v1.LibraryService.RefreshRepository:output_type -> skillhub.library.v1.RefreshRepositoryResponse
+	1,  // 18: skillhub.library.v1.LibraryService.ListRepositorySources:output_type -> skillhub.library.v1.ListRepositorySourcesResponse
+	3,  // 19: skillhub.library.v1.LibraryService.DeleteRepositorySource:output_type -> skillhub.library.v1.DeleteRepositorySourceResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_library_v1_library_proto_init() }
@@ -787,7 +1113,7 @@ func file_skillhub_library_v1_library_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_library_v1_library_proto_rawDesc), len(file_skillhub_library_v1_library_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -307,6 +307,29 @@ func HasCollectedRepositoriesWith(preds ...predicate.CollectedRepository) predic
 	})
 }
 
+// HasRepositorySources applies the HasEdge predicate on the "repository_sources" edge.
+func HasRepositorySources() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RepositorySourcesTable, RepositorySourcesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepositorySourcesWith applies the HasEdge predicate on the "repository_sources" edge with a given conditions (other predicates).
+func HasRepositorySourcesWith(preds ...predicate.RepositorySource) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRepositorySourcesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasPacks applies the HasEdge predicate on the "packs" edge.
 func HasPacks() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

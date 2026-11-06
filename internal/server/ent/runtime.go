@@ -29,6 +29,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/schema"
 	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 	"github.com/ca-x/cognate/internal/server/ent/session"
@@ -1189,6 +1190,24 @@ func init() {
 	repositoryprivatehistoryDescNameWithOwner := repositoryprivatehistoryFields[1].Descriptor()
 	// repositoryprivatehistory.NameWithOwnerValidator is a validator for the "name_with_owner" field. It is called by the builders before save.
 	repositoryprivatehistory.NameWithOwnerValidator = repositoryprivatehistoryDescNameWithOwner.Validators[0].(func(string) error)
+	repositorysourceFields := schema.RepositorySource{}.Fields()
+	_ = repositorysourceFields
+	// repositorysourceDescPublicID is the schema descriptor for public_id field.
+	repositorysourceDescPublicID := repositorysourceFields[0].Descriptor()
+	// repositorysource.PublicIDValidator is a validator for the "public_id" field. It is called by the builders before save.
+	repositorysource.PublicIDValidator = repositorysourceDescPublicID.Validators[0].(func(string) error)
+	// repositorysourceDescNameWithOwner is the schema descriptor for name_with_owner field.
+	repositorysourceDescNameWithOwner := repositorysourceFields[2].Descriptor()
+	// repositorysource.NameWithOwnerValidator is a validator for the "name_with_owner" field. It is called by the builders before save.
+	repositorysource.NameWithOwnerValidator = repositorysourceDescNameWithOwner.Validators[0].(func(string) error)
+	// repositorysourceDescBranch is the schema descriptor for branch field.
+	repositorysourceDescBranch := repositorysourceFields[3].Descriptor()
+	// repositorysource.DefaultBranch holds the default value on creation for the branch field.
+	repositorysource.DefaultBranch = repositorysourceDescBranch.Default.(string)
+	// repositorysourceDescRegisteredAt is the schema descriptor for registered_at field.
+	repositorysourceDescRegisteredAt := repositorysourceFields[5].Descriptor()
+	// repositorysource.DefaultRegisteredAt holds the default value on creation for the registered_at field.
+	repositorysource.DefaultRegisteredAt = repositorysourceDescRegisteredAt.Default.(func() time.Time)
 	servermetadataFields := schema.ServerMetadata{}.Fields()
 	_ = servermetadataFields
 	// servermetadataDescName is the schema descriptor for name field.

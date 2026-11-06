@@ -194,7 +194,7 @@ func TestImportSelectionReceiptRejectsInvalidMapping(test *testing.T) {
 		"negative-revision":    func(view *state.ImportReceiptView) { view.Revision = -1 },
 		"unknown-phase":        func(view *state.ImportReceiptView) { view.Phase = "private-marker-phase" },
 		"zero-outcome":         func(view *state.ImportReceiptView) { view.RepositoryOutcomes[0].Code = 0 },
-		"unknown-outcome":      func(view *state.ImportReceiptView) { view.RepositoryOutcomes[0].Code = 9 },
+		"unknown-outcome":      func(view *state.ImportReceiptView) { view.RepositoryOutcomes[0].Code = 11 },
 		"success-without-id":   func(view *state.ImportReceiptView) { view.RepositoryOutcomes[0].RepositoryID = "" },
 		"failure-with-id":      func(view *state.ImportReceiptView) { view.RepositoryOutcomes[2].RepositoryID = "private-marker-repo" },
 		"zero-notice":          func(view *state.ImportReceiptView) { view.Notices[0].Code = 0 },

@@ -297,6 +297,18 @@ func (f RepositoryPrivateHistoryFunc) Mutate(ctx context.Context, m ent.Mutation
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RepositoryPrivateHistoryMutation", m)
 }
 
+// The RepositorySourceFunc type is an adapter to allow the use of ordinary
+// function as RepositorySource mutator.
+type RepositorySourceFunc func(context.Context, *ent.RepositorySourceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RepositorySourceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RepositorySourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RepositorySourceMutation", m)
+}
+
 // The ServerMetadataFunc type is an adapter to allow the use of ordinary
 // function as ServerMetadata mutator.
 type ServerMetadataFunc func(context.Context, *ent.ServerMetadataMutation) (ent.Value, error)

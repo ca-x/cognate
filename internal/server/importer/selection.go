@@ -125,7 +125,10 @@ type SelectionCandidateOptions struct {
 	SkillBinding       *SelectionSkillBinding
 }
 
-type SelectionOptions struct{ Candidates []SelectionCandidateOptions }
+type SelectionOptions struct {
+	Candidates      []SelectionCandidateOptions
+	RegisterSources bool
+}
 
 type selectionBox struct {
 	mutex sync.Mutex

@@ -33,7 +33,7 @@ func TestSnapshotActualBinaries(test *testing.T) {
 				test.Run(fmt.Sprint(pageSize), func(test *testing.T) {
 					scenarios := []string{"valid"}
 					if pageSize == 512 {
-						scenarios = append(scenarios, "R553")
+						scenarios = append(scenarios, "R554")
 					}
 					if pageSize == 4096 {
 						scenarios = append(scenarios, "database-budget", "wal-budget", "bad-header", "unknown-schema", "short-request", "trailing-request", "zero-nonce", "regular-request", "legacy-frame", "legacy-mode")
@@ -94,8 +94,8 @@ func TestSnapshotActualBinaries(test *testing.T) {
 									test.Fatal(err)
 								}
 							}
-							if scenario == "R553" {
-								if err = os.Truncate(path+"-shm", 553*32768); err != nil {
+							if scenario == "R554" {
+								if err = os.Truncate(path+"-shm", 554*32768); err != nil {
 									test.Fatal(err)
 								}
 							}
@@ -173,7 +173,7 @@ func TestSnapshotActualBinaries(test *testing.T) {
 							if scenario == "wal-budget" {
 								binary.BigEndian.PutUint64(request[136:144], 32)
 							}
-							if scenario == "R553" {
+							if scenario == "R554" {
 								binary.BigEndian.PutUint64(request[144:152], 32<<20)
 							}
 							if scenario == "zero-nonce" {

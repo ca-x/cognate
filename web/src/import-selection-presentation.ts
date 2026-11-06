@@ -49,4 +49,9 @@ export const selectionNoticeTitles: Record<ImportNoticeCode, string> = {
 export const repositoryOutcomeLabels: Record<number, string> = {
   0: "结果未知", 1: "已收录并扫描", 2: "仓库已存在", 3: "尚未尝试收录", 4: "收录已取消",
   5: "授权已失效", 6: "仓库来源未通过校验", 7: "收录超过容量限制", 8: "结果未知，请核对状态",
+  9: "已保存私有来源，尚未下载", 10: "私有来源已保存，可同步技能",
+}
+
+export function sourcePathLabel(path: string, translate: (label: string) => string = (label) => label) {
+  return path === "" ? translate("同步后识别路径") : path === "." ? translate("仓库根目录") : path
 }

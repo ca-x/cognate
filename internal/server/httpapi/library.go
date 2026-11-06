@@ -16,6 +16,39 @@ type libraryHandler struct {
 	service *library.Service
 }
 
+func (handler *libraryHandler) ListRepositorySources(ctx context.Context, request *connect.Request[libraryv1.ListRepositorySourcesRequest]) (*connect.Response[libraryv1.ListRepositorySourcesResponse], error) {
+	user, err := handler.auth.authenticate(ctx, request.Header())
+	if err != nil {
+		return nil, err
+	}
+	entries, err := handler.service.ListSources(ctx, user)
+	if err != nil {
+		return nil, libraryError(ctx, err)
+	}
+	response := &libraryv1.ListRepositorySourcesResponse{}
+	for _, entry := range entries {
+		source := &libraryv1.RepositorySource{Id: entry.ID, NameWithOwner: entry.NameWithOwner, Branch: entry.Branch, RegisteredAtUnix: entry.RegisteredAt.Unix(), CollectedRepositoryId: entry.CollectedRepositoryID}
+		for _, skill := range entry.Skills {
+			source.Skills = append(source.Skills, &libraryv1.SourceSkill{Name: skill.Name, Path: skill.Path})
+		}
+		response.Sources = append(response.Sources, source)
+	}
+	result := connect.NewResponse(response)
+	result.Header().Set("Cache-Control", "no-store")
+	return result, nil
+}
+
+func (handler *libraryHandler) DeleteRepositorySource(ctx context.Context, request *connect.Request[libraryv1.DeleteRepositorySourceRequest]) (*connect.Response[libraryv1.DeleteRepositorySourceResponse], error) {
+	user, err := handler.auth.authenticate(ctx, request.Header())
+	if err != nil {
+		return nil, err
+	}
+	if err := handler.service.DeleteSource(ctx, user, request.Msg.SourceId); err != nil {
+		return nil, libraryError(ctx, err)
+	}
+	return connect.NewResponse(&libraryv1.DeleteRepositorySourceResponse{}), nil
+}
+
 func (handler *libraryHandler) CollectRepository(ctx context.Context, request *connect.Request[libraryv1.CollectRepositoryRequest]) (*connect.Response[libraryv1.CollectRepositoryResponse], error) {
 	user, err := handler.auth.authenticate(ctx, request.Header())
 	if err != nil {

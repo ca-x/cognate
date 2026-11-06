@@ -45,6 +45,12 @@ const (
 	// LibraryServiceRefreshRepositoryProcedure is the fully-qualified name of the LibraryService's
 	// RefreshRepository RPC.
 	LibraryServiceRefreshRepositoryProcedure = "/skillhub.library.v1.LibraryService/RefreshRepository"
+	// LibraryServiceListRepositorySourcesProcedure is the fully-qualified name of the LibraryService's
+	// ListRepositorySources RPC.
+	LibraryServiceListRepositorySourcesProcedure = "/skillhub.library.v1.LibraryService/ListRepositorySources"
+	// LibraryServiceDeleteRepositorySourceProcedure is the fully-qualified name of the LibraryService's
+	// DeleteRepositorySource RPC.
+	LibraryServiceDeleteRepositorySourceProcedure = "/skillhub.library.v1.LibraryService/DeleteRepositorySource"
 )
 
 // LibraryServiceClient is a client for the skillhub.library.v1.LibraryService service.
@@ -53,6 +59,8 @@ type LibraryServiceClient interface {
 	ListRepositories(context.Context, *connect.Request[v1.ListRepositoriesRequest]) (*connect.Response[v1.ListRepositoriesResponse], error)
 	GetRepository(context.Context, *connect.Request[v1.GetRepositoryRequest]) (*connect.Response[v1.GetRepositoryResponse], error)
 	RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error)
+	ListRepositorySources(context.Context, *connect.Request[v1.ListRepositorySourcesRequest]) (*connect.Response[v1.ListRepositorySourcesResponse], error)
+	DeleteRepositorySource(context.Context, *connect.Request[v1.DeleteRepositorySourceRequest]) (*connect.Response[v1.DeleteRepositorySourceResponse], error)
 }
 
 // NewLibraryServiceClient constructs a client for the skillhub.library.v1.LibraryService service.
@@ -90,15 +98,29 @@ func NewLibraryServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(libraryServiceMethods.ByName("RefreshRepository")),
 			connect.WithClientOptions(opts...),
 		),
+		listRepositorySources: connect.NewClient[v1.ListRepositorySourcesRequest, v1.ListRepositorySourcesResponse](
+			httpClient,
+			baseURL+LibraryServiceListRepositorySourcesProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("ListRepositorySources")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteRepositorySource: connect.NewClient[v1.DeleteRepositorySourceRequest, v1.DeleteRepositorySourceResponse](
+			httpClient,
+			baseURL+LibraryServiceDeleteRepositorySourceProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("DeleteRepositorySource")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // libraryServiceClient implements LibraryServiceClient.
 type libraryServiceClient struct {
-	collectRepository *connect.Client[v1.CollectRepositoryRequest, v1.CollectRepositoryResponse]
-	listRepositories  *connect.Client[v1.ListRepositoriesRequest, v1.ListRepositoriesResponse]
-	getRepository     *connect.Client[v1.GetRepositoryRequest, v1.GetRepositoryResponse]
-	refreshRepository *connect.Client[v1.RefreshRepositoryRequest, v1.RefreshRepositoryResponse]
+	collectRepository      *connect.Client[v1.CollectRepositoryRequest, v1.CollectRepositoryResponse]
+	listRepositories       *connect.Client[v1.ListRepositoriesRequest, v1.ListRepositoriesResponse]
+	getRepository          *connect.Client[v1.GetRepositoryRequest, v1.GetRepositoryResponse]
+	refreshRepository      *connect.Client[v1.RefreshRepositoryRequest, v1.RefreshRepositoryResponse]
+	listRepositorySources  *connect.Client[v1.ListRepositorySourcesRequest, v1.ListRepositorySourcesResponse]
+	deleteRepositorySource *connect.Client[v1.DeleteRepositorySourceRequest, v1.DeleteRepositorySourceResponse]
 }
 
 // CollectRepository calls skillhub.library.v1.LibraryService.CollectRepository.
@@ -121,12 +143,24 @@ func (c *libraryServiceClient) RefreshRepository(ctx context.Context, req *conne
 	return c.refreshRepository.CallUnary(ctx, req)
 }
 
+// ListRepositorySources calls skillhub.library.v1.LibraryService.ListRepositorySources.
+func (c *libraryServiceClient) ListRepositorySources(ctx context.Context, req *connect.Request[v1.ListRepositorySourcesRequest]) (*connect.Response[v1.ListRepositorySourcesResponse], error) {
+	return c.listRepositorySources.CallUnary(ctx, req)
+}
+
+// DeleteRepositorySource calls skillhub.library.v1.LibraryService.DeleteRepositorySource.
+func (c *libraryServiceClient) DeleteRepositorySource(ctx context.Context, req *connect.Request[v1.DeleteRepositorySourceRequest]) (*connect.Response[v1.DeleteRepositorySourceResponse], error) {
+	return c.deleteRepositorySource.CallUnary(ctx, req)
+}
+
 // LibraryServiceHandler is an implementation of the skillhub.library.v1.LibraryService service.
 type LibraryServiceHandler interface {
 	CollectRepository(context.Context, *connect.Request[v1.CollectRepositoryRequest]) (*connect.Response[v1.CollectRepositoryResponse], error)
 	ListRepositories(context.Context, *connect.Request[v1.ListRepositoriesRequest]) (*connect.Response[v1.ListRepositoriesResponse], error)
 	GetRepository(context.Context, *connect.Request[v1.GetRepositoryRequest]) (*connect.Response[v1.GetRepositoryResponse], error)
 	RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error)
+	ListRepositorySources(context.Context, *connect.Request[v1.ListRepositorySourcesRequest]) (*connect.Response[v1.ListRepositorySourcesResponse], error)
+	DeleteRepositorySource(context.Context, *connect.Request[v1.DeleteRepositorySourceRequest]) (*connect.Response[v1.DeleteRepositorySourceResponse], error)
 }
 
 // NewLibraryServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -160,6 +194,18 @@ func NewLibraryServiceHandler(svc LibraryServiceHandler, opts ...connect.Handler
 		connect.WithSchema(libraryServiceMethods.ByName("RefreshRepository")),
 		connect.WithHandlerOptions(opts...),
 	)
+	libraryServiceListRepositorySourcesHandler := connect.NewUnaryHandler(
+		LibraryServiceListRepositorySourcesProcedure,
+		svc.ListRepositorySources,
+		connect.WithSchema(libraryServiceMethods.ByName("ListRepositorySources")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceDeleteRepositorySourceHandler := connect.NewUnaryHandler(
+		LibraryServiceDeleteRepositorySourceProcedure,
+		svc.DeleteRepositorySource,
+		connect.WithSchema(libraryServiceMethods.ByName("DeleteRepositorySource")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillhub.library.v1.LibraryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case LibraryServiceCollectRepositoryProcedure:
@@ -170,6 +216,10 @@ func NewLibraryServiceHandler(svc LibraryServiceHandler, opts ...connect.Handler
 			libraryServiceGetRepositoryHandler.ServeHTTP(w, r)
 		case LibraryServiceRefreshRepositoryProcedure:
 			libraryServiceRefreshRepositoryHandler.ServeHTTP(w, r)
+		case LibraryServiceListRepositorySourcesProcedure:
+			libraryServiceListRepositorySourcesHandler.ServeHTTP(w, r)
+		case LibraryServiceDeleteRepositorySourceProcedure:
+			libraryServiceDeleteRepositorySourceHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -193,4 +243,12 @@ func (UnimplementedLibraryServiceHandler) GetRepository(context.Context, *connec
 
 func (UnimplementedLibraryServiceHandler) RefreshRepository(context.Context, *connect.Request[v1.RefreshRepositoryRequest]) (*connect.Response[v1.RefreshRepositoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.library.v1.LibraryService.RefreshRepository is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) ListRepositorySources(context.Context, *connect.Request[v1.ListRepositorySourcesRequest]) (*connect.Response[v1.ListRepositorySourcesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.library.v1.LibraryService.ListRepositorySources is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) DeleteRepositorySource(context.Context, *connect.Request[v1.DeleteRepositorySourceRequest]) (*connect.Response[v1.DeleteRepositorySourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.library.v1.LibraryService.DeleteRepositorySource is not implemented"))
 }

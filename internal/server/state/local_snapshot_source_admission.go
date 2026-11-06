@@ -21,7 +21,9 @@ var (
 )
 
 const snapshotSourcePrefixBudget uint64 = 100 + 32 + 136
-const snapshotSourcePlanningSchemaBytes uint64 = 66040
+const snapshotSourcePlanningCatalogBytes uint64 = 28335
+const snapshotSourcePlanningParsedSchemaBytes uint64 = 47773
+const snapshotSourcePlanningSchemaBytes = snapshotSourcePlanningCatalogBytes + snapshotSourcePlanningParsedSchemaBytes
 const snapshotSourceLiveCoreLower uint64 = 2*864 + 4*120 + 2*312 + 2*152
 
 type localSnapshotSourceDecision uint8

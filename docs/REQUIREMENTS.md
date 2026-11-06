@@ -4,6 +4,12 @@
 
 ### 2026-10-31 追加交付与安装约定
 
+- 用户补充（2026-11-07）：支持通过代理拉取 GitHub skill。服务端后台提供管理员
+  正向代理设置（HTTP/HTTPS/SOCKS5/SOCKS5h），凭据加密持久化、热生效；默认保留环境
+  代理规则，不使用会接收 GitHub token 的第三方下载镜像。用户反馈的 Magpie 导入须
+  支持空库选择技能并先登记仓库，不因整仓拉取失败丢失记录；来源引用与已验证技能
+  内容分离，显式同步仍整仓拉取并扫描 SKILL.md，不放松既有安装与 hash 验证。
+
 - 用户补充（2026-11-06）：Web 可按需采用 DavidHDev/react-bits 中适合主页和操作反馈的效果。保留 React/TanStack/Radix 与既有设计 tokens；按组件固定来源并携带完整第三方许可。高频输入、键盘操作和真实业务状态优先，不引入阻塞操作、无意义循环或仅为装饰的重型渲染；继续覆盖 reduced-motion、触摸与窄屏降级。
 - 用户确认：**UI 精致度、科技感和有用途的动效是首个正式版本的重要验收目标**，不是发布后的可选美化。Web 沿用成熟框架与组件，桌面沿用 MyGo 原生组件；设计遵循 ui-ux-pro-max、emil-design-eng、apple-design、animate，并用 animation-vocabulary 统一动效术语。需要统一排版、布局层级、材质与交互反馈；不能用虚构数据、无意义循环动画或大量发光替代可用性。正式候选需保留真实截图及操作证据，覆盖中英、深浅主题、窄屏、键盘焦点和 reduced-motion；桌面原生运行证据不得用 Web 截图或交叉编译代替。
 - Grok provider Web 管理支持 native-login/custom-model、完整模型字段、密钥 Keep/Replace/Clear、无凭据复制与未知字段只读；不等同于本机应用交付。

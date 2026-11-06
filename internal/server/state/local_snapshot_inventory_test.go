@@ -38,7 +38,11 @@ func TestSnapshotInventoryTypedRelations(test *testing.T) {
 		test.Fatal("category relation failed", err)
 	}
 	var output bytes.Buffer
-	counts, size, _, err := snapshotWriteInventory(test.Context(), pool, &output, snapshotTestLimits())
+	schemaHash, err := snapshotSchema(test.Context(), pool)
+	if err != nil {
+		test.Fatal(err)
+	}
+	counts, size, _, err := snapshotWriteInventory(test.Context(), pool, &output, snapshotTestLimits(), schemaHash)
 	if err != nil {
 		test.Fatal("bounded actual SQL inventory failed", err)
 	}

@@ -23,6 +23,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/collectedskill"
 	"github.com/ca-x/cognate/internal/server/ent/configurationasset"
 	"github.com/ca-x/cognate/internal/server/ent/importreceipt"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 )
 
@@ -296,6 +297,8 @@ const (
 	ImportRepositorySourceRejected
 	ImportRepositoryCapacityExhausted
 	ImportRepositoryUnknown
+	ImportRepositoryRegistered
+	ImportRepositoryAlreadyRegistered
 )
 
 type ImportRepositoryOutcome struct {
@@ -305,7 +308,7 @@ type ImportRepositoryOutcome struct {
 }
 
 func (outcome ImportRepositoryOutcome) succeeded() bool {
-	return outcome.Code == ImportRepositoryCollected || outcome.Code == ImportRepositoryAlreadyCollected
+	return outcome.Code == ImportRepositoryCollected || outcome.Code == ImportRepositoryAlreadyCollected || outcome.Code == ImportRepositoryRegistered || outcome.Code == ImportRepositoryAlreadyRegistered
 }
 
 type ImportSkillBinding struct {
@@ -339,16 +342,18 @@ type ImportSelectionPlan struct {
 	SkillCount         int
 	ConfigurationCount int
 	Notices            []ImportReceiptNotice
+	RegisterSources    bool `json:",omitzero"`
 }
 
 type ImportReceiptView struct {
-	OperationID        [16]byte
-	Revision           int64
-	Phase              ImportReceiptPhase
-	RepositoryOutcomes []ImportRepositoryOutcome
-	SelectedSkills     []ImportSkillBinding
-	CreatedAssets      []ConfigurationAsset
-	Notices            []ImportReceiptNotice
+	OperationID          [16]byte
+	Revision             int64
+	Phase                ImportReceiptPhase
+	RepositoryOutcomes   []ImportRepositoryOutcome
+	SelectedSkills       []ImportSkillBinding
+	CreatedAssets        []ConfigurationAsset
+	Notices              []ImportReceiptNotice
+	SelectedSkillSources []ImportSkillSourceReference `json:",omitempty"`
 }
 
 type importReceiptRecord struct {
@@ -380,6 +385,8 @@ type ImportFinishSelection struct {
 	RepositoryOutcomes []ImportRepositoryOutcome
 	Skills             []ImportSkillBinding
 	Drafts             []ConfigurationAssetDraft
+	Sources            []ImportRepositorySourceDraft
+	SkillSources       []ImportSkillSourceReference
 }
 
 func importTerminal(phase ImportReceiptPhase) bool {
@@ -420,7 +427,7 @@ func importOutcomesValid(ids []string, outcomes []ImportRepositoryOutcome) bool 
 		return false
 	}
 	for index, outcome := range outcomes {
-		if outcome.CandidateID != ids[index] || outcome.Code < ImportRepositoryCollected || outcome.Code > ImportRepositoryUnknown {
+		if outcome.CandidateID != ids[index] || outcome.Code < ImportRepositoryCollected || outcome.Code > ImportRepositoryAlreadyRegistered {
 			return false
 		}
 		if outcome.succeeded() {
@@ -708,6 +715,9 @@ func importValidateRepositoryOutcomes(ctx context.Context, tx *ent.Tx, ownerID i
 			continue
 		}
 		exists, err := tx.CollectedRepository.Query().Where(collectedrepository.PublicIDEQ(outcome.RepositoryID), collectedrepository.UserIDEQ(ownerID)).Exist(ctx)
+		if outcome.Code == ImportRepositoryRegistered || outcome.Code == ImportRepositoryAlreadyRegistered {
+			exists, err = tx.RepositorySource.Query().Where(repositorysource.PublicIDEQ(outcome.RepositoryID), repositorysource.UserIDEQ(ownerID)).Exist(ctx)
+		}
 		if err != nil {
 			return err
 		}
@@ -722,8 +732,14 @@ func importFinalValid(plan ImportSelectionPlan, finish ImportFinishSelection) bo
 	if !importTerminal(finish.Phase) || !importOutcomesValid(plan.RepositoryIDs, finish.RepositoryOutcomes) {
 		return false
 	}
-	allAssets := len(finish.Skills) == plan.SkillCount && len(finish.Drafts) == plan.ConfigurationCount
-	noAssets := len(finish.Skills)+len(finish.Drafts) == 0
+	for _, outcome := range finish.RepositoryOutcomes {
+		registered := outcome.Code == ImportRepositoryRegistered || outcome.Code == ImportRepositoryAlreadyRegistered
+		if registered && !plan.RegisterSources || plan.RegisterSources && (outcome.Code == ImportRepositoryCollected || outcome.Code == ImportRepositoryAlreadyCollected) {
+			return false
+		}
+	}
+	allAssets := len(finish.Skills)+len(finish.SkillSources) == plan.SkillCount && len(finish.Drafts) == plan.ConfigurationCount
+	noAssets := len(finish.Skills)+len(finish.SkillSources)+len(finish.Drafts) == 0
 	if !allAssets && !noAssets {
 		return false
 	}
@@ -733,7 +749,7 @@ func importFinalValid(plan ImportSelectionPlan, finish ImportFinishSelection) bo
 			successes++
 		}
 	}
-	effects := successes + len(finish.Skills) + len(finish.Drafts)
+	effects := successes + len(finish.Skills) + len(finish.SkillSources) + len(finish.Drafts)
 	if finish.Phase == ImportCompleted {
 		return allAssets && successes == len(plan.RepositoryIDs)
 	}
@@ -766,9 +782,17 @@ func importValidateSkillPins(ctx context.Context, tx *ent.Tx, ownerID int, bindi
 }
 
 func (store *Store) FinishImportSelection(ctx context.Context, credential ImportOwnerCredential, execution ImportReceiptExecution, finish ImportFinishSelection) (ImportReceiptView, error) {
+	finish.RepositoryOutcomes = slices.Clone(finish.RepositoryOutcomes)
+	finish.SkillSources = slices.Clone(finish.SkillSources)
 	return store.importTransaction(ctx, credential, func(tx *ent.Tx, owner string) (ImportReceiptView, error) {
 		row, record, err := store.importExecutionRow(ctx, tx, owner, execution)
 		if err != nil {
+			return ImportReceiptView{}, err
+		}
+		if len(finish.RepositoryOutcomes) != len(record.Plan.RepositoryIDs) {
+			return ImportReceiptView{}, ErrImportInvalid
+		}
+		if err := store.importRegisterSources(ctx, tx, row.UserID, record.Plan, &finish); err != nil {
 			return ImportReceiptView{}, err
 		}
 		if !importFinalValid(record.Plan, finish) || !importOutcomesAdvance(record.View.RepositoryOutcomes, finish.RepositoryOutcomes) {
@@ -808,6 +832,7 @@ func (store *Store) FinishImportSelection(ctx context.Context, credential Import
 		}
 		record.View.RepositoryOutcomes = slices.Clone(finish.RepositoryOutcomes)
 		record.View.SelectedSkills = slices.Clone(finish.Skills)
+		record.View.SelectedSkillSources = slices.Clone(finish.SkillSources)
 		record.View.Phase = finish.Phase
 		return store.importSaveRecord(ctx, tx, owner, row, record)
 	})

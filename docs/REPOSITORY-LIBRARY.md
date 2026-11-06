@@ -2,6 +2,12 @@
 
 ## 当前能力
 
+- Web 的 Magpie/cc-switch 导入先保存私有 `RepositorySource` 元数据与待同步技能引用，
+  不等待网络。通过 `ListRepositorySources` 查看、`DeleteRepositorySource` 移除；
+  点击“同步技能”仍走现有 `CollectRepository` 整仓下载/扫描链路。下载失败不丢记录，
+  同步成功后来源关联实际收录仓库。它与下面的已验证内容索引分离，没有虚构的 hash，
+  未同步来源不进入公开目录、Pack 或安装 API。GitHub 代理设置见 `GITHUB-PROXY.md`。
+
 - `skillhub.library.v1.LibraryService` 提供收录、列仓库、仓库技能详情与所有者显式刷新；全部要求本地/OIDC 共用的 Bearer 会话，详情与刷新在访问内容前按用户过滤。
 - 收录固定访问 `codeload.github.com` HTTPS，不接受任意 URL host、文件路径、客户端传入的 hash 或认证头；不跟随重定向，也不继承 HTTP cookie jar。当前仅支持公开归档。
 - 整仓下载后在有界 Afero MemMapFs 中校验/扫描；隐藏 skill 目录参与扫描，链接与非普通内容不提取，路径遍历、重复条目、额外根目录、损坏 gzip 和非零未扫描尾部均拒绝。

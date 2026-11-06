@@ -68,11 +68,11 @@ func TestImportSelectionEnumLedger(test *testing.T) {
 	file := importv1.File_skillhub_import_v1_import_proto
 	for name, values := range map[protoreflect.Name]string{
 		"ImportSelectionSource":       "UNSPECIFIED CCSWITCH_SCHEMA24 MAGPIE_LIBRARY_JSON NPX_SKILLS_LOCK",
-		"ImportCandidateStatus":       "UNSPECIFIED READY NEEDS_CHOICE NEEDS_REPOSITORY_IMPORT UNRESOLVED UNSUPPORTED_AGENT UNSUPPORTED_KIND UNSUPPORTED_FIELD NAME_CONFLICT",
+		"ImportCandidateStatus":       "UNSPECIFIED READY NEEDS_CHOICE NEEDS_REPOSITORY_IMPORT UNRESOLVED UNSUPPORTED_AGENT UNSUPPORTED_KIND UNSUPPORTED_FIELD NAME_CONFLICT SOURCE_REFERENCE_READY",
 		"ImportNoticeCode":            "UNSPECIFIED CREDENTIALS_OMITTED METADATA_EXCLUDED OTHER_SOURCE_DATA_EXCLUDED SOURCE_CONTENT_NOT_COMPARED UNKNOWN_SOURCE_SECTION_EXCLUDED",
 		"ImportReceiptPhase":          "UNSPECIFIED RESERVED COLLECTING COMPLETED PARTIAL FAILED",
 		"ImportCommitObservation":     "UNSPECIFIED NOT_OBSERVED IN_PROGRESS UNKNOWN TERMINAL",
-		"ImportRepositoryOutcomeCode": "UNSPECIFIED COLLECTED ALREADY_COLLECTED NOT_ATTEMPTED CANCELLED AUTHORIZATION_LOST SOURCE_REJECTED CAPACITY_EXHAUSTED UNKNOWN",
+		"ImportRepositoryOutcomeCode": "UNSPECIFIED COLLECTED ALREADY_COLLECTED NOT_ATTEMPTED CANCELLED AUTHORIZATION_LOST SOURCE_REJECTED CAPACITY_EXHAUSTED UNKNOWN REGISTERED ALREADY_REGISTERED",
 	} {
 		enum := file.Enums().ByName(name)
 		if enum == nil {
@@ -137,20 +137,21 @@ func TestImportSelectionLegacyCodecUnchanged(test *testing.T) {
 func TestImportSelectionFieldLedger(test *testing.T) {
 	file := importv1.File_skillhub_import_v1_import_proto
 	ledger := map[protoreflect.Name]string{
-		"PreviewImportSelectionRequest":  "source source_data options",
+		"PreviewImportSelectionRequest":  "source source_data options register_sources",
 		"ImportCandidateOptions":         "candidate_id name claude_auth_mode gemini_auth_mode gemini_key_transport skill_binding",
 		"PreviewImportSelectionResponse": "ticket expires_ms repositories skills configurations notices",
 		"ImportRepositoryCandidate":      "id hint status",
-		"ImportSkillCandidate":           "id safe_name repository_candidate_id status binding notices",
+		"ImportSkillCandidate":           "id safe_name repository_candidate_id status binding notices source_reference",
+		"SkillSourceReference":           "source_id repository branch logical_path safe_name",
 		"SkillBinding":                   "repository_id archive_hash skill_id logical_path content_hash repository branch",
 		"ImportConfigurationCandidate":   "id known_agent_id kind status draft notices credential_slots safe_name",
 		"ImportCredentialSlot":           "slot_id present",
 		"ImportNotice":                   "id code count",
-		"CommitImportSelectionRequest":   "ticket source source_data options operation_id repository_ids skill_ids configuration_ids ack_notice_ids",
+		"CommitImportSelectionRequest":   "ticket source source_data options operation_id repository_ids skill_ids configuration_ids ack_notice_ids register_sources",
 		"CommitImportSelectionResponse":  "receipt",
 		"GetImportCommitStatusRequest":   "operation_id",
 		"GetImportCommitStatusResponse":  "observation receipt",
-		"ImportReceipt":                  "operation_id revision phase repository_outcomes selected_skill_bindings created_assets notices",
+		"ImportReceipt":                  "operation_id revision phase repository_outcomes selected_skill_bindings created_assets notices selected_skill_sources",
 		"ImportRepositoryOutcome":        "candidate_id code repository_id",
 	}
 	for name, fields := range ledger {

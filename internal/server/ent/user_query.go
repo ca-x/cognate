@@ -29,6 +29,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/predicate"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -48,6 +49,7 @@ type UserQuery struct {
 	withSessions                    *SessionQuery
 	withOidcIdentities              *OIDCIdentityQuery
 	withCollectedRepositories       *CollectedRepositoryQuery
+	withRepositorySources           *RepositorySourceQuery
 	withPacks                       *PackQuery
 	withMcpCredentials              *MCPCredentialQuery
 	withCategories                  *CategoryQuery
@@ -262,6 +264,28 @@ func (_q *UserQuery) QueryCollectedRepositories() *CollectedRepositoryQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(collectedrepository.Table, collectedrepository.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CollectedRepositoriesTable, user.CollectedRepositoriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRepositorySources chains the current query on the "repository_sources" edge.
+func (_q *UserQuery) QueryRepositorySources() *RepositorySourceQuery {
+	query := (&RepositorySourceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(repositorysource.Table, repositorysource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RepositorySourcesTable, user.RepositorySourcesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -667,6 +691,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withSessions:                    _q.withSessions.Clone(),
 		withOidcIdentities:              _q.withOidcIdentities.Clone(),
 		withCollectedRepositories:       _q.withCollectedRepositories.Clone(),
+		withRepositorySources:           _q.withRepositorySources.Clone(),
 		withPacks:                       _q.withPacks.Clone(),
 		withMcpCredentials:              _q.withMcpCredentials.Clone(),
 		withCategories:                  _q.withCategories.Clone(),
@@ -767,6 +792,17 @@ func (_q *UserQuery) WithCollectedRepositories(opts ...func(*CollectedRepository
 		opt(query)
 	}
 	_q.withCollectedRepositories = query
+	return _q
+}
+
+// WithRepositorySources tells the query-builder to eager-load the nodes that are connected to
+// the "repository_sources" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRepositorySources(opts ...func(*RepositorySourceQuery)) *UserQuery {
+	query := (&RepositorySourceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRepositorySources = query
 	return _q
 }
 
@@ -947,7 +983,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [17]bool{
+		loadedTypes = [18]bool{
 			_q.withGithubCredential != nil,
 			_q.withGithubLists != nil,
 			_q.withGithubRepositories != nil,
@@ -956,6 +992,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withSessions != nil,
 			_q.withOidcIdentities != nil,
 			_q.withCollectedRepositories != nil,
+			_q.withRepositorySources != nil,
 			_q.withPacks != nil,
 			_q.withMcpCredentials != nil,
 			_q.withCategories != nil,
@@ -1040,6 +1077,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User, e *CollectedRepository) {
 				n.Edges.CollectedRepositories = append(n.Edges.CollectedRepositories, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRepositorySources; query != nil {
+		if err := _q.loadRepositorySources(ctx, query, nodes,
+			func(n *User) { n.Edges.RepositorySources = []*RepositorySource{} },
+			func(n *User, e *RepositorySource) { n.Edges.RepositorySources = append(n.Edges.RepositorySources, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1338,6 +1382,36 @@ func (_q *UserQuery) loadCollectedRepositories(ctx context.Context, query *Colle
 	}
 	query.Where(predicate.CollectedRepository(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.CollectedRepositoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRepositorySources(ctx context.Context, query *RepositorySourceQuery, nodes []*User, init func(*User), assign func(*User, *RepositorySource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(repositorysource.FieldUserID)
+	}
+	query.Where(predicate.RepositorySource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RepositorySourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

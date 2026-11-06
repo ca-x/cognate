@@ -41,6 +41,7 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
+	GitHubProxy         GitHubProxySettingsBackend
 	Backups             BackupBackend
 	MCPConfiguration    *MCPConfigurationHandler
 	Logging             *logging.Manager
@@ -84,6 +85,10 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	server.Any(backupPath+"*", echo.WrapHandler(backupHandler))
 	if options.Logging != nil {
 		path, handler := managementv1connect.NewLogManagementServiceHandler(&logManagementHandler{auth: authentication, logs: options.Logging, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))
+		server.Any(path+"*", echo.WrapHandler(handler))
+	}
+	if options.GitHubProxy != nil {
+		path, handler := managementv1connect.NewGitHubProxyManagementServiceHandler(&githubProxyManagementHandler{auth: authentication, backend: options.GitHubProxy, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(16384), connect.WithSendMaxBytes(8192))
 		server.Any(path+"*", echo.WrapHandler(handler))
 	}
 	path, handler := authv1connect.NewAuthServiceHandler(authentication, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(1<<20))

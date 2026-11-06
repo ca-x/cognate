@@ -44,6 +44,7 @@ func (handler *ImportHandler) PreviewImportSelection(ctx context.Context, reques
 	request.Msg.SourceData = nil
 	defer clear(data)
 	source, options, err := importSelectionInput(request.Msg.Source, data, request.Msg.Options)
+	options.RegisterSources = request.Msg.RegisterSources
 	if err != nil {
 		return nil, importSelectionError(ctx, err)
 	}
@@ -77,6 +78,7 @@ func (handler *ImportHandler) CommitImportSelection(ctx context.Context, request
 	defer clear(data)
 	defer clear(ticket)
 	source, options, err := importSelectionInput(message.Source, data, message.Options)
+	options.RegisterSources = message.RegisterSources
 	if err != nil {
 		return nil, importSelectionError(ctx, err)
 	}
@@ -183,6 +185,9 @@ func importSelectionPreviewResponse(view importer.SelectionPreviewView, ticket [
 	result := &importv1.PreviewImportSelectionResponse{Ticket: slices.Clone(ticket), ExpiresMs: view.ExpiresAt.UnixMilli(), Notices: notices}
 	noticeCount := len(notices)
 	for _, candidate := range view.Repositories {
+		if candidate.Status == importer.SelectionCandidateSourceReferenceReady {
+			return nil, errImportReceiptUnavailable
+		}
 		status, err := importSelectionStatus(candidate.Status)
 		if err != nil {
 			return nil, err
@@ -190,6 +195,22 @@ func importSelectionPreviewResponse(view importer.SelectionPreviewView, ticket [
 		result.Repositories = append(result.Repositories, &importv1.ImportRepositoryCandidate{Id: candidate.ID, Status: status, Hint: &importv1.RepositoryCandidate{Repository: candidate.Repository, Branch: candidate.Branch, ExistingRepositoryId: candidate.ExistingRepositoryID, SourceEnabled: configurationClonePointer(candidate.SourceEnabled)}})
 	}
 	for _, candidate := range view.Skills {
+		if candidate.Status == importer.SelectionCandidateSourceReferenceReady {
+			if candidate.SourceReference == nil || candidate.Binding != nil || candidate.SourceReference.SourceID != "" || candidate.SourceReference.SafeName != candidate.SafeName || !candidate.SourceReference.Valid() {
+				return nil, errImportReceiptUnavailable
+			}
+			matched := false
+			for _, source := range view.Repositories {
+				if source.ID == candidate.RepositoryCandidateID && source.Repository == candidate.SourceReference.Repository && source.Branch == candidate.SourceReference.Branch {
+					matched = true
+				}
+			}
+			if !matched {
+				return nil, errImportReceiptUnavailable
+			}
+		} else if candidate.SourceReference != nil {
+			return nil, errImportReceiptUnavailable
+		}
 		status, err := importSelectionStatus(candidate.Status)
 		if err != nil {
 			return nil, err
@@ -206,9 +227,15 @@ func importSelectionPreviewResponse(view importer.SelectionPreviewView, ticket [
 		if binding := candidate.Binding; binding != nil {
 			converted.Binding = &importv1.SkillBinding{RepositoryId: binding.RepositoryID, ArchiveHash: binding.ArchiveHash, SkillId: binding.SkillID, LogicalPath: binding.LogicalPath, ContentHash: binding.ContentHash, Repository: binding.Repository, Branch: binding.Branch}
 		}
+		if reference := candidate.SourceReference; reference != nil {
+			converted.SourceReference = importSelectionSkillSource(*reference)
+		}
 		result.Skills = append(result.Skills, converted)
 	}
 	for _, candidate := range view.Configurations {
+		if candidate.Status == importer.SelectionCandidateSourceReferenceReady {
+			return nil, errImportReceiptUnavailable
+		}
 		status, err := importSelectionStatus(candidate.Status)
 		if err != nil {
 			return nil, err
@@ -263,6 +290,8 @@ func importSelectionStatus(status importer.SelectionCandidateStatus) (importv1.I
 		return importv1.ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_UNSUPPORTED_FIELD, nil
 	case importer.SelectionCandidateNameConflict:
 		return importv1.ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_NAME_CONFLICT, nil
+	case importer.SelectionCandidateSourceReferenceReady:
+		return importv1.ImportCandidateStatus_IMPORT_CANDIDATE_STATUS_SOURCE_REFERENCE_READY, nil
 	default:
 		return 0, errImportReceiptUnavailable
 	}
@@ -480,7 +509,7 @@ func importSelectionOptions(options []*importv1.ImportCandidateOptions) (importe
 }
 
 func importSelectionReceipt(view state.ImportReceiptView) (*importv1.ImportReceipt, error) {
-	if view.OperationID == [16]byte{} || view.Revision < 1 || len(view.RepositoryOutcomes) > 16 || len(view.SelectedSkills) > 128 || len(view.CreatedAssets) > 32 || len(view.Notices) > 2048 {
+	if view.OperationID == [16]byte{} || view.Revision < 1 || len(view.RepositoryOutcomes) > 16 || len(view.SelectedSkills)+len(view.SelectedSkillSources) > 128 || len(view.CreatedAssets) > 32 || len(view.Notices) > 2048 {
 		return nil, errImportReceiptUnavailable
 	}
 	var phase importv1.ImportReceiptPhase
@@ -506,6 +535,10 @@ func importSelectionReceipt(view state.ImportReceiptView) (*importv1.ImportRecei
 			converted.Code = importv1.ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_COLLECTED
 		case state.ImportRepositoryAlreadyCollected:
 			converted.Code = importv1.ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_COLLECTED
+		case state.ImportRepositoryRegistered:
+			converted.Code = importv1.ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_REGISTERED
+		case state.ImportRepositoryAlreadyRegistered:
+			converted.Code = importv1.ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_ALREADY_REGISTERED
 		case state.ImportRepositoryNotAttempted:
 			converted.Code = importv1.ImportRepositoryOutcomeCode_IMPORT_REPOSITORY_OUTCOME_CODE_NOT_ATTEMPTED
 		case state.ImportRepositoryCancelled:
@@ -521,7 +554,7 @@ func importSelectionReceipt(view state.ImportReceiptView) (*importv1.ImportRecei
 		default:
 			return nil, errImportReceiptUnavailable
 		}
-		success := outcome.Code == state.ImportRepositoryCollected || outcome.Code == state.ImportRepositoryAlreadyCollected
+		success := outcome.Code == state.ImportRepositoryCollected || outcome.Code == state.ImportRepositoryAlreadyCollected || outcome.Code == state.ImportRepositoryRegistered || outcome.Code == state.ImportRepositoryAlreadyRegistered
 		if success != (outcome.RepositoryID != "") {
 			return nil, errImportReceiptUnavailable
 		}
@@ -535,6 +568,12 @@ func importSelectionReceipt(view state.ImportReceiptView) (*importv1.ImportRecei
 			RepositoryId: binding.RepositoryID, ArchiveHash: binding.ArchiveHash, SkillId: binding.SkillID,
 			LogicalPath: binding.LogicalPath, ContentHash: binding.ContentHash, Repository: binding.Repository, Branch: binding.Branch,
 		})
+	}
+	for _, source := range view.SelectedSkillSources {
+		if source.SourceID == "" || !source.Valid() || view.Phase == state.ImportReserved || view.Phase == state.ImportCollecting || view.Phase == state.ImportFailed {
+			return nil, errImportReceiptUnavailable
+		}
+		result.SelectedSkillSources = append(result.SelectedSkillSources, importSelectionSkillSource(source))
 	}
 	for _, metadata := range view.CreatedAssets {
 		asset, err := configurationAsset(metadata)
@@ -565,4 +604,8 @@ func importSelectionReceipt(view state.ImportReceiptView) (*importv1.ImportRecei
 		result.Notices = append(result.Notices, converted)
 	}
 	return result, nil
+}
+
+func importSelectionSkillSource(source state.ImportSkillSourceReference) *importv1.SkillSourceReference {
+	return &importv1.SkillSourceReference{SourceId: source.SourceID, Repository: source.Repository, Branch: source.Branch, LogicalPath: source.LogicalPath, SafeName: source.SafeName}
 }

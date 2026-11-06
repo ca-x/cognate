@@ -36,6 +36,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/packitem"
 	"github.com/ca-x/cognate/internal/server/ent/packshare"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/servermetadata"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
@@ -123,6 +124,7 @@ func checkColumn(t, c string) error {
 			packitem.Table:                    packitem.ValidColumn,
 			packshare.Table:                   packshare.ValidColumn,
 			repositoryprivatehistory.Table:    repositoryprivatehistory.ValidColumn,
+			repositorysource.Table:            repositorysource.ValidColumn,
 			servermetadata.Table:              servermetadata.ValidColumn,
 			session.Table:                     session.ValidColumn,
 			user.Table:                        user.ValidColumn,

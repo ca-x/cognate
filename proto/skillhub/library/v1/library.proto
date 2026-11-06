@@ -9,6 +9,34 @@ service LibraryService {
   rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse);
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
   rpc RefreshRepository(RefreshRepositoryRequest) returns (RefreshRepositoryResponse);
+  rpc ListRepositorySources(ListRepositorySourcesRequest) returns (ListRepositorySourcesResponse);
+  rpc DeleteRepositorySource(DeleteRepositorySourceRequest) returns (DeleteRepositorySourceResponse);
+}
+
+message ListRepositorySourcesRequest {}
+
+message ListRepositorySourcesResponse {
+  repeated RepositorySource sources = 1;
+}
+
+message DeleteRepositorySourceRequest {
+  string source_id = 1;
+}
+
+message DeleteRepositorySourceResponse {}
+
+message RepositorySource {
+  string id = 1;
+  string name_with_owner = 2;
+  string branch = 3;
+  int64 registered_at_unix = 4;
+  string collected_repository_id = 5;
+  repeated SourceSkill skills = 6;
+}
+
+message SourceSkill {
+  string name = 1;
+  string path = 2;
 }
 
 message CollectRepositoryRequest {

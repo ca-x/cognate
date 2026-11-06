@@ -30,6 +30,8 @@ const (
 	EdgeOidcIdentities = "oidc_identities"
 	// EdgeCollectedRepositories holds the string denoting the collected_repositories edge name in mutations.
 	EdgeCollectedRepositories = "collected_repositories"
+	// EdgeRepositorySources holds the string denoting the repository_sources edge name in mutations.
+	EdgeRepositorySources = "repository_sources"
 	// EdgePacks holds the string denoting the packs edge name in mutations.
 	EdgePacks = "packs"
 	// EdgeMcpCredentials holds the string denoting the mcp_credentials edge name in mutations.
@@ -106,6 +108,13 @@ const (
 	CollectedRepositoriesInverseTable = "collected_repositories"
 	// CollectedRepositoriesColumn is the table column denoting the collected_repositories relation/edge.
 	CollectedRepositoriesColumn = "user_id"
+	// RepositorySourcesTable is the table that holds the repository_sources relation/edge.
+	RepositorySourcesTable = "repository_sources"
+	// RepositorySourcesInverseTable is the table name for the RepositorySource entity.
+	// It exists in this package in order to avoid circular dependency with the "repositorysource" package.
+	RepositorySourcesInverseTable = "repository_sources"
+	// RepositorySourcesColumn is the table column denoting the repository_sources relation/edge.
+	RepositorySourcesColumn = "user_id"
 	// PacksTable is the table that holds the packs relation/edge.
 	PacksTable = "packs"
 	// PacksInverseTable is the table name for the Pack entity.
@@ -303,6 +312,20 @@ func ByCollectedRepositories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
+// ByRepositorySourcesCount orders the results by repository_sources count.
+func ByRepositorySourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRepositorySourcesStep(), opts...)
+	}
+}
+
+// ByRepositorySources orders the results by repository_sources terms.
+func ByRepositorySources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepositorySourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByPacksCount orders the results by packs count.
 func ByPacksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -482,6 +505,13 @@ func newCollectedRepositoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CollectedRepositoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CollectedRepositoriesTable, CollectedRepositoriesColumn),
+	)
+}
+func newRepositorySourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RepositorySourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RepositorySourcesTable, RepositorySourcesColumn),
 	)
 }
 func newPacksStep() *sqlgraph.Step {

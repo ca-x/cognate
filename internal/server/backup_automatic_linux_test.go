@@ -112,15 +112,13 @@ func TestServerBackupAutomaticServeTLS(test *testing.T) {
 	if err != nil {
 		test.Fatal(err)
 	}
-	previousTransport := http.DefaultTransport
-	http.DefaultTransport = automaticArchiveTransport{base: previousTransport, archive: upstream.Client().Transport, archiveURL: archiveURL}
-	defer func() { http.DefaultTransport = previousTransport }()
+	archiveClient := &http.Client{Transport: automaticArchiveTransport{base: http.DefaultTransport, archive: upstream.Client().Transport, archiveURL: archiveURL}}
 	config := backupAppConfig(test)
 	config.SourceRefreshInterval = new(time.Duration(0))
 	config.BackupS3ConfigFile = backupSettingsFixture(test, func(document map[string]any) {
 		document["endpoint"], document["automatic_interval_seconds"] = storage.URL, 60
 	})
-	app, err := Open(test.Context(), config)
+	app, err := openApp(test.Context(), config, appRuntimeHooks{archiveClient: archiveClient})
 	if err != nil {
 		test.Fatal(err)
 	}

@@ -2,6 +2,12 @@
 
 `internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`cognate-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时水位同步和公开/私有归档收录的后继实现见 `SOURCE-REFRESH.md`；真实账号端到端资格仍未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
 
+## 仓库拉取代理
+
+下载或同步仓库技能遇到网络问题时，管理员可在“服务端日志 → GitHub 网络代理”设置
+正向代理，无需重启；支持 HTTP(S)/SOCKS5(h)，详见 `GITHUB-PROXY.md`。此设置只作用
+于仓库获取及其私有权限元数据检查，不改变 device flow、token 校验或 Lists API 路由。
+
 ## 获取 GitHub token 与选择权限
 
 网页“来源”里的 GitHub 连接表单提供同样的权限说明。优先使用部署者已配置的

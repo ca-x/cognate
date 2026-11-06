@@ -196,6 +196,24 @@ func (service *Service) List(ctx context.Context, user string) ([]state.Collecte
 	return service.store.ListCollectedRepositories(ctx, user)
 }
 
+func (service *Service) ListSources(ctx context.Context, user string) ([]state.RepositorySource, error) {
+	ctx, done, err := service.begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer done()
+	return service.store.ListRepositorySources(ctx, user)
+}
+
+func (service *Service) DeleteSource(ctx context.Context, user, id string) error {
+	ctx, done, err := service.begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer done()
+	return service.store.DeleteRepositorySource(ctx, user, id)
+}
+
 func (service *Service) Get(ctx context.Context, user, id string) (state.CollectedRepository, error) {
 	ctx, done, err := service.begin(ctx)
 	if err != nil {

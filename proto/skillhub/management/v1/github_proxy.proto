@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package skillhub.management.v1;
+
+option go_package = "github.com/ca-x/cognate/gen/skillhub/management/v1;managementv1";
+
+service GitHubProxyManagementService {
+  rpc GetGitHubProxySettings(GetGitHubProxySettingsRequest) returns (GetGitHubProxySettingsResponse);
+  rpc UpdateGitHubProxySettings(UpdateGitHubProxySettingsRequest) returns (UpdateGitHubProxySettingsResponse);
+}
+
+message GetGitHubProxySettingsRequest {}
+
+message GetGitHubProxySettingsResponse {
+  GitHubProxySettings settings = 1;
+}
+
+message GitHubProxySettings {
+  int64 revision = 1;
+  bool configured = 2;
+  string endpoint = 3;
+}
+
+message UpdateGitHubProxySettingsRequest {
+  int64 expected_revision = 1;
+  string proxy_url = 2 [debug_redact = true];
+}
+
+message UpdateGitHubProxySettingsResponse {
+  GitHubProxySettings settings = 1;
+}

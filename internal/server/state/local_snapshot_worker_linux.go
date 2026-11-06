@@ -450,6 +450,10 @@ func snapshotReadCatalog(ctx context.Context, rows *sql.Rows) ([32]byte, error) 
 	hash := sha256.New()
 	normalizedHash := sha256.New()
 	count, applications, total := 0, 0, 0
+	maximumObjects := 0
+	for _, known := range snapshotKnownSchemas {
+		maximumObjects = max(maximumObjects, known.objects)
+	}
 	var seen uint8
 	var previousKind, previousName string
 	var failure error
@@ -465,7 +469,7 @@ func snapshotReadCatalog(ctx context.Context, rows *sql.Rows) ([32]byte, error) 
 		}
 		count++
 		total += len(row.kind) + len(row.name) + len(row.table) + len(row.definition)
-		if count > 1024 || total > 1<<20 || count > 1 && (row.kind < previousKind || row.kind == previousKind && row.name <= previousName) {
+		if count > maximumObjects || total > 1<<20 || count > 1 && (row.kind < previousKind || row.kind == previousKind && row.name <= previousName) {
 			failure = ErrLocalSnapshotInvalid
 			break
 		}
@@ -509,7 +513,8 @@ func snapshotReadCatalog(ctx context.Context, rows *sql.Rows) ([32]byte, error) 
 	if ctx.Err() != nil {
 		return zero, ctx.Err()
 	}
-	if hex.EncodeToString(hash.Sum(nil)) != snapshotKnownSchema || hex.EncodeToString(normalizedHash.Sum(nil)) != snapshotKnownNormalizedSchema || count != 92 || applications != 90 || seen != 3 {
+	known, ok := snapshotLookupSchema(hex.EncodeToString(hash.Sum(nil)))
+	if !ok || hex.EncodeToString(normalizedHash.Sum(nil)) != known.normalized || count != known.objects || applications != known.applications || seen != 3 {
 		return zero, ErrLocalSnapshotInvalid
 	}
 	copy(zero[:], hash.Sum(nil))
@@ -693,7 +698,11 @@ func snapshotWorkerCopy(ctx context.Context, request snapshotWorkerRequest, resp
 		err = ErrLocalSnapshotInvalid
 	}
 	if err == nil {
-		_, err = snapshotSchema(ctx, checker)
+		var copiedSchema [32]byte
+		copiedSchema, err = snapshotSchema(ctx, checker)
+		if err == nil && copiedSchema != response.schemaHash {
+			err = ErrLocalSnapshotInvalid
+		}
 	}
 	if err != nil {
 		return ErrLocalSnapshotInvalid
@@ -757,7 +766,7 @@ func snapshotWorkerInventory(ctx context.Context, pool *sql.DB, request snapshot
 		return ErrLocalSnapshotInvalid
 	}
 	output := os.NewFile(uintptr(descriptor), "snapshot references")
-	counts, size, digest, err := snapshotWriteInventory(ctx, pool, output, request.limits)
+	counts, size, digest, err := snapshotWriteInventory(ctx, pool, output, request.limits, response.schemaHash)
 	syncError := output.Sync()
 	closeError = output.Close()
 	if closeError != nil {

@@ -25,6 +25,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/ent/oidcidentity"
 	"github.com/ca-x/cognate/internal/server/ent/pack"
 	"github.com/ca-x/cognate/internal/server/ent/repositoryprivatehistory"
+	"github.com/ca-x/cognate/internal/server/ent/repositorysource"
 	"github.com/ca-x/cognate/internal/server/ent/session"
 	"github.com/ca-x/cognate/internal/server/ent/user"
 )
@@ -168,6 +169,21 @@ func (_c *UserCreate) AddCollectedRepositories(v ...*CollectedRepository) *UserC
 		ids[i] = v[i].ID
 	}
 	return _c.AddCollectedRepositoryIDs(ids...)
+}
+
+// AddRepositorySourceIDs adds the "repository_sources" edge to the RepositorySource entity by IDs.
+func (_c *UserCreate) AddRepositorySourceIDs(ids ...int) *UserCreate {
+	_c.mutation.AddRepositorySourceIDs(ids...)
+	return _c
+}
+
+// AddRepositorySources adds the "repository_sources" edges to the RepositorySource entity.
+func (_c *UserCreate) AddRepositorySources(v ...*RepositorySource) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRepositorySourceIDs(ids...)
 }
 
 // AddPackIDs adds the "packs" edge to the Pack entity by IDs.
@@ -498,6 +514,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(collectedrepository.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RepositorySourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RepositorySourcesTable,
+			Columns: []string{user.RepositorySourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(repositorysource.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

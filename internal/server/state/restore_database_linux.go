@@ -104,7 +104,8 @@ func inspectRestoreDatabaseWithIO(ctx context.Context, parent, database *os.File
 	if facts.KeyID != base64.RawURLEncoding.EncodeToString(keyHash[:]) {
 		return evidence, ErrRestoreKey
 	}
-	if response.Nonce != request.Nonce || facts.DatabaseBytes != before.Size() || facts.DatabaseHash != digest || afterDigest != digest || hex.EncodeToString(facts.SchemaHash[:]) != snapshotKnownSchema || facts.ReferenceBytes < 0 || facts.ReferenceBytes > limits.MaxInventoryBytes || facts.Records > limits.MaxRecords || facts.Policy <= 0 || facts.Policy > int64(24*time.Hour) || len(facts.KeyID) != 43 {
+	_, knownSchema := snapshotLookupSchema(hex.EncodeToString(facts.SchemaHash[:]))
+	if response.Nonce != request.Nonce || facts.DatabaseBytes != before.Size() || facts.DatabaseHash != digest || afterDigest != digest || !knownSchema || facts.ReferenceBytes < 0 || facts.ReferenceBytes > limits.MaxInventoryBytes || facts.Records > limits.MaxRecords || facts.Policy <= 0 || facts.Policy > int64(24*time.Hour) || len(facts.KeyID) != 43 {
 		return evidence, ErrRestoreInvalid
 	}
 	var records uint64

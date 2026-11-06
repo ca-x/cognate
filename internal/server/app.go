@@ -22,6 +22,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
+	"github.com/ca-x/cognate/internal/server/githubproxysettings"
 	"github.com/ca-x/cognate/internal/server/httpapi"
 	"github.com/ca-x/cognate/internal/server/importer"
 	"github.com/ca-x/cognate/internal/server/library"
@@ -68,6 +69,7 @@ type App struct {
 	cache            *library.ArchiveCache
 	backups          *serverBackup
 	backupSettings   *backupSettingsManager
+	githubProxy      *githubproxysettings.Manager
 	logs             *logging.Manager
 	store            *state.Store
 	handler          http.Handler
@@ -253,7 +255,18 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 		app.markRuntimeUncertain()
 		return nil, err
 	}
-	fetcher := repository.NewArchiveFetcher(nil)
+	app.githubProxy, err = githubproxysettings.Open(ctx, config.DataDirectory, key)
+	if err != nil {
+		if errors.Is(err, githubproxysettings.ErrOwned) {
+			return nil, ErrBackupSettingsOwned
+		}
+		return nil, fmt.Errorf("cannot initialize GitHub proxy settings: %w", err)
+	}
+	archiveClient := &http.Client{Transport: app.githubProxy}
+	if hooks.archiveClient != nil {
+		archiveClient = hooks.archiveClient
+	}
+	fetcher := repository.NewArchiveFetcher(archiveClient)
 	collection, err := library.NewService(store, cache, fetcher)
 	app.library = collection
 	if err != nil {
@@ -337,6 +350,7 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 		return nil, fmt.Errorf("cannot initialize server logging")
 	}
 	options := httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native}
+	options.GitHubProxy = app.githubProxy
 	if app.backupSettings != nil {
 		options.Backups = app.backupSettings
 	}
