@@ -77,6 +77,8 @@
 
 ## AI 配置与导入
 
+- [x] cc-switch schema23/24 OpenCode v1 受控 provider 选择导入：宿主生成动态凭据槽、不迁移来源秘密，Web/CLI/MyGo 完整字段审阅、票据绑定、一次提交和 SQLite 读回；不包含 v2/扩展字段、本机应用或完整 F6/F12，见 `OPENCODE-IMPORT.md`。新版组件发布记录单独核验。
+
 - [x] npx skills v3 global lock 选择导入的服务端、CLI 与现代 Web：GitHub-only、有界解析、显式已收录技能绑定与 Unknown 只读回执；核心及 W1 焦点修复均独审 ACCEPT。不含锁写回、canonical 通用扫描、MyGo 或完整 F6。
 
 - [ ] 按 cc-switch 能力矩阵完成各 agent 的 provider、模型、MCP、提示词交互，不把元数据支持当作可应用。

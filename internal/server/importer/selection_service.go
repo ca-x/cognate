@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ca-x/cognate/internal/agentconfig"
 	"github.com/ca-x/cognate/internal/nativesessionauth"
 	"github.com/ca-x/cognate/internal/repository"
 	"github.com/ca-x/cognate/internal/server/auth"
@@ -644,7 +645,7 @@ func (SelectionPreview) LogValue() slog.Value {
 	return slog.StringValue("[redacted selection preview]")
 }
 
-//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go source_grok.go source_npx.go selection_service.go
+//go:embed ccswitch.go magpie.go skills.go snapshot.go selection.go selection_snapshot.go source_claude.go source_codex.go source_gemini.go source_grok.go source_opencode.go source_npx.go selection_service.go
 var selectionHostSources embed.FS
 
 type selectionTranscript struct {
@@ -730,16 +731,30 @@ func (transcript *selectionTranscript) draft(draft *configuration.Draft) {
 		return
 	}
 	typed := 0
-	for _, present := range []bool{draft.CodexProvider != nil, draft.GeminiProvider != nil, draft.GrokBuildProvider != nil} {
+	for _, present := range []bool{draft.CodexProvider != nil, draft.GeminiProvider != nil, draft.GrokBuildProvider != nil, draft.OpenCodeProvider != nil} {
 		if present {
 			typed++
 		}
 	}
-	if draft.OpenCodeProvider != nil || typed > 1 || typed != 0 && draft.Provider != (configuration.ClaudeProvider{}) {
+	if typed > 1 || typed != 0 && draft.Provider != (configuration.ClaudeProvider{}) {
 		transcript.err = ErrSelectionInvalid
 		return
 	}
 	transcript.text(draft.Name)
+	if draft.OpenCodeProvider != nil {
+		if agentconfig.ValidateOpenCodeProvider(*draft.OpenCodeProvider) != nil {
+			transcript.err = ErrSelectionInvalid
+			return
+		}
+		encoded, err := json.Marshal(draft.OpenCodeProvider, json.Deterministic(true))
+		if err != nil {
+			transcript.err = ErrSelectionInvalid
+			return
+		}
+		transcript.raw([]byte{5})
+		transcript.text(string(encoded))
+		return
+	}
 	if draft.CodexProvider != nil {
 		transcript.raw([]byte{2})
 		provider := draft.CodexProvider
@@ -909,7 +924,7 @@ func selectionOptionsDigest(options SelectionOptions) ([32]byte, error) {
 
 func selectionHostDigest() ([32]byte, error) {
 	transcript := selectionTranscriptFor("cognate/import-selection/v1/go-host-source")
-	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "source_npx.go", "selection_service.go"}
+	paths := []string{"ccswitch.go", "magpie.go", "skills.go", "snapshot.go", "selection.go", "selection_snapshot.go", "source_claude.go", "source_codex.go", "source_gemini.go", "source_grok.go", "source_opencode.go", "source_npx.go", "selection_service.go"}
 	transcript.count(len(paths))
 	for _, path := range paths {
 		data, err := selectionHostSources.ReadFile(path)

@@ -17,7 +17,8 @@ func TestPrepareImportedDraftParity(test *testing.T) {
 	claude.Name = "Imported Claude"
 	gemini := configuration.Draft{Name: "Imported Gemini", GeminiProvider: &configuration.GeminiProvider{AuthMode: agentconfig.GeminiAPIKeyAuth, KeyTransport: new(agentconfig.GeminiBearer), EnvModel: new("env-model"), SettingsModel: new("settings-model")}}
 	grok := configuration.Draft{Name: "Imported Grok", GrokBuildProvider: &configuration.GrokBuildProvider{Mode: agentconfig.GrokBuildCustomModel, Model: &configuration.GrokBuildModel{Profile: "work", UpstreamModel: "grok-model", Endpoint: "https://grok.example/v1", Name: "Work model", APIBackend: "responses", ContextWindow: agentconfig.MaxGrokBuildContextWindow, EnvKey: new("GROK_API_KEY")}}}
-	for _, input := range []configuration.Draft{claude, codexDraft(), gemini, grok} {
+	opencode := configuration.Draft{Name: "Imported OpenCode", OpenCodeProvider: &agentconfig.OpenCodeProvider{ProviderID: "work", Format: "v1", V1: &agentconfig.OpenCodeV1{Options: &agentconfig.OpenCodeV1Options{APIKey: new("opencode.api-key"), Headers: new(map[string]string{"Authorization": "opencode.value.01"})}}}}
+	for _, input := range []configuration.Draft{claude, codexDraft(), gemini, grok, opencode} {
 		before, err := store.ListConfigurationAssets(test.Context(), "alice")
 		if err != nil {
 			test.Fatal(err)

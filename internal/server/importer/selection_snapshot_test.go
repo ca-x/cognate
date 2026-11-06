@@ -131,6 +131,12 @@ func TestSelectionAgentCapabilityAndAuxiliaryExclusions(test *testing.T) {
 	}
 	for _, candidate := range view.Configurations {
 		expected := importer.SelectionUnsupportedAgent
+		if candidate.AgentID == "opencode" {
+			if candidate.Status != importer.SelectionReady || candidate.Draft == nil {
+				test.Fatal("OpenCode built-in partial override not recognized")
+			}
+			continue
+		}
 		if candidate.AgentID == "grokbuild" {
 			expected = importer.SelectionUnsupportedField
 		}

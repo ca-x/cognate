@@ -36,3 +36,23 @@ func TestSelectionCodecRejectsAmbiguousScalars(test *testing.T) {
 		}
 	}
 }
+
+func TestSelectionCodecOpenCodeMaps(test *testing.T) {
+	for _, message := range []proto.Message{
+		&configurationv1.OpenCodeHeaders{Entries: map[string]string{"Authorization": "opencode.value.01", "X-Tenant": "opencode.value.02"}},
+		&configurationv1.OpenCodeV1Models{Entries: map[string]*configurationv1.OpenCodeV1Model{"a": {Name: new("Model A")}, "b": {Name: new("Model B")}}},
+	} {
+		wire, err := proto.Marshal(message)
+		if err != nil {
+			test.Fatal(err)
+		}
+		target := message.ProtoReflect().New().Interface()
+		if err := (selectionCodec{}).Unmarshal(wire, target); err != nil || !proto.Equal(message, target) {
+			test.Fatal("distinct canonical map entries rejected")
+		}
+	}
+	entry, _ := proto.Marshal(&configurationv1.OpenCodeHeaders{Entries: map[string]string{"Authorization": "opencode.value.01"}})
+	if err := (selectionCodec{}).Unmarshal(append(entry, entry...), &configurationv1.OpenCodeHeaders{}); err == nil {
+		test.Fatal("duplicate map key silently overwrote prior value")
+	}
+}

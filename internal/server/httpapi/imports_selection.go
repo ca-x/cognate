@@ -331,6 +331,11 @@ func importSelectionDraft(candidate importer.SelectionConfigurationCandidate) (*
 			return nil, errImportReceiptUnavailable
 		}
 		result.Payload = &configurationv1.Draft_GeminiProvider{GeminiProvider: provider}
+	case "opencode":
+		if input.Provider != (configuration.ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil || input.GrokBuildProvider != nil || input.OpenCodeProvider == nil || agentconfig.ValidateOpenCodeProvider(*input.OpenCodeProvider) != nil {
+			return nil, errImportReceiptUnavailable
+		}
+		result.Payload = &configurationv1.Draft_OpencodeProvider{OpencodeProvider: configurationOpenCodeProviderWire(input.OpenCodeProvider)}
 	case "grokbuild":
 		if input.Provider != (configuration.ClaudeProvider{}) || input.CodexProvider != nil || input.GeminiProvider != nil || input.OpenCodeProvider != nil || input.GrokBuildProvider == nil || input.GrokBuildProvider.Mode != agentconfig.GrokBuildCustomModel || !configurationGrokBuildModelValid(input.GrokBuildProvider.Model) {
 			return nil, errImportReceiptUnavailable

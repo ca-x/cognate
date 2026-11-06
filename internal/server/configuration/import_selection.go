@@ -21,7 +21,8 @@ func PrepareImportedDraft(ctx context.Context, input Draft) (state.Configuration
 		result.AgentID = "grokbuild"
 		result.Payload, err = encodeGrokBuildEnvelope(*normalized.GrokBuildProvider, Secret{})
 	case normalized.OpenCodeProvider != nil:
-		return state.ConfigurationAssetDraft{}, ErrUnsupported
+		result.AgentID = "opencode"
+		result.Payload, err = encodeOpenCodeEnvelope(*normalized.OpenCodeProvider, nil)
 	case normalized.GeminiProvider != nil:
 		result.AgentID = "gemini"
 		result.Payload, err = encodeGeminiEnvelope(*normalized.GeminiProvider, Secret{})

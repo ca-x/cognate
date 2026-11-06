@@ -31,7 +31,14 @@ func (recorder *npxSelectionRecorder) Unwrap() http.ResponseWriter {
 }
 
 func TestNPXSelectionBrowserFixture(test *testing.T) {
-	directory := os.Getenv("COGNATE_NPX_SELECTION_DIR")
+	selectionBrowserFixture(test, os.Getenv("COGNATE_NPX_SELECTION_DIR"), false)
+}
+
+func TestOpenCodeSelectionBrowserFixture(test *testing.T) {
+	selectionBrowserFixture(test, os.Getenv("COGNATE_OPENCODE_SELECTION_DIR"), true)
+}
+
+func selectionBrowserFixture(test *testing.T, directory string, opencode bool) {
 	if directory == "" {
 		test.Skip("isolated npx selection browser fixture")
 	}
@@ -40,6 +47,18 @@ func TestNPXSelectionBrowserFixture(test *testing.T) {
 		test.Fatal(err)
 	}
 	defer root.Close()
+	if opencode {
+		data := importRoundtripSnapshot(test, `DELETE FROM providers; INSERT INTO providers VALUES('work','opencode','OpenCode imported','{"npm":"@ai-sdk/openai-compatible","options":{"baseURL":"https://opencode.example/v1","apiKey":"SYNTHETIC-PRIVATE-MARKER","headers":{"Authorization":"SYNTHETIC-PRIVATE-MARKER"}},"models":{"a":{"name":"Model A","limit":{"context":9007199254740991,"output":4096},"modalities":{"input":["text","image"],"output":["text"]}}}}','{"opencodeConfigFormat":"v1"}',NULL,NULL,0,0,NULL,NULL,NULL,0,0);`)
+		file, err := root.OpenFile("source.db", os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+		if err != nil {
+			test.Fatal(err)
+		}
+		_, writeErr := file.Write(data)
+		closeErr := file.Close()
+		if writeErr != nil || closeErr != nil {
+			test.Fatal("synthetic source write failed")
+		}
+	}
 	authentication, store := testServiceAndStore(test)
 	ctx, cancel := context.WithCancel(test.Context())
 	defer cancel()

@@ -315,7 +315,7 @@ func applySelectionProviderOption(candidate *SelectionConfiguration, option Sele
 			}
 			candidate.Draft.Provider.AuthMode = mode
 		}
-	case "codex", "grokbuild":
+	case "codex", "grokbuild", "opencode":
 		if option.ClaudeAuthMode != nil || option.GeminiAuthMode != nil || option.GeminiKeyTransport != nil {
 			return ErrSelectionInvalid
 		}
@@ -359,6 +359,10 @@ func finalizeSelectionProvider(candidate *SelectionConfiguration) {
 		}
 	case "codex":
 		candidate.Status = SelectionReady
+	case "opencode":
+		if candidate.Draft.OpenCodeProvider != nil {
+			candidate.Status = SelectionReady
+		}
 	case "grokbuild":
 		if candidate.Draft.GrokBuildProvider != nil {
 			candidate.Status = SelectionReady

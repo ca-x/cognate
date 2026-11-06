@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -295,6 +296,64 @@ func selectionDraftSummary(candidate *importv1.ImportConfigurationCandidate) []s
 	}
 	if provider := draft.GetGrokbuildProvider(); provider != nil {
 		lines = append(lines, "Grok Build · "+provider.Mode.String())
+	}
+	if provider := draft.GetOpencodeProvider(); provider != nil {
+		lines = append(lines, selectionOpenCodeSummary(provider)...)
+	}
+	return lines
+}
+
+func selectionOpenCodeSummary(provider *configurationv1.OpenCodeProvider) []string {
+	lines := []string{"OpenCode · v1", "provider ID: " + provider.ProviderId}
+	optional := func(label string, value *string) {
+		text := "未设置"
+		if value != nil {
+			text = *value
+		}
+		lines = append(lines, label+": "+text)
+	}
+	input := provider.GetV1()
+	if input == nil {
+		return append(lines, "未支持的来源格式")
+	}
+	optional("npm", input.Npm)
+	optional("name", input.Name)
+	lines = append(lines, fmt.Sprintf("options present: %t", input.Options != nil))
+	if options := input.Options; options != nil {
+		optional("options.baseURL", options.BaseUrl)
+		optional("options.apiKey slot", options.ApiKey)
+		lines = append(lines, fmt.Sprintf("options.headers present: %t", options.Headers != nil))
+		if options.Headers != nil {
+			for _, header := range slices.Sorted(maps.Keys(options.Headers.Entries)) {
+				lines = append(lines, "header "+header+" → "+options.Headers.Entries[header])
+			}
+		}
+	}
+	lines = append(lines, fmt.Sprintf("models present: %t", input.Models != nil))
+	if input.Models != nil {
+		for _, id := range slices.Sorted(maps.Keys(input.Models.Entries)) {
+			model := input.Models.Entries[id]
+			lines = append(lines, "model ID: "+id)
+			optional("model.name", model.Name)
+			lines = append(lines, fmt.Sprintf("model.limit present: %t", model.Limit != nil))
+			if model.Limit != nil {
+				optional("limit.context", model.Limit.Context)
+				optional("limit.output", model.Limit.Output)
+			}
+			lines = append(lines, fmt.Sprintf("model.modalities present: %t", model.Modalities != nil))
+			if model.Modalities != nil {
+				for _, field := range []struct {
+					label string
+					value *configurationv1.OpenCodeStrings
+				}{{"modalities.input", model.Modalities.Input}, {"modalities.output", model.Modalities.Output}} {
+					text := "未设置"
+					if field.value != nil {
+						text = fmt.Sprintf("%q", field.value.Values)
+					}
+					lines = append(lines, field.label+": "+text)
+				}
+			}
+		}
 	}
 	return lines
 }

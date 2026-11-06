@@ -422,7 +422,7 @@ func TestSelectionStaleRepositoryMetadataNeverBecomesBinding(test *testing.T) {
 	}
 }
 
-func selectionExport(test *testing.T, source importv1.ImportSelectionSource) string {
+func selectionExport(test *testing.T, source importv1.ImportSelectionSource, extraSQL ...string) string {
 	test.Helper()
 	var data []byte
 	switch source {
@@ -441,7 +441,7 @@ func selectionExport(test *testing.T, source importv1.ImportSelectionSource) str
 			test.Fatal(err)
 		}
 		defer connection.Close()
-		if _, err := connection.ExecContext(test.Context(), string(schema)); err != nil {
+		if _, err := connection.ExecContext(test.Context(), string(schema)+strings.Join(extraSQL, "\n")); err != nil {
 			test.Fatal(err)
 		}
 		if err := connection.Raw(func(driver any) error {

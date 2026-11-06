@@ -32,7 +32,18 @@ func selectionKnown(message protoreflect.Message, depth int) bool {
 			return field.Enum() == nil || field.Enum().Values().ByNumber(value.Enum()) != nil
 		}
 		if field.IsMap() {
-			valid = false
+			if field.MapKey().Kind() != protoreflect.StringKind {
+				valid = false
+			} else {
+				value.Map().Range(func(_ protoreflect.MapKey, entry protoreflect.Value) bool {
+					if field.MapValue().Message() != nil {
+						valid = selectionKnown(entry.Message(), depth+1)
+					} else if field.MapValue().Enum() != nil {
+						valid = field.MapValue().Enum().Values().ByNumber(entry.Enum()) != nil
+					}
+					return valid
+				})
+			}
 		} else if field.IsList() {
 			for index := range value.List().Len() {
 				if !check(value.List().Get(index)) {
@@ -111,6 +122,9 @@ func selectionDraftValid(candidate *importv1.ImportConfigurationCandidate) bool 
 	case "grokbuild":
 		provider := draft.GetGrokbuildProvider()
 		return provider != nil && provider.Mode == configurationv1.GrokBuildMode_GROK_BUILD_MODE_CUSTOM_MODEL && selectionGrokModelValid(provider.Model)
+	case "opencode":
+		_, valid := selectionOpenCodeSlots(draft.GetOpencodeProvider())
+		return valid
 	}
 	return false
 }
@@ -191,15 +205,35 @@ func selectionPreviewValid(view *importv1.PreviewImportSelectionResponse, now ti
 		if entry == nil || !add(entry.Id) || !slices.Contains([]importv1.ImportCandidateStatus{1, 2, 5, 6, 7, 8}, entry.Status) || entry.KnownAgentId != "" && !slices.Contains(agents, entry.KnownAgentId) || entry.Kind < 1 || entry.Kind > 5 || !selectionText(entry.SafeName, 1024, true) {
 			return false
 		}
+		allowedSlots := slots[entry.KnownAgentId]
+		if entry.KnownAgentId == "opencode" {
+			if entry.Status == 1 {
+				if entry.Draft == nil {
+					return false
+				}
+				var valid bool
+				allowedSlots, valid = selectionOpenCodeSlots(entry.Draft.GetOpencodeProvider())
+				if !valid {
+					return false
+				}
+			} else {
+				for _, slot := range entry.CredentialSlots {
+					if slot == nil || !agentconfig.ValidOpenCodeSlot(slot.SlotId) {
+						return false
+					}
+					allowedSlots = append(allowedSlots, slot.SlotId)
+				}
+			}
+		}
 		seenSlots := make(map[string]bool)
 		for _, slot := range entry.CredentialSlots {
-			if slot == nil || seenSlots[slot.SlotId] || !slices.Contains(slots[entry.KnownAgentId], slot.SlotId) {
+			if slot == nil || seenSlots[slot.SlotId] || !slices.Contains(allowedSlots, slot.SlotId) {
 				return false
 			}
 			seenSlots[slot.SlotId] = true
 		}
 		if entry.Status == 1 {
-			if !selectionDraftValid(entry) || len(entry.CredentialSlots) != len(slots[entry.KnownAgentId]) {
+			if !selectionDraftValid(entry) || len(entry.CredentialSlots) != len(allowedSlots) {
 				return false
 			}
 		} else if entry.Draft != nil {
@@ -290,7 +324,7 @@ func selectionReceiptShape(receipt *importv1.ImportReceipt, operation []byte) bo
 	}
 	seen = make(map[string]bool)
 	for _, asset := range receipt.CreatedAssets {
-		if asset == nil || !selectionText(asset.Id, 128, false) || seen[asset.Id] || asset.Revision <= 0 || asset.SchemaVersion != 1 || asset.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER || !slices.Contains([]string{"claude", "codex", "gemini", "grokbuild"}, asset.AgentId) || !selectionText(asset.Name, 128, false) {
+		if asset == nil || !selectionText(asset.Id, 128, false) || seen[asset.Id] || asset.Revision <= 0 || asset.SchemaVersion != 1 || asset.Kind != configurationv1.AssetKind_ASSET_KIND_PROVIDER || !slices.Contains([]string{"claude", "codex", "gemini", "grokbuild", "opencode"}, asset.AgentId) || !selectionText(asset.Name, 128, false) {
 			return false
 		}
 		seen[asset.Id] = true

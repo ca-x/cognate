@@ -47,6 +47,7 @@ func selectionWire(data []byte, descriptor protoreflect.MessageDescriptor, depth
 	}
 	seen := make(map[protoreflect.FieldNumber]bool)
 	oneofs := make(map[protoreflect.FullName]bool)
+	mapKeys := make(map[protoreflect.FieldNumber]map[string]bool)
 	for len(data) > 0 {
 		*budget--
 		if *budget < 0 {
@@ -57,7 +58,7 @@ func selectionWire(data []byte, descriptor protoreflect.MessageDescriptor, depth
 			return false
 		}
 		field := descriptor.Fields().ByNumber(protoreflect.FieldNumber(number))
-		if field == nil || !field.IsList() && seen[field.Number()] {
+		if field == nil || !field.IsList() && !field.IsMap() && seen[field.Number()] {
 			return false
 		}
 		seen[field.Number()] = true
@@ -76,6 +77,21 @@ func selectionWire(data []byte, descriptor protoreflect.MessageDescriptor, depth
 			if field.Message() != nil {
 				if !selectionWire(value, field.Message(), depth+1, budget) {
 					return false
+				}
+				if field.IsMap() {
+					if field.MapKey().Kind() != protoreflect.StringKind {
+						return false
+					}
+					key := selectionMapKey(value)
+					keys := mapKeys[field.Number()]
+					if keys == nil {
+						keys = make(map[string]bool)
+						mapKeys[field.Number()] = keys
+					}
+					if keys[key] {
+						return false
+					}
+					keys[key] = true
 				}
 			} else if field.Kind() != protoreflect.StringKind && field.Kind() != protoreflect.BytesKind {
 				if !field.IsPacked() {
@@ -111,6 +127,19 @@ func selectionWire(data []byte, descriptor protoreflect.MessageDescriptor, depth
 		}
 	}
 	return true
+}
+
+func selectionMapKey(data []byte) string {
+	for len(data) > 0 {
+		number, kind, prefix := protowire.ConsumeTag(data)
+		data = data[prefix:]
+		if number == 1 {
+			key, _ := protowire.ConsumeString(data)
+			return key
+		}
+		data = data[protowire.ConsumeFieldValue(number, kind, data):]
+	}
+	return ""
 }
 
 func selectionScalarWire(field protoreflect.FieldDescriptor) protowire.Type {

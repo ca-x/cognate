@@ -68,6 +68,18 @@ function ProviderPreview({ draft }: { draft: Draft }) {
       <ReadField label="mode" value={GrokBuildMode[payload.value.mode]} />
       <ReadField label="profile" value={payload.value.model?.profile} /><ReadField label="upstreamModel" value={payload.value.model?.upstreamModel} /><ReadField label="endpoint" value={payload.value.model?.endpoint} /><ReadField label="name" value={payload.value.model?.name} /><ReadField label="apiBackend" value={payload.value.model?.apiBackend} /><ReadField label="contextWindow" value={payload.value.model?.contextWindow} /><ReadField label="envKey" value={payload.value.model?.envKey} />
     </>}
+    {payload.case === "opencodeProvider" && payload.value.format.case === "v1" && <>
+      <ReadField label="providerID" value={payload.value.providerId} /><ReadField label="format" value="v1" />
+      <ReadField label="npm" value={payload.value.format.value.npm} /><ReadField label="name" value={payload.value.format.value.name} />
+      <ReadField label="options.present" value={payload.value.format.value.options !== undefined} /><ReadField label="options.baseURL" value={payload.value.format.value.options?.baseUrl} /><ReadField label="options.apiKey · slot" value={payload.value.format.value.options?.apiKey} />
+      <ReadField label="options.headers · slots" value={payload.value.format.value.options?.headers === undefined ? undefined : JSON.stringify(payload.value.format.value.options.headers.entries)} />
+      <ReadField label="models.present" value={payload.value.format.value.models !== undefined} />
+      <div className="mt-3"><dt className="font-medium">models</dt><dd>{payload.value.format.value.models === undefined ? t("未设置") : <ol className="space-y-3">{Object.entries(payload.value.format.value.models.entries).map(([id, model]) => <li key={id} className="border-t border-border pt-2"><dl>
+        <ReadField label="model ID" value={id} /><ReadField label="name" value={model.name} />
+        <ReadField label="limit.present" value={model.limit !== undefined} /><ReadField label="limit.context" value={model.limit?.context} /><ReadField label="limit.output" value={model.limit?.output} /><ReadField label="modalities.present" value={model.modalities !== undefined} />
+        <ReadField label="modalities.input" value={model.modalities?.input === undefined ? undefined : JSON.stringify(model.modalities.input.values)} /><ReadField label="modalities.output" value={model.modalities?.output === undefined ? undefined : JSON.stringify(model.modalities.output.values)} />
+      </dl></li>)}</ol>}</dd></div>
+    </>}
     {payload.case === "codexProvider" && <>
       <ReadField label="authMode" value={CodexAuthMode[payload.value.authMode]} /><ReadField label="endpoint" value={payload.value.endpoint} /><ReadField label="model" value={payload.value.model} /><ReadField label="reasoningEffort" value={payload.value.reasoningEffort === undefined ? undefined : CodexReasoningEffort[payload.value.reasoningEffort]} />
       <div className="mt-3"><dt className="font-medium">catalog</dt><dd>{payload.value.catalog === undefined ? t("未设置") : <ol className="space-y-3">{payload.value.catalog.models.map((model, index) => <li key={index} className="border-t border-border pt-2"><dl>

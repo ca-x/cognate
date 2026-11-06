@@ -228,6 +228,10 @@ func readSelectionProviders(ctx context.Context, connection *sql.Conn, view *Sel
 		}
 		metadata, metadataErr := sourceObject(meta)
 		metadataEmpty := metadataErr == nil && len(metadata) == 0
+		if agent == "opencode" && metadataErr == nil && len(metadata) == 1 && sourceFields(metadata, "opencodeConfigFormat") {
+			format, err := sourceString(metadata["opencodeConfigFormat"])
+			metadataEmpty = err == nil && format == "v1"
+		}
 		clearSourceObject(metadata)
 		clear(meta)
 		var endpointCount int
@@ -235,12 +239,15 @@ func readSelectionProviders(ctx context.Context, connection *sql.Conn, view *Sel
 			clear(settings)
 			return ErrSelectionInvalid
 		}
-		if agent == "claude" || agent == "codex" || agent == "gemini" || agent == "grokbuild" {
+		if agent == "claude" || agent == "codex" || agent == "gemini" || agent == "grokbuild" || agent == "opencode" {
 			candidate.Status = SelectionUnsupportedField
 			if metadataEmpty && endpointCount == 0 && knownColumns {
 				var parsedDraft = candidate.Draft
 				var parsedErr error
 				switch agent {
+				case "opencode":
+					draft, slots, err := parseOpenCodeSelection(ctx, identifier, candidate.Name, settings)
+					parsedDraft, candidate.Slots, parsedErr = &draft, slots, err
 				case "claude":
 					draft, slots, err := parseClaudeSelection(ctx, candidate.Name, settings)
 					parsedDraft, candidate.Slots, parsedErr = &draft, slots, err
@@ -256,7 +263,7 @@ func readSelectionProviders(ctx context.Context, connection *sql.Conn, view *Sel
 				}
 				if parsedErr == nil {
 					candidate.Draft, candidate.Status = parsedDraft, SelectionNeedsChoice
-					if (agent == "codex" || agent == "grokbuild") && selectionName(candidate.Name) {
+					if (agent == "codex" || agent == "grokbuild" || agent == "opencode") && selectionName(candidate.Name) {
 						candidate.Status = SelectionReady
 					}
 					selectionNotice(&candidate.Notices, SelectionCredentialsOmitted, 1)

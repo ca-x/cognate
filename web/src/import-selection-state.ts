@@ -2,6 +2,7 @@ import { clone, create, equals } from "@bufbuild/protobuf"
 import { Code, ConnectError } from "@connectrpc/connect"
 import { AssetKind, ClaudeAuthMode, CodexAuthMode, CodexModality, CodexReasoningEffort, GeminiAuthMode, GeminiKeyTransport, GrokBuildMode, type Draft } from "./gen/skillhub/configuration/v1/configuration_pb"
 import { grokFields, grokName, validGrokUnicode, validateGrok } from "./configuration-grok-state"
+import { openCodeFields, openCodeRequiredSlots, validateOpenCode } from "./configuration-opencode-state"
 import { ImportCandidateOptionsSchema, ImportCandidateStatus, ImportCommitObservation, ImportConfigurationCandidateSchema, ImportNoticeCode, ImportReceiptPhase, ImportReceiptSchema, ImportRepositoryCandidateSchema, ImportRepositoryOutcomeCode, ImportSkillCandidateSchema, SkillBindingSchema, type ImportCandidateOptions, type ImportNotice, type ImportReceipt, type GetImportCommitStatusResponse, type PreviewImportSelectionResponse, type SkillBinding } from "./gen/skillhub/import/v1/import_pb"
 
 export type SelectionPhase = "idle" | "reading" | "previewing" | "ready" | "confirming" | "committing" | "unknown" | "terminal"
@@ -67,6 +68,10 @@ function validateDraft(draft: Draft, agent: string) {
     requireSelection(provider.authMode === GeminiAuthMode.NATIVE_LOGIN && provider.endpoint === undefined && provider.keyTransport === undefined || provider.authMode === GeminiAuthMode.API_KEY && [GeminiKeyTransport.NATIVE_DEFAULT, GeminiKeyTransport.BEARER].includes(provider.keyTransport!))
   } else if (agent === "grokbuild" && payload.case === "grokbuildProvider") {
     requireSelection(payload.value.mode === GrokBuildMode.CUSTOM_MODEL && payload.value.model && !Object.keys(validateGrok(grokFields(payload.value, draft.name))).length)
+  } else if (agent === "opencode" && payload.case === "opencodeProvider") {
+    requireSelection(payload.value.format.case === "v1" && !Object.keys(validateOpenCode(openCodeFields(payload.value, draft.name))).length)
+    const provider = payload.value.format.value
+    requireSelection(!provider.extensions && !provider.options?.extensions && Object.values(provider.models?.entries ?? {}).every((model) => !model.extensions && !model.options && !model.thinking && !model.cost && !model.variants && !model.limit?.extensions && !model.modalities?.extensions))
   } else requireSelection(false)
 }
 
@@ -90,10 +95,19 @@ export function acceptSelectionPreview(response: PreviewImportSelectionResponse,
     requireSelection([ImportCandidateStatus.READY, ImportCandidateStatus.NEEDS_CHOICE, ImportCandidateStatus.UNSUPPORTED_AGENT, ImportCandidateStatus.UNSUPPORTED_KIND, ImportCandidateStatus.UNSUPPORTED_FIELD, ImportCandidateStatus.NAME_CONFLICT].includes(entry.status))
     requireSelection(entry.knownAgentId === "" || agents.includes(entry.knownAgentId))
     requireSelection([AssetKind.PROVIDER, AssetKind.MCP, AssetKind.PROMPT, AssetKind.AGENT_SETTINGS, AssetKind.WORKSPACE].includes(entry.kind))
-    requireSelection(unique(entry.credentialSlots.map((slot) => slot.slotId)) && entry.credentialSlots.every((slot) => slots[entry.knownAgentId]?.includes(slot.slotId) && typeof slot.present === "boolean"))
+    let allowedSlots = slots[entry.knownAgentId] ?? []
+    if (entry.knownAgentId === "opencode") {
+      if (entry.status === ImportCandidateStatus.READY) {
+        requireSelection(entry.draft)
+        validateDraft(entry.draft, entry.knownAgentId)
+        requireSelection(entry.draft.payload.case === "opencodeProvider")
+        allowedSlots = openCodeRequiredSlots(entry.draft.payload.value)
+      } else allowedSlots = ["opencode.api-key", ...Array.from({ length: 63 }, (_, index) => `opencode.value.${String(index + 1).padStart(2, "0")}`)]
+    }
+    requireSelection(unique(entry.credentialSlots.map((slot) => slot.slotId)) && entry.credentialSlots.every((slot) => allowedSlots.includes(slot.slotId) && typeof slot.present === "boolean"))
     if (entry.status === ImportCandidateStatus.READY) {
       requireSelection(entry.kind === AssetKind.PROVIDER && entry.draft && entry.safeName === entry.draft.name)
-      requireSelection(entry.credentialSlots.length === slots[entry.knownAgentId]?.length)
+      requireSelection(entry.credentialSlots.length === allowedSlots.length)
       validateDraft(entry.draft, entry.knownAgentId)
     } else requireSelection(entry.draft === undefined)
   }

@@ -139,7 +139,8 @@ func (fixture *selectionCommandRPC) receipt(operation []byte) *importv1.ImportRe
 		receipt.SelectedSkillBindings = append(receipt.SelectedSkillBindings, proto.Clone(fixture.preview.Skills[0].Binding).(*importv1.SkillBinding))
 	}
 	for range fixture.lastCommit.ConfigurationIds {
-		receipt.CreatedAssets = append(receipt.CreatedAssets, &configurationv1.Asset{Id: "asset-pin", AgentId: "gemini", Kind: configurationv1.AssetKind_ASSET_KIND_PROVIDER, Name: "Gemini selected", SchemaVersion: 1, Revision: 1})
+		candidate := fixture.preview.Configurations[0]
+		receipt.CreatedAssets = append(receipt.CreatedAssets, &configurationv1.Asset{Id: "asset-pin", AgentId: candidate.KnownAgentId, Kind: configurationv1.AssetKind_ASSET_KIND_PROVIDER, Name: candidate.SafeName, SchemaVersion: 1, Revision: 1})
 	}
 	return receipt
 }
@@ -231,6 +232,27 @@ func TestImportSelectionGrokSafeReview(test *testing.T) {
 	selectionCommandPrivate(test, fixture, output.String())
 	if fixture.commits.Load() != 0 {
 		test.Fatal("preview committed without approval")
+	}
+}
+
+func TestImportSelectionOpenCodeSafeReview(test *testing.T) {
+	fixture := newSelectionCommandRPC(test)
+	candidate := fixture.preview.Configurations[0]
+	candidate.KnownAgentId, candidate.SafeName = "opencode", "OpenCode imported"
+	candidate.CredentialSlots = []*importv1.ImportCredentialSlot{{SlotId: "opencode.api-key", Present: true}, {SlotId: "opencode.value.01", Present: true}}
+	candidate.Draft = &configurationv1.Draft{Name: candidate.SafeName, Payload: &configurationv1.Draft_OpencodeProvider{OpencodeProvider: &configurationv1.OpenCodeProvider{ProviderId: "work", Format: &configurationv1.OpenCodeProvider_V1{V1: &configurationv1.OpenCodeV1{Npm: new("@ai-sdk/openai-compatible"), Options: &configurationv1.OpenCodeV1Options{BaseUrl: new("https://opencode.example/v1"), ApiKey: new("opencode.api-key"), Headers: &configurationv1.OpenCodeHeaders{Entries: map[string]string{"Authorization": "opencode.value.01"}}}, Models: &configurationv1.OpenCodeV1Models{Entries: map[string]*configurationv1.OpenCodeV1Model{"a": {Name: new("Model A"), Limit: &configurationv1.OpenCodeLimit{Context: new("9007199254740991")}}}}}}}}}
+	var output bytes.Buffer
+	if err := selectionCommandRun(test.Context(), fixture.arguments(), strings.NewReader(selectionCommandSession), &output); err != nil {
+		test.Fatal("OpenCode CLI preview failed", err)
+	}
+	for _, field := range []string{"work", "@ai-sdk/openai-compatible", "https://opencode.example/v1", "Model A", "9007199254740991", "opencode.value.01 present=true omitted=true"} {
+		if !strings.Contains(output.String(), field) {
+			test.Fatal("OpenCode review omitted safe field")
+		}
+	}
+	selectionCommandPrivate(test, fixture, output.String())
+	if fixture.commits.Load() != 0 {
+		test.Fatal("review implicitly committed")
 	}
 }
 

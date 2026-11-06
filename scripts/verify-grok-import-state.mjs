@@ -47,3 +47,29 @@ assert.equal(state.acceptSelectionReceipt(receipt, operation, plan).createdAsset
 receipt.createdAssets[0].agentId = "claude"
 assert.throws(() => state.acceptSelectionReceipt(receipt, operation, plan))
 console.log("Grok import preview and receipt checks passed")
+
+const openCode = state.create(state.PreviewImportSelectionResponseSchema, {
+  ticket: new Uint8Array(290), expiresMs: BigInt(Date.now() + 240000),
+  configurations: [{ id: "d".repeat(64), knownAgentId: "opencode", kind: 1, status: 1, safeName: "OpenCode imported", credentialSlots: [{ slotId: "opencode.api-key", present: true }, { slotId: "opencode.value.01", present: true }], draft: { name: "OpenCode imported", payload: { case: "opencodeProvider", value: { providerId: "work", format: { case: "v1", value: { npm: "@ai-sdk/openai-compatible", options: { baseUrl: "https://opencode.example/v1", apiKey: "opencode.api-key", headers: { entries: { Authorization: "opencode.value.01" } } }, models: { entries: { a: { limit: { context: "9007199254740991", output: "4096" } } } } } } } } } }],
+})
+const openCodePreview = state.acceptSelectionPreview(openCode)
+assert.equal(openCodePreview.configurations[0].draft.payload.value.format.value.models.entries.a.limit.context, "9007199254740991")
+for (const mutate of [
+  (candidate) => { candidate.credentialSlots.pop() },
+  (candidate) => { candidate.credentialSlots[1].slotId = "opencode.value.02" },
+  (candidate) => { candidate.credentialSlots.push(candidate.credentialSlots[0]) },
+  (candidate) => { candidate.draft.payload.value.format.value.options.apiKey = "SYNTHETIC-PRIVATE-MARKER" },
+  (candidate) => { candidate.draft.payload.value.format.value.models.entries.a.limit.context = "9007199254740992" },
+  (candidate) => { candidate.draft.payload.value.format = { case: "v2", value: {} } },
+  (candidate) => { candidate.draft.payload.value.format.value.options.headers.entries.authorization = "opencode.value.01" },
+]) {
+  const invalid = structuredClone(openCode)
+  mutate(invalid.configurations[0])
+  assert.throws(() => state.acceptSelectionPreview(invalid))
+}
+const openCodePlan = { repositoryIds: [], skillIds: [], configurationIds: ["d".repeat(64)], ackNoticeIds: [], options: [], preview: openCodePreview }
+const openCodeReceipt = state.create(state.ImportReceiptSchema, { operationId: operation, revision: 1n, phase: 3, createdAssets: [{ id: "B".repeat(26), agentId: "opencode", kind: 1, schemaVersion: 1, revision: 1n, name: "OpenCode imported" }] })
+assert.equal(state.acceptSelectionReceipt(openCodeReceipt, operation, openCodePlan).createdAssets[0].agentId, "opencode")
+openCodeReceipt.createdAssets[0].agentId = "claude"
+assert.throws(() => state.acceptSelectionReceipt(openCodeReceipt, operation, openCodePlan))
+console.log("OpenCode import preview, dynamic slots and receipt checks passed")
