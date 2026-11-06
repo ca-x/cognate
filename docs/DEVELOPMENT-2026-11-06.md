@@ -26,3 +26,23 @@
   mise shim 未选择 actionlint 版本，改用已安装的固定版本路径，未改全局配置。
 
 本记录不宣布 macOS 安装、GUI、配置应用或完整 F12 已通过；也不宣布原清理故障已修复。
+
+## 后继真实运行
+
+源码 `0c1c312d570b368cb1f59631e7bab26f60226da1` 已通过 SSH 推送并回读。
+Platform run `42155445282` completed/success，三个系统 primitives 与 Darwin
+baseline observation 均通过。本次两个卷 detach 都为 exit0，且没有挂载残留；
+缓存检查为 19418 条、深度 13、393ms，没有触发限制。
+
+已下载三个封存包，逐项核对闭合文件集合、payload 长度/SHA256、准确源码和成功
+清理回执：baseline 22、core 8、caller 17 个 payload，均无 refusal。
+这只证明本次运行，没有复现或解释旧的 exit16/cache-limit，原 TODO 保持未关闭；
+不继续靠重复重跑积累绿次来代替根因。后续若再次失败，新增诊断可区分原因。
+
+源码 Build run `42155445289` completed/success。本轮未修改生产 Go、RPC、数据库或
+依赖，也未发布新标签。取证保存在本机 `/tmp/cognate-resume-20261106`，不是远端备份。
+
+恢复开发后的下一条产品主线是配置导入/应用闭环：先核对 cc-switch OpenCode 来源与
+已有类型化资产的差异，再贯通选择导入、审阅、无源秘密迁移的保存与读回。未知字段、
+格式版本、动态凭据槽和客户端候选验证需共同覆盖，不能仅放开服务端 allowlist。
+后续继续推进其它 agent、Pack 独立授权和自动应用，以及完整备份恢复；不缩减原目标。
