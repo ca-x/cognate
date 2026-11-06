@@ -1,5 +1,16 @@
 # 维护交接
 
+2026-11-06 维护版本 **Server/懒猫 0.6.1** 已发布。源码 `b993ed5`、懒猫包装 `f5a3253`，
+不可变标签分别为 `server-v0.6.1` / `v0.6.1`；CLI 0.3.0 与 MyGo 0.1.4 不重发。
+导入分列搜索与通俗确认，修复真实 cc-switch 大库 HTTP 预览和通知重勾顺序；管理员
+可在后台在线启停备份、改周期/S3 目标，无需重启，凭据加密持久化。OIDC 名称与重复
+绑定提示、GitHub token 指引同步修复。Linux 同一数据目录仅允许一个服务端，即使备份
+关闭也是如此；恢复密钥仍须部署者提供独立私有文件，完整恢复未交付。
+最终双架构 Docker、完整 LPK 下载/许可/clean CGO0 metadata/隔离 root 启动均通过；
+喵喵接受 app670/version4261，回执 onlineVersion 仍 0.6.0，店面切换和真机升级待用户测试。
+Source Build 首次既有 S3 取消测试 barrier 失败，未修改测试或断言；同源码 attempt2
+及 release CI 成功，保留原始失败，不宣称根治。详情见 `RELEASE-v0.6.1-VERIFICATION.md`。
+
 2026-11-06 后续组件已发布：Server/懒猫 0.6.0、CLI 0.3.0、MyGo 0.1.4，新增受控
 cc-switch OpenCode v1 选择导入与完整安全字段审阅。三个 source tag 固定 `ed00481`，
 最终下载及回执见 `RELEASE-v0.6.0-VERIFICATION.md`。旧客户端需配套升级；未交付
