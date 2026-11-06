@@ -173,7 +173,7 @@ func importSelectionError(ctx context.Context, err error) error {
 }
 
 func importSelectionPreviewResponse(view importer.SelectionPreviewView, ticket []byte) (*importv1.PreviewImportSelectionResponse, error) {
-	if len(ticket) != state.ImportTicketBytes || view.ExpiresAt.UnixMilli() <= 0 || len(view.Repositories) > 16 || len(view.Skills) > 128 || len(view.Configurations) > 32 {
+	if len(ticket) != state.ImportTicketBytes || view.ExpiresAt.UnixMilli() <= 0 || len(view.Repositories) > importer.MaxSelectionPreviewRepositories || len(view.Skills) > importer.MaxSelectionPreviewSkills || len(view.Configurations) > importer.MaxSelectionPreviewConfigurations {
 		return nil, errImportReceiptUnavailable
 	}
 	notices, err := importSelectionNotices(view.Notices)

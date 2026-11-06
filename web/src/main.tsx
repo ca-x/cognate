@@ -1,6 +1,7 @@
 import { t } from "./i18n"
 import "./server-logging-i18n"
 import "./server-backup-i18n"
+import "./import-usability-i18n"
 import { useTranslation } from "react-i18next"
 import { lazy, StrictMode, Suspense, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"

@@ -58,6 +58,7 @@ jobs:
       - run: npm run build --prefix web
       - run: node scripts/verify-grok-import-state.mjs
       - run: node scripts/verify-magpie-export.mjs
+      - run: node scripts/verify-backup-web-state.mjs
       - run: node scripts/verify-sources-web.mjs --self-test-gate
       - run: node scripts/verify-backup-sqlite-locks.mjs --self-test
       - run: node scripts/verify-auth-ui.mjs --self-test
@@ -86,7 +87,7 @@ jobs:
           buf lint
           generated="$(mktemp -d)"
           buf generate -o "$generated"
-          diff -ru gen "$generated/gen"
+          diff -ru --exclude=backup_redaction.go gen "$generated/gen"
           buf generate --template buf.gen.web.yaml -o "$generated"
           diff -ru web/src/gen "$generated/web/src/gen"
           if [ ! -f "$generated/gen/skillhub/configuration/native/v1/native.pb.go" ] || [ ! -f "$generated/gen/skillhub/configuration/native/v1/configurationnativev1connect/native.connect.go" ]; then

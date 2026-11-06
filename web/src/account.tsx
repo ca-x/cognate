@@ -27,6 +27,7 @@ export function AccountPage() {
     await auth.unlinkOIDC({ identityId, password })
   }, onSuccess: async () => { await bindings.refetch() } })
   const state = options.isError ? t("状态未知") : options.isPending ? t("正在检查") : options.data?.oidcEnabled ? t("可用") : t("未启用")
+  const currentProviderLinked = !!options.data?.oidcIssuer && !!bindings.data?.bindings.some((binding) => binding.issuer === options.data.oidcIssuer)
   return <div className="account-ui">
     <div className="page-heading"><div><h1>{t("账号与登录")}</h1><p>{t("为当前工作空间配置登录方式。")}</p></div></div>
     <section className="account-identity" aria-labelledby="account-identity-title">
@@ -38,7 +39,7 @@ export function AccountPage() {
       <div className="account-login-heading"><div className="service-icon"><KeyRound size={24} aria-hidden="true" /></div><div><span className="auth-eyebrow">{t("身份绑定")}</span><h2 id="account-oidc-title">OpenID Connect</h2></div><span className="account-method-state" role="status">{state}</span></div>
       <div className="account-login-body">
         <div className="space-y-3">
-          <h3 className="font-medium">{t("已关联的 OIDC 身份")}</h3>
+          <h3 className="font-medium">{t("已关联的 OIDC 身份")}</h3>{currentProviderLinked && <p className="text-sm text-muted-foreground">{t("已关联，无需再次绑定。")}</p>}
           {bindings.isPending ? <p role="status">{t("正在读取登录设置…")}</p> : bindings.isError ? <p role="alert">{t("无法读取关联身份，请重试。")}</p> : bindings.data?.bindings.length ? <>
             <ul className="space-y-2">{bindings.data.bindings.map((identity) => <li key={String(identity.identityId)} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3"><span className="min-w-0 break-all">{identity.issuer}</span><Button variant="outline" disabled={!bindings.data.canUnlink || unlink.isPending || bind.isPending} onClick={() => unlink.mutate(identity.identityId)}>{t("取消 OIDC 关联")}</Button></li>)}</ul>
             {bindings.data.canUnlink ? <div className="space-y-2"><label htmlFor="oidc-unlink-password">{t("输入当前账号密码以取消关联")}</label><Input ref={passwordRef} id="oidc-unlink-password" type="password" autoComplete="current-password" maxLength={1024} disabled={unlink.isPending} /><p className="text-sm text-muted-foreground">{t("取消关联后保留当前会话，退出其他会话。之后仍可使用原用户名和密码登录。")}</p></div> : <p>{t("此账号没有本地密码，不能移除唯一登录方式。")}</p>}
@@ -50,8 +51,8 @@ export function AccountPage() {
         <p>{t("主动绑定后，该 OIDC 身份会登录到当前账号。已属于其他账号的身份不会被转移，也不会按邮箱自动合并。")}</p>
         <div className="account-binding-note"><ShieldCheck size={18} aria-hidden="true" /><p>{t("绑定需要你前往身份提供方明确授权；此页不会显示密码或身份令牌。")}</p></div>
         <div className="account-method-action" aria-busy={options.isFetching || bind.isPending}>
-          {options.isError ? <p role="alert" className="error-message">{t("无法读取登录方式，请重试。本地账号仍可登录。")}</p> : options.isPending ? <p role="status">{t("正在读取登录设置…")}</p> : options.data?.oidcEnabled ? <Button ref={preserveOIDCFocus} aria-disabled={bind.isPending || unlink.isPending} onClick={() => { if (!bind.isPending && !unlink.isPending) bind.mutate() }}>{bind.isPending ? t("正在前往验证…") : t("绑定或验证 OIDC 身份")}</Button> : <p>{t("此服务尚未启用 OpenID Connect 登录。")}</p>}
-          <Button ref={refreshRef} className="auth-options-refresh" variant={options.isError ? "outline" : "ghost"} aria-disabled={options.isFetching || bind.isPending} onClick={() => { if (!options.isFetching && !bind.isPending) void options.refetch() }}><RefreshCw size={16} aria-hidden="true" />{options.isError ? t("重试读取登录方式") : t("刷新登录方式")}</Button>
+          {options.isError ? <p role="alert" className="error-message">{t("无法读取登录方式，请重试。本地账号仍可登录。")}</p> : options.isPending ? <p role="status">{t("正在读取登录设置…")}</p> : options.data?.oidcEnabled ? currentProviderLinked ? <p className="text-sm text-muted-foreground" role="status">{t("此登录方式已可使用。")}</p> : <Button ref={preserveOIDCFocus} aria-disabled={bind.isPending || unlink.isPending} onClick={() => { if (!bind.isPending && !unlink.isPending) bind.mutate() }}>{bind.isPending ? t("正在前往验证…") : t("绑定 OIDC 登录方式")}</Button> : <p>{t("此服务尚未启用 OpenID Connect 登录。")}</p>}
+          <Button ref={refreshRef} className="auth-options-refresh" variant={options.isError ? "outline" : "ghost"} aria-disabled={options.isFetching || bind.isPending} onClick={() => { if (!options.isFetching && !bind.isPending) void Promise.all([options.refetch(), bindings.refetch()]) }}><RefreshCw size={16} aria-hidden="true" />{options.isError ? t("重试读取登录方式") : t("刷新登录方式")}</Button>
           {bind.isError && <p role="alert" className="error-message">{errorMessage(bind.error)}</p>}
         </div>
       </div>

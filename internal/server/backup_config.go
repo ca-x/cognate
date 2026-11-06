@@ -71,6 +71,10 @@ func readServerBackupSettings(path string) (serverBackupSettings, error) {
 	if err := json.Unmarshal(data, &settings, json.RejectUnknownMembers(true)); err != nil {
 		return serverBackupSettings{}, errors.New("invalid backup S3 configuration")
 	}
+	return validateServerBackupSettings(settings)
+}
+
+func validateServerBackupSettings(settings serverBackupSettings) (serverBackupSettings, error) {
 	if settings.MaxDatabaseBytes == 0 {
 		settings.MaxDatabaseBytes = 256 << 20
 	}

@@ -157,7 +157,8 @@ export function canConfirmSelection(state: SelectionState, now = Date.now()) {
 
 export function selectionPlan(state: SelectionState, now = Date.now()): SelectionPlan {
   requireSelection(canConfirmSelection(state, now))
-  return { repositoryIds: [...state.chosen.repositories], skillIds: [...state.chosen.skills], configurationIds: [...state.chosen.configurations], ackNoticeIds: [...state.acknowledged], options: state.options.map((entry) => clone(ImportCandidateOptionsSchema, entry)), preview: state.preview! }
+  const ackNoticeIds = selectionNotices(state.preview!).filter((entry) => state.acknowledged.includes(entry.id)).map((entry) => entry.id)
+  return { repositoryIds: [...state.chosen.repositories], skillIds: [...state.chosen.skills], configurationIds: [...state.chosen.configurations], ackNoticeIds, options: state.options.map((entry) => clone(ImportCandidateOptionsSchema, entry)), preview: state.preview! }
 }
 
 export function acceptSelectionReceipt(receipt: ImportReceipt | undefined, operation: Uint8Array, plan: SelectionPlan, previous?: ImportReceipt): ImportReceipt {

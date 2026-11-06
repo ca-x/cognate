@@ -295,7 +295,7 @@ func TestRuntimeStartup(test *testing.T) {
 			test.Fatal("CLI replaced lost key")
 		}
 	})
-	test.Run("OrdinarySHCoexist", func(test *testing.T) {
+	test.Run("SingleManagedOwner", func(test *testing.T) {
 		base := test.TempDir()
 		if err := os.Chmod(base, 0700); err != nil {
 			test.Fatal(err)
@@ -303,17 +303,47 @@ func TestRuntimeStartup(test *testing.T) {
 		data, key := filepath.Join(base, "data"), filepath.Join(base, "keys", "master.key")
 		first := startRuntimeCLI(test, binary, data, key)
 		runtimeCLIHealth(test, first)
+		original, err := os.ReadFile(key)
+		if err != nil {
+			test.Fatal(err)
+		}
+		defer clear(original)
+		before, err := os.Lstat(key)
+		if err != nil {
+			test.Fatal(err)
+		}
 		second := startRuntimeCLI(test, binary, data, key)
-		runtimeCLIHealth(test, second)
+		select {
+		case err := <-second.done:
+			second.done <- err
+			if err == nil || !strings.Contains(second.output.String(), "another server is using this data directory") {
+				test.Fatal("second CLI did not clearly reject shared managed ownership", err, second.output.String())
+			}
+		case <-time.After(3 * time.Second):
+			test.Fatal("second CLI did not promptly reject shared managed ownership")
+		}
+		runtimeCLIHealth(test, first)
 		requireRuntimeCLIProbe(test, data, "deadline")
 		if err := first.stop(); err != nil {
-			test.Fatal("first concurrent CLI did not drain", err)
-		}
-		requireRuntimeCLIProbe(test, data, "deadline")
-		if err := second.stop(); err != nil {
-			test.Fatal("second concurrent CLI did not drain", err)
+			test.Fatal("first CLI did not drain", err)
 		}
 		requireRuntimeCLIProbe(test, data, "acquired")
+		replacement := startRuntimeCLI(test, binary, data, key)
+		runtimeCLIHealth(test, replacement)
+		requireRuntimeCLIProbe(test, data, "deadline")
+		if err := replacement.stop(); err != nil {
+			test.Fatal("replacement CLI did not drain", err)
+		}
+		requireRuntimeCLIProbe(test, data, "acquired")
+		after, err := os.Lstat(key)
+		if err != nil || !os.SameFile(before, after) {
+			test.Fatal("managed handoff replaced original master key", err)
+		}
+		current, err := os.ReadFile(key)
+		defer clear(current)
+		if err != nil || !bytes.Equal(original, current) {
+			test.Fatal("managed handoff changed original master key", err)
+		}
 	})
 	test.Run("OfflineBlocksInitialization", func(test *testing.T) {
 		base := test.TempDir()

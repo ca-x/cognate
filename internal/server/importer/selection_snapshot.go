@@ -11,6 +11,8 @@ import (
 	"github.com/ca-x/cognate/internal/repository"
 )
 
+var selectionUnsupportedCCSwitchKinds = [...]struct{ table, kind string }{{"mcp_servers", "mcp"}, {"prompts", "prompt"}}
+
 func projectCCSwitchSelection(ctx context.Context, raw []byte, view *SelectionView) error {
 	return readSelectionSnapshot(ctx, raw, func(ctx context.Context, connection *sql.Conn) error {
 		var version, triggers int
@@ -60,7 +62,7 @@ func projectCCSwitchSelection(ctx context.Context, raw []byte, view *SelectionVi
 		if err := readSelectionProviders(ctx, connection, view); err != nil {
 			return err
 		}
-		for _, item := range []struct{ table, kind string }{{"mcp_servers", "mcp"}, {"prompts", "prompt"}} {
+		for _, item := range selectionUnsupportedCCSwitchKinds {
 			present, err := selectionTablePresent(ctx, connection, item.table)
 			if err != nil {
 				return err
@@ -142,7 +144,7 @@ func readSelectionSkills(ctx context.Context, connection *sql.Conn, view *Select
 	if err != nil {
 		return err
 	}
-	rows, err := connection.QueryContext(ctx, `SELECT id,name,repo_owner,repo_name,repo_branch FROM skills ORDER BY id LIMIT 1001`)
+	rows, err := connection.QueryContext(ctx, `SELECT id,name,repo_owner,repo_name,repo_branch FROM skills ORDER BY id LIMIT ?`, MaxSelectionPreviewSkills+1)
 	if err != nil {
 		return ErrSelectionInvalid
 	}
@@ -151,7 +153,7 @@ func readSelectionSkills(ctx context.Context, connection *sql.Conn, view *Select
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if len(view.Skills) >= 1000 {
+		if len(view.Skills) >= MaxSelectionPreviewSkills {
 			return ErrSelectionLimit
 		}
 		var identifier, name string

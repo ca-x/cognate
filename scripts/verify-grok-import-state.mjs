@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url"
 
 const { rolldown } = await import("../web/node_modules/rolldown/dist/index.mjs")
 const input = "grok-import-state-test"
-const build = await rolldown({ input, plugins: [{ name: input, resolveId: (id) => id === input ? id : undefined, load: (id) => id === input ? `export * from ${JSON.stringify(resolve("web/src/import-selection-state.ts"))}; export { PreviewImportSelectionResponseSchema, ImportReceiptSchema } from ${JSON.stringify(resolve("web/src/gen/skillhub/import/v1/import_pb.ts"))}; export { create } from ${JSON.stringify(resolve("web/node_modules/@bufbuild/protobuf/dist/esm/index.js"))}` : undefined }] })
+const build = await rolldown({ input, plugins: [{ name: input, resolveId: (id) => id === input ? id : undefined, load: (id) => id === input ? `export * from ${JSON.stringify(resolve("web/src/import-selection-state.ts"))}; export { groupSelectionNotices } from ${JSON.stringify(resolve("web/src/import-selection-presentation.ts"))}; export { PreviewImportSelectionResponseSchema, ImportReceiptSchema } from ${JSON.stringify(resolve("web/src/gen/skillhub/import/v1/import_pb.ts"))}; export { create } from ${JSON.stringify(resolve("web/node_modules/@bufbuild/protobuf/dist/esm/index.js"))}` : undefined }] })
 const destination = join(mkdtempSync(join(tmpdir(), "grok-import-state-")), "state.mjs")
 await build.write({ file: destination, format: "esm" })
 await build.close()
@@ -73,3 +73,51 @@ assert.equal(state.acceptSelectionReceipt(openCodeReceipt, operation, openCodePl
 openCodeReceipt.createdAssets[0].agentId = "claude"
 assert.throws(() => state.acceptSelectionReceipt(openCodeReceipt, operation, openCodePlan))
 console.log("OpenCode import preview, dynamic slots and receipt checks passed")
+
+const noticeID = (index) => index.toString(16).padStart(64, "0")
+const groupedResponse = state.create(state.PreviewImportSelectionResponseSchema, {
+  ticket: new Uint8Array(290), expiresMs: BigInt(Date.now() + 240000),
+  notices: [{ id: noticeID(1), code: 2, count: 3 }, { id: noticeID(2), code: 1, count: 1 }],
+  skills: Array.from({ length: 60 }, (_, index) => ({
+    id: noticeID(100 + index), safeName: `review-${index}`, status: 3,
+    notices: [{ id: noticeID(200 + index), code: 2, count: 2 }],
+  })),
+  configurations: [{ id: response.configurations[0].id, knownAgentId: "grokbuild", kind: 1, status: 1, safeName: "Grok imported", credentialSlots: response.configurations[0].credentialSlots, draft: response.configurations[0].draft, notices: [
+    { id: noticeID(3), code: 1, count: 2 }, { id: noticeID(4), code: 2, count: 1 },
+  ] }],
+})
+let groupedState = state.withSelectionPreview(state.initialSelectionState(), groupedResponse)
+groupedState = state.chooseSelection(groupedState, "configurations", groupedResponse.configurations[0].id, true)
+const snapshot = structuredClone(groupedState.preview)
+const groups = state.groupSelectionNotices(groupedState.preview)
+assert.equal(groups.length, 2)
+assert.deepEqual(groups.map((group) => [group.code, group.count, group.ids.length]), [[2, 124, 62], [1, 3, 2]])
+assert.deepEqual(groups[0].contexts, [...groupedResponse.skills.map((entry) => entry.safeName), "Grok imported"])
+assert.deepEqual(groups[1].contexts, ["Grok imported"])
+const originalIDs = state.selectionNotices(groupedState.preview).map((notice) => notice.id)
+assert.deepEqual(groups.flatMap((group) => group.ids).sort(), [...originalIDs].sort())
+assert.equal(new Set(groups.flatMap((group) => group.ids)).size, originalIDs.length)
+assert.deepEqual(groupedState.preview, snapshot, "presentation must not mutate protocol notices")
+assert.equal(state.canConfirmSelection(groupedState), false)
+groupedState = state.acknowledgeSelection(groupedState, "2", true)
+assert.deepEqual(groupedState.acknowledged, [], "reason codes are not notice IDs")
+for (const group of groups) for (const id of group.ids) groupedState = state.acknowledgeSelection(groupedState, id, true)
+assert.equal(state.canConfirmSelection(groupedState), true)
+assert.deepEqual(state.selectionPlan(groupedState).ackNoticeIds, originalIDs, "grouped acknowledgement must use the original protocol order")
+for (const id of groups[0].ids) groupedState = state.acknowledgeSelection(groupedState, id, false)
+assert.equal(state.canConfirmSelection(groupedState), false)
+assert.deepEqual(groupedState.acknowledged, groups[1].ids, "clearing one reason must retain the other reason's IDs")
+for (const id of groups[0].ids) groupedState = state.acknowledgeSelection(groupedState, id, true)
+groupedState = state.acknowledgeSelection(groupedState, groups[0].ids[0], true)
+assert.equal(state.selectionPlan(groupedState).ackNoticeIds.length, originalIDs.length, "repeat acknowledgement must not duplicate IDs")
+assert.deepEqual(state.selectionPlan(groupedState).ackNoticeIds, originalIDs, "clearing and rechecking a reason must restore the original protocol order")
+groupedState = state.acknowledgeSelection(groupedState, originalIDs[0], false)
+assert.equal(state.canConfirmSelection(groupedState), false, "one missing acknowledgement must block confirmation")
+assert.throws(() => state.selectionPlan(groupedState), "plan creation must not silently acknowledge a missing notice")
+assert.equal(groupedState.acknowledged.includes(originalIDs[0]), false)
+groupedState = state.acknowledgeSelection(groupedState, originalIDs[0], true)
+assert.deepEqual(state.selectionPlan(groupedState).ackNoticeIds, originalIDs)
+groupedState = state.withSelectionPreview(groupedState, groupedResponse)
+assert.deepEqual(groupedState.acknowledged, [], "a fresh preview requires fresh explicit acknowledgements")
+assert.deepEqual(state.groupSelectionNotices({ ...groupedState.preview, notices: [], skills: [], configurations: [] }), [])
+console.log("Grouped notice counts, contexts, all 64 original IDs, independent acknowledgement and fresh-preview reset checks passed")

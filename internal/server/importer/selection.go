@@ -45,6 +45,12 @@ const (
 	MaxSelectionProviders                           = 32
 )
 
+const (
+	MaxSelectionPreviewRepositories   = maxRepositories
+	MaxSelectionPreviewSkills         = MaxMagpieSkills
+	MaxSelectionPreviewConfigurations = MaxSelectionProviders + len(selectionUnsupportedCCSwitchKinds)
+)
+
 var (
 	ErrSelectionInvalid     = errors.New("invalid import selection")
 	ErrSelectionLimit       = errors.New("import selection limit exceeded")

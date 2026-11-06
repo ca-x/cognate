@@ -33,6 +33,12 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// BackupManagementServiceGetBackupSettingsProcedure is the fully-qualified name of the
+	// BackupManagementService's GetBackupSettings RPC.
+	BackupManagementServiceGetBackupSettingsProcedure = "/skillhub.management.v1.BackupManagementService/GetBackupSettings"
+	// BackupManagementServiceUpdateBackupSettingsProcedure is the fully-qualified name of the
+	// BackupManagementService's UpdateBackupSettings RPC.
+	BackupManagementServiceUpdateBackupSettingsProcedure = "/skillhub.management.v1.BackupManagementService/UpdateBackupSettings"
 	// BackupManagementServiceGetBackupStatusProcedure is the fully-qualified name of the
 	// BackupManagementService's GetBackupStatus RPC.
 	BackupManagementServiceGetBackupStatusProcedure = "/skillhub.management.v1.BackupManagementService/GetBackupStatus"
@@ -56,6 +62,8 @@ const (
 // BackupManagementServiceClient is a client for the skillhub.management.v1.BackupManagementService
 // service.
 type BackupManagementServiceClient interface {
+	GetBackupSettings(context.Context, *connect.Request[v1.GetBackupSettingsRequest]) (*connect.Response[v1.GetBackupSettingsResponse], error)
+	UpdateBackupSettings(context.Context, *connect.Request[v1.UpdateBackupSettingsRequest]) (*connect.Response[v1.UpdateBackupSettingsResponse], error)
 	GetBackupStatus(context.Context, *connect.Request[v1.GetBackupStatusRequest]) (*connect.Response[v1.GetBackupStatusResponse], error)
 	StartBackup(context.Context, *connect.Request[v1.StartBackupRequest]) (*connect.Response[v1.StartBackupResponse], error)
 	GetBackupJob(context.Context, *connect.Request[v1.GetBackupJobRequest]) (*connect.Response[v1.GetBackupJobResponse], error)
@@ -76,6 +84,18 @@ func NewBackupManagementServiceClient(httpClient connect.HTTPClient, baseURL str
 	baseURL = strings.TrimRight(baseURL, "/")
 	backupManagementServiceMethods := v1.File_skillhub_management_v1_backup_proto.Services().ByName("BackupManagementService").Methods()
 	return &backupManagementServiceClient{
+		getBackupSettings: connect.NewClient[v1.GetBackupSettingsRequest, v1.GetBackupSettingsResponse](
+			httpClient,
+			baseURL+BackupManagementServiceGetBackupSettingsProcedure,
+			connect.WithSchema(backupManagementServiceMethods.ByName("GetBackupSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		updateBackupSettings: connect.NewClient[v1.UpdateBackupSettingsRequest, v1.UpdateBackupSettingsResponse](
+			httpClient,
+			baseURL+BackupManagementServiceUpdateBackupSettingsProcedure,
+			connect.WithSchema(backupManagementServiceMethods.ByName("UpdateBackupSettings")),
+			connect.WithClientOptions(opts...),
+		),
 		getBackupStatus: connect.NewClient[v1.GetBackupStatusRequest, v1.GetBackupStatusResponse](
 			httpClient,
 			baseURL+BackupManagementServiceGetBackupStatusProcedure,
@@ -117,12 +137,24 @@ func NewBackupManagementServiceClient(httpClient connect.HTTPClient, baseURL str
 
 // backupManagementServiceClient implements BackupManagementServiceClient.
 type backupManagementServiceClient struct {
-	getBackupStatus    *connect.Client[v1.GetBackupStatusRequest, v1.GetBackupStatusResponse]
-	startBackup        *connect.Client[v1.StartBackupRequest, v1.StartBackupResponse]
-	getBackupJob       *connect.Client[v1.GetBackupJobRequest, v1.GetBackupJobResponse]
-	listBackupJobs     *connect.Client[v1.ListBackupJobsRequest, v1.ListBackupJobsResponse]
-	cancelBackupJob    *connect.Client[v1.CancelBackupJobRequest, v1.CancelBackupJobResponse]
-	reconcileBackupJob *connect.Client[v1.ReconcileBackupJobRequest, v1.ReconcileBackupJobResponse]
+	getBackupSettings    *connect.Client[v1.GetBackupSettingsRequest, v1.GetBackupSettingsResponse]
+	updateBackupSettings *connect.Client[v1.UpdateBackupSettingsRequest, v1.UpdateBackupSettingsResponse]
+	getBackupStatus      *connect.Client[v1.GetBackupStatusRequest, v1.GetBackupStatusResponse]
+	startBackup          *connect.Client[v1.StartBackupRequest, v1.StartBackupResponse]
+	getBackupJob         *connect.Client[v1.GetBackupJobRequest, v1.GetBackupJobResponse]
+	listBackupJobs       *connect.Client[v1.ListBackupJobsRequest, v1.ListBackupJobsResponse]
+	cancelBackupJob      *connect.Client[v1.CancelBackupJobRequest, v1.CancelBackupJobResponse]
+	reconcileBackupJob   *connect.Client[v1.ReconcileBackupJobRequest, v1.ReconcileBackupJobResponse]
+}
+
+// GetBackupSettings calls skillhub.management.v1.BackupManagementService.GetBackupSettings.
+func (c *backupManagementServiceClient) GetBackupSettings(ctx context.Context, req *connect.Request[v1.GetBackupSettingsRequest]) (*connect.Response[v1.GetBackupSettingsResponse], error) {
+	return c.getBackupSettings.CallUnary(ctx, req)
+}
+
+// UpdateBackupSettings calls skillhub.management.v1.BackupManagementService.UpdateBackupSettings.
+func (c *backupManagementServiceClient) UpdateBackupSettings(ctx context.Context, req *connect.Request[v1.UpdateBackupSettingsRequest]) (*connect.Response[v1.UpdateBackupSettingsResponse], error) {
+	return c.updateBackupSettings.CallUnary(ctx, req)
 }
 
 // GetBackupStatus calls skillhub.management.v1.BackupManagementService.GetBackupStatus.
@@ -158,6 +190,8 @@ func (c *backupManagementServiceClient) ReconcileBackupJob(ctx context.Context, 
 // BackupManagementServiceHandler is an implementation of the
 // skillhub.management.v1.BackupManagementService service.
 type BackupManagementServiceHandler interface {
+	GetBackupSettings(context.Context, *connect.Request[v1.GetBackupSettingsRequest]) (*connect.Response[v1.GetBackupSettingsResponse], error)
+	UpdateBackupSettings(context.Context, *connect.Request[v1.UpdateBackupSettingsRequest]) (*connect.Response[v1.UpdateBackupSettingsResponse], error)
 	GetBackupStatus(context.Context, *connect.Request[v1.GetBackupStatusRequest]) (*connect.Response[v1.GetBackupStatusResponse], error)
 	StartBackup(context.Context, *connect.Request[v1.StartBackupRequest]) (*connect.Response[v1.StartBackupResponse], error)
 	GetBackupJob(context.Context, *connect.Request[v1.GetBackupJobRequest]) (*connect.Response[v1.GetBackupJobResponse], error)
@@ -173,6 +207,18 @@ type BackupManagementServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewBackupManagementServiceHandler(svc BackupManagementServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	backupManagementServiceMethods := v1.File_skillhub_management_v1_backup_proto.Services().ByName("BackupManagementService").Methods()
+	backupManagementServiceGetBackupSettingsHandler := connect.NewUnaryHandler(
+		BackupManagementServiceGetBackupSettingsProcedure,
+		svc.GetBackupSettings,
+		connect.WithSchema(backupManagementServiceMethods.ByName("GetBackupSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	backupManagementServiceUpdateBackupSettingsHandler := connect.NewUnaryHandler(
+		BackupManagementServiceUpdateBackupSettingsProcedure,
+		svc.UpdateBackupSettings,
+		connect.WithSchema(backupManagementServiceMethods.ByName("UpdateBackupSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
 	backupManagementServiceGetBackupStatusHandler := connect.NewUnaryHandler(
 		BackupManagementServiceGetBackupStatusProcedure,
 		svc.GetBackupStatus,
@@ -211,6 +257,10 @@ func NewBackupManagementServiceHandler(svc BackupManagementServiceHandler, opts 
 	)
 	return "/skillhub.management.v1.BackupManagementService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case BackupManagementServiceGetBackupSettingsProcedure:
+			backupManagementServiceGetBackupSettingsHandler.ServeHTTP(w, r)
+		case BackupManagementServiceUpdateBackupSettingsProcedure:
+			backupManagementServiceUpdateBackupSettingsHandler.ServeHTTP(w, r)
 		case BackupManagementServiceGetBackupStatusProcedure:
 			backupManagementServiceGetBackupStatusHandler.ServeHTTP(w, r)
 		case BackupManagementServiceStartBackupProcedure:
@@ -231,6 +281,14 @@ func NewBackupManagementServiceHandler(svc BackupManagementServiceHandler, opts 
 
 // UnimplementedBackupManagementServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedBackupManagementServiceHandler struct{}
+
+func (UnimplementedBackupManagementServiceHandler) GetBackupSettings(context.Context, *connect.Request[v1.GetBackupSettingsRequest]) (*connect.Response[v1.GetBackupSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.management.v1.BackupManagementService.GetBackupSettings is not implemented"))
+}
+
+func (UnimplementedBackupManagementServiceHandler) UpdateBackupSettings(context.Context, *connect.Request[v1.UpdateBackupSettingsRequest]) (*connect.Response[v1.UpdateBackupSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.management.v1.BackupManagementService.UpdateBackupSettings is not implemented"))
+}
 
 func (UnimplementedBackupManagementServiceHandler) GetBackupStatus(context.Context, *connect.Request[v1.GetBackupStatusRequest]) (*connect.Response[v1.GetBackupStatusResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillhub.management.v1.BackupManagementService.GetBackupStatus is not implemented"))

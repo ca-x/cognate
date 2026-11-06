@@ -17,7 +17,6 @@ import (
 	"github.com/ca-x/cognate/gen/skillhub/mcp/v1/mcpv1connect"
 	"github.com/ca-x/cognate/gen/skillhub/pack/v1/packv1connect"
 	"github.com/ca-x/cognate/internal/server/auth"
-	"github.com/ca-x/cognate/internal/server/backup"
 	"github.com/ca-x/cognate/internal/server/configuration"
 	"github.com/ca-x/cognate/internal/server/githubauth"
 	"github.com/ca-x/cognate/internal/server/library"
@@ -42,7 +41,7 @@ func New(service *auth.Service) http.Handler {
 }
 
 type Options struct {
-	Backups             *backup.Controller
+	Backups             BackupBackend
 	MCPConfiguration    *MCPConfigurationHandler
 	Logging             *logging.Manager
 	AdminUserIDs        []string
@@ -81,7 +80,7 @@ func NewWithOptions(service *auth.Service, options Options) http.Handler {
 	server.Use(guardRequests(options.PublicOrigin))
 	server.GET("/healthz", func(ctx echo.Context) error { return ctx.String(http.StatusOK, "ok\n") })
 	authentication := &authHandler{service: service, oidc: options.OIDC}
-	backupPath, backupHandler := managementv1connect.NewBackupManagementServiceHandler(&backupManagementHandler{auth: authentication, controller: options.Backups, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(65536))
+	backupPath, backupHandler := managementv1connect.NewBackupManagementServiceHandler(&backupManagementHandler{auth: authentication, controller: options.Backups, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(16384), connect.WithSendMaxBytes(65536))
 	server.Any(backupPath+"*", echo.WrapHandler(backupHandler))
 	if options.Logging != nil {
 		path, handler := managementv1connect.NewLogManagementServiceHandler(&logManagementHandler{auth: authentication, logs: options.Logging, admins: slices.Clone(options.AdminUserIDs)}, connect.WithReadMaxBytes(4096), connect.WithSendMaxBytes(4096))

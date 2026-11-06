@@ -21,6 +21,354 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type BackupSettings struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	Enabled                  bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	AutomaticIntervalSeconds int64                  `protobuf:"varint,2,opt,name=automatic_interval_seconds,json=automaticIntervalSeconds,proto3" json:"automatic_interval_seconds,omitempty"`
+	Endpoint                 string                 `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Region                   string                 `protobuf:"bytes,4,opt,name=region,proto3" json:"region,omitempty"`
+	Bucket                   string                 `protobuf:"bytes,5,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Prefix                   string                 `protobuf:"bytes,6,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	RecoveryKeyId            string                 `protobuf:"bytes,7,opt,name=recovery_key_id,json=recoveryKeyId,proto3" json:"recovery_key_id,omitempty"`
+	RecoveryKeyFile          string                 `protobuf:"bytes,8,opt,name=recovery_key_file,json=recoveryKeyFile,proto3" json:"recovery_key_file,omitempty"`
+	MaxDatabaseBytes         int64                  `protobuf:"varint,9,opt,name=max_database_bytes,json=maxDatabaseBytes,proto3" json:"max_database_bytes,omitempty"`
+	MaxContentBytes          int64                  `protobuf:"varint,10,opt,name=max_content_bytes,json=maxContentBytes,proto3" json:"max_content_bytes,omitempty"`
+	JobTimeoutSeconds        int64                  `protobuf:"varint,11,opt,name=job_timeout_seconds,json=jobTimeoutSeconds,proto3" json:"job_timeout_seconds,omitempty"`
+	Revision                 int64                  `protobuf:"varint,12,opt,name=revision,proto3" json:"revision,omitempty"`
+	CredentialsConfigured    bool                   `protobuf:"varint,13,opt,name=credentials_configured,json=credentialsConfigured,proto3" json:"credentials_configured,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *BackupSettings) Reset() {
+	*x = BackupSettings{}
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BackupSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BackupSettings) ProtoMessage() {}
+
+func (x *BackupSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BackupSettings.ProtoReflect.Descriptor instead.
+func (*BackupSettings) Descriptor() ([]byte, []int) {
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *BackupSettings) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *BackupSettings) GetAutomaticIntervalSeconds() int64 {
+	if x != nil {
+		return x.AutomaticIntervalSeconds
+	}
+	return 0
+}
+
+func (x *BackupSettings) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetRecoveryKeyId() string {
+	if x != nil {
+		return x.RecoveryKeyId
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetRecoveryKeyFile() string {
+	if x != nil {
+		return x.RecoveryKeyFile
+	}
+	return ""
+}
+
+func (x *BackupSettings) GetMaxDatabaseBytes() int64 {
+	if x != nil {
+		return x.MaxDatabaseBytes
+	}
+	return 0
+}
+
+func (x *BackupSettings) GetMaxContentBytes() int64 {
+	if x != nil {
+		return x.MaxContentBytes
+	}
+	return 0
+}
+
+func (x *BackupSettings) GetJobTimeoutSeconds() int64 {
+	if x != nil {
+		return x.JobTimeoutSeconds
+	}
+	return 0
+}
+
+func (x *BackupSettings) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *BackupSettings) GetCredentialsConfigured() bool {
+	if x != nil {
+		return x.CredentialsConfigured
+	}
+	return false
+}
+
+type GetBackupSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBackupSettingsRequest) Reset() {
+	*x = GetBackupSettingsRequest{}
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBackupSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBackupSettingsRequest) ProtoMessage() {}
+
+func (x *GetBackupSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBackupSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetBackupSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{1}
+}
+
+type GetBackupSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *BackupSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBackupSettingsResponse) Reset() {
+	*x = GetBackupSettingsResponse{}
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBackupSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBackupSettingsResponse) ProtoMessage() {}
+
+func (x *GetBackupSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBackupSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetBackupSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetBackupSettingsResponse) GetSettings() *BackupSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type UpdateBackupSettingsRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ExpectedRevision  int64                  `protobuf:"varint,1,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	Settings          *BackupSettings        `protobuf:"bytes,2,opt,name=settings,proto3" json:"settings,omitempty"`
+	CredentialsAction string                 `protobuf:"bytes,3,opt,name=credentials_action,json=credentialsAction,proto3" json:"credentials_action,omitempty"`
+	AccessKeyId       string                 `protobuf:"bytes,4,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
+	SecretAccessKey   string                 `protobuf:"bytes,5,opt,name=secret_access_key,json=secretAccessKey,proto3" json:"secret_access_key,omitempty"`
+	SessionToken      string                 `protobuf:"bytes,6,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdateBackupSettingsRequest) Reset() {
+	*x = UpdateBackupSettingsRequest{}
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBackupSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBackupSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateBackupSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBackupSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateBackupSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UpdateBackupSettingsRequest) GetExpectedRevision() int64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *UpdateBackupSettingsRequest) GetSettings() *BackupSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+func (x *UpdateBackupSettingsRequest) GetCredentialsAction() string {
+	if x != nil {
+		return x.CredentialsAction
+	}
+	return ""
+}
+
+func (x *UpdateBackupSettingsRequest) GetAccessKeyId() string {
+	if x != nil {
+		return x.AccessKeyId
+	}
+	return ""
+}
+
+func (x *UpdateBackupSettingsRequest) GetSecretAccessKey() string {
+	if x != nil {
+		return x.SecretAccessKey
+	}
+	return ""
+}
+
+func (x *UpdateBackupSettingsRequest) GetSessionToken() string {
+	if x != nil {
+		return x.SessionToken
+	}
+	return ""
+}
+
+type UpdateBackupSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *BackupSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateBackupSettingsResponse) Reset() {
+	*x = UpdateBackupSettingsResponse{}
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBackupSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBackupSettingsResponse) ProtoMessage() {}
+
+func (x *UpdateBackupSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBackupSettingsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateBackupSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UpdateBackupSettingsResponse) GetSettings() *BackupSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
 type BackupJob struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -37,7 +385,7 @@ type BackupJob struct {
 
 func (x *BackupJob) Reset() {
 	*x = BackupJob{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[0]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +397,7 @@ func (x *BackupJob) String() string {
 func (*BackupJob) ProtoMessage() {}
 
 func (x *BackupJob) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[0]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +410,7 @@ func (x *BackupJob) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackupJob.ProtoReflect.Descriptor instead.
 func (*BackupJob) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{0}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BackupJob) GetId() string {
@@ -129,7 +477,7 @@ type GetBackupStatusRequest struct {
 
 func (x *GetBackupStatusRequest) Reset() {
 	*x = GetBackupStatusRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[1]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -141,7 +489,7 @@ func (x *GetBackupStatusRequest) String() string {
 func (*GetBackupStatusRequest) ProtoMessage() {}
 
 func (x *GetBackupStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[1]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -154,7 +502,7 @@ func (x *GetBackupStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackupStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetBackupStatusRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{1}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{6}
 }
 
 type GetBackupStatusResponse struct {
@@ -169,7 +517,7 @@ type GetBackupStatusResponse struct {
 
 func (x *GetBackupStatusResponse) Reset() {
 	*x = GetBackupStatusResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[2]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +529,7 @@ func (x *GetBackupStatusResponse) String() string {
 func (*GetBackupStatusResponse) ProtoMessage() {}
 
 func (x *GetBackupStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[2]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,7 +542,7 @@ func (x *GetBackupStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackupStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetBackupStatusResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{2}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetBackupStatusResponse) GetEnabled() bool {
@@ -234,7 +582,7 @@ type StartBackupRequest struct {
 
 func (x *StartBackupRequest) Reset() {
 	*x = StartBackupRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[3]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +594,7 @@ func (x *StartBackupRequest) String() string {
 func (*StartBackupRequest) ProtoMessage() {}
 
 func (x *StartBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[3]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +607,7 @@ func (x *StartBackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBackupRequest.ProtoReflect.Descriptor instead.
 func (*StartBackupRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{3}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StartBackupRequest) GetRequestId() string {
@@ -278,7 +626,7 @@ type StartBackupResponse struct {
 
 func (x *StartBackupResponse) Reset() {
 	*x = StartBackupResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[4]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -290,7 +638,7 @@ func (x *StartBackupResponse) String() string {
 func (*StartBackupResponse) ProtoMessage() {}
 
 func (x *StartBackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[4]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -303,7 +651,7 @@ func (x *StartBackupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartBackupResponse.ProtoReflect.Descriptor instead.
 func (*StartBackupResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{4}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StartBackupResponse) GetJob() *BackupJob {
@@ -322,7 +670,7 @@ type GetBackupJobRequest struct {
 
 func (x *GetBackupJobRequest) Reset() {
 	*x = GetBackupJobRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[5]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -334,7 +682,7 @@ func (x *GetBackupJobRequest) String() string {
 func (*GetBackupJobRequest) ProtoMessage() {}
 
 func (x *GetBackupJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[5]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -347,7 +695,7 @@ func (x *GetBackupJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackupJobRequest.ProtoReflect.Descriptor instead.
 func (*GetBackupJobRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{5}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetBackupJobRequest) GetJobId() string {
@@ -366,7 +714,7 @@ type GetBackupJobResponse struct {
 
 func (x *GetBackupJobResponse) Reset() {
 	*x = GetBackupJobResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[6]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -378,7 +726,7 @@ func (x *GetBackupJobResponse) String() string {
 func (*GetBackupJobResponse) ProtoMessage() {}
 
 func (x *GetBackupJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[6]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -391,7 +739,7 @@ func (x *GetBackupJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBackupJobResponse.ProtoReflect.Descriptor instead.
 func (*GetBackupJobResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{6}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetBackupJobResponse) GetJob() *BackupJob {
@@ -411,7 +759,7 @@ type ListBackupJobsRequest struct {
 
 func (x *ListBackupJobsRequest) Reset() {
 	*x = ListBackupJobsRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[7]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +771,7 @@ func (x *ListBackupJobsRequest) String() string {
 func (*ListBackupJobsRequest) ProtoMessage() {}
 
 func (x *ListBackupJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[7]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +784,7 @@ func (x *ListBackupJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBackupJobsRequest.ProtoReflect.Descriptor instead.
 func (*ListBackupJobsRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{7}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListBackupJobsRequest) GetLimit() int32 {
@@ -463,7 +811,7 @@ type ListBackupJobsResponse struct {
 
 func (x *ListBackupJobsResponse) Reset() {
 	*x = ListBackupJobsResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[8]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -475,7 +823,7 @@ func (x *ListBackupJobsResponse) String() string {
 func (*ListBackupJobsResponse) ProtoMessage() {}
 
 func (x *ListBackupJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[8]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -488,7 +836,7 @@ func (x *ListBackupJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBackupJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListBackupJobsResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{8}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListBackupJobsResponse) GetJobs() []*BackupJob {
@@ -514,7 +862,7 @@ type CancelBackupJobRequest struct {
 
 func (x *CancelBackupJobRequest) Reset() {
 	*x = CancelBackupJobRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[9]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -526,7 +874,7 @@ func (x *CancelBackupJobRequest) String() string {
 func (*CancelBackupJobRequest) ProtoMessage() {}
 
 func (x *CancelBackupJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[9]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -539,7 +887,7 @@ func (x *CancelBackupJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelBackupJobRequest.ProtoReflect.Descriptor instead.
 func (*CancelBackupJobRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{9}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CancelBackupJobRequest) GetJobId() string {
@@ -558,7 +906,7 @@ type CancelBackupJobResponse struct {
 
 func (x *CancelBackupJobResponse) Reset() {
 	*x = CancelBackupJobResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[10]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -570,7 +918,7 @@ func (x *CancelBackupJobResponse) String() string {
 func (*CancelBackupJobResponse) ProtoMessage() {}
 
 func (x *CancelBackupJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[10]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +931,7 @@ func (x *CancelBackupJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelBackupJobResponse.ProtoReflect.Descriptor instead.
 func (*CancelBackupJobResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{10}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CancelBackupJobResponse) GetJob() *BackupJob {
@@ -602,7 +950,7 @@ type ReconcileBackupJobRequest struct {
 
 func (x *ReconcileBackupJobRequest) Reset() {
 	*x = ReconcileBackupJobRequest{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[11]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -614,7 +962,7 @@ func (x *ReconcileBackupJobRequest) String() string {
 func (*ReconcileBackupJobRequest) ProtoMessage() {}
 
 func (x *ReconcileBackupJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[11]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +975,7 @@ func (x *ReconcileBackupJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconcileBackupJobRequest.ProtoReflect.Descriptor instead.
 func (*ReconcileBackupJobRequest) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{11}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ReconcileBackupJobRequest) GetJobId() string {
@@ -646,7 +994,7 @@ type ReconcileBackupJobResponse struct {
 
 func (x *ReconcileBackupJobResponse) Reset() {
 	*x = ReconcileBackupJobResponse{}
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[12]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +1006,7 @@ func (x *ReconcileBackupJobResponse) String() string {
 func (*ReconcileBackupJobResponse) ProtoMessage() {}
 
 func (x *ReconcileBackupJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skillhub_management_v1_backup_proto_msgTypes[12]
+	mi := &file_skillhub_management_v1_backup_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +1019,7 @@ func (x *ReconcileBackupJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconcileBackupJobResponse.ProtoReflect.Descriptor instead.
 func (*ReconcileBackupJobResponse) Descriptor() ([]byte, []int) {
-	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{12}
+	return file_skillhub_management_v1_backup_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ReconcileBackupJobResponse) GetJob() *BackupJob {
@@ -685,7 +1033,34 @@ var File_skillhub_management_v1_backup_proto protoreflect.FileDescriptor
 
 const file_skillhub_management_v1_backup_proto_rawDesc = "" +
 	"\n" +
-	"#skillhub/management/v1/backup.proto\x12\x16skillhub.management.v1\"\xa0\x02\n" +
+	"#skillhub/management/v1/backup.proto\x12\x16skillhub.management.v1\"\xfd\x03\n" +
+	"\x0eBackupSettings\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12<\n" +
+	"\x1aautomatic_interval_seconds\x18\x02 \x01(\x03R\x18automaticIntervalSeconds\x12\x1a\n" +
+	"\bendpoint\x18\x03 \x01(\tR\bendpoint\x12\x16\n" +
+	"\x06region\x18\x04 \x01(\tR\x06region\x12\x16\n" +
+	"\x06bucket\x18\x05 \x01(\tR\x06bucket\x12\x16\n" +
+	"\x06prefix\x18\x06 \x01(\tR\x06prefix\x12&\n" +
+	"\x0frecovery_key_id\x18\a \x01(\tR\rrecoveryKeyId\x12*\n" +
+	"\x11recovery_key_file\x18\b \x01(\tR\x0frecoveryKeyFile\x12,\n" +
+	"\x12max_database_bytes\x18\t \x01(\x03R\x10maxDatabaseBytes\x12*\n" +
+	"\x11max_content_bytes\x18\n" +
+	" \x01(\x03R\x0fmaxContentBytes\x12.\n" +
+	"\x13job_timeout_seconds\x18\v \x01(\x03R\x11jobTimeoutSeconds\x12\x1a\n" +
+	"\brevision\x18\f \x01(\x03R\brevision\x125\n" +
+	"\x16credentials_configured\x18\r \x01(\bR\x15credentialsConfigured\"\x1a\n" +
+	"\x18GetBackupSettingsRequest\"_\n" +
+	"\x19GetBackupSettingsResponse\x12B\n" +
+	"\bsettings\x18\x01 \x01(\v2&.skillhub.management.v1.BackupSettingsR\bsettings\"\xc1\x02\n" +
+	"\x1bUpdateBackupSettingsRequest\x12+\n" +
+	"\x11expected_revision\x18\x01 \x01(\x03R\x10expectedRevision\x12B\n" +
+	"\bsettings\x18\x02 \x01(\v2&.skillhub.management.v1.BackupSettingsR\bsettings\x12-\n" +
+	"\x12credentials_action\x18\x03 \x01(\tR\x11credentialsAction\x12'\n" +
+	"\raccess_key_id\x18\x04 \x01(\tB\x03\x80\x01\x01R\vaccessKeyId\x12/\n" +
+	"\x11secret_access_key\x18\x05 \x01(\tB\x03\x80\x01\x01R\x0fsecretAccessKey\x12(\n" +
+	"\rsession_token\x18\x06 \x01(\tB\x03\x80\x01\x01R\fsessionToken\"b\n" +
+	"\x1cUpdateBackupSettingsResponse\x12B\n" +
+	"\bsettings\x18\x01 \x01(\v2&.skillhub.management.v1.BackupSettingsR\bsettings\"\xa0\x02\n" +
 	"\tBackupJob\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12\x1d\n" +
@@ -725,8 +1100,10 @@ const file_skillhub_management_v1_backup_proto_rawDesc = "" +
 	"\x19ReconcileBackupJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"Q\n" +
 	"\x1aReconcileBackupJobResponse\x123\n" +
-	"\x03job\x18\x01 \x01(\v2!.skillhub.management.v1.BackupJobR\x03job2\xc2\x05\n" +
-	"\x17BackupManagementService\x12r\n" +
+	"\x03job\x18\x01 \x01(\v2!.skillhub.management.v1.BackupJobR\x03job2\xc0\a\n" +
+	"\x17BackupManagementService\x12x\n" +
+	"\x11GetBackupSettings\x120.skillhub.management.v1.GetBackupSettingsRequest\x1a1.skillhub.management.v1.GetBackupSettingsResponse\x12\x81\x01\n" +
+	"\x14UpdateBackupSettings\x123.skillhub.management.v1.UpdateBackupSettingsRequest\x1a4.skillhub.management.v1.UpdateBackupSettingsResponse\x12r\n" +
 	"\x0fGetBackupStatus\x12..skillhub.management.v1.GetBackupStatusRequest\x1a/.skillhub.management.v1.GetBackupStatusResponse\x12f\n" +
 	"\vStartBackup\x12*.skillhub.management.v1.StartBackupRequest\x1a+.skillhub.management.v1.StartBackupResponse\x12i\n" +
 	"\fGetBackupJob\x12+.skillhub.management.v1.GetBackupJobRequest\x1a,.skillhub.management.v1.GetBackupJobResponse\x12o\n" +
@@ -746,45 +1123,57 @@ func file_skillhub_management_v1_backup_proto_rawDescGZIP() []byte {
 	return file_skillhub_management_v1_backup_proto_rawDescData
 }
 
-var file_skillhub_management_v1_backup_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_skillhub_management_v1_backup_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_skillhub_management_v1_backup_proto_goTypes = []any{
-	(*BackupJob)(nil),                  // 0: skillhub.management.v1.BackupJob
-	(*GetBackupStatusRequest)(nil),     // 1: skillhub.management.v1.GetBackupStatusRequest
-	(*GetBackupStatusResponse)(nil),    // 2: skillhub.management.v1.GetBackupStatusResponse
-	(*StartBackupRequest)(nil),         // 3: skillhub.management.v1.StartBackupRequest
-	(*StartBackupResponse)(nil),        // 4: skillhub.management.v1.StartBackupResponse
-	(*GetBackupJobRequest)(nil),        // 5: skillhub.management.v1.GetBackupJobRequest
-	(*GetBackupJobResponse)(nil),       // 6: skillhub.management.v1.GetBackupJobResponse
-	(*ListBackupJobsRequest)(nil),      // 7: skillhub.management.v1.ListBackupJobsRequest
-	(*ListBackupJobsResponse)(nil),     // 8: skillhub.management.v1.ListBackupJobsResponse
-	(*CancelBackupJobRequest)(nil),     // 9: skillhub.management.v1.CancelBackupJobRequest
-	(*CancelBackupJobResponse)(nil),    // 10: skillhub.management.v1.CancelBackupJobResponse
-	(*ReconcileBackupJobRequest)(nil),  // 11: skillhub.management.v1.ReconcileBackupJobRequest
-	(*ReconcileBackupJobResponse)(nil), // 12: skillhub.management.v1.ReconcileBackupJobResponse
+	(*BackupSettings)(nil),               // 0: skillhub.management.v1.BackupSettings
+	(*GetBackupSettingsRequest)(nil),     // 1: skillhub.management.v1.GetBackupSettingsRequest
+	(*GetBackupSettingsResponse)(nil),    // 2: skillhub.management.v1.GetBackupSettingsResponse
+	(*UpdateBackupSettingsRequest)(nil),  // 3: skillhub.management.v1.UpdateBackupSettingsRequest
+	(*UpdateBackupSettingsResponse)(nil), // 4: skillhub.management.v1.UpdateBackupSettingsResponse
+	(*BackupJob)(nil),                    // 5: skillhub.management.v1.BackupJob
+	(*GetBackupStatusRequest)(nil),       // 6: skillhub.management.v1.GetBackupStatusRequest
+	(*GetBackupStatusResponse)(nil),      // 7: skillhub.management.v1.GetBackupStatusResponse
+	(*StartBackupRequest)(nil),           // 8: skillhub.management.v1.StartBackupRequest
+	(*StartBackupResponse)(nil),          // 9: skillhub.management.v1.StartBackupResponse
+	(*GetBackupJobRequest)(nil),          // 10: skillhub.management.v1.GetBackupJobRequest
+	(*GetBackupJobResponse)(nil),         // 11: skillhub.management.v1.GetBackupJobResponse
+	(*ListBackupJobsRequest)(nil),        // 12: skillhub.management.v1.ListBackupJobsRequest
+	(*ListBackupJobsResponse)(nil),       // 13: skillhub.management.v1.ListBackupJobsResponse
+	(*CancelBackupJobRequest)(nil),       // 14: skillhub.management.v1.CancelBackupJobRequest
+	(*CancelBackupJobResponse)(nil),      // 15: skillhub.management.v1.CancelBackupJobResponse
+	(*ReconcileBackupJobRequest)(nil),    // 16: skillhub.management.v1.ReconcileBackupJobRequest
+	(*ReconcileBackupJobResponse)(nil),   // 17: skillhub.management.v1.ReconcileBackupJobResponse
 }
 var file_skillhub_management_v1_backup_proto_depIdxs = []int32{
-	0,  // 0: skillhub.management.v1.StartBackupResponse.job:type_name -> skillhub.management.v1.BackupJob
-	0,  // 1: skillhub.management.v1.GetBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
-	0,  // 2: skillhub.management.v1.ListBackupJobsResponse.jobs:type_name -> skillhub.management.v1.BackupJob
-	0,  // 3: skillhub.management.v1.CancelBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
-	0,  // 4: skillhub.management.v1.ReconcileBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
-	1,  // 5: skillhub.management.v1.BackupManagementService.GetBackupStatus:input_type -> skillhub.management.v1.GetBackupStatusRequest
-	3,  // 6: skillhub.management.v1.BackupManagementService.StartBackup:input_type -> skillhub.management.v1.StartBackupRequest
-	5,  // 7: skillhub.management.v1.BackupManagementService.GetBackupJob:input_type -> skillhub.management.v1.GetBackupJobRequest
-	7,  // 8: skillhub.management.v1.BackupManagementService.ListBackupJobs:input_type -> skillhub.management.v1.ListBackupJobsRequest
-	9,  // 9: skillhub.management.v1.BackupManagementService.CancelBackupJob:input_type -> skillhub.management.v1.CancelBackupJobRequest
-	11, // 10: skillhub.management.v1.BackupManagementService.ReconcileBackupJob:input_type -> skillhub.management.v1.ReconcileBackupJobRequest
-	2,  // 11: skillhub.management.v1.BackupManagementService.GetBackupStatus:output_type -> skillhub.management.v1.GetBackupStatusResponse
-	4,  // 12: skillhub.management.v1.BackupManagementService.StartBackup:output_type -> skillhub.management.v1.StartBackupResponse
-	6,  // 13: skillhub.management.v1.BackupManagementService.GetBackupJob:output_type -> skillhub.management.v1.GetBackupJobResponse
-	8,  // 14: skillhub.management.v1.BackupManagementService.ListBackupJobs:output_type -> skillhub.management.v1.ListBackupJobsResponse
-	10, // 15: skillhub.management.v1.BackupManagementService.CancelBackupJob:output_type -> skillhub.management.v1.CancelBackupJobResponse
-	12, // 16: skillhub.management.v1.BackupManagementService.ReconcileBackupJob:output_type -> skillhub.management.v1.ReconcileBackupJobResponse
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 0: skillhub.management.v1.GetBackupSettingsResponse.settings:type_name -> skillhub.management.v1.BackupSettings
+	0,  // 1: skillhub.management.v1.UpdateBackupSettingsRequest.settings:type_name -> skillhub.management.v1.BackupSettings
+	0,  // 2: skillhub.management.v1.UpdateBackupSettingsResponse.settings:type_name -> skillhub.management.v1.BackupSettings
+	5,  // 3: skillhub.management.v1.StartBackupResponse.job:type_name -> skillhub.management.v1.BackupJob
+	5,  // 4: skillhub.management.v1.GetBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
+	5,  // 5: skillhub.management.v1.ListBackupJobsResponse.jobs:type_name -> skillhub.management.v1.BackupJob
+	5,  // 6: skillhub.management.v1.CancelBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
+	5,  // 7: skillhub.management.v1.ReconcileBackupJobResponse.job:type_name -> skillhub.management.v1.BackupJob
+	1,  // 8: skillhub.management.v1.BackupManagementService.GetBackupSettings:input_type -> skillhub.management.v1.GetBackupSettingsRequest
+	3,  // 9: skillhub.management.v1.BackupManagementService.UpdateBackupSettings:input_type -> skillhub.management.v1.UpdateBackupSettingsRequest
+	6,  // 10: skillhub.management.v1.BackupManagementService.GetBackupStatus:input_type -> skillhub.management.v1.GetBackupStatusRequest
+	8,  // 11: skillhub.management.v1.BackupManagementService.StartBackup:input_type -> skillhub.management.v1.StartBackupRequest
+	10, // 12: skillhub.management.v1.BackupManagementService.GetBackupJob:input_type -> skillhub.management.v1.GetBackupJobRequest
+	12, // 13: skillhub.management.v1.BackupManagementService.ListBackupJobs:input_type -> skillhub.management.v1.ListBackupJobsRequest
+	14, // 14: skillhub.management.v1.BackupManagementService.CancelBackupJob:input_type -> skillhub.management.v1.CancelBackupJobRequest
+	16, // 15: skillhub.management.v1.BackupManagementService.ReconcileBackupJob:input_type -> skillhub.management.v1.ReconcileBackupJobRequest
+	2,  // 16: skillhub.management.v1.BackupManagementService.GetBackupSettings:output_type -> skillhub.management.v1.GetBackupSettingsResponse
+	4,  // 17: skillhub.management.v1.BackupManagementService.UpdateBackupSettings:output_type -> skillhub.management.v1.UpdateBackupSettingsResponse
+	7,  // 18: skillhub.management.v1.BackupManagementService.GetBackupStatus:output_type -> skillhub.management.v1.GetBackupStatusResponse
+	9,  // 19: skillhub.management.v1.BackupManagementService.StartBackup:output_type -> skillhub.management.v1.StartBackupResponse
+	11, // 20: skillhub.management.v1.BackupManagementService.GetBackupJob:output_type -> skillhub.management.v1.GetBackupJobResponse
+	13, // 21: skillhub.management.v1.BackupManagementService.ListBackupJobs:output_type -> skillhub.management.v1.ListBackupJobsResponse
+	15, // 22: skillhub.management.v1.BackupManagementService.CancelBackupJob:output_type -> skillhub.management.v1.CancelBackupJobResponse
+	17, // 23: skillhub.management.v1.BackupManagementService.ReconcileBackupJob:output_type -> skillhub.management.v1.ReconcileBackupJobResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_skillhub_management_v1_backup_proto_init() }
@@ -798,7 +1187,7 @@ func file_skillhub_management_v1_backup_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillhub_management_v1_backup_proto_rawDesc), len(file_skillhub_management_v1_backup_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

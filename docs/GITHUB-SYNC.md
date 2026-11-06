@@ -2,6 +2,29 @@
 
 `internal/github` 提供服务端使用的 GitHub device flow 和 Lists 读取基础；`internal/server/state` 提供加密凭据与同步事务保护。`cognate-server` 已接入本地账号和 Connect GitHub API，支持 device flow、手动 token 校验保存、Lists 发现、订阅选择与手动同步；Web 面板调用相同 API。定时水位同步和公开/私有归档收录的后继实现见 `SOURCE-REFRESH.md`；真实账号端到端资格仍未完成。客户端不应直接使用该包访问 GitHub；生产 token 只属于服务端。
 
+## 获取 GitHub token 与选择权限
+
+网页“来源”里的 GitHub 连接表单提供同样的权限说明。优先使用部署者已配置的
+设备授权；没有设备授权入口时，可以手动创建个人访问令牌：
+
+1. 登录 GitHub，进入 **Settings → Developer settings → Personal access tokens**。
+   为令牌设置有效期，只授予当前用途需要的权限。令牌只粘贴到自己可信的 Cognate
+   服务端连接表单，不发到聊天、问题反馈或截图中。
+2. **仅收录公开仓库**通常不需要 token。**读取私有仓库**优先选择 fine-grained
+   token：选择正确的 resource owner，仅授权目标仓库，Repository permissions 中
+   **Contents = Read-only**；组织可能要求管理员审批，或限制令牌使用。
+3. **本页 GitHub 连接和 Star Lists 同步**还会校验 viewer 与 Lists 接口。
+   fine-grained token 能读取某个私有仓库，不代表能读取 Star Lists。
+   classic token 读取公开 Lists 不需要额外 scope；可选 `user` 范围较宽，包含个人资料
+   写权限，不保证私有 Lists 可见。不要为了排查列表问题盲目扩大授权。
+4. classic token 如需读取私有仓库，需要较宽的 `repo` scope。尽量缩小用途、设置短
+   有效期，并遵守组织的 SSO 授权要求。连接失败时先检查令牌到期、组织审批及接口
+   实际返回，不把失败一概解释为权限不足。
+
+官方说明：[创建个人访问令牌](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)、
+[OAuth scopes](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps)。
+token 由服务端校验后加密保存；页面不回显已保存的秘密值。
+
 ## 明确重新授权
 
 处于 `needs_reauthorization` 的凭据只向已登录所有者返回原 viewer、预期 generation 和

@@ -518,29 +518,48 @@ func runtimeLifecycleTests(test *testing.T) {
 		}
 		requireRuntimeProbe(test, config.DataDirectory, "acquired")
 	})
-	test.Run("OrdinarySHCoexist", func(test *testing.T) {
+	test.Run("SingleManagedOwner", func(test *testing.T) {
 		config := runtimeConfig(test)
 		first, err := Open(test.Context(), config)
 		if err != nil {
 			test.Fatal(err)
 		}
+		defer first.Close()
+		endpoint, stopFirst := runtimeServe(test, first)
 		second, err := Open(test.Context(), config)
-		if err != nil {
-			_ = first.Close()
-			test.Fatal(err)
+		if second != nil {
+			_ = second.Close()
 		}
-		_, stopFirst := runtimeServe(test, first)
-		_, stopSecond := runtimeServe(test, second)
+		if second != nil || !errors.Is(err, ErrBackupSettingsOwned) {
+			test.Fatal("second App did not reject duplicate settings ownership", err)
+		}
+		client := &http.Client{Timeout: 3 * time.Second}
+		response, err := client.Get(endpoint + "/healthz")
+		if err != nil {
+			test.Fatal("duplicate startup damaged the original server", err)
+		}
+		_, readError := io.Copy(io.Discard, response.Body)
+		closeError := response.Body.Close()
+		if response.StatusCode != http.StatusOK || readError != nil || closeError != nil {
+			test.Fatal("original server lost health after duplicate startup", readError, closeError)
+		}
 		requireRuntimeProbe(test, config.DataDirectory, "deadline")
 		if err := first.Close(); err != nil {
 			test.Fatal(err)
 		}
 		stopFirst()
+		requireRuntimeProbe(test, config.DataDirectory, "acquired")
+		third, err := Open(test.Context(), config)
+		if err != nil {
+			test.Fatal("replacement App could not acquire released ownership", err)
+		}
+		defer third.Close()
+		_, stopThird := runtimeServe(test, third)
 		requireRuntimeProbe(test, config.DataDirectory, "deadline")
-		if err := second.Close(); err != nil {
+		if err := third.Close(); err != nil {
 			test.Fatal(err)
 		}
-		stopSecond()
+		stopThird()
 		requireRuntimeProbe(test, config.DataDirectory, "acquired")
 	})
 	test.Run("CloseLastLease", func(test *testing.T) {

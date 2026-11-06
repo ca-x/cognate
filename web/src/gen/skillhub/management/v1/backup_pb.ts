@@ -10,7 +10,173 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file skillhub/management/v1/backup.proto.
  */
 export const file_skillhub_management_v1_backup: GenFile = /*@__PURE__*/
-  fileDesc("CiNza2lsbGh1Yi9tYW5hZ2VtZW50L3YxL2JhY2t1cC5wcm90bxIWc2tpbGxodWIubWFuYWdlbWVudC52MSK5AQoJQmFja3VwSm9iEgoKAmlkGAEgASgJEg0KBXBoYXNlGAIgASgJEhIKCmVycm9yX2NvZGUYAyABKAkSGwoTY3JlYXRlZF91bml4X21pbGxpcxgEIAEoAxIbChN1cGRhdGVkX3VuaXhfbWlsbGlzGAUgASgDEg8KB29iamVjdHMYBiABKA0SGAoQY2lwaGVydGV4dF9ieXRlcxgHIAEoAxIYChBjYW5jZWxfcmVxdWVzdGVkGAggASgIIhgKFkdldEJhY2t1cFN0YXR1c1JlcXVlc3QibwoXR2V0QmFja3VwU3RhdHVzUmVzcG9uc2USDwoHZW5hYmxlZBgBIAEoCBINCgVzY29wZRgCIAEoCRIZChFhdXRvbWF0aWNfZW5hYmxlZBgDIAEoCBIZChFyZXN0b3JlX2F2YWlsYWJsZRgEIAEoCCIoChJTdGFydEJhY2t1cFJlcXVlc3QSEgoKcmVxdWVzdF9pZBgBIAEoCSJFChNTdGFydEJhY2t1cFJlc3BvbnNlEi4KA2pvYhgBIAEoCzIhLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwSm9iIiUKE0dldEJhY2t1cEpvYlJlcXVlc3QSDgoGam9iX2lkGAEgASgJIkYKFEdldEJhY2t1cEpvYlJlc3BvbnNlEi4KA2pvYhgBIAEoCzIhLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwSm9iIjYKFUxpc3RCYWNrdXBKb2JzUmVxdWVzdBINCgVsaW1pdBgBIAEoBRIOCgZjdXJzb3IYAiABKAkiXgoWTGlzdEJhY2t1cEpvYnNSZXNwb25zZRIvCgRqb2JzGAEgAygLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2ISEwoLbmV4dF9jdXJzb3IYAiABKAkiKAoWQ2FuY2VsQmFja3VwSm9iUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiSQoXQ2FuY2VsQmFja3VwSm9iUmVzcG9uc2USLgoDam9iGAEgASgLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2IiKwoZUmVjb25jaWxlQmFja3VwSm9iUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiTAoaUmVjb25jaWxlQmFja3VwSm9iUmVzcG9uc2USLgoDam9iGAEgASgLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2IywgUKF0JhY2t1cE1hbmFnZW1lbnRTZXJ2aWNlEnIKD0dldEJhY2t1cFN0YXR1cxIuLnNraWxsaHViLm1hbmFnZW1lbnQudjEuR2V0QmFja3VwU3RhdHVzUmVxdWVzdBovLnNraWxsaHViLm1hbmFnZW1lbnQudjEuR2V0QmFja3VwU3RhdHVzUmVzcG9uc2USZgoLU3RhcnRCYWNrdXASKi5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLlN0YXJ0QmFja3VwUmVxdWVzdBorLnNraWxsaHViLm1hbmFnZW1lbnQudjEuU3RhcnRCYWNrdXBSZXNwb25zZRJpCgxHZXRCYWNrdXBKb2ISKy5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkdldEJhY2t1cEpvYlJlcXVlc3QaLC5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkdldEJhY2t1cEpvYlJlc3BvbnNlEm8KDkxpc3RCYWNrdXBKb2JzEi0uc2tpbGxodWIubWFuYWdlbWVudC52MS5MaXN0QmFja3VwSm9ic1JlcXVlc3QaLi5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkxpc3RCYWNrdXBKb2JzUmVzcG9uc2UScgoPQ2FuY2VsQmFja3VwSm9iEi4uc2tpbGxodWIubWFuYWdlbWVudC52MS5DYW5jZWxCYWNrdXBKb2JSZXF1ZXN0Gi8uc2tpbGxodWIubWFuYWdlbWVudC52MS5DYW5jZWxCYWNrdXBKb2JSZXNwb25zZRJ7ChJSZWNvbmNpbGVCYWNrdXBKb2ISMS5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLlJlY29uY2lsZUJhY2t1cEpvYlJlcXVlc3QaMi5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLlJlY29uY2lsZUJhY2t1cEpvYlJlc3BvbnNlQkFaP2dpdGh1Yi5jb20vY2EteC9jb2duYXRlL2dlbi9za2lsbGh1Yi9tYW5hZ2VtZW50L3YxO21hbmFnZW1lbnR2MWIGcHJvdG8z");
+  fileDesc("CiNza2lsbGh1Yi9tYW5hZ2VtZW50L3YxL2JhY2t1cC5wcm90bxIWc2tpbGxodWIubWFuYWdlbWVudC52MSLBAgoOQmFja3VwU2V0dGluZ3MSDwoHZW5hYmxlZBgBIAEoCBIiChphdXRvbWF0aWNfaW50ZXJ2YWxfc2Vjb25kcxgCIAEoAxIQCghlbmRwb2ludBgDIAEoCRIOCgZyZWdpb24YBCABKAkSDgoGYnVja2V0GAUgASgJEg4KBnByZWZpeBgGIAEoCRIXCg9yZWNvdmVyeV9rZXlfaWQYByABKAkSGQoRcmVjb3Zlcnlfa2V5X2ZpbGUYCCABKAkSGgoSbWF4X2RhdGFiYXNlX2J5dGVzGAkgASgDEhkKEW1heF9jb250ZW50X2J5dGVzGAogASgDEhsKE2pvYl90aW1lb3V0X3NlY29uZHMYCyABKAMSEAoIcmV2aXNpb24YDCABKAMSHgoWY3JlZGVudGlhbHNfY29uZmlndXJlZBgNIAEoCCIaChhHZXRCYWNrdXBTZXR0aW5nc1JlcXVlc3QiVQoZR2V0QmFja3VwU2V0dGluZ3NSZXNwb25zZRI4CghzZXR0aW5ncxgBIAEoCzImLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwU2V0dGluZ3Mi5gEKG1VwZGF0ZUJhY2t1cFNldHRpbmdzUmVxdWVzdBIZChFleHBlY3RlZF9yZXZpc2lvbhgBIAEoAxI4CghzZXR0aW5ncxgCIAEoCzImLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwU2V0dGluZ3MSGgoSY3JlZGVudGlhbHNfYWN0aW9uGAMgASgJEhoKDWFjY2Vzc19rZXlfaWQYBCABKAlCA4ABARIeChFzZWNyZXRfYWNjZXNzX2tleRgFIAEoCUIDgAEBEhoKDXNlc3Npb25fdG9rZW4YBiABKAlCA4ABASJYChxVcGRhdGVCYWNrdXBTZXR0aW5nc1Jlc3BvbnNlEjgKCHNldHRpbmdzGAEgASgLMiYuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBTZXR0aW5ncyK5AQoJQmFja3VwSm9iEgoKAmlkGAEgASgJEg0KBXBoYXNlGAIgASgJEhIKCmVycm9yX2NvZGUYAyABKAkSGwoTY3JlYXRlZF91bml4X21pbGxpcxgEIAEoAxIbChN1cGRhdGVkX3VuaXhfbWlsbGlzGAUgASgDEg8KB29iamVjdHMYBiABKA0SGAoQY2lwaGVydGV4dF9ieXRlcxgHIAEoAxIYChBjYW5jZWxfcmVxdWVzdGVkGAggASgIIhgKFkdldEJhY2t1cFN0YXR1c1JlcXVlc3QibwoXR2V0QmFja3VwU3RhdHVzUmVzcG9uc2USDwoHZW5hYmxlZBgBIAEoCBINCgVzY29wZRgCIAEoCRIZChFhdXRvbWF0aWNfZW5hYmxlZBgDIAEoCBIZChFyZXN0b3JlX2F2YWlsYWJsZRgEIAEoCCIoChJTdGFydEJhY2t1cFJlcXVlc3QSEgoKcmVxdWVzdF9pZBgBIAEoCSJFChNTdGFydEJhY2t1cFJlc3BvbnNlEi4KA2pvYhgBIAEoCzIhLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwSm9iIiUKE0dldEJhY2t1cEpvYlJlcXVlc3QSDgoGam9iX2lkGAEgASgJIkYKFEdldEJhY2t1cEpvYlJlc3BvbnNlEi4KA2pvYhgBIAEoCzIhLnNraWxsaHViLm1hbmFnZW1lbnQudjEuQmFja3VwSm9iIjYKFUxpc3RCYWNrdXBKb2JzUmVxdWVzdBINCgVsaW1pdBgBIAEoBRIOCgZjdXJzb3IYAiABKAkiXgoWTGlzdEJhY2t1cEpvYnNSZXNwb25zZRIvCgRqb2JzGAEgAygLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2ISEwoLbmV4dF9jdXJzb3IYAiABKAkiKAoWQ2FuY2VsQmFja3VwSm9iUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiSQoXQ2FuY2VsQmFja3VwSm9iUmVzcG9uc2USLgoDam9iGAEgASgLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2IiKwoZUmVjb25jaWxlQmFja3VwSm9iUmVxdWVzdBIOCgZqb2JfaWQYASABKAkiTAoaUmVjb25jaWxlQmFja3VwSm9iUmVzcG9uc2USLgoDam9iGAEgASgLMiEuc2tpbGxodWIubWFuYWdlbWVudC52MS5CYWNrdXBKb2IywAcKF0JhY2t1cE1hbmFnZW1lbnRTZXJ2aWNlEngKEUdldEJhY2t1cFNldHRpbmdzEjAuc2tpbGxodWIubWFuYWdlbWVudC52MS5HZXRCYWNrdXBTZXR0aW5nc1JlcXVlc3QaMS5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkdldEJhY2t1cFNldHRpbmdzUmVzcG9uc2USgQEKFFVwZGF0ZUJhY2t1cFNldHRpbmdzEjMuc2tpbGxodWIubWFuYWdlbWVudC52MS5VcGRhdGVCYWNrdXBTZXR0aW5nc1JlcXVlc3QaNC5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLlVwZGF0ZUJhY2t1cFNldHRpbmdzUmVzcG9uc2UScgoPR2V0QmFja3VwU3RhdHVzEi4uc2tpbGxodWIubWFuYWdlbWVudC52MS5HZXRCYWNrdXBTdGF0dXNSZXF1ZXN0Gi8uc2tpbGxodWIubWFuYWdlbWVudC52MS5HZXRCYWNrdXBTdGF0dXNSZXNwb25zZRJmCgtTdGFydEJhY2t1cBIqLnNraWxsaHViLm1hbmFnZW1lbnQudjEuU3RhcnRCYWNrdXBSZXF1ZXN0Gisuc2tpbGxodWIubWFuYWdlbWVudC52MS5TdGFydEJhY2t1cFJlc3BvbnNlEmkKDEdldEJhY2t1cEpvYhIrLnNraWxsaHViLm1hbmFnZW1lbnQudjEuR2V0QmFja3VwSm9iUmVxdWVzdBosLnNraWxsaHViLm1hbmFnZW1lbnQudjEuR2V0QmFja3VwSm9iUmVzcG9uc2USbwoOTGlzdEJhY2t1cEpvYnMSLS5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkxpc3RCYWNrdXBKb2JzUmVxdWVzdBouLnNraWxsaHViLm1hbmFnZW1lbnQudjEuTGlzdEJhY2t1cEpvYnNSZXNwb25zZRJyCg9DYW5jZWxCYWNrdXBKb2ISLi5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkNhbmNlbEJhY2t1cEpvYlJlcXVlc3QaLy5za2lsbGh1Yi5tYW5hZ2VtZW50LnYxLkNhbmNlbEJhY2t1cEpvYlJlc3BvbnNlEnsKElJlY29uY2lsZUJhY2t1cEpvYhIxLnNraWxsaHViLm1hbmFnZW1lbnQudjEuUmVjb25jaWxlQmFja3VwSm9iUmVxdWVzdBoyLnNraWxsaHViLm1hbmFnZW1lbnQudjEuUmVjb25jaWxlQmFja3VwSm9iUmVzcG9uc2VCQVo/Z2l0aHViLmNvbS9jYS14L2NvZ25hdGUvZ2VuL3NraWxsaHViL21hbmFnZW1lbnQvdjE7bWFuYWdlbWVudHYxYgZwcm90bzM");
+
+/**
+ * @generated from message skillhub.management.v1.BackupSettings
+ */
+export type BackupSettings = Message<"skillhub.management.v1.BackupSettings"> & {
+  /**
+   * @generated from field: bool enabled = 1;
+   */
+  enabled: boolean;
+
+  /**
+   * @generated from field: int64 automatic_interval_seconds = 2;
+   */
+  automaticIntervalSeconds: bigint;
+
+  /**
+   * @generated from field: string endpoint = 3;
+   */
+  endpoint: string;
+
+  /**
+   * @generated from field: string region = 4;
+   */
+  region: string;
+
+  /**
+   * @generated from field: string bucket = 5;
+   */
+  bucket: string;
+
+  /**
+   * @generated from field: string prefix = 6;
+   */
+  prefix: string;
+
+  /**
+   * @generated from field: string recovery_key_id = 7;
+   */
+  recoveryKeyId: string;
+
+  /**
+   * @generated from field: string recovery_key_file = 8;
+   */
+  recoveryKeyFile: string;
+
+  /**
+   * @generated from field: int64 max_database_bytes = 9;
+   */
+  maxDatabaseBytes: bigint;
+
+  /**
+   * @generated from field: int64 max_content_bytes = 10;
+   */
+  maxContentBytes: bigint;
+
+  /**
+   * @generated from field: int64 job_timeout_seconds = 11;
+   */
+  jobTimeoutSeconds: bigint;
+
+  /**
+   * @generated from field: int64 revision = 12;
+   */
+  revision: bigint;
+
+  /**
+   * @generated from field: bool credentials_configured = 13;
+   */
+  credentialsConfigured: boolean;
+};
+
+/**
+ * Describes the message skillhub.management.v1.BackupSettings.
+ * Use `create(BackupSettingsSchema)` to create a new message.
+ */
+export const BackupSettingsSchema: GenMessage<BackupSettings> = /*@__PURE__*/
+  messageDesc(file_skillhub_management_v1_backup, 0);
+
+/**
+ * @generated from message skillhub.management.v1.GetBackupSettingsRequest
+ */
+export type GetBackupSettingsRequest = Message<"skillhub.management.v1.GetBackupSettingsRequest"> & {
+};
+
+/**
+ * Describes the message skillhub.management.v1.GetBackupSettingsRequest.
+ * Use `create(GetBackupSettingsRequestSchema)` to create a new message.
+ */
+export const GetBackupSettingsRequestSchema: GenMessage<GetBackupSettingsRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_management_v1_backup, 1);
+
+/**
+ * @generated from message skillhub.management.v1.GetBackupSettingsResponse
+ */
+export type GetBackupSettingsResponse = Message<"skillhub.management.v1.GetBackupSettingsResponse"> & {
+  /**
+   * @generated from field: skillhub.management.v1.BackupSettings settings = 1;
+   */
+  settings?: BackupSettings | undefined;
+};
+
+/**
+ * Describes the message skillhub.management.v1.GetBackupSettingsResponse.
+ * Use `create(GetBackupSettingsResponseSchema)` to create a new message.
+ */
+export const GetBackupSettingsResponseSchema: GenMessage<GetBackupSettingsResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_management_v1_backup, 2);
+
+/**
+ * @generated from message skillhub.management.v1.UpdateBackupSettingsRequest
+ */
+export type UpdateBackupSettingsRequest = Message<"skillhub.management.v1.UpdateBackupSettingsRequest"> & {
+  /**
+   * @generated from field: int64 expected_revision = 1;
+   */
+  expectedRevision: bigint;
+
+  /**
+   * @generated from field: skillhub.management.v1.BackupSettings settings = 2;
+   */
+  settings?: BackupSettings | undefined;
+
+  /**
+   * @generated from field: string credentials_action = 3;
+   */
+  credentialsAction: string;
+
+  /**
+   * @generated from field: string access_key_id = 4;
+   */
+  accessKeyId: string;
+
+  /**
+   * @generated from field: string secret_access_key = 5;
+   */
+  secretAccessKey: string;
+
+  /**
+   * @generated from field: string session_token = 6;
+   */
+  sessionToken: string;
+};
+
+/**
+ * Describes the message skillhub.management.v1.UpdateBackupSettingsRequest.
+ * Use `create(UpdateBackupSettingsRequestSchema)` to create a new message.
+ */
+export const UpdateBackupSettingsRequestSchema: GenMessage<UpdateBackupSettingsRequest> = /*@__PURE__*/
+  messageDesc(file_skillhub_management_v1_backup, 3);
+
+/**
+ * @generated from message skillhub.management.v1.UpdateBackupSettingsResponse
+ */
+export type UpdateBackupSettingsResponse = Message<"skillhub.management.v1.UpdateBackupSettingsResponse"> & {
+  /**
+   * @generated from field: skillhub.management.v1.BackupSettings settings = 1;
+   */
+  settings?: BackupSettings | undefined;
+};
+
+/**
+ * Describes the message skillhub.management.v1.UpdateBackupSettingsResponse.
+ * Use `create(UpdateBackupSettingsResponseSchema)` to create a new message.
+ */
+export const UpdateBackupSettingsResponseSchema: GenMessage<UpdateBackupSettingsResponse> = /*@__PURE__*/
+  messageDesc(file_skillhub_management_v1_backup, 4);
 
 /**
  * @generated from message skillhub.management.v1.BackupJob
@@ -62,7 +228,7 @@ export type BackupJob = Message<"skillhub.management.v1.BackupJob"> & {
  * Use `create(BackupJobSchema)` to create a new message.
  */
 export const BackupJobSchema: GenMessage<BackupJob> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 0);
+  messageDesc(file_skillhub_management_v1_backup, 5);
 
 /**
  * @generated from message skillhub.management.v1.GetBackupStatusRequest
@@ -75,7 +241,7 @@ export type GetBackupStatusRequest = Message<"skillhub.management.v1.GetBackupSt
  * Use `create(GetBackupStatusRequestSchema)` to create a new message.
  */
 export const GetBackupStatusRequestSchema: GenMessage<GetBackupStatusRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 1);
+  messageDesc(file_skillhub_management_v1_backup, 6);
 
 /**
  * @generated from message skillhub.management.v1.GetBackupStatusResponse
@@ -107,7 +273,7 @@ export type GetBackupStatusResponse = Message<"skillhub.management.v1.GetBackupS
  * Use `create(GetBackupStatusResponseSchema)` to create a new message.
  */
 export const GetBackupStatusResponseSchema: GenMessage<GetBackupStatusResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 2);
+  messageDesc(file_skillhub_management_v1_backup, 7);
 
 /**
  * @generated from message skillhub.management.v1.StartBackupRequest
@@ -124,7 +290,7 @@ export type StartBackupRequest = Message<"skillhub.management.v1.StartBackupRequ
  * Use `create(StartBackupRequestSchema)` to create a new message.
  */
 export const StartBackupRequestSchema: GenMessage<StartBackupRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 3);
+  messageDesc(file_skillhub_management_v1_backup, 8);
 
 /**
  * @generated from message skillhub.management.v1.StartBackupResponse
@@ -141,7 +307,7 @@ export type StartBackupResponse = Message<"skillhub.management.v1.StartBackupRes
  * Use `create(StartBackupResponseSchema)` to create a new message.
  */
 export const StartBackupResponseSchema: GenMessage<StartBackupResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 4);
+  messageDesc(file_skillhub_management_v1_backup, 9);
 
 /**
  * @generated from message skillhub.management.v1.GetBackupJobRequest
@@ -158,7 +324,7 @@ export type GetBackupJobRequest = Message<"skillhub.management.v1.GetBackupJobRe
  * Use `create(GetBackupJobRequestSchema)` to create a new message.
  */
 export const GetBackupJobRequestSchema: GenMessage<GetBackupJobRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 5);
+  messageDesc(file_skillhub_management_v1_backup, 10);
 
 /**
  * @generated from message skillhub.management.v1.GetBackupJobResponse
@@ -175,7 +341,7 @@ export type GetBackupJobResponse = Message<"skillhub.management.v1.GetBackupJobR
  * Use `create(GetBackupJobResponseSchema)` to create a new message.
  */
 export const GetBackupJobResponseSchema: GenMessage<GetBackupJobResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 6);
+  messageDesc(file_skillhub_management_v1_backup, 11);
 
 /**
  * @generated from message skillhub.management.v1.ListBackupJobsRequest
@@ -197,7 +363,7 @@ export type ListBackupJobsRequest = Message<"skillhub.management.v1.ListBackupJo
  * Use `create(ListBackupJobsRequestSchema)` to create a new message.
  */
 export const ListBackupJobsRequestSchema: GenMessage<ListBackupJobsRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 7);
+  messageDesc(file_skillhub_management_v1_backup, 12);
 
 /**
  * @generated from message skillhub.management.v1.ListBackupJobsResponse
@@ -219,7 +385,7 @@ export type ListBackupJobsResponse = Message<"skillhub.management.v1.ListBackupJ
  * Use `create(ListBackupJobsResponseSchema)` to create a new message.
  */
 export const ListBackupJobsResponseSchema: GenMessage<ListBackupJobsResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 8);
+  messageDesc(file_skillhub_management_v1_backup, 13);
 
 /**
  * @generated from message skillhub.management.v1.CancelBackupJobRequest
@@ -236,7 +402,7 @@ export type CancelBackupJobRequest = Message<"skillhub.management.v1.CancelBacku
  * Use `create(CancelBackupJobRequestSchema)` to create a new message.
  */
 export const CancelBackupJobRequestSchema: GenMessage<CancelBackupJobRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 9);
+  messageDesc(file_skillhub_management_v1_backup, 14);
 
 /**
  * @generated from message skillhub.management.v1.CancelBackupJobResponse
@@ -253,7 +419,7 @@ export type CancelBackupJobResponse = Message<"skillhub.management.v1.CancelBack
  * Use `create(CancelBackupJobResponseSchema)` to create a new message.
  */
 export const CancelBackupJobResponseSchema: GenMessage<CancelBackupJobResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 10);
+  messageDesc(file_skillhub_management_v1_backup, 15);
 
 /**
  * @generated from message skillhub.management.v1.ReconcileBackupJobRequest
@@ -270,7 +436,7 @@ export type ReconcileBackupJobRequest = Message<"skillhub.management.v1.Reconcil
  * Use `create(ReconcileBackupJobRequestSchema)` to create a new message.
  */
 export const ReconcileBackupJobRequestSchema: GenMessage<ReconcileBackupJobRequest> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 11);
+  messageDesc(file_skillhub_management_v1_backup, 16);
 
 /**
  * @generated from message skillhub.management.v1.ReconcileBackupJobResponse
@@ -287,12 +453,28 @@ export type ReconcileBackupJobResponse = Message<"skillhub.management.v1.Reconci
  * Use `create(ReconcileBackupJobResponseSchema)` to create a new message.
  */
 export const ReconcileBackupJobResponseSchema: GenMessage<ReconcileBackupJobResponse> = /*@__PURE__*/
-  messageDesc(file_skillhub_management_v1_backup, 12);
+  messageDesc(file_skillhub_management_v1_backup, 17);
 
 /**
  * @generated from service skillhub.management.v1.BackupManagementService
  */
 export const BackupManagementService: GenService<{
+  /**
+   * @generated from rpc skillhub.management.v1.BackupManagementService.GetBackupSettings
+   */
+  getBackupSettings: {
+    methodKind: "unary";
+    input: typeof GetBackupSettingsRequestSchema;
+    output: typeof GetBackupSettingsResponseSchema;
+  },
+  /**
+   * @generated from rpc skillhub.management.v1.BackupManagementService.UpdateBackupSettings
+   */
+  updateBackupSettings: {
+    methodKind: "unary";
+    input: typeof UpdateBackupSettingsRequestSchema;
+    output: typeof UpdateBackupSettingsResponseSchema;
+  },
   /**
    * @generated from rpc skillhub.management.v1.BackupManagementService.GetBackupStatus
    */

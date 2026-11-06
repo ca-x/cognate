@@ -192,9 +192,14 @@ func (app *App) Close() error {
 
 func (app *App) closeRuntimeDependents() error {
 	var result error
-	if app.backups != nil {
+	if app.backupSettings != nil || app.backups != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		err := app.closeRuntimeResource("backup", func() error { return app.backups.Close(ctx) })
+		err := app.closeRuntimeResource("backup", func() error {
+			if app.backupSettings != nil {
+				return app.backupSettings.Close(ctx)
+			}
+			return app.backups.Close(ctx)
+		})
 		cancel()
 		if err != nil {
 			uncertainBackupApps.Store(app, struct{}{})

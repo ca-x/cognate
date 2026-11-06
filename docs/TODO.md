@@ -1,5 +1,9 @@
 # Cognate 后续任务
 
+- [x] 2026-11-06 导入可用性修复：本地文件名与大小、Magpie 原生后缀、分列筛选与批选、有界列表、通俗分组排除确认、来源/客户端/模型摘要；修复分组取消重勾改变通知顺序导致真实提交失败。Magpie 60 项与 cc-switch/OpenCode 八种布局浏览器回归通过，技术详情保留按需展开。
+- [x] 2026-11-06 管理员备份在线设置：页面启停、自动周期、S3 目标及凭据管理；无需重启，加密持久化、CAS 和任务忙/不明确门禁。专项与真实 Web 热启停验收通过，完整备份页面通过 88 项行为与 56 项布局检查；发布状态见 `RELEASE-v0.6.1-VERIFICATION.md`，不代表完整恢复已交付。
+- [x] GitHub token 获取及最小权限同步到来源页与 `GITHUB-SYNC.md`；OIDC 会话显示经过验证的 profile 名称，已关联当前 issuer 时不再显示重复绑定按钮。
+
 - [x] Web 工作流维护与 Server/LazyCat 0.5.0 发布：仓库列表优先、Radix 添加弹层、导入渐进展开、Agent/名称筛选、导航分组和模块预热；真实中英/主题/窄屏/键盘回归、Docker 与最终 LPK 完整核验通过，喵喵接受 version 4128（回执 onlineVersion 0.4.0）。限定本轮 Web 范围，不关闭整体产品 UI、原生 GUI 或原 backlog，见 `RELEASE-v0.5.0-VERIFICATION.md`。
 - [ ] 独立 Platform run `41814175840` 的 Darwin baseline observation 在 cleanup 与 evidence seal 失败；三系统原语通过，但该 run 不算完整通过。本轮未修改相关路径，保留失败待维护；不扩大客户端安装资格。
 

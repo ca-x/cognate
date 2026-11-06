@@ -412,6 +412,7 @@ func (*GetLoginOptionsRequest) Descriptor() ([]byte, []int) {
 type GetLoginOptionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OidcEnabled   bool                   `protobuf:"varint,1,opt,name=oidc_enabled,json=oidcEnabled,proto3" json:"oidc_enabled,omitempty"`
+	OidcIssuer    string                 `protobuf:"bytes,2,opt,name=oidc_issuer,json=oidcIssuer,proto3" json:"oidc_issuer,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -451,6 +452,13 @@ func (x *GetLoginOptionsResponse) GetOidcEnabled() bool {
 		return x.OidcEnabled
 	}
 	return false
+}
+
+func (x *GetLoginOptionsResponse) GetOidcIssuer() string {
+	if x != nil {
+		return x.OidcIssuer
+	}
+	return ""
 }
 
 type StartOIDCLoginRequest struct {
@@ -582,6 +590,7 @@ type CompleteOIDCLoginResponse struct {
 	SessionToken  string                 `protobuf:"bytes,1,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
 	ExpiresAtUnix int64                  `protobuf:"varint,2,opt,name=expires_at_unix,json=expiresAtUnix,proto3" json:"expires_at_unix,omitempty"`
 	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -633,6 +642,13 @@ func (x *CompleteOIDCLoginResponse) GetExpiresAtUnix() int64 {
 func (x *CompleteOIDCLoginResponse) GetUserId() string {
 	if x != nil {
 		return x.UserId
+	}
+	return ""
+}
+
+func (x *CompleteOIDCLoginResponse) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
 	}
 	return ""
 }
@@ -886,18 +902,21 @@ const file_skillhub_auth_v1_auth_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x0f\n" +
 	"\rLogoutRequest\"\x10\n" +
 	"\x0eLogoutResponse\"\x18\n" +
-	"\x16GetLoginOptionsRequest\"<\n" +
+	"\x16GetLoginOptionsRequest\"]\n" +
 	"\x17GetLoginOptionsResponse\x12!\n" +
-	"\foidc_enabled\x18\x01 \x01(\bR\voidcEnabled\"I\n" +
+	"\foidc_enabled\x18\x01 \x01(\bR\voidcEnabled\x12\x1f\n" +
+	"\voidc_issuer\x18\x02 \x01(\tR\n" +
+	"oidcIssuer\"I\n" +
 	"\x15StartOIDCLoginRequest\x120\n" +
 	"\x14link_current_account\x18\x01 \x01(\bR\x12linkCurrentAccount\"E\n" +
 	"\x16StartOIDCLoginResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\"\x1a\n" +
-	"\x18CompleteOIDCLoginRequest\"\x81\x01\n" +
+	"\x18CompleteOIDCLoginRequest\"\xa4\x01\n" +
 	"\x19CompleteOIDCLoginResponse\x12#\n" +
 	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\x12&\n" +
 	"\x0fexpires_at_unix\x18\x02 \x01(\x03R\rexpiresAtUnix\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\tR\x06userId\"\x18\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\x12!\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\"\x18\n" +
 	"\x16GetOIDCBindingsRequest\"F\n" +
 	"\vOIDCBinding\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\x03R\n" +

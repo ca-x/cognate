@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 )
 
 type issuerFixture struct {
+	displayName  string
 	server       *httptest.Server
 	challenge    string
 	nonce        string
@@ -87,7 +90,7 @@ func newIssuer(t *testing.T) *issuerFixture {
 				http.Error(writer, "invalid PKCE", http.StatusBadRequest)
 				return
 			}
-			claims := map[string]any{"iss": fixture.server.URL, "sub": fixture.subject, "aud": "test-client", "iat": time.Now().Unix(), "exp": time.Now().Add(time.Hour).Unix(), "nonce": fixture.nonce}
+			claims := map[string]any{"iss": fixture.server.URL, "sub": fixture.subject, "aud": "test-client", "iat": time.Now().Unix(), "exp": time.Now().Add(time.Hour).Unix(), "nonce": fixture.nonce, "name": fixture.displayName}
 			switch fixture.badClaim {
 			case "nonce":
 				claims["nonce"] = "wrong"
@@ -177,11 +180,16 @@ func begin(t *testing.T, manager *oidclogin.Manager, fixture *issuerFixture, bin
 	if fixture.nonce == "" || fixture.challenge == "" || address.Query().Get("code_challenge_method") != "S256" {
 		t.Fatal("OIDC request lacks nonce or PKCE")
 	}
+	scopes := strings.Fields(address.Query().Get("scope"))
+	if !slices.Contains(scopes, "openid") || !slices.Contains(scopes, "profile") || manager.Issuer() != fixture.server.URL {
+		t.Fatal("OIDC profile scope or configured issuer missing")
+	}
 	return result, address.Query().Get("state")
 }
 
 func TestOIDCLoginUsesOneTimeBrowserBoundHandoff(t *testing.T) {
 	fixture, service := newIssuer(t), testAuth(t)
+	fixture.displayName = "Cognate Reader"
 	manager, err := oidclogin.New(t.Context(), service, oidclogin.Config{Issuer: fixture.server.URL, ClientID: "test-client", PublicOrigin: "http://127.0.0.1:18999"})
 	if err != nil {
 		t.Fatal(err)
@@ -198,8 +206,8 @@ func TestOIDCLoginUsesOneTimeBrowserBoundHandoff(t *testing.T) {
 	if _, err := manager.Complete(t.Context(), stateValue, started.BrowserSecret, "issued-code"); !errors.Is(err, oidclogin.ErrLoginFailed) {
 		t.Fatalf("state replay: %v", err)
 	}
-	token, user, err := manager.Redeem(t.Context(), result)
-	if err != nil || user == "" {
+	token, user, name, err := manager.RedeemProfile(t.Context(), result)
+	if err != nil || user == "" || name != fixture.displayName {
 		t.Fatalf("handoff: %v", err)
 	}
 	if actual, err := service.Authenticate(t.Context(), token.Reveal()); err != nil || actual != user {

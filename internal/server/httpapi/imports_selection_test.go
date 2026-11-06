@@ -99,11 +99,13 @@ func TestImportSelectionPreviewRejectsMalformedView(test *testing.T) {
 		"unknown-notice":    func(view *importer.SelectionPreviewView) { view.Notices[0].Code = 99 },
 		"zero-notice-count": func(view *importer.SelectionPreviewView) { view.Notices[0].Count = 0 },
 		"repo-bound": func(view *importer.SelectionPreviewView) {
-			view.Repositories = make([]importer.SelectionRepositoryCandidate, 17)
+			view.Repositories = make([]importer.SelectionRepositoryCandidate, importer.MaxSelectionPreviewRepositories+1)
 		},
-		"skill-bound": func(view *importer.SelectionPreviewView) { view.Skills = make([]importer.SelectionSkillCandidate, 129) },
+		"skill-bound": func(view *importer.SelectionPreviewView) {
+			view.Skills = make([]importer.SelectionSkillCandidate, importer.MaxSelectionPreviewSkills+1)
+		},
 		"config-bound": func(view *importer.SelectionPreviewView) {
-			view.Configurations = make([]importer.SelectionConfigurationCandidate, 33)
+			view.Configurations = make([]importer.SelectionConfigurationCandidate, importer.MaxSelectionPreviewConfigurations+1)
 		},
 		"notice-bound": func(view *importer.SelectionPreviewView) { view.Notices = make([]state.ImportReceiptNotice, 2049) },
 	} {

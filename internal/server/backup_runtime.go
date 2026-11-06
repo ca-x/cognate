@@ -35,6 +35,10 @@ func openServerBackup(ctx context.Context, config Config, master []byte, service
 	if err != nil {
 		return nil, err
 	}
+	return openServerBackupSettings(ctx, config, master, service, settings)
+}
+
+func openServerBackupSettings(ctx context.Context, config Config, master []byte, service *library.Service, settings serverBackupSettings) (result *serverBackup, returnedError error) {
 	if settings.AutomaticIntervalSeconds > 0 {
 		hasAdministrator := false
 		for _, principal := range config.AdminUserIDs {

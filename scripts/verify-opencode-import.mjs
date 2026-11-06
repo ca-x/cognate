@@ -60,9 +60,20 @@ function checkReview(selector) {
   for (const field of ["OpenCode imported", "providerID", "@ai-sdk/openai-compatible", "https://opencode.example/v1", "Authorization", "opencode.value.01", "Model A", "9007199254740991", "4096", "text", "image"]) assert(text.includes(field), `review omitted ${field}`)
   assert(!text.includes("SYNTHETIC-PRIVATE-MARKER"))
 }
-function expandDetails() {
-  const count = evaluate(`(() => { const root = document.querySelector(${JSON.stringify(modern)}); const entries = [...root.querySelectorAll('details:not([open]) > summary')]; entries.forEach((node, index) => node.dataset.opencodeDetails = String(index)); return entries.length })()`)
-  for (let index = 0; index < count; index++) { browser(["focus", `[data-opencode-details="${index}"]`]); browser(["press", "Enter"]) }
+function expandDetails(selector = modern) {
+  for (let count = 0; count < 20; count++) {
+    const found = evaluate(`(() => { document.querySelectorAll('[data-opencode-details]').forEach(node => node.removeAttribute('data-opencode-details')); const root = document.querySelector(${JSON.stringify(selector)}); const summary = [...root.querySelectorAll('details:not([open]) > summary')].find(node => node.checkVisibility()); if (!summary) return false; summary.dataset.opencodeDetails = 'true'; return true })()`)
+    if (!found) return
+    browser(["focus", "[data-opencode-details]"])
+    browser(["press", "Enter"])
+    assert(evaluate("document.querySelector('[data-opencode-details]').parentElement.open"), "keyboard must open review details")
+  }
+  assert.fail("review details did not finish opening")
+}
+function checkSummary(selector = modern) {
+  const text = evaluate(`document.querySelector(${JSON.stringify(selector)})?.innerText ?? ''`)
+  for (const field of ["OpenCode imported", "OpenCode", "https://opencode.example/v1"]) assert(text.includes(field), `summary omitted ${field}`)
+  for (const field of ["sourceEnabled", "providerID", "options.present", "opencode.value.01"]) assert(!text.includes(field), `technical field ${field} must stay in optional details`)
 }
 async function uploadPreview(locale) {
   browser(["upload", `${modern} input[type=file]`, join(directory, "source.db")])
@@ -70,6 +81,7 @@ async function uploadPreview(locale) {
   role(locale === "en" ? "Upload and preview" : "上传并预览")
   previewCount++
   await until(() => evaluate(`document.querySelector(${JSON.stringify(modern)})?.textContent.includes('OpenCode imported')`), "OpenCode preview missing")
+  checkSummary()
   expandDetails()
 }
 try {
@@ -92,6 +104,8 @@ try {
   role("上传并预览")
   previewCount++
   await until(() => evaluate(`document.querySelector(${JSON.stringify(modern)})?.textContent.includes('OpenCode imported')`), "OpenCode preview missing")
+  checkSummary()
+  browser(["screenshot", join(output, "preview-summary.png")])
   expandDetails()
   checkReview(modern)
   assert.equal(evaluate(`document.querySelectorAll(${JSON.stringify(modern + ' [role=checkbox][aria-checked=true]')}).length`), 0)
@@ -113,15 +127,22 @@ try {
   const configurationID = evaluate(`([...document.querySelector(${JSON.stringify(modern)}).querySelectorAll('label')].find(node => node.textContent.includes('OpenCode imported'))).htmlFor`)
   browser(["focus", `[id=${JSON.stringify(configurationID)}]`])
   browser(["press", "Space"])
-  const noticeIDs = evaluate(`[...document.querySelectorAll(${JSON.stringify(modern + ' fieldset [role=checkbox]')})].map(node => node.id)`)
+  const noticeIDs = evaluate(`[...document.querySelectorAll(${JSON.stringify(modern + ' [role=checkbox][id*=notice-group]')})].map(node => node.id)`)
   for (const id of noticeIDs) { browser(["focus", `[id=${JSON.stringify(id)}]`]); browser(["press", "Space"]) }
   role("检查并确认本次选择")
   await until(() => evaluate("!!document.querySelector('[role=dialog]')"), "confirmation missing")
+  checkSummary("[role=dialog]")
+  browser(["screenshot", join(output, "confirmation-summary.png")])
+  expandDetails("[role=dialog]")
   checkReview("[role=dialog]")
+  browser(["screenshot", join(output, "confirmation-details.png")])
   browser(["press", "Escape"])
   await until(() => evaluate("!document.querySelector('[role=dialog]')"), "Escape did not dismiss")
   assert.equal((await control("/state"))["/skillhub.import.v1.ImportService/CommitImportSelection"] ?? 0, 0)
   role("检查并确认本次选择")
+  checkSummary("[role=dialog]")
+  expandDetails("[role=dialog]")
+  checkReview("[role=dialog]")
   role("确认导入所选三类项目")
   await until(() => evaluate(`document.querySelector(${JSON.stringify(modern)})?.textContent.includes('导入已完成')`), "commit did not complete")
   const counts = await control("/state")

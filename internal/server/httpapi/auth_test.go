@@ -56,8 +56,12 @@ func TestAuthHTTP(t *testing.T) {
 	server := httptest.NewServer(testHandler(t))
 	t.Cleanup(server.Close)
 	client := authv1connect.NewAuthServiceClient(server.Client(), server.URL)
+	options, err := client.GetLoginOptions(t.Context(), connect.NewRequest(&authv1.GetLoginOptionsRequest{}))
+	if err != nil || options.Msg.OidcEnabled || options.Msg.OidcIssuer != "" {
+		t.Fatal("unconfigured OIDC advertised an identity provider")
+	}
 	password := rand.Text()
-	_, err := client.Register(t.Context(), connect.NewRequest(&authv1.RegisterRequest{Username: "!", Password: password}))
+	_, err = client.Register(t.Context(), connect.NewRequest(&authv1.RegisterRequest{Username: "!", Password: password}))
 	if connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("invalid registration: %v", err)
 	}

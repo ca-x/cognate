@@ -290,6 +290,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   const file = useRef<File | null>(null)
   const bytes = useRef<Uint8Array | null>(null)
   const ticket = useRef<Uint8Array | null>(null)
+  const selectedFile = useRef<{ name: string; size: number } | undefined>(undefined)
   const active = useRef<{ controller: AbortController; write: boolean } | null>(null)
   const bindingRequest = useRef<AbortController | null>(null)
   const generation = useRef(0)
@@ -318,6 +319,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   }, [owner, queryClient])
 
   function releaseSource() {
+    selectedFile.current = undefined
     if (magpiePassword.current) magpiePassword.current.value = ""
     file.current = null
     bytes.current?.fill(0)
@@ -393,6 +395,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
       reset()
       if (selected.size === 0 || selected.size > selectionSources[source].maximumBytes) { setState((previous) => ({ ...previous, error: selected.size === 0 ? Code.InvalidArgument : Code.ResourceExhausted })); return }
       file.current = selected
+      selectedFile.current = { name: selected.name, size: selected.size }
       setHasFile(true)
     })
   }
@@ -556,7 +559,7 @@ function SelectionImportRepositories({ collectionBusy, onCollectingChange, onLeg
   }
 
   return <>
-    <ImportSelectionForm magpiePasswordRef={magpiePassword} source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
+    <ImportSelectionForm magpiePasswordRef={magpiePassword} selectedFile={selectedFile.current} source={source} state={state} hasFile={hasFile} collectionBusy={collectionBusy} statusPending={statusPending} bindingChoices={bindingChoices} bindingRepositories={bindingRepositories} bindingRepositoryIds={bindingRepositoryIds} bindingPending={bindingPending}
       onSource={(value) => requestReset(() => { reset(); setSource(value) })} onFile={chooseNewFile} onPreview={() => void previewSelection()}
       onChoose={(group, id, checked) => setState((value) => chooseSelection(value, group, id, checked))} onAcknowledge={(id, checked) => setState((value) => acknowledgeSelection(value, id, checked))} onOption={updateOption} onBindings={(id) => void loadBindings(id)} onBindingRepository={(id, repositoryId) => void loadBindings(id, repositoryId)}
       onConfirm={() => { if (canConfirmSelection(current.current) && !collectionBusy) setState((value) => ({ ...value, phase: "confirming" })) }} onConfirmClose={() => { if (current.current.phase === "confirming") setState((value) => ({ ...value, phase: "ready" })) }} onCommit={() => void commitSelection()}

@@ -81,7 +81,11 @@ WithCandidate 及 root 后置准入成功后才 ready，返回后另借 EX 才�
 
 ## 显式启用
 
-默认关闭，不创建备份目录、不改变普通实例的维护模式。本阶段仅 Linux 有隔离快照 worker 运行资格；其他平台显式启用时拒绝启动，仍保留默认模式的 CGO0 交叉构建。启用后 Store 与归档缓存同时使用既有 managed 模式，任何初始化失败均不回退普通模式。
+备份默认关闭。本阶段仅 Linux 有隔离快照 worker 运行资格；支持的平台在启动时即成对初始化 managed Store 与归档缓存，并创建私有 `backup/settings` 目录，以便原先关闭的实例也能无重启启用；关闭时不初始化控制日志或加密暂存。其他平台显式启用时拒绝启动，仍保留默认模式的 CGO0 交叉构建。任何 managed 初始化失败均不回退普通模式。
+
+**Linux 的同一 data directory 现在只允许一个 server 进程，即使备份关闭也一样。** 这是无重启热启用所需的受管 writer 排空边界，不再支持旧默认模式的多 server 共用数据目录。第二进程在既有约1秒维护门预算内拒绝，并给出 `another server is using this data directory or maintenance ownership is unavailable`；不会降级为 unmanaged 来绕过锁。首进程保持健康，完整关闭后新进程可以正常接替，既有 master key 不覆盖。运行根 SH/EX 原语本身不变，也不代表支持不参与维护协议的旧程序并发写入；懒猫部署应继续保持 `multi_instance: false`。
+
+管理员可以通过下述 RPC 直接输入 S3 凭据并热应用，不需要提供 S3 配置文件。以下 CLI 文件配置仅为没有已保存管理员设置时的初始化途径；存在已保存设置后以其为准。
 
 ```
 cognate-server --data-dir /private/cognate/data \
@@ -115,7 +119,7 @@ cognate-server --data-dir /private/cognate/data \
 
 ## 自动备份策略
 
-`automatic_interval_seconds` 省略或0时关闭；开启仅接受60–86400的整数秒，不新增CLI开关、公开配置编辑或Web toggle。备份本身仍需显式 `--backup-enabled`。开启自动策略必须配置至少一个规范非零管理员账号ID（包含既有bootstrap解析结果），否则启动失败；部署者须确保该账号能够通过既有站内认证登录。
+`automatic_interval_seconds` 省略或0时关闭；开启仅接受60–86400的整数秒。管理员可通过设置 RPC 热启用备份及修改自动策略，不要求重启或 `--backup-enabled`。开启自动策略必须配置至少一个规范非零管理员账号ID（包含既有bootstrap解析结果），否则启动失败；部署者须确保该账号能够通过既有站内认证登录。
 
 以下是主线程技术裁定的本期策略，不是对用户原话的引用：采用进程内monotonic固定延迟，真实App.Serve开始后先等完整interval；每次检查完成后再等完整interval。无jitter、无积压、无补跑，失败退避为固定interval。重启不保留due slot、不追赶停机时段，不承诺跨重启exactly-once调度；这明确替代旧规范的持久UTC slot要求。只Open App不会开始自动任务。
 
@@ -129,7 +133,24 @@ Web为interrupted任务保留原取消确认入口，包括崩溃前已记录Can
 
 GetBackupStatus的automatic_enabled只表示配置已开启，不是执行健康灯或下次成功承诺；Web接受该既有字段并区分自动+手动/仅手动。活动、待对账或容量已满时可暂停产生新任务。历史满额及crash orphan磁盘治理不在本片自动清理；最短间隔持续成功也会在1000条后停止产生新任务，不能把有限控制日志当无限备份服务。
 
-Close先禁止新登记、停止并有界等待timer生产者，再取消/排空Controller，最后沿原App runtime链释放资源及运行根lease。并发Serve尾Stop和App.Close共享同一done，不明时保留强引用/SH，不重试未知关闭。禁用/回滚需正常停服排空；换旧binary前还须从私有JSON删除新字段（旧严格解析器连值0也不识别），不能删除或重建控制历史。
+Close先禁止新登记、停止并有界等待timer生产者，再取消/排空Controller，最后沿原App runtime链释放资源及运行根lease。并发Serve尾Stop和App.Close共享同一done，不明时保留强引用/SH，不重试未知关闭。日常启停和设置切换使用下述热应用，无需停服；换旧binary不属于设置热应用，仍需正常排空，并确认旧版本配置格式兼容，不能删除或重建控制历史来回退。
+
+## 管理员设置热应用
+
+`GetBackupSettings` 返回管理员专属配置视图及正数 `revision`，不返回 access key ID、secret 或 session token，只有 `credentials_configured` 标志。`UpdateBackupSettings` 必须包含当前 `expected_revision` 和完整 `settings`；修订过期返回 `aborted`，不会覆盖其他管理员的更新。资源预算字段为0时沿用当前值（首次为上述默认值）；`settings.revision` 和 `credentials_configured` 是只读显示字段，以 `expected_revision` 为准。
+
+凭据通过独立的只写请求字段提交：`credentials_action="keep"` 必须不带三个凭据字段，保留已保存凭据；`"replace"` 要求完整 access key ID 与 secret，并可带 session token，不带 token 表示清除旧 token。不接受空动作或在 keep 时夹带值。proto 字段带 `debug_redact`，Go 非生成扩展额外保护 fmt、slog 与普通 JSON 格式化；HTTP handler 返回时丢弃敏感请求字段。不要显式调用请求的 protobuf `String()`/prototext 或记录原始 HTTP body：当前 protobuf Go runtime 不按 debug_redact 自动遮盖它们。
+
+`gen/skillhub/management/v1/backup_redaction.go` 是手写的同包脱敏扩展，不是生成器输出；
+CI 仅对这一确切文件排除目录生成比对，其余 Go/Connect/TS 输出仍逐字核验。
+
+目标参数通过既有 S3 校验，endpoint 只能是无 userinfo、query 或 fragment 的 HTTPS URL。恢复 key 通过 `recovery_key_file` 指定服务器上既有的受信任绝对路径，继续严格校验私有目录、拥有者、regular file、链接数和权限；必须恰为32 raw bytes，且与 server master key 独立。程序不生成、替换或覆盖恢复 key 文件；浏览器不上传 key 内容。首次启用或更换配置前应由运维创建并离线备份它。只关闭且保持原后端配置时，不要求重新读取已加载的恢复 key。
+
+配置保存在 `backup/settings/settings.enc`，0600 文件、0700 目录；使用由 master key 与专用域派生的 AES-256-GCM key、随机 nonce 和固定 AAD `cognate/server-backup/settings/v1`。先写独占临时文件并 Sync/Close，再原子 Rename 和目录 Sync。格式/认证损坏或不安全文件拒绝打开，不回退 CLI 配置、不覆盖坏文件。原 CLI JSON 不被修改；将凭据从 CLI 移到 UI 后，运维仍应安全清理自行保留的明文文件。
+
+真实运行期由动态 backend facade 串行化任务 API、自动登记及重配置。只在没有活动任务、没有任一 generation 的 interrupted/commit_unknown 且控制状态确定时，才正常关闭并排空旧运行资源，打开新目标/key/engine/controller，持久提交设置并发布新修订。忙时返回 `resource_exhausted`，不会取消任务来强行改配置；控制不明返回 `unavailable`。明确的提交前失败会恢复旧配置；关闭或 Rename/Sync 结果不明时隔离能力、保留依赖，不宣称应用成功，也不自动重试未知关闭。
+
+启用、禁用、S3 目标/凭据/key 路径与自动间隔的成功更新均在当前进程立即生效，原先关闭的部署也支持。禁用不删除远端对象、任务历史或恢复密钥。所有成功设置变更会重新等待完整自动间隔；旧到期事件按 revision 丢弃，没有补跑。自动关闭/再开启不永久关闭调度器。generation HMAC 与历史 policy 保持原算法：仅调度间隔不改 generation，目标/凭据/key/资源或版本变更仍隔离旧任务，不能把旧任务对账请求导向新目标。保存只验证本地配置及资源构造，不冒充远端认证成功或真实备份成功；S3 可用性仍由后续真实任务证明。
 
 ## 管理员接口与任务语义
 
@@ -139,6 +160,8 @@ Close先禁止新登记、停止并有界等待timer生产者，再取消/排空
 
 | RPC | 用途 |
 | --- | --- |
+| `GetBackupSettings` | 管理员读取当前设置、凭据存在标志及 revision，不返回凭据 |
+| `UpdateBackupSettings` | revision CAS、凭据 keep/replace，空闲确定状态下无重启热应用 |
 | `GetBackupStatus` | 管理员读取是否启用及automatic_enabled配置状态，固定实例作用域；restore_available仍为false |
 | `StartBackup` | 以客户端生成的规范非零 UUID `request_id` 登记任务，相同主体/输入幂等 |
 | `GetBackupJob` | 按 opaque job UUID 读取安全任务状态 |

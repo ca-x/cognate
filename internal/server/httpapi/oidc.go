@@ -18,7 +18,7 @@ const oidcStateCookie = "skillhub_oidc_state"
 const oidcResultCookie = "skillhub_oidc_result"
 
 func (handler *authHandler) GetLoginOptions(context.Context, *connect.Request[authv1.GetLoginOptionsRequest]) (*connect.Response[authv1.GetLoginOptionsResponse], error) {
-	return connect.NewResponse(&authv1.GetLoginOptionsResponse{OidcEnabled: handler.oidc != nil}), nil
+	return connect.NewResponse(&authv1.GetLoginOptionsResponse{OidcEnabled: handler.oidc != nil, OidcIssuer: handler.oidc.Issuer()}), nil
 }
 
 func (handler *authHandler) StartOIDCLogin(ctx context.Context, request *connect.Request[authv1.StartOIDCLoginRequest]) (*connect.Response[authv1.StartOIDCLoginResponse], error) {
@@ -77,11 +77,11 @@ func (handler *authHandler) CompleteOIDCLogin(ctx context.Context, request *conn
 		return nil, oidcNotConfigured()
 	}
 	proof := uniqueCookie(request.Header(), oidcResultCookie)
-	token, user, err := handler.oidc.Redeem(ctx, proof)
+	token, user, name, err := handler.oidc.RedeemProfile(ctx, proof)
 	if err != nil {
 		return nil, oidcError(ctx, err)
 	}
-	response := connect.NewResponse(&authv1.CompleteOIDCLoginResponse{SessionToken: token.Reveal(), ExpiresAtUnix: token.ExpiresAt().Unix(), UserId: user})
+	response := connect.NewResponse(&authv1.CompleteOIDCLoginResponse{SessionToken: token.Reveal(), ExpiresAtUnix: token.ExpiresAt().Unix(), UserId: user, DisplayName: name})
 	response.Header().Add("Set-Cookie", handler.oidcCookie(oidcResultCookie, "", authv1connect.AuthServiceCompleteOIDCLoginProcedure, -1).String())
 	return response, nil
 }

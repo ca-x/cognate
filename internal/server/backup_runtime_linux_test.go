@@ -82,11 +82,11 @@ func TestServerBackupAppDefaultAndStartupFailure(test *testing.T) {
 				test.Fatal(err)
 			}
 			defer app.Close()
-			if app.store.MaintenanceManaged() != config.BackupEnabled || (app.backups != nil) != config.BackupEnabled {
+			if !app.store.MaintenanceManaged() || (app.backups != nil) != config.BackupEnabled {
 				test.Fatal("App backup and maintenance configuration diverged")
 			}
 			if mode == "disabled" {
-				if _, err := os.Stat(filepath.Join(config.DataDirectory, "backup")); !errors.Is(err, os.ErrNotExist) {
+				if _, err := os.Stat(filepath.Join(config.DataDirectory, "backup", "control")); !errors.Is(err, os.ErrNotExist) {
 					test.Fatal("disabled backup created control state")
 				}
 			}
@@ -174,6 +174,9 @@ func TestServerBackupAppTLSControl(test *testing.T) {
 		test.Fatal("App did not conditionally publish bounded ciphertext with complete last")
 	}
 	for path, contents := range objects {
+		if !strings.Contains(path, "/backup-tests/hot-applied/") {
+			test.Fatal("remote upload did not use the hot-applied target")
+		}
 		if bytes.Contains(contents, []byte("synthetic-backup-password-71")) || bytes.Contains(contents, bytes.Repeat([]byte{31}, 32)) || bytes.Contains(contents, bytes.Repeat([]byte{57}, 32)) {
 			test.Fatal("private key or administrator password reached the remote target")
 		}
@@ -214,6 +217,14 @@ func TestServerBackupAppTLSWorker(test *testing.T) {
 			test.Fatal("enabled backup status inaccurate or cacheable", err)
 		}
 		if round == 0 {
+			settings, err := client.GetBackupSettings(test.Context(), backupRPCRequest(&managementv1.GetBackupSettingsRequest{}, token))
+			if err != nil {
+				test.Fatal(err)
+			}
+			settings.Msg.Settings.Prefix += "/hot-applied"
+			if _, err := client.UpdateBackupSettings(test.Context(), backupRPCRequest(&managementv1.UpdateBackupSettingsRequest{ExpectedRevision: settings.Msg.Settings.Revision, Settings: settings.Msg.Settings, CredentialsAction: "keep"}, token)); err != nil {
+				test.Fatal("real TLS target could not be hot swapped", err)
+			}
 			registration, err := authentication.Register(test.Context(), connect.NewRequest(&authv1.RegisterRequest{Username: "backup-ordinary", Password: "synthetic-ordinary-password-73"}))
 			if err != nil || registration.Msg.UserId == "" {
 				test.Fatal("ordinary user creation failed", err)

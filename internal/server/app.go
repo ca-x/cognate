@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 	"uuid"
@@ -25,6 +26,7 @@ import (
 	"github.com/ca-x/cognate/internal/server/importer"
 	"github.com/ca-x/cognate/internal/server/library"
 	"github.com/ca-x/cognate/internal/server/logging"
+	"github.com/ca-x/cognate/internal/server/maintenance"
 	"github.com/ca-x/cognate/internal/server/mcpaccess"
 	"github.com/ca-x/cognate/internal/server/mcpserver"
 	"github.com/ca-x/cognate/internal/server/nativeconsumer"
@@ -65,6 +67,7 @@ type App struct {
 	runtime          appRuntime
 	cache            *library.ArchiveCache
 	backups          *serverBackup
+	backupSettings   *backupSettingsManager
 	logs             *logging.Manager
 	store            *state.Store
 	handler          http.Handler
@@ -196,10 +199,14 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 	if hooks.store != nil {
 		openStore = hooks.store
 	}
-	store, err := openStore(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: config.BackupEnabled, Runtime: app.runtime.lease})
+	managedBackup := runtime.GOOS == "linux" && maintenance.CheckPlatform(ctx) == nil
+	store, err := openStore(ctx, filepath.Join(config.DataDirectory, "server.db"), key, state.Options{MaintenanceManaged: managedBackup, Runtime: app.runtime.lease})
 	app.store = store
 	if err != nil {
 		app.markRuntimeUncertain()
+		if managedBackup && errors.Is(err, maintenance.ErrLock) {
+			return nil, fmt.Errorf("another server is using this data directory or maintenance ownership is unavailable: %w", err)
+		}
 		return nil, err
 	}
 	service, err := auth.NewService(store, key)
@@ -240,7 +247,7 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 			return nil, err
 		}
 	}
-	cache, err := library.OpenArchiveCacheWithOptions(ctx, filepath.Join(config.DataDirectory, "archives"), library.CacheOptions{MaxBytes: config.ArchiveCacheBytes, MaintenanceManaged: config.BackupEnabled})
+	cache, err := library.OpenArchiveCacheWithOptions(ctx, filepath.Join(config.DataDirectory, "archives"), library.CacheOptions{MaxBytes: config.ArchiveCacheBytes, MaintenanceManaged: managedBackup})
 	app.cache = cache
 	if err != nil {
 		app.markRuntimeUncertain()
@@ -269,12 +276,15 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 			return nil, err
 		}
 	}
-	if config.BackupEnabled {
-		app.backups, err = openServerBackup(ctx, config, key, collection)
+	if managedBackup {
+		app.backupSettings, err = openBackupSettingsManager(ctx, config, key, collection)
 		if err != nil {
-			app.markRuntimeUncertain()
+			if !errors.Is(err, ErrBackupSettingsOwned) {
+				app.markRuntimeUncertain()
+			}
 			return nil, err
 		}
+		app.backups = app.backupSettings.current
 	}
 	app.mcpConfiguration, err = httpapi.NewMCPConfigurationHandler(service, store)
 	if err != nil {
@@ -327,8 +337,8 @@ func openApp(ctx context.Context, config Config, hooks appRuntimeHooks) (result 
 		return nil, fmt.Errorf("cannot initialize server logging")
 	}
 	options := httpapi.Options{MCPConfiguration: app.mcpConfiguration, Logging: app.logs, AdminUserIDs: config.AdminUserIDs, PublicOrigin: config.PublicOrigin, Store: store, WebUI: web.Handler(), GitHubDevice: device, OIDC: login, Library: collection, Packs: distribution, MCPAccess: access, MCP: app.mcp, PublicCatalog: app.public, Imports: app.imports, Configuration: configuration.New(store), NativeConfiguration: app.native}
-	if app.backups != nil {
-		options.Backups = app.backups.controller
+	if app.backupSettings != nil {
+		options.Backups = app.backupSettings
 	}
 	app.handler = httpapi.NewWithOptions(service, options)
 	return app, nil
@@ -399,14 +409,14 @@ func (app *App) Serve(ctx context.Context, listener net.Listener) (result error)
 			}
 		}()
 	}
-	if app.backups != nil {
-		if err := app.backups.controller.StartAutomatic(ctx); err != nil {
+	if app.backupSettings != nil {
+		if err := app.backupSettings.StartAutomatic(ctx); err != nil {
 			return err
 		}
 		defer func() {
 			stopContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			if err := app.backups.controller.StopAutomatic(stopContext); err != nil {
+			if err := app.backupSettings.StopAutomatic(stopContext); err != nil {
 				app.markRuntimeUncertain()
 				result = errors.Join(result, err)
 			}

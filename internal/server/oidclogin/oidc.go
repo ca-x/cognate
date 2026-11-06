@@ -15,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/ca-x/cognate/internal/server/auth"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -58,6 +60,7 @@ type transaction struct {
 type loginResult struct {
 	token   auth.SessionToken
 	user    string
+	name    string
 	expires time.Time
 	ready   bool
 }
@@ -80,6 +83,13 @@ type Manager struct {
 
 func (*Manager) String() string   { return "[redacted OpenID Connect manager]" }
 func (*Manager) GoString() string { return "[redacted OpenID Connect manager]" }
+
+func (manager *Manager) Issuer() string {
+	if manager == nil {
+		return ""
+	}
+	return manager.issuer
+}
 
 type limitedBody struct {
 	io.Reader
@@ -187,7 +197,7 @@ func New(ctx context.Context, service *auth.Service, config Config) (*Manager, e
 	if config.ClientSecret == "" {
 		providerEndpoint.AuthStyle = oauth2.AuthStyleInParams
 	}
-	oauthConfig := &oauth2.Config{ClientID: config.ClientID, ClientSecret: config.ClientSecret, RedirectURL: config.PublicOrigin + CallbackPath, Scopes: []string{oidc.ScopeOpenID}, Endpoint: providerEndpoint}
+	oauthConfig := &oauth2.Config{ClientID: config.ClientID, ClientSecret: config.ClientSecret, RedirectURL: config.PublicOrigin + CallbackPath, Scopes: []string{oidc.ScopeOpenID, "profile"}, Endpoint: providerEndpoint}
 	verifier := provider.VerifierContext(oidc.ClientContext(context.Background(), client), &oidc.Config{ClientID: config.ClientID, SupportedSigningAlgs: []string{"RS256", "ES256", "ES384", "ES512", "EdDSA"}})
 	initialized = true
 	return &Manager{calls: make(map[string]context.CancelFunc), pending: make(map[string]transaction), results: make(map[string]loginResult), config: oauthConfig, verifier: verifier, client: client, auth: service, issuer: config.Issuer, secure: origin.Scheme == "https", network: network}, nil
@@ -300,7 +310,10 @@ func (manager *Manager) Complete(ctx context.Context, stateValue, browser, code 
 		return "", ErrLoginFailed
 	}
 	var claims struct {
-		AuthorizedParty string `json:"azp"`
+		AuthorizedParty   string `json:"azp"`
+		Name              string `json:"name"`
+		PreferredUsername string `json:"preferred_username"`
+		Nickname          string `json:"nickname"`
 	}
 	if err := identity.Claims(&claims); err != nil || (len(identity.Audience) > 1 || claims.AuthorizedParty != "") && claims.AuthorizedParty != manager.config.ClientID {
 		return "", ErrLoginFailed
@@ -330,14 +343,29 @@ func (manager *Manager) Complete(ctx context.Context, stateValue, browser, code 
 		delete(manager.results, resultID)
 		return "", ErrLoginFailed
 	}
-	manager.results[resultID] = loginResult{token: local, user: user, expires: time.Now().Add(time.Minute), ready: true}
+	manager.results[resultID] = loginResult{token: local, user: user, name: displayName(claims.Name, claims.PreferredUsername, claims.Nickname), expires: time.Now().Add(time.Minute), ready: true}
 	return resultID, nil
 }
 
 func (manager *Manager) Redeem(ctx context.Context, proof string) (auth.SessionToken, string, error) {
+	token, user, _, err := manager.RedeemProfile(ctx, proof)
+	return token, user, err
+}
+
+func displayName(values ...string) string {
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" && len(value) <= 128 && utf8.ValidString(value) && !strings.ContainsFunc(value, func(character rune) bool { return unicode.IsControl(character) || unicode.Is(unicode.Cf, character) }) {
+			return value
+		}
+	}
+	return ""
+}
+
+func (manager *Manager) RedeemProfile(ctx context.Context, proof string) (auth.SessionToken, string, string, error) {
 	ctx, done, err := manager.enter(ctx)
 	if err != nil {
-		return auth.SessionToken{}, "", err
+		return auth.SessionToken{}, "", "", err
 	}
 	defer done()
 	manager.mutex.Lock()
@@ -348,12 +376,12 @@ func (manager *Manager) Redeem(ctx context.Context, proof string) (auth.SessionT
 	}
 	manager.mutex.Unlock()
 	if !found || !result.ready {
-		return auth.SessionToken{}, "", ErrLoginFailed
+		return auth.SessionToken{}, "", "", ErrLoginFailed
 	}
 	if _, err := manager.auth.Authenticate(ctx, result.token.Reveal()); err != nil {
-		return auth.SessionToken{}, "", ErrLoginFailed
+		return auth.SessionToken{}, "", "", ErrLoginFailed
 	}
-	return result.token, result.user, nil
+	return result.token, result.user, result.name, nil
 }
 
 func (manager *Manager) Close() {

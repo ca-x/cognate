@@ -451,7 +451,7 @@ func TestBackupBrowserFixture(test *testing.T) {
 	}
 	defer app.Close()
 	if automatic {
-		if err := app.backups.controller.StartAutomatic(done); err != nil {
+		if err := app.backupSettings.StartAutomatic(done); err != nil {
 			test.Fatal(err)
 		}
 	}
@@ -472,7 +472,7 @@ func TestBackupBrowserFixture(test *testing.T) {
 	defer fixture.disabled.Close()
 	fixture.control = httptest.NewServer(fixture.controlHandler(test))
 	defer fixture.control.Close()
-	data, err := json.Marshal(map[string]any{"url": fixture.public.URL, "disabledURL": fixture.disabled.URL, "controlURL": fixture.control.URL, "capability": fixture.capability, "username": fixture.administrator, "password": fixture.adminPassword, "ordinaryUsername": fixture.ordinary, "ordinaryPassword": fixture.userPassword})
+	data, err := json.Marshal(map[string]any{"url": fixture.public.URL, "disabledURL": fixture.disabled.URL, "controlURL": fixture.control.URL, "capability": fixture.capability, "username": fixture.administrator, "password": fixture.adminPassword, "ordinaryUsername": fixture.ordinary, "ordinaryPassword": fixture.userPassword, "s3Endpoint": storage.URL, "recoveryKeyFile": config.BackupRecoveryKeyFile})
 	if err != nil || os.WriteFile(filepath.Join(directory, "ready.json"), data, 0600) != nil {
 		test.Fatal("private fixture readiness unavailable")
 	}

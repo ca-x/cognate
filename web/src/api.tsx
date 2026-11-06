@@ -129,7 +129,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     window.history.replaceState(window.history.state, "", address)
     if (state !== "complete") { setLoginNotice("OpenID Connect 登录未完成，请重新开始。"); setCompletingLogin(false); return }
     void value.auth.completeOIDCLogin({}).then((result) => {
-      setSession({ token: result.sessionToken, userId: result.userId, username: "OpenID Connect" })
+      setSession({ token: result.sessionToken, userId: result.userId, username: result.displayName || `OIDC · ${result.userId.slice(0, 8)}` })
     }).catch(() => setLoginNotice("OpenID Connect 登录已失效，请重新开始。")).finally(() => setCompletingLogin(false))
   }, [value.auth, setSession])
   return <QueryClientProvider client={queryClient}><Api value={value}>{children}</Api></QueryClientProvider>

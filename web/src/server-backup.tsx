@@ -1,4 +1,5 @@
 import "./server-backup-i18n"
+import { BackupSettingsPanel } from "./server-backup-settings"
 import "./server-backup.css"
 import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { Code, ConnectError } from "@connectrpc/connect"
@@ -169,6 +170,7 @@ function BackupWorkspace({ owner, client }: { owner: string; client: BackupClien
   return <div className="backup-page">
     <div className="page-heading"><div><h1>{t("title")}</h1><p>{t("introduction")}</p></div><Button variant="outline" disabled={status.isFetching || busy} onClick={() => { void refresh() }}><RefreshCw size={16} aria-hidden="true" />{t(status.isFetching ? "refreshing" : "refresh")}</Button></div>
     {status.isPending ? <p role="status">{t("loading")}</p> : statusCode === Code.PermissionDenied ? <section className="backup-panel"><ShieldCheck className="backup-emblem" size={24} aria-hidden="true" /><h2>{t("restricted")}</h2><p className="backup-help">{t("restrictedHelp")}</p><p className="backup-identity"><span>{t("identity")}</span><code>{owner}</code></p></section> : status.isError || !status.data ? <p className="error-message" role="alert">{t(statusCode === Code.Unimplemented ? "unsupported" : statusCode === Code.DataLoss ? "invalidResponse" : "unavailable")}</p> : <>
+      <BackupSettingsPanel owner={owner} client={client} onSaved={() => { void refresh() }} />
       {!status.data.enabled ? <section className="backup-panel"><LockKeyhole className="backup-emblem" size={24} aria-hidden="true" /><h2>{t("disabled")}</h2><p className="backup-help">{t("disabledHelp")}</p></section> : <>
         <section className="backup-panel" aria-labelledby="backup-tasks-heading">
           <div className="backup-section-heading"><div><span className="backup-mode"><Database size={14} aria-hidden="true" />{t(status.data.automaticEnabled ? "automaticMode" : "manualMode")}</span><h2 id="backup-tasks-heading" ref={historyHeading} tabIndex={-1}>{t("history")}</h2><p className="backup-help">{t("historyHelp")}</p>{status.data.automaticEnabled && <p className="backup-help">{t("automaticHelp")}</p>}</div>{confirmStart()}</div>
@@ -186,7 +188,7 @@ function BackupWorkspace({ owner, client }: { owner: string; client: BackupClien
           {history.length >= backupMaxPages && tasks.isSuccess && tasks.data.nextCursor && <p className="backup-help">{t("pageLimit")}</p>}
         </section>
       </>}
-      <div className="backup-context"><section className="backup-panel"><ShieldCheck className="backup-emblem" size={22} aria-hidden="true" /><h2>{t("boundaries")}</h2><p className="backup-help">{t("scopeHelp")}</p><p className="backup-help">{t("restoreHelp")}</p><p className="backup-help">{t("reconcileHelp")}</p></section><section className="backup-panel"><LockKeyhole className="backup-emblem" size={22} aria-hidden="true" /><h2>{t("deployment")}</h2><p className="backup-help">{t("deploymentHelp")}</p><ul className="backup-config-flags"><li><code>--backup-enabled</code></li><li><code>--backup-s3-config-file</code></li><li><code>--backup-recovery-key-file</code></li></ul></section></div>
+      <div className="backup-context"><section className="backup-panel"><ShieldCheck className="backup-emblem" size={22} aria-hidden="true" /><h2>{t("boundaries")}</h2><p className="backup-help">{t("scopeHelp")}</p><p className="backup-help">{t("restoreHelp")}</p><p className="backup-help">{t("reconcileHelp")}</p></section><section className="backup-panel"><LockKeyhole className="backup-emblem" size={22} aria-hidden="true" /><h2>{t("deployment")}</h2><p className="backup-help">{t("deploymentHelp")}</p></section></div>
     </>}
   </div>
 }

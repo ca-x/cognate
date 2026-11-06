@@ -12,7 +12,7 @@ const directory = mkdtempSync(join(output, "fixture-"))
 const home = join(directory, "home")
 mkdirSync(home, { mode: 0o700 })
 const log = openSync(join(output, "fixture.log"), "w", 0o600)
-const fixture = spawn(resolve(fixtureBinary), ["-test.run=^TestNPXSelectionBrowserFixture$", "-test.v", "-test.timeout=180s"], { env: { ...process.env, HOME: home, COGNATE_NPX_SELECTION_DIR: directory }, stdio: ["ignore", log, log] })
+const fixture = spawn(resolve(fixtureBinary), ["-test.run=^TestNPXSelectionBrowserFixture$", "-test.v", "-test.timeout=300s"], { env: { ...process.env, HOME: home, COGNATE_NPX_SELECTION_DIR: directory }, stdio: ["ignore", log, log] })
 const terminal = new Promise((done) => fixture.once("exit", (code, signal) => done({ code, signal })))
 const session = `magpie-fix-${process.pid}-${Date.now()}`
 const delay = (duration) => new Promise((done) => setTimeout(done, duration))
@@ -31,11 +31,11 @@ const password = "synthetic-magpie-backup-password"
 const salt = Buffer.alloc(16, 7), nonce = Buffer.alloc(12, 9)
 const cipher = createCipheriv("aes-256-gcm", pbkdf2Sync(password, salt, 600000, 32, "sha256"), nonce)
 cipher.setAAD(Buffer.from(`magpie-backup/1/pbkdf2-sha256/600000/${salt.toString("hex")}`))
-const bundle = { version: 2, providers: [{ key: "SYNTHETIC-PRIVATE-KEY" }], library: { skills: [{ name: "review", source: { kind: "github", repo: "example/toolkit", path: "skills/review" }, agents: [], files: { "SKILL.md": "SYNTHETIC-FILE-CONTENT" } }] } }
+const bundle = { version: 2, providers: [{ key: "SYNTHETIC-PRIVATE-KEY" }], library: { skills: Array.from({ length: 60 }, (_, index) => ({ name: `review-${String(index).padStart(2, "0")}`, source: { kind: "github", repo: "example/toolkit", path: `skills/review-${index}` }, agents: [], files: { "SKILL.md": "SYNTHETIC-FILE-CONTENT" } })) } }
 const data = Buffer.concat([cipher.update(JSON.stringify(bundle)), cipher.final(), cipher.getAuthTag()])
 const envelope = JSON.stringify({ format: "magpie-backup", version: 1, kdf: "pbkdf2-sha256", iterations: 600000, salt: salt.toString("base64"), nonce: nonce.toString("base64"), data: data.toString("base64") })
 function selectFile() {
-  evaluate(`(() => { const input = document.querySelector('input[type=file]'); const transfer = new DataTransfer(); transfer.items.add(new File([${JSON.stringify(envelope)}], 'synthetic.magpie-backup', {type:'application/json'})); input.files = transfer.files; input.dispatchEvent(new Event('change', {bubbles:true})); return true })()`)
+  evaluate(`(() => { const input = document.querySelector('input[type=file]'); const transfer = new DataTransfer(); transfer.items.add(new File([${JSON.stringify(envelope)}], 'magpie-2026-11-06.magpie-backup', {type:'application/json'})); input.files = transfer.files; input.dispatchEvent(new Event('change', {bubbles:true})); return true })()`)
 }
 try {
   await until(() => existsSync(join(directory, "ready.json")), "fixture not ready")
@@ -59,8 +59,11 @@ try {
   browser(["focus", ".repository-import > summary"])
   browser(["press", "Enter"])
   assert(evaluate("document.querySelector('.repository-import').open"), "import disclosure did not open")
+  assert.equal(evaluate("document.querySelectorAll('[role=checkbox][aria-checked=true]').length"), 0, "no import category may be selected by default")
   evaluate(`window.__importBodies=[]; const originalFetch=window.fetch; window.fetch=async function(input,init){const request=new Request(input,init); if(request.url.endsWith('/PreviewImportSelection')) {let text=new TextDecoder().decode(await request.clone().arrayBuffer()); if(request.headers.get('Content-Type')?.includes('json')) text=atob(JSON.parse(text).sourceData ?? ''); window.__importBodies.push(text)} return originalFetch.call(this,input,init)}`)
   selectFile()
+  assert(evaluate("document.querySelector('input[type=file]').accept.includes('.magpie-backup')"), "native Magpie extension must be selectable")
+  assert(evaluate("document.body.innerText.includes('magpie-2026-11-06.magpie-backup')"), "selected filename must be visible locally")
   assert(evaluate("document.querySelector('.repository-import').open"), "file selection closed import disclosure")
   browser(["fill", "input[type=password]", "wrong-password"])
   assert(evaluate("document.querySelector('.repository-import').open"), "password input closed import disclosure")
@@ -71,15 +74,57 @@ try {
   browser(["fill", "input[type=password]", password])
   click("Upload and preview")
   await until(() => evaluate("document.body.innerText.includes('example/toolkit')"), "encrypted backup did not reach real server preview")
-  assert(evaluate(`window.__importBodies.length===1 && window.__importBodies.every(body=>!body.includes(${JSON.stringify(password)})&&!body.includes('SYNTHETIC-')&&!body.includes('magpie-backup'))`), "excluded backup data or password transmitted")
+  assert(evaluate(`window.__importBodies.length===1 && window.__importBodies.every(body=>!body.includes(${JSON.stringify(password)})&&!body.includes('SYNTHETIC-')&&!body.includes('magpie-backup')&&!body.includes('magpie-2026-11-06'))`), "excluded backup data, filename or password transmitted")
   assert(evaluate("document.querySelector('input[type=password]').value === ''"), "export password retained in input")
+  assert.equal(evaluate("document.querySelectorAll('[role=checkbox][aria-checked=true]').length"), 0, "preview must not preselect items or acknowledge exclusions")
+  assert(evaluate("[...document.querySelectorAll('[role=region]')].some(node=>node.getAttribute('aria-label')==='Skill references candidates' && node.scrollHeight>node.clientHeight && node.clientHeight<=420)"), "large skill list must have bounded independent scrolling")
+  assert(evaluate("document.querySelectorAll('button[id*=notice-group]').length>0 && document.querySelectorAll('button[id*=notice-group]').length<=5"), "repeated notices must be grouped by reason")
+  browser(["fill", 'input[placeholder="Filter Skill references"]', "review-59"])
+  await until(() => evaluate("document.querySelector('[aria-label=\"Skill references candidates\"]').innerText.includes('review-59') && !document.querySelector('[aria-label=\"Skill references candidates\"]').innerText.includes('review-00')"), "skill filter must distinguish candidates")
+  browser(["focus", 'input[placeholder="Filter Skill references"]'])
+  browser(["press", "Control+a"])
+  browser(["press", "Backspace"])
+  await until(() => evaluate("document.querySelector('[aria-label=\"Skill references candidates\"]').querySelectorAll('[role=checkbox]').length===60"), "clearing the skill filter must restore all candidates")
   for (const width of [375, 1440]) {
     browser(["set", "viewport", String(width), "1000"])
     assert(evaluate("document.documentElement.scrollWidth<=innerWidth+1"), "import view overflow")
     browser(["screenshot", join(output, `magpie-preview-${width}.png`), "--full"])
   }
-  console.log("PASS: actual encrypted backup UI, wrong-password no-upload, real service preview, password/excluded data not transmitted, 375/1440 layout")
-} catch (error) { failure = error }
+  evaluate("document.querySelector('[aria-label=\"Repositories candidates\"]').closest('fieldset').querySelector('button').setAttribute('data-test-bulk','repositories')")
+  browser(["focus", '[data-test-bulk="repositories"]'])
+  browser(["press", "Enter"])
+  await until(() => evaluate("document.querySelector('[aria-label=\"Repositories candidates\"]').querySelectorAll('[role=checkbox][aria-checked=true]').length===1 && document.querySelector('[aria-label=\"Skill references candidates\"]').querySelectorAll('[role=checkbox][aria-checked=true]').length===0 && [...document.querySelectorAll('[role=region]')].filter(node=>node.getAttribute('aria-label')?.includes('configuration')).every(node=>node.querySelectorAll('[role=checkbox][aria-checked=true]').length===0)"), "repository-only bulk selection must remain independent")
+  assert(evaluate("[...document.querySelectorAll('button')].find(node=>node.textContent==='Review and confirm selection').disabled"), "exclusions must still require explicit acknowledgement")
+  const noticeIds = evaluate("[...document.querySelectorAll('button[id*=notice-group]')].map(node=>node.id)")
+  for (const id of noticeIds) { browser(["focus", `[id=${JSON.stringify(id)}]`]); browser(["press", "Space"]) }
+  await until(() => evaluate("![...document.querySelectorAll('button')].find(node=>node.textContent==='Review and confirm selection').disabled"), "all grouped notices must acknowledge their original IDs")
+  browser(["focus", `[id=${JSON.stringify(noticeIds[0])}]`])
+  browser(["press", "Space"])
+  assert(evaluate("[...document.querySelectorAll('button')].find(node=>node.textContent==='Review and confirm selection').disabled"), "clearing a notice group must block confirmation")
+  assert(evaluate(`(${JSON.stringify(noticeIds.slice(1))}).every(id=>document.getElementById(id).getAttribute('aria-checked')==='true')`), "clearing one notice group must preserve other acknowledgements")
+  browser(["press", "Space"])
+  click("Review and confirm selection")
+  await until(() => evaluate("!!document.querySelector('[role=dialog]')"), "confirmation missing")
+  click("Import the selected items")
+  await until(() => evaluate("document.body.innerText.includes('Import completed (not installed or applied to a device)')"), "real repository import did not finish")
+  assert(evaluate("document.body.innerText.includes('Collected and scanned')"), "receipt must explain repository outcome")
+  assert(evaluate("!document.body.innerText.includes('magpie-2026-11-06.magpie-backup')"), "completed import must release local file metadata")
+  const requests = await fetch(ready.controlURL + "/state", { headers: { "X-Fixture-Capability": ready.capability } }).then(response => response.json())
+  assert.equal(requests['/skillhub.import.v1.ImportService/CommitImportSelection'], 1, "group acknowledgement must preserve one commit")
+  console.log("PASS: native extension and local filename, 60-item bounded/filterable preview, grouped explicit acknowledgements, repository-only bulk selection and real single commit, visible receipt, wrong-password and secret boundaries")
+} catch (error) {
+  failure = error
+  try {
+    if (evaluate("[...document.querySelectorAll('input[type=password]')].every(node=>!node.value) && !document.body.innerText.includes('SYNTHETIC-')")) browser(["screenshot", join(output, "failure.png"), "--full"])
+    const status = evaluate("({statuses:[...document.querySelectorAll('.source-card [role=status],.source-card [role=alert]')].map(node=>node.innerText),dialog:!!document.querySelector('[role=dialog]')})")
+    writeFileSync(join(output, "failure-state.json"), JSON.stringify(status, null, 2), { mode: 0o600 })
+    if (ready) {
+      const response = await fetch(ready.controlURL + "/state", { headers: { "X-Fixture-Capability": ready.capability }, signal: AbortSignal.timeout(5000) })
+      assert.equal(response.status, 200)
+      writeFileSync(join(output, "requests.json"), JSON.stringify(await response.json()), { mode: 0o600 })
+    }
+  } catch {}
+}
 finally {
   try { browser(["close"]) } catch (error) { failure ??= error }
   if (ready) {

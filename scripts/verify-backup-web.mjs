@@ -21,6 +21,9 @@ const delay = (duration) => new Promise((done) => setTimeout(done, duration))
 let ready, failure
 
 function browser(args, input) {
+  if (args[0] === "click" && args[1]?.startsWith("[role=dialog]")) {
+    browser(["wait", "--fn", `(() => { const target = document.querySelector(${JSON.stringify(args[1])}); if (!target) return false; const box = target.getBoundingClientRect(); return target.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)) })()`])
+  }
   const result = spawnSync(resolve(values["browser-bin"]), ["--session", session, "--executable-path", resolve(values["chrome-bin"]), "--allowed-domains", "127.0.0.1", "--ignore-https-errors", "--json", ...args], { input, encoding: "utf8", timeout: 30000, maxBuffer: 4 << 20 })
   assert.equal(result.status, 0, `browser ${args[0]} failed: ${result.stderr || result.stdout}`)
   const parsed = JSON.parse(result.stdout)
@@ -35,7 +38,12 @@ async function control(path, body) {
   return body === undefined ? response.json() : undefined
 }
 const mode = (value = "") => control("mode", { mode: value })
-function click(name) { browser(["find", "role", "button", "click", "--name", name, "--exact"]) }
+function click(name) {
+  if (evaluate(`Array.from(document.querySelectorAll('[role=dialog] button')).some(node => node.textContent.trim() === ${JSON.stringify(name)})`)) {
+    browser(["wait", "--fn", `(() => { const target = Array.from(document.querySelectorAll('[role=dialog] button')).find(node => node.textContent.trim() === ${JSON.stringify(name)}); if (!target) return false; const box = target.getBoundingClientRect(); return target.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)) })()`])
+  }
+  browser(["find", "role", "button", "click", "--name", name, "--exact"])
+}
 function capture(name, full = true) { browser(["screenshot", join(output, `${name}.png`), ...(full ? ["--full"] : [])]); evidence.push({ check: name }) }
 const pageText = () => evaluate("document.querySelector('.backup-page')?.textContent ?? ''")
 async function login(url = ready.url, ordinary = false) {
@@ -98,10 +106,11 @@ async function recoverLost(kind) {
 function geometry(context) {
   const result = evaluate(`(() => {
     const root=document.querySelector('[role=dialog]') ?? document.querySelector('.backup-page');
+    const visible=node=>{const closed=node.closest('details:not([open])');return !closed || !!closed.querySelector(':scope > summary')?.contains(node)};
     const nodes=Array.from(root.querySelectorAll('button,input,[role=checkbox],code,h1,h2,h3,p,dt,dd,label'));
-    const elements=nodes.flatMap(node=>{const box=node.getBoundingClientRect();return box.width && (box.left < -1 || box.right > innerWidth+1 || node.scrollWidth > node.clientWidth+2) ? [{tag:node.tagName,role:node.getAttribute('role'),text:node.textContent.slice(0,80),left:box.left,right:box.right,scroll:node.scrollWidth,client:node.clientWidth}] : []});
+    const elements=nodes.filter(visible).flatMap(node=>{const box=node.getBoundingClientRect();return box.width && (box.left < -1 || box.right > innerWidth+1 || node.tagName !== 'INPUT' && node.scrollWidth > node.clientWidth+2) ? [{tag:node.tagName,role:node.getAttribute('role'),text:node.textContent.slice(0,80),left:box.left,right:box.right,scroll:node.scrollWidth,client:node.clientWidth}] : []});
     const text=[];const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
-    while(walker.nextNode()){const node=walker.currentNode;if(!node.textContent.trim() || node.parentElement.closest('svg'))continue;const range=document.createRange();range.selectNodeContents(node);for(const box of range.getClientRects())if(box.width&&(box.left < -1 || box.right > innerWidth+1))text.push({text:node.textContent.slice(0,80),left:box.left,right:box.right})}
+    while(walker.nextNode()){const node=walker.currentNode;if(!node.textContent.trim() || node.parentElement.closest('svg') || !visible(node.parentElement))continue;const range=document.createRange();range.selectNodeContents(node);for(const box of range.getClientRects())if(box.width&&(box.left < -1 || box.right > innerWidth+1))text.push({text:node.textContent.slice(0,80),left:box.left,right:box.right})}
     return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,fontSize:getComputedStyle(document.documentElement).fontSize,elements,text,overflowX:getComputedStyle(root).overflowX};
   })()`)
   layouts.push({ ...context, ...result })
@@ -131,8 +140,10 @@ try {
   capture("empty-dark-en")
   browser(["focus", ".backup-section-heading button"])
   browser(["press", "Enter"])
+  await until(() => evaluate("!!document.activeElement.closest('[role=dialog]')"), "Radix dialog focus did not settle")
   assert.equal(evaluate("!!document.activeElement.closest('[role=dialog]')"), true, "Radix must move keyboard focus into dialog")
   browser(["press", "Escape"])
+  await until(() => evaluate("document.activeElement.matches('.backup-section-heading button')"), "Radix did not restore trigger focus")
   assert.equal(evaluate("document.activeElement.matches('.backup-section-heading button')"), true, "Radix must restore trigger focus")
   await confirmStart()
   await committed(1)
@@ -153,8 +164,10 @@ try {
   await until(() => pageText().includes("The server did not confirm the request"), "forget setup missing")
   const forgetBefore = await control("state")
   click("Forget browser record")
+  await until(() => evaluate("(() => { const button = [...document.querySelectorAll('[role=dialog] button')].find(node => node.textContent === 'Forget this browser record'); if (!button) return false; const box = button.getBoundingClientRect(); return button.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)) })()"), "forget confirmation is not ready for pointer interaction")
   click("Forget this browser record")
   await until(() => pageText().includes("Browser record removed"), "forget acknowledgement missing")
+  await until(() => evaluate("document.activeElement.id==='backup-tasks-heading'"), "forgotten trigger did not restore focus to task history")
   assert.equal(evaluate("document.activeElement.id"), "backup-tasks-heading", "forgotten trigger must not leave focus on body")
   const forgetAfter = await control("state")
   assert.deepEqual(forgetAfter.startIDs, forgetBefore.startIDs)
@@ -267,6 +280,7 @@ try {
     click(startLabel)
     geometry({ ...context, surface: "start-dialog" })
     capture(`${theme}-${locale}-${width}-200pct-start`, false)
+    await until(() => evaluate("document.activeElement.matches('[role=dialog] h2')"), "large confirmation focus did not settle")
     assert.equal(evaluate("document.activeElement.matches('[role=dialog] h2')"), true, "large confirmation must initially focus its stable heading")
     focusedControl({ ...context, surface: "start-heading" })
     browser(["press", "Tab"])
@@ -282,6 +296,7 @@ try {
     await until(() => evaluate("!!document.querySelector('[role=dialog] .backup-metadata')"), "real detail not readable")
     geometry({ ...context, surface: "detail-dialog" })
     capture(`${theme}-${locale}-${width}-200pct-detail`, false)
+    await until(() => evaluate("document.activeElement.matches('[role=dialog] h2')"), "task detail focus did not settle")
     assert.equal(evaluate("document.activeElement.matches('[role=dialog] h2')"), true, "loading detail must not push initial keyboard focus offscreen")
     focusedControl({ ...context, surface: "detail-heading" })
     browser(["press", "Tab"])

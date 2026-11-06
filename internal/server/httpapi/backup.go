@@ -16,8 +16,60 @@ import (
 
 type backupManagementHandler struct {
 	auth       *authHandler
-	controller *backup.Controller
+	controller BackupBackend
 	admins     []string
+}
+
+type BackupBackend interface {
+	Enabled() bool
+	AutomaticEnabled() bool
+	Start(context.Context, string, string) (backup.Job, error)
+	Get(context.Context, string) (backup.Job, error)
+	List(context.Context, int, string) (backup.JobPage, error)
+	Cancel(context.Context, string, string) (backup.Job, error)
+	Reconcile(context.Context, string, string) (backup.Job, error)
+}
+
+type BackupSettingsBackend interface {
+	GetBackupSettings(context.Context) (*managementv1.BackupSettings, error)
+	UpdateBackupSettings(context.Context, *managementv1.UpdateBackupSettingsRequest) (*managementv1.BackupSettings, error)
+}
+
+func (handler *backupManagementHandler) GetBackupSettings(ctx context.Context, request *connect.Request[managementv1.GetBackupSettingsRequest]) (*connect.Response[managementv1.GetBackupSettingsResponse], error) {
+	if _, err := handler.administrator(ctx, request.Header()); err != nil {
+		return nil, err
+	}
+	backend, ok := handler.controller.(BackupSettingsBackend)
+	if !ok {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("backup settings unavailable on this platform"))
+	}
+	settings, err := backend.GetBackupSettings(ctx)
+	if err != nil {
+		return nil, backupManagementError(ctx, err)
+	}
+	response := connect.NewResponse(&managementv1.GetBackupSettingsResponse{Settings: settings})
+	response.Header().Set("Cache-Control", "no-store")
+	return response, nil
+}
+
+func (handler *backupManagementHandler) UpdateBackupSettings(ctx context.Context, request *connect.Request[managementv1.UpdateBackupSettingsRequest]) (*connect.Response[managementv1.UpdateBackupSettingsResponse], error) {
+	defer func() {
+		request.Msg.AccessKeyId, request.Msg.SecretAccessKey, request.Msg.SessionToken = "", "", ""
+	}()
+	if _, err := handler.administrator(ctx, request.Header()); err != nil {
+		return nil, err
+	}
+	backend, ok := handler.controller.(BackupSettingsBackend)
+	if !ok {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("backup settings unavailable on this platform"))
+	}
+	settings, err := backend.UpdateBackupSettings(ctx, request.Msg)
+	if err != nil {
+		return nil, backupManagementError(ctx, err)
+	}
+	response := connect.NewResponse(&managementv1.UpdateBackupSettingsResponse{Settings: settings})
+	response.Header().Set("Cache-Control", "no-store")
+	return response, nil
 }
 
 func (handler *backupManagementHandler) administrator(ctx context.Context, header http.Header) (string, error) {
@@ -36,7 +88,7 @@ func (handler *backupManagementHandler) requireEnabled(ctx context.Context, head
 	if err != nil {
 		return "", err
 	}
-	if handler.controller == nil {
+	if handler.controller == nil || !handler.controller.Enabled() {
 		return "", connect.NewError(connect.CodeFailedPrecondition, errors.New("server backup is disabled"))
 	}
 	return principal, nil
@@ -46,7 +98,11 @@ func (handler *backupManagementHandler) GetBackupStatus(ctx context.Context, req
 	if _, err := handler.administrator(ctx, request.Header()); err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&managementv1.GetBackupStatusResponse{Enabled: handler.controller != nil, Scope: "instance", AutomaticEnabled: handler.controller.AutomaticEnabled()}), nil
+	enabled, automatic := false, false
+	if handler.controller != nil {
+		enabled, automatic = handler.controller.Enabled(), handler.controller.AutomaticEnabled()
+	}
+	return connect.NewResponse(&managementv1.GetBackupStatusResponse{Enabled: enabled, Scope: "instance", AutomaticEnabled: automatic}), nil
 }
 
 func (handler *backupManagementHandler) StartBackup(ctx context.Context, request *connect.Request[managementv1.StartBackupRequest]) (*connect.Response[managementv1.StartBackupResponse], error) {

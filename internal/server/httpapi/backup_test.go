@@ -81,6 +81,17 @@ func TestBackupManagementDisabledAuthorization(test *testing.T) {
 	}
 }
 
+func TestBackupSettingsUnauthorizedRequestDropsCredentials(test *testing.T) {
+	handler := &backupManagementHandler{auth: &authHandler{service: testService(test)}}
+	request := connect.NewRequest(&managementv1.UpdateBackupSettingsRequest{AccessKeyId: "synthetic-private-access", SecretAccessKey: "synthetic-private-secret", SessionToken: "synthetic-private-token"})
+	if _, err := handler.UpdateBackupSettings(test.Context(), request); connect.CodeOf(err) != connect.CodeUnauthenticated {
+		test.Fatal("settings request bypassed authentication", err)
+	}
+	if request.Msg.AccessKeyId != "" || request.Msg.SecretAccessKey != "" || request.Msg.SessionToken != "" {
+		test.Fatal("HTTP handler retained write-only credentials")
+	}
+}
+
 func TestBackupManagementErrorPriorityAndRedaction(test *testing.T) {
 	ctx, cancel := context.WithCancel(test.Context())
 	cancel()
