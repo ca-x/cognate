@@ -1,5 +1,15 @@
 # Component releases
 
+## 2026-11-06 OpenCode import update
+
+Published component set: Server/LazyCat 0.6.0, CLI 0.3.0 and native GUI 0.1.4.
+All source tags bind `ed00481e84fb29fce6d5a50a2140875939911823`.
+See `RELEASE-v0.6.0.md` and `RELEASE-v0.6.0-VERIFICATION.md` for complete downloaded
+asset checks, Docker digests, MiaoMiao acceptance and the retained failed Darwin
+observation. Upgrade import clients together: old clients can reject an entire
+snapshot containing a READY OpenCode candidate; no capability negotiation exists.
+This controlled v1 import update does not finish the broader product backlog.
+
 ## Server 0.3.0
 
 `server-v0.3.0` fixes source `20c7a193a9582cd14cf9d29cbbbdcfbf414e54ec`

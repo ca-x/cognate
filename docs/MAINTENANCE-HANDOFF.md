@@ -1,5 +1,11 @@
 # 维护交接
 
+2026-11-06 后续组件已发布：Server/懒猫 0.6.0、CLI 0.3.0、MyGo 0.1.4，新增受控
+cc-switch OpenCode v1 选择导入与完整安全字段审阅。三个 source tag 固定 `ed00481`，
+最终下载及回执见 `RELEASE-v0.6.0-VERIFICATION.md`。旧客户端需配套升级；未交付
+OpenCode 本机应用或完整 F6/F12。喵喵接受 version `4253`，onlineVersion 仍 0.5.0。
+本轮 CLI tag 独立 Darwin baseline 再次失败，保留记录，不扩大平台资格；剩余开发授权有效。
+
 2026-11-06 用户明确要求继续推进，恢复剩余功能开发；以下停止开发的记录为历史，
 不再作为自动推进的阻挡。完整目标仍以 `REQUIREMENTS.md` 和 `TODO.md` 为准，
 0.5.0 的有限维护验收不代表原 backlog 完成。本轮先调查 Darwin CLI 原生验证的
