@@ -1,7 +1,8 @@
 # Web 交互与 React Bits 动效维护验收
 
 日期：2026-11-06。基线 `9d39f07b73c6b469ce4bba10b4c02f20e71f84ab`。
-范围仅 Web 维护；没有新的 Release、tag、Docker 或 LPK，也不改变 CLI/MyGo 资格。
+范围仅 Web 维护；代码验收时尚未创建新的分发，也不改变 CLI/MyGo 资格。
+后续已随 Server/懒猫 0.6.2 发布，准确 tag、产物与回执见 `RELEASE-v0.6.2-VERIFICATION.md`。
 没有访问真实 cc-switch 数据库或用户备份文件；所有浏览器场景使用本机合成 TLS 上游、
 真实服务端/SQLite 与独立测试浏览器，不连接外部 OIDC 提供方或用户 GitHub 账号。
 

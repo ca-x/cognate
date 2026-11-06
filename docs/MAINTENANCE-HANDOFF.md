@@ -1,11 +1,17 @@
 # 维护交接
 
-2026-11-06 追加 Web 维护（**尚未发布新版本**）：按需适配 React Bits 的局部追光及
+2026-11-06 追加 Web 维护已随 **Server/懒猫 0.6.2** 发布：源码 `6433947`、包装
+`664e2d2`，不可变 tag 为 `server-v0.6.2` / `v0.6.2`；CLI/GUI 不重发。
+按需适配 React Bits 的局部追光及
 登录引导渐入，不引入动画运行时依赖；源码固定来源，完整许可随 Web 资源内嵌。
 导入/仓库搜索支持清空、IME 与准确计数；备份表单区分草稿和生效状态，丢弃前确认，
 保存取消旧读取、缓存回访不后台覆盖，跨 revision 重载恢复焦点。已有 CAS/Unknown、
 凭据不回显及热配置门禁不变。真实浏览器证据与一次 Go CAS 断言失败单独记录在
-`UI-INTERACTION-POLISH-VERIFICATION.md`，不是新 Release/镜像/LPK 的分发验收。
+`UI-INTERACTION-POLISH-VERIFICATION.md`。Source Build、Server release 与 Platform
+成功；LazyCat 首轮在 apt 网络停滞，确认发布 job skipped 后取消，同源码仅重跑一次成功。
+最终双架构镜像与 LPK 完整校验，实际二进制匿名许可请求及隔离 root 首装/升级通过。
+喵喵接受 app670/version4295，回执 onlineVersion 仍 0.6.1，店面切换与真机升级待确认。
+完整分发证据见 `RELEASE-v0.6.2-VERIFICATION.md`，不扩大原生 GUI 或完整产品验收。
 
 2026-11-06 维护版本 **Server/懒猫 0.6.1** 已发布。源码 `b993ed5`、懒猫包装 `f5a3253`，
 不可变标签分别为 `server-v0.6.1` / `v0.6.1`；CLI 0.3.0 与 MyGo 0.1.4 不重发。
