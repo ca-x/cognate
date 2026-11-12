@@ -6,12 +6,13 @@ import { useTranslation } from "react-i18next"
 import { lazy, StrictMode, Suspense, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { createRootRoute, createRoute, createRouter, lazyRouteComponent, Link, Outlet, RouterProvider, useRouterState } from "@tanstack/react-router"
-import { Archive, ChevronRight, Compass, FileText, FolderGit2, GitFork, KeyRound, Layers, LogOut, Server, Settings, Tags } from "lucide-react"
+import { ChevronRight, Layers, LogOut, Server } from "lucide-react"
 import { ApiProvider, useApi } from "./api"
 import { Button } from "./components/ui/button"
 import { useMotionRef } from "./lib/motion"
 import { validateCatalogSearch } from "./catalog"
 import { Preferences } from "./preferences"
+import { MobileNavigation, QuickNavigation, WorkspaceLinks, workspaceNavigation } from "./workspace-navigation"
 import logo from "../../assets/branding/server-web.png"
 import "./styles.css"
 import "./workspace-i18n"
@@ -30,23 +31,6 @@ const ConfigurationPage = lazy(() => import("./configuration").then((module) => 
 const MCPConfigurationPage = lazy(() => import("./configuration-mcp").then((module) => ({ default: module.MCPConfigurationPage })))
 const ServerLoggingPage = lazyRouteComponent(() => import("./server-logging"), "ServerLoggingPage")
 const ServerBackupPage = lazyRouteComponent(() => import("./server-backup"), "ServerBackupPage")
-
-const navigation = [
-  { label: "技能工作区", items: [
-    { to: "/", label: "来源", icon: GitFork },
-    { to: "/repositories", label: "仓库", icon: FolderGit2 },
-    { to: "/packs", label: "组合", icon: Layers },
-    { to: "/categories", label: "分类", icon: Tags },
-    { to: "/explore", label: "探索", icon: Compass },
-  ] },
-  { label: "配置与管理", items: [
-    { to: "/configuration", label: "AI 配置", icon: Settings },
-    { to: "/mcp-settings", label: "MCP", icon: KeyRound },
-    { to: "/server-logging", label: "服务端日志", icon: FileText },
-    { to: "/server-backup", label: "服务端备份", icon: Archive },
-    { to: "/account", label: "账号", icon: Settings },
-  ] },
-] as const
 
 function WorkspaceLoading() {
   useTranslation()
@@ -75,7 +59,7 @@ function PublicWorkspace() {
 
 function Workspace() {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
-  const currentLabel = navigation.map((group) => group.items.find((item) => item.to === pathname)?.label).find(Boolean) ?? "探索"
+  const currentLabel = workspaceNavigation.map((group) => group.items.find((item) => item.to === pathname)?.label).find(Boolean) ?? "探索"
   const pageRef = useMotionRef<HTMLDivElement>()
   useEffect(() => {
     const keyboard = () => {
@@ -108,11 +92,11 @@ function Workspace() {
     <a className="skip-link" href="#main">{t("跳到主要内容")}</a>
     <aside className="sidebar">
       <Link to="/" className="brand"><img src={logo} width="42" height="42" alt="" /><span>Cognate</span></Link>
-      <nav aria-label={t("主要导航")}>{navigation.map((group) => <div className="navigation-group" key={group.label}><p className="sidebar-label">{t(group.label)}</p>{group.items.map((item) => <Link key={item.to} to={item.to} activeOptions={{ exact: item.to === "/" }}><item.icon size={18} aria-hidden="true" />{t(item.label)}</Link>)}</div>)}</nav>
+      <WorkspaceLinks />
       <div className="sidebar-bottom"><Server size={15} aria-hidden="true" /><span>{t("自托管工作空间")}</span></div>
     </aside>
     <div className="workspace-body">
-      <header className="topbar"><span className="workspace-context"><Layers size={16} aria-hidden="true" />{t("我的资料库")}<ChevronRight size={13} aria-hidden="true" /><span className="workspace-location">{t(currentLabel)}</span></span><Preferences /><div className="flex min-w-0 items-center gap-3"><span className="workspace-user"><span className="workspace-avatar" aria-hidden="true">{session.username.slice(0, 1).toLocaleUpperCase()}</span><span className="max-w-36 truncate text-sm">{session.username}</span></span><Button variant="ghost" disabled={leaving} onClick={() => { void logout().catch(() => {}) }}><LogOut size={16} aria-hidden="true" />{leaving ? t("退出中…") : t("退出")}</Button></div></header>
+      <header className="topbar"><div className="workspace-topbar-leading"><MobileNavigation username={session.username} leaving={leaving} onLogout={() => { void logout().catch(() => {}) }} /><Link to="/" className="brand workspace-mobile-brand"><img src={logo} width="28" height="28" alt="" /><span>Cognate</span></Link><span className="workspace-context"><Layers size={16} aria-hidden="true" />{t("我的资料库")}<ChevronRight size={13} aria-hidden="true" /><span className="workspace-location">{t(currentLabel)}</span></span></div><QuickNavigation pathname={pathname} /><Preferences /><div className="workspace-account flex min-w-0 items-center gap-3"><span className="workspace-user"><span className="workspace-avatar" aria-hidden="true">{session.username.slice(0, 1).toLocaleUpperCase()}</span><span className="max-w-36 truncate text-sm">{session.username}</span></span><Button variant="ghost" disabled={leaving} onClick={() => { void logout().catch(() => {}) }}><LogOut size={16} aria-hidden="true" />{leaving ? t("退出中…") : t("退出")}</Button></div></header>
       <main id="main" className="page-content" tabIndex={-1}><div key={pathname} ref={pageRef} className="page-view"><Suspense fallback={<WorkspaceLoading />}><Outlet /></Suspense></div></main>
       <footer className="workspace-footer">Cognate <span aria-hidden="true">·</span> {t("自托管工作空间")}</footer>
     </div>

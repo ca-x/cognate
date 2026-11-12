@@ -33,6 +33,14 @@ async function control(path, body) { const response = await fetch(`${ready.contr
 async function load(path = "/explore") { browser(["open", ready.url + path]); await until(() => evaluate("!!document.querySelector('main h1')"), "page did not mount") }
 async function results(count = 24) { await until(() => evaluate(`document.querySelectorAll('.catalog-results > li').length === ${count}`), `expected ${count} real catalog results`) }
 function click(text) { browser(["find", "role", "button", "click", "--name", text, "--exact"]) }
+function expandCategories() {
+  if (!evaluate("document.querySelector('.catalog-filter-options').open")) {
+    const point = evaluate("(() => {const node=document.querySelector('.catalog-filter-options > summary');node.scrollIntoView({block:'center',behavior:'instant'});const bounds=node.getBoundingClientRect();return {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2}})()")
+    browser(["mouse", "move", String(Math.round(point.x)), String(Math.round(point.y))])
+    browser(["mouse", "down"]); browser(["mouse", "up"])
+  }
+  assert.equal(evaluate("document.querySelector('.catalog-filter-options').open"), true, "pointer must expand the native category disclosure")
+}
 function overflow() { return evaluate("document.documentElement.scrollWidth > innerWidth + 1") }
 async function preferences(theme, locale, width) {
   browser(["set", "viewport", String(width), width <= 375 ? "812" : "960"])
@@ -105,6 +113,7 @@ async function reflowMatrix() {
     await preferences(theme, locale, width)
     evaluate("document.documentElement.style.fontSize='200%'")
     await until(() => evaluate("document.querySelector('#catalog-category').options.length===65"), "real first category page missing")
+    expandCategories()
     layouts.push(reflowLayout({ ...context, page: "catalog" }))
     if (!values["geometry-only"]) {
       capture(`${name}-catalog`, false)
@@ -193,6 +202,39 @@ try {
     await preferences("light", "zh-CN", 1440)
     assert.equal(evaluate("!!document.querySelector('.public-catalog [aria-label=\"当前筛选\"]')"), true, "applied-filter context missing")
     assert.equal(evaluate("document.querySelector('#public-skills-title').textContent"), "公开技能")
+    await until(() => evaluate("document.querySelectorAll('.catalog-quick-categories button').length === 7"), "bounded category shortcuts missing")
+    const beforeView = (await control("state")).requests.length
+    const viewIDs = evaluate("Array.from(document.querySelectorAll('.catalog-skill-link'), node => node.getAttribute('href'))")
+    assert.equal(evaluate("document.querySelector('.catalog-results').dataset.view"), "grid")
+    assert.equal(evaluate("getComputedStyle(document.querySelector('.catalog-results')).gridTemplateColumns.split(' ').length"), 2)
+    click("列表视图")
+    assert.equal(evaluate("document.querySelector('.catalog-results').dataset.view"), "list")
+    assert.equal(evaluate("document.querySelector('[aria-label=列表视图]').getAttribute('aria-pressed')"), "true")
+    assert.deepEqual(evaluate("Array.from(document.querySelectorAll('.catalog-skill-link'), node => node.getAttribute('href'))"), viewIDs)
+    capture("catalog-list-view")
+    click("卡片视图")
+    assert.equal(evaluate("document.querySelector('.catalog-results').dataset.view"), "grid")
+    assert.equal((await control("state")).requests.length, beforeView, "view changes must not refetch the catalog")
+    evidence.push("grid-list-view-stable-identities-and-zero-extra-requests")
+
+    const quickCategory = evaluate("document.querySelector('#catalog-category option[value]:not([value=\"\"])').value")
+    click("列表视图")
+    expandCategories()
+    browser(["fill", "#catalog-query", "Change review"])
+    assert.equal((await control("state")).requests.length, beforeView, "typing must not submit the public search")
+    browser(["click", ".catalog-quick-categories button:nth-child(2)"])
+    await until(() => evaluate(`new URL(location.href).searchParams.get('q') === 'Change review' && new URL(location.href).searchParams.get('category') === ${JSON.stringify(quickCategory)} && document.querySelector('.list-section')?.getAttribute('aria-busy') === 'false'`), "quick category must compose with the current query draft")
+    assert.equal(evaluate("document.querySelector('#catalog-query').value"), "Change review")
+    assert.equal(evaluate("document.querySelector('[aria-label=列表视图]').getAttribute('aria-pressed')"), "true", "category changes must retain the chosen view even when no skills match")
+    click("清空技能搜索")
+    assert.equal(evaluate("document.activeElement.id"), "catalog-query")
+    assert.equal(evaluate("document.querySelector('#catalog-query').value"), "")
+    assert.equal(new URL(evaluate("location.href")).searchParams.get("q"), "Change review", "clearing a draft must not silently change the applied filter")
+    click("清除筛选"); await results()
+    assert.equal(evaluate("document.querySelector('.catalog-results').dataset.view"), "list")
+    click("卡片视图")
+    evidence.push("quick-category-composes-draft-and-clear-search-preserves-focus")
+
     const firstIDs = evaluate("Array.from(document.querySelectorAll('.catalog-skill-link'), node => node.getAttribute('href'))")
     click("下一页"); await results(3)
     const lastIDs = evaluate("Array.from(document.querySelectorAll('.catalog-skill-link'), node => node.getAttribute('href'))")
@@ -201,8 +243,10 @@ try {
     click("上一页"); await results()
     evidence.push("real-cursor-pagination-24-plus-3-no-duplicates")
 
+    expandCategories()
     const category = evaluate("document.querySelector('#catalog-category option[value]:not([value=\"\"])').value")
     browser(["select", "#catalog-category", category])
+    expandCategories()
     click("更多分类")
     await until(() => evaluate("document.querySelector('#catalog-category').options.length===4 && document.querySelector('#catalog-category').selectedOptions[0].textContent.includes('不在本页')"), "selected category not preserved across category pages")
     click("查找技能")
@@ -240,6 +284,7 @@ try {
     await control("mode", "normal")
     browser(["click", ".public-catalog .list-section .error-notice button"])
     await results()
+    expandCategories()
     browser(["click", ".public-catalog .catalog-search .error-notice button"])
     await until(() => evaluate("!document.querySelector('main [role=alert]')"), "category error did not recover independently")
     capture("recovered-results")
@@ -250,6 +295,7 @@ try {
     click("下一页"); await results(3)
     await until(() => evaluate("document.querySelector('main').textContent.includes('已达到本次分页浏览边界')"), "repeated skill cursor guard missing")
     assert.equal(evaluate("Array.from(document.querySelectorAll('button')).find(node=>node.textContent==='下一页').disabled"), true)
+    expandCategories()
     click("更多分类")
     await until(() => evaluate("document.querySelector('main').textContent.includes('已达到本次分类浏览边界')"), "repeated category cursor guard missing")
     capture("repeated-cursor-guards")
@@ -262,8 +308,12 @@ try {
     browser(["press", "Enter"]); browser(["press", "Tab"])
     assert.equal(evaluate("document.activeElement?.id"), "catalog-query")
     browser(["fill", "#catalog-query", "Change review"])
+    browser(["press", "Tab"]); assert.equal(evaluate("document.activeElement?.getAttribute('aria-label')"), "清空技能搜索")
+    browser(["press", "Tab"]); assert.equal(evaluate("document.activeElement?.type"), "submit")
+    browser(["press", "Tab"]); assert.equal(evaluate("document.activeElement?.matches('.catalog-filter-options > summary')"), true)
+    browser(["press", "Enter"])
     browser(["press", "Tab"]); assert.equal(evaluate("document.activeElement?.id"), "catalog-category")
-    browser(["press", "Tab"]); browser(["press", "Enter"])
+    browser(["press", "Shift+Tab"]); browser(["press", "Shift+Tab"]); browser(["press", "Enter"])
     await results(3)
     capture("keyboard-search")
     evidence.push("real-tab-skip-search-category-submit-order")
@@ -318,7 +368,7 @@ try {
     writeFileSync(join(output, "public-rpc-trace.json"), JSON.stringify(requests, null, 2), { mode: 0o600 })
     evidence.push("anonymous-only-no-download-no-private-fixture-data")
   }
-} catch (error) { failure = error }
+} catch (error) { failure = error; try { capture("failure") } catch {} }
 finally {
   if (ready) { try { writeFileSync(join(output, "public-rpc-trace.json"), JSON.stringify((await control("state")).requests, null, 2), { mode: 0o600 }) } catch (error) { failure ??= error } }
   if (started) { try { browser(["close"]) } catch (error) { failure ??= error } }

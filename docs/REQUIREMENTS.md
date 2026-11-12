@@ -4,6 +4,12 @@
 
 ### 2026-10-31 追加交付与安装约定
 
+- 用户补充（2026-11-12）：参考 `davila7/claude-code-templates` 优化 Web 界面与交互，
+  采用公开技能目录的搜索、分类、卡片/列表浏览模式及更清晰的工作区导航。沿用既定
+  React/TanStack/Radix、品牌与主题；遵循 UI/UX、Apple、Emil、Animate 规范，保持
+  键盘、窄屏、中英和 reduced-motion。仅借鉴信息结构，不复制素材或引入其业务协议；
+  本轮不改变安装/公开权限或原生 MyGo，不等同于新版本已发布。
+
 - 用户补充（2026-11-07）：支持通过代理拉取 GitHub skill。服务端后台提供管理员
   正向代理设置（HTTP/HTTPS/SOCKS5/SOCKS5h），凭据加密持久化、热生效；默认保留环境
   代理规则，不使用会接收 GitHub token 的第三方下载镜像。用户反馈的 Magpie 导入须
